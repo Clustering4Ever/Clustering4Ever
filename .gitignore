@@ -1,2 +1,6 @@
 *.class
 *.log
+target/
+clustering/target/
+core/target/
+qualityMeasure/target/
