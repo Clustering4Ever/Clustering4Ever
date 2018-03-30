@@ -12,12 +12,18 @@ import _root_.scala.util.Random
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : an Array with and ID and the vector
- * @param k : number of cluster
+ * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
-class KMeans(data: Array[(Int, Array[Double])], var k: Int, var epsilon: Double, var iterMax: Int, var metric: ContinuousDistances) extends ScalaClusteringAlgorithm with RealScalaDatasets
+class KMeans(
+	data: Array[(Int, Array[Double])],
+	var k: Int,
+	var epsilon: Double,
+	var iterMax: Int,
+	var metric: ContinuousDistances
+) extends ScalaClusteringAlgorithm with RealScalaDatasets
 {
 	val dim = data.head._2.size
 
@@ -51,7 +57,7 @@ class KMeans(data: Array[(Int, Array[Double])], var k: Int, var epsilon: Double,
 	/**
 	 * Run the K-Means
 	 **/
-	def run: ClusterizedData =
+	def run(): ClusterizedData =
 	{
 		val kmodes = initializationCentroids
 		val kmodesCardinalities = kmodes.map{ case (clusterID, _) => (clusterID, 0) }

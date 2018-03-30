@@ -11,5 +11,5 @@ trait ScalaClusteringAlgorithm extends DataSetsTypes
 	 * Execute the corresponding clustering algorithm
 	 * @return Array[(ClusterID, (ID, Vector))]
 	 **/
-	def run: ClusterizedData
+	def run(): ClusterizedData
 }

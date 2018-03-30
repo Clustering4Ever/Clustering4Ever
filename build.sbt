@@ -15,7 +15,7 @@ lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 lazy val sparkDeps = libraryDependencies ++= Seq(
 	   	"org.apache.spark" %% "spark-core" % sparkVersion % "provided",
 		"org.apache.spark" %% "spark-sql" % sparkVersion % "provided"
-//		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided",
+//		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided"
 //		"org.scalaz" %% "scalaz-core" % "7.2.18"
 	)
 
@@ -32,7 +32,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
 		bintrayRepository := "Clustering4Ever",
-	 	version := "onGoing1",
+	 	version := "0.1.1",
 		scalaVersion := "2.11.8",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
@@ -57,10 +57,20 @@ lazy val clusteringScala = (project in file("clustering/scala"))
 lazy val clusteringSpark = (project in file("clustering/spark"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
+	.settings(sparkDeps)
 	.dependsOn(core)
 
 lazy val documentation = (project in file("Documentation"))
 	.settings(commonSettingsC4E: _*)
-  	.settings( name := "Clustering4Ever" )
+  	.settings( name := "documentation" )
 	.enablePlugins(ScalaUnidocPlugin)
 	.aggregate(core, qualityMeasure, clusteringScala, clusteringSpark)
+
+lazy val clustering4ever = (project in file("Clustering4Ever"))
+	.settings(commonSettingsC4E: _*)
+  	.settings(
+  		name := "Clustering4Ever"
+  	)
+	.aggregate(core, qualityMeasure, clusteringScala, clusteringSpark)
+	.dependsOn(core, qualityMeasure, clusteringScala, clusteringSpark)
+	//.enablePlugins(ScalaUnidocPlugin)
