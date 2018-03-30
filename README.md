@@ -10,10 +10,10 @@ You will find additional contents about clustering algorithms [here](https://git
 
 Add `"clustering4ever" % "clustering4ever_2.11" % "0.1.3"` into your `libraryDependencies` in your build.sbt.
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
-* `core`
-* `clusteringscala` 
-* `clusteringspark`
-* `qualitymeasure`
+* [core](https://bintray.com/clustering4ever/core)
+* [clusteringscala](https://bintray.com/clustering4ever/clusteringScala)
+* [clusteringspark](https://bintray.com/clustering4ever/clusteringSpark)
+* [qualitymeasure](https://bintray.com/clustering4ever/qualityMeasure)
 
 ## Distributed algorithms
 
