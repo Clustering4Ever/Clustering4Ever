@@ -1,8 +1,12 @@
-package lipn.spartakus.core.math.distances
+package clustering4ever.math.distances.scalar
 
+import clustering4ever.math.distances.ContinuousDistances
 import _root_.scala.math.pow
 import _root_.scala.util.Try
 
+/**
+ * @author Beck Gaël
+ **/
 class Minkowski(p: Int) extends ContinuousDistances
 {
 	/**

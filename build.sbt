@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+//import com.typesafe.sbt.SbtGit.GitKeys._
 
 val sparkVersion = "2.2.0"
 
@@ -29,13 +30,13 @@ lazy val commonCredentialsAndResolvers = Seq(
 		)
 
 lazy val commonSettingsC4E = Seq(
-		organization := "spartakus",
-	 	version := "onGoing-SNAPSHOT",
+		organization := "clustering4ever",
+		bintrayRepository := "Clustering4Ever",
+	 	version := "onGoing1",
 		scalaVersion := "2.11.8",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
-		bintrayOrganization := Some("spartakus"),
-		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
+		bintrayOrganization := Some("clustering4ever"),
 		credentials += Credentials(Path.userHome / ".bintray" / ".credentials")
 	)
 
@@ -48,7 +49,18 @@ lazy val qualityMeasure = (project in file("qualityMeasure"))
 	.settings(mergeStrategyC4E)
 	.dependsOn(core)
 
-lazy val clustering = (project in file("clustering"))
+lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
 	.dependsOn(core)
+
+lazy val clusteringSpark = (project in file("clustering/spark"))
+	.settings(commonSettingsC4E:_*)
+	.settings(mergeStrategyC4E)
+	.dependsOn(core)
+
+lazy val documentation = (project in file("Documentation"))
+	.settings(commonSettingsC4E: _*)
+  	.settings( name := "Clustering4Ever" )
+	.enablePlugins(ScalaUnidocPlugin)
+	.aggregate(core, qualityMeasure, clusteringScala, clusteringSpark)

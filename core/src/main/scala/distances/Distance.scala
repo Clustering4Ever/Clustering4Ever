@@ -1,5 +1,8 @@
-package lipn.spartakus.core.math.distances
+package clustering4ever.math.distances
 
+/**
+ * @author Beck Gaël
+ **/
 trait Distance extends Serializable
 {
 	type T

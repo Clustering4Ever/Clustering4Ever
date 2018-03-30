@@ -1,5 +1,9 @@
-package lipn.spartakus.core.math.distances
+package clustering4ever.math.distances.binary
 
+import clustering4ever.math.distances.BinaryDistance
+/**
+ * @author Beck Gaël
+ **/
 class HammingDistance extends BinaryDistance
 {
 	/**

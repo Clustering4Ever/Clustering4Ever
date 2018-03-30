@@ -1,4 +1,4 @@
-val clusteringName = "clustering"
+val clusteringName = "clusteringScala"
 
 name := clusteringName
 

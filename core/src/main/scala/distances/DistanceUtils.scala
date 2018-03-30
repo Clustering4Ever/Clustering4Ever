@@ -1,5 +1,10 @@
-package lipn.spartakus.core.math.distances
+package clustering4ever.math.distances
 
+import clustering4ever.math.distances.binary.{HammingDistance, MeanMahanttan, PatternDifference, ShapeDifference, SizeDifference, Vari}
+import clustering4ever.math.distances.scalar.{Cosine, Euclidean, Minkowski}
+/**
+ * @author Beck Gaël
+ **/
 object DistanceUtils
 {
 	def chooseBinaryDistance(distanceAsStr: String): BinaryDistance =
