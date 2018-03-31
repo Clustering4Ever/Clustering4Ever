@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering.kmods
+package clustering4ever.scala.clustering.kmodes
 
 import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
