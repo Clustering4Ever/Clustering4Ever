@@ -1,5 +1,5 @@
-
 package clustering4ever.spark.clustering.mtm
+
 import scala.math.{abs, exp}
 import java.util.Random
 import org.apache.spark.rdd.RDD
