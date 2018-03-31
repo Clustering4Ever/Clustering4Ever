@@ -1,10 +1,11 @@
 package clustering4ever.math.distances.binary
 
 import _root_.clustering4ever.math.distances.BinaryDistance
+
 /**
  * @author Beck Gaël
  **/
-class HammingDistance extends BinaryDistance
+class Hamming extends BinaryDistance
 {
 	/**
 	  * The famous hamming distance implemented in its fast mono thread scala version

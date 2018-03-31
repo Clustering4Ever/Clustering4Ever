@@ -1,6 +1,6 @@
 package clustering4ever.math.distances
 
-import _root_.clustering4ever.math.distances.binary.{HammingDistance, MeanMahanttan, PatternDifference, ShapeDifference, SizeDifference, Vari}
+import _root_.clustering4ever.math.distances.binary.{Hamming, MeanMahanttan, PatternDifference, ShapeDifference, SizeDifference, Vari}
 import _root_.clustering4ever.math.distances.scalar.{Cosine, Euclidean, Minkowski}
 /**
  * @author Beck Gaël
@@ -11,13 +11,13 @@ object DistanceUtils
 	{
 		val choosenDistance = distanceAsStr match
 		{
-	        case "Hamming" => new HammingDistance
+	        case "Hamming" => new Hamming
 	        case "MeanMahanttan" => new MeanMahanttan
 	        case "PatternDifference" => new PatternDifference
 	        case "ShapeDifference" => new ShapeDifference
 	        case "SizeDifference" => new SizeDifference
 	        case "Vari" => new Vari 
-	        case _ => { println("Default choice => Hamming"); new HammingDistance }
+	        case _ => { println("Default choice => Hamming"); new Hamming }
     	}
     	println(choosenDistance)
 		choosenDistance
