@@ -22,13 +22,13 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ##### Batch
 * Self Organizing Maps
-* Mean Shift
+* [Mean Shift](https://github.com/beckgael/Mean-Shift-LSH)
   * Complexity
     * Initial complexity **O(n<sup>2</sup>)**
     * Improved complexity **O(n)** under some conditions
 
 ##### Streaming
-* GStream
+* [GStream](https://github.com/Spark-clustering-notebook/G-stream)
 
 ### Binary data
 * _K_-Modes
@@ -46,6 +46,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ### Clustering algorithms
 
 #### Scalar data
+* [Jenks Natural Breaks](https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization), a mono dimensionnal clustering
 * [_K_-Means](clustering/scala/src/main/scala/K-Means/README.md), a _K_-Means implementation allowing the choice of the dissimilarity measure.
 
 #### Binary data
