@@ -11,7 +11,7 @@ class KModes(
 	data: Array[(Int, Array[Int])],
 	var k: Int,
 	var epsilon: Double,
-	var jmax: Int,
+	var maxIter: Int,
 	var metric: BinaryDistance
 ) extends ScalaClusteringAlgorithm with BinaryScalaDatasets
 {
@@ -27,7 +27,7 @@ class KModes(
 		val zeroMod = Array.fill(dim)(0)
 		var cpt = 0
 		var allModsHaveConverged = false
-		while( cpt < jmax && ! allModsHaveConverged )
+		while( cpt < maxIter && ! allModsHaveConverged )
 		{
 			// Allocation to modes
 			val clusterized = data.map{ case (id, v) => (id, v, obtainNearestModID(v)) }
@@ -65,11 +65,10 @@ class KModes(
 object KModes extends BinaryScalaDatasets
 {
 
-	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, jmax: Int, metric: BinaryDistance): ClusterizedData =
+	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): ClusterizedData =
 	{
-		val kmodes = new KModes(data, k, epsilon, jmax, metric)
+		val kmodes = new KModes(data, k, epsilon, maxIter, metric)
 		val kmodesClusterized = kmodes.run()
-		//FusionSmallerClusters.fusionLittleClustersBinary(kmodesClusterized, cmin, metric)
 		kmodesClusterized
 	}
 }
