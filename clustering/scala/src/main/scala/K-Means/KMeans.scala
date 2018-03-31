@@ -1,9 +1,9 @@
 package clustering4ever.scala.clustering.kmeans
 
-import clustering4ever.clustering.ScalaClusteringAlgorithm
-import clustering4ever.clustering.datasetstype.RealScalaDatasets
-import clustering4ever.math.distances.ContinuousDistances
-import clustering4ever.util.SumArrays
+import _root_.clustering4ever.clustering.ScalaClusteringAlgorithm
+import _root_.clustering4ever.clustering.datasetstype.RealScalaDatasets
+import _root_.clustering4ever.math.distances.ContinuousDistances
+import _root_.clustering4ever.util.SumArrays
 import _root_.scala.math.{min, max}
 import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
@@ -109,7 +109,7 @@ object KMeans extends RealScalaDatasets
 	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): ClusterizedData =
 	{
 		val kmodes = new KMeans(data, k, epsilon, iterMax, metric)
-		val kmodesClusterized = kmodes.run
+		val kmodesClusterized = kmodes.run()
 		kmodesClusterized
 	}
 }

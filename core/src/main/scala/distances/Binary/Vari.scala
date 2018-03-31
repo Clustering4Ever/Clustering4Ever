@@ -1,6 +1,6 @@
 package clustering4ever.math.distances.binary
 
-import clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
+import _root_.clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
 import _root_.scala.math.pow
 
 /**

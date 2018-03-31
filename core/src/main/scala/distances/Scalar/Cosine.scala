@@ -1,6 +1,6 @@
 package clustering4ever.math.distances.scalar
 
-import clustering4ever.math.distances.ContinuousDistances
+import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.scala.math.{pow, sqrt}
 
 /**

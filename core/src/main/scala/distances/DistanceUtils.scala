@@ -1,7 +1,7 @@
 package clustering4ever.math.distances
 
-import clustering4ever.math.distances.binary.{HammingDistance, MeanMahanttan, PatternDifference, ShapeDifference, SizeDifference, Vari}
-import clustering4ever.math.distances.scalar.{Cosine, Euclidean, Minkowski}
+import _root.clustering4ever.math.distances.binary.{HammingDistance, MeanMahanttan, PatternDifference, ShapeDifference, SizeDifference, Vari}
+import _root.clustering4ever.math.distances.scalar.{Cosine, Euclidean, Minkowski}
 /**
  * @author Beck Gaël
  **/

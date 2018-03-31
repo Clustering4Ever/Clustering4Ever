@@ -1,6 +1,6 @@
 package clustering4ever.clustering
 
-import clustering4ever.clustering.datasetstype.DataSetsTypes
+import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 
 /**
  * @author Beck Gaël

@@ -1,6 +1,6 @@
 package clustering4ever.math.distances.binary
 
-import clustering4ever.math.distances.BinaryDistance
+import _root_.clustering4ever.math.distances.BinaryDistance
 /**
  * @author Beck Gaël
  **/

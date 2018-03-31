@@ -1,11 +1,11 @@
-package com.lipn.bgthesis.scala.clustering
+package clustering4ever.scala.clustering.kmods
 
 import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
-import clustering4ever.math.distances.BinaryDistance
-import clustering4ever.util.SumArrays
-import clustering4ever.clustering.datasetstype.BinaryScalaDatasets
-import clustering4ever.clustering.ScalaClusteringAlgorithm
+import _root_.clustering4ever.math.distances.BinaryDistance
+import _root_.clustering4ever.util.SumArrays
+import _root_.clustering4ever.clustering.datasetstype.BinaryScalaDatasets
+import _root_.clustering4ever.clustering.ScalaClusteringAlgorithm
 
 class KModes(
 	data: Array[(Int, Array[Int])],
