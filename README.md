@@ -8,13 +8,13 @@ You will find additional contents about clustering algorithms [here](https://git
 
 ## Include it in your project
 
-Add `"clustering4ever" % "clustering4ever_2.11" % "0.1.12"` to your `libraryDependencies` in your build.sbt.
+Add `"clustering4ever" % "clustering4ever_2.11" % "0.1.18"` to your `libraryDependencies` in your build.sbt.
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
 * core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
 * clusteringscala [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
 * clusteringspark[ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringspark/_latestVersion)
 
-## Distributed algorithms
+## Distributed algorithms, through Spark
 
 ### Clustering algorithms
 
@@ -23,6 +23,9 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ##### Batch
 * Self Organizing Maps
 * Mean Shift
+  * Complexity
+    * Initial complexity **O(n<sup>2</sup>)**
+    * Improved complexity **O(n)** under some conditions
 
 ##### Streaming
 * GStream
@@ -52,7 +55,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 #### Internal indexes
 * Davies Bouldin (scala)
-* Silhoutte (scala)
+* Silhouette (scala)
 
 
 ## [SparkNotebook](https://github.com/spark-notebook/spark-notebook)
