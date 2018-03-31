@@ -1,34 +1,37 @@
-package clustering4ever.clustering.indexes
+package clustering4ever.spark.indexes
 
 import _root_.scala.math.{max, log, sqrt}
 import _root_.scala.collection.parallel.mutable.ParArray
 import _root_.scala.collection.immutable.{HashMap, Map}
+import _root_.org.apache.spark.rdd.RDD
+import _root_.org.apache.spark.SparkContext
 
 /**
  * @author Beck Gaël
  *
  */
-class ScalaExternalsIndexes
+class SparkExternalsIndexes
 {
-	private def mutualInformationInternal(x: Array[Int], y:Array[Int]) =
+	private def mutualInformationInternal(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
 	{
-		require( x.size == y.size )
-		val n = x.size
-		val maxX = x.max
-		val maxY = y.max
+		val n = trueAndPredict.count
+		val maxX = trueAndPredict.max()(Ordering[Int].on(_._1))._1
+		val maxY = trueAndPredict.max()(Ordering[Int].on(_._2))._2
 
 		val maxOneIndices = (0 to maxX).toArray
 		val maxTwoIndices = (0 to maxY).toArray
 
-		val count = Array.fill(maxX + 1)(Array.fill(maxY +1)(0D))
-		for( i <- x.indices ) count(x(i))(y(i)) += 1D
+		val accNmi = new NmiAccumulator(Array.fill(maxX + 1)(Array.fill(maxY + 1)(0D)), maxX + 1, maxY + 1)
+		sc.register(accNmi, "NmiAccumulator")
+		trueAndPredict.foreach{ case (x, y) => accNmi.addOne(x, y) }
+
+		val count = accNmi.value
 
 		val ai = new Array[Double](maxX + 1)
 		val bj = new Array[Double](maxY + 1)
 
 		for( m <- maxOneIndices ) for( l <- maxTwoIndices ) ai(m) += count(m)(l)
 		for( m <- maxTwoIndices ) for( l <- maxOneIndices ) bj(m) += count(l)(m)
-
 
 		val nN = ai.reduce(_ + _)
 		var hu = 0D
@@ -46,15 +49,15 @@ class ScalaExternalsIndexes
 
 }
 
-object ScalaExternalsIndexes
+object SparkExternalsIndexes
 {
 	/**
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 **/
-	def mutualInformation(x: Array[Int], y:Array[Int]) =
+	def mutualInformation(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
 	{
-		(new ScalaExternalsIndexes).mutualInformationInternal(x, y)._1
+		(new SparkExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)._1
 	}
 
 	/**
@@ -62,9 +65,9 @@ object ScalaExternalsIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 **/
-	def nmi(x: Array[Int], y:Array[Int], normalization: String = "sqrt") =
+	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: String = "sqrt") =
 	{
-		val (mi, hu, hv) = (new ScalaExternalsIndexes).mutualInformationInternal(x, y)
+		val (mi, hu, hv) = (new SparkExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)
 		val nmi = normalization match
 		{
 			case "sqrt" => mi / sqrt(hu * hv)

@@ -32,7 +32,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
 		bintrayRepository := "Clustering4Ever",
-	 	version := "0.1.12",
+	 	version := "0.1.17",
 		scalaVersion := "2.11.8",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
@@ -43,11 +43,6 @@ lazy val commonSettingsC4E = Seq(
 lazy val core = (project in file("core"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
-
-lazy val qualityMeasure = (project in file("qualityMeasure"))
-	.settings(commonSettingsC4E:_*)
-	.settings(mergeStrategyC4E)
-	.dependsOn(core)
 
 lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(commonSettingsC4E:_*)
@@ -66,13 +61,13 @@ lazy val documentation = (project in file("Documentation"))
 	.settings(commonSettingsC4E: _*)
   	.settings( name := "documentation" )
 	.enablePlugins(ScalaUnidocPlugin)
-	.aggregate(core, qualityMeasure, clusteringScala, clusteringSpark)
+	.aggregate(core, clusteringScala, clusteringSpark)
 
 lazy val clustering4ever = (project in file("Clustering4Ever"))
 	.settings(commonSettingsC4E: _*)
   	.settings(
   		name := "Clustering4Ever"
   	)
-	.aggregate(core, qualityMeasure, clusteringScala, clusteringSpark)
-	.dependsOn(core, qualityMeasure, clusteringScala, clusteringSpark)
+	.aggregate(core, clusteringScala, clusteringSpark)
+	.dependsOn(core, clusteringScala, clusteringSpark)
 	//.enablePlugins(ScalaUnidocPlugin)
