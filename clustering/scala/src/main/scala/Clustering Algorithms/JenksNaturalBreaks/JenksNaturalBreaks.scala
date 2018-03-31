@@ -1,4 +1,4 @@
-package com.lipn.bgthesis.scala.clustering
+package clustering4ever.scala.clustering
 
 import _root_.scala.collection.mutable.ArrayBuffer
 
@@ -22,7 +22,7 @@ object JenksNaturalBreaks
     var id = 0
     var i3 = 0
     var i4 = 0
-    //var k = nbCat
+
     val matrixIter = (0 until nbValues).toArray
     val matrixIter2 = (0 until nbCat).toArray
     val mat1 = for( i <- matrixIter ) yield( for( j <- matrixIter2 ) yield( 1D ) )
@@ -54,8 +54,9 @@ object JenksNaturalBreaks
           }
         }
       }
-        mat1(l - 1)(0) = 1
-        mat2(l - 1)(0) = v
+     
+      mat1(l - 1)(0) = 1
+      mat2(l - 1)(0) = v
     }
           
     val kclass = for( i <- (1 to nbCat).toArray ) yield( i.toDouble )

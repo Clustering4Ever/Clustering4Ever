@@ -52,7 +52,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 #### Binary data
 * _K_-Modes
 
-### [Quality Indexes](Documentation/doc/QualityIndexes.md)
+## [Quality Indexes](Documentation/doc/QualityIndexes.md)
 
 #### External indexes
 * Mutual Information (scala & spark)
