@@ -33,6 +33,10 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ### Binary data
 * _K_-Modes
 
+### Mixed data
+* Self Organizing Maps
+  * Mixed topological Map
+
 ### Preprocessing algorithms
 * Gradient ascent
 * Feature selection
