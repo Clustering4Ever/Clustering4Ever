@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering
+package clustering4ever.scala.clustering.kmeans
 
 import _root_.clustering4ever.clustering.ScalaClusteringAlgorithm
 import _root_.clustering4ever.clustering.datasetstype.RealScalaDatasets

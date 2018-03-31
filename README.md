@@ -8,12 +8,12 @@ You will find additional contents about clustering algorithms [here](https://git
 
 ## Include it in your project
 
-Add `"clustering4ever" % "clustering4ever_2.11" % "0.1.3"` into your `libraryDependencies` in your build.sbt.
+Add `"clustering4ever" % "clustering4ever_2.11" % "0.1.3"` to your `libraryDependencies` in your build.sbt.
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
-* [core](https://bintray.com/clustering4ever/core)
-* [clusteringscala](https://bintray.com/clustering4ever/clusteringScala)
-* [clusteringspark](https://bintray.com/clustering4ever/clusteringSpark)
-* [qualitymeasure](https://bintray.com/clustering4ever/qualityMeasure)
+* core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
+* clusteringscala [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
+* clusteringspark[ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringspark/_latestVersion)
+* qualitymeasure [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/qualitymeasure/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/qualitymeasure/_latestVersion)
 
 ## Distributed algorithms
 
