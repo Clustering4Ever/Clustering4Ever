@@ -68,43 +68,21 @@ class KMeans(
 		val cardinalitiesAccumulator = new CardinalitiesAccumulator(centroids.map{ case (k, _) => (k, 0L) }, k)
 		sc.register(centroidsAccumulator, "centroidsAccumulator")
 		sc.register(cardinalitiesAccumulator, "cardinalitiesAccumulator")
-		val fast = true
 
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			if( fast )
+			val labeled = data.foreach{ case (id, v) =>
 			{
-				val labeled = data.foreach{ case (id, v) =>
-				{
-					val clusterID = obtainNearestModID(v, centroids)
-					centroidsAccumulator.addOne(clusterID, v)
-					cardinalitiesAccumulator.addOne(clusterID, 1L)
-				}}
-				centroids = centroidsAccumulator.value.map{ case (clusterID, centroid) => (clusterID, centroid.map(_ / cardinalitiesAccumulator.value(clusterID))) }
+				val clusterID = obtainNearestModID(v, centroids)
+				centroidsAccumulator.addOne(clusterID, v)
+				cardinalitiesAccumulator.addOne(clusterID, 1L)
+			}}
+			centroids = centroidsAccumulator.value.map{ case (clusterID, centroid) => (clusterID, centroid.map(_ / cardinalitiesAccumulator.value(clusterID))) }
 
-				centroidsAccumulator.reset
-				cardinalitiesAccumulator.reset
+			centroidsAccumulator.reset
+			cardinalitiesAccumulator.reset
 
-				allModHaveConverged = centroids.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
-			}
-			else
-			{
-				val labeled = data.map{ case (id, v) =>
-				{
-					val clusterID = obtainNearestModID(v, centroids)
-					(clusterID, v)
-				}}
-				.partitionBy(new HashPartitioner(sc.defaultParallelism)).cache
-
-				val cardinalities = labeled.countByKey
-				val centroidsUpdated = labeled.reduceByKeyLocally( (v1, v2) => SumArrays.sumArraysNumerics(v1, v2) ).map{ case (clusterID, mod) => (clusterID, mod.map(_ / cardinalities(clusterID))) }
-				
-				labeled.unpersist(false)
-
-				allModHaveConverged = centroidsUpdated.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
-				
-				centroidsUpdated.foreach{ case (clusterID, mod) => centroids(clusterID) = mod }
-			}
+			allModHaveConverged = centroids.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
 			
 			cpt += 1
 		}
