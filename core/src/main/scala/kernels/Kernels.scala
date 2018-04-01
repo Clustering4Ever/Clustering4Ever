@@ -14,12 +14,12 @@ object Kernels
 	def flatKernel(v1: Array[Double], v2: Array[Double], bandwitch: Double, metric: ContinuousDistances) =
 	{
 		val λ = 1D
-		if( metric.distance(v1, v2) / pow(bandwitch, 2) <= λ ) 1D else 0D 
+		if( metric.d(v1, v2) / pow(bandwitch, 2) <= λ ) 1D else 0D 
 	}
 
 	def gaussianKernel(v1: Array[Double], v2:Array[Double], bandwitch: Double, metric: ContinuousDistances) =
 	{
-		exp( - bandwitch * metric.distance(v1, v2) )
+		exp( - bandwitch * metric.d(v1, v2) )
 	}
 
 	def sigmoidKernel(v1: Array[Double], v2:Array[Double], a: Double = 1D, b: Double = 0D) =

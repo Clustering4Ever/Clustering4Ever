@@ -2,8 +2,10 @@ package clustering4ever.math.distances
 
 import _root_.clustering4ever.math.distances.binary.{Hamming, MeanMahanttan, PatternDifference, ShapeDifference, SizeDifference, Vari}
 import _root_.clustering4ever.math.distances.scalar.{Cosine, Euclidean, Minkowski}
+
 /**
  * @author Beck Gaël
+ * DistanceUtils implements methods facilitating call for a specific metric
  **/
 object DistanceUtils
 {
@@ -11,16 +13,19 @@ object DistanceUtils
 	{
 		val choosenDistance = distanceAsStr match
 		{
-	        case "Hamming" => new Hamming
-	        case "MeanMahanttan" => new MeanMahanttan
-	        case "PatternDifference" => new PatternDifference
-	        case "ShapeDifference" => new ShapeDifference
-	        case "SizeDifference" => new SizeDifference
-	        case "Vari" => new Vari 
-	        case _ => { println("Default choice => Hamming"); new Hamming }
+	        case "Hamming" => Some(new Hamming)
+	        case "MeanMahanttan" => Some(new MeanMahanttan)
+	        case "PatternDifference" => Some(new PatternDifference)
+	        case "ShapeDifference" => Some(new ShapeDifference)
+	        case "SizeDifference" => Some(new SizeDifference)
+	        case "Vari" => Some(new Vari) 
+	        case _ =>
+	        {
+	        	throw new IllegalArgumentException("You choose a wrong Distance name")
+    			None
+    		}
     	}
-    	println(choosenDistance)
-		choosenDistance
+		choosenDistance.get
 	}
 
 	def chooseScalarDistance(distanceAsStr: String): ContinuousDistances =
@@ -30,12 +35,15 @@ object DistanceUtils
 
 		val choosenDistance = distance match
 		{
-	        case "Cosim" => new Cosine
-	        case "Euclidean" => new Euclidean(param.toBoolean)
-	        case "Minkowski" => new Minkowski(param.toInt)
-	        case _ => { println("Default choice => Euclidean"); new Euclidean(root = false) }
+	        case "Cosim" => Some(new Cosine)
+	        case "Euclidean" => Some(new Euclidean(param.toBoolean))
+	        case "Minkowski" => Some(new Minkowski(param.toInt))
+	        case _ =>
+	        {
+	        	throw new IllegalArgumentException("You choose a wrong Distance name")
+    			None
+    		}
     	}
-    	println(choosenDistance)
-    	choosenDistance
+    	choosenDistance.get
    	}
 }

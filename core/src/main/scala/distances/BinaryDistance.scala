@@ -3,8 +3,7 @@ package clustering4ever.math.distances
 /**
  * @author Beck Gaël
  **/
-trait BinaryDistance extends Distance
+trait BinaryDistance extends Distance[Array[Int]]
 {
-	type T = Int
-	def distance(vector1: Seq[T], vector2: Seq[T]): Double
+	def d(vector1: Array[Int], vector2: Array[Int]): Double
 }

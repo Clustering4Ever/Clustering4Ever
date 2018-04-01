@@ -32,7 +32,7 @@ class KMeans(
 {
 	type CentroidsMap = mutable.HashMap[Int, Array[Double]]
 
-	def obtainNearestModID(v: Array[Double], kModesCentroids: CentroidsMap): Int = kModesCentroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.distance(mod, v)) }.sortBy(_._2).head._1
+	def obtainNearestModID(v: Array[Double], kModesCentroids: CentroidsMap): Int = kModesCentroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 
 	def run(): ClusterizedRDD =
 	{
@@ -85,7 +85,7 @@ class KMeans(
 				centroidsAccumulator.reset
 				cardinalitiesAccumulator.reset
 
-				allModHaveConverged = centroids.forall{ case (clusterID, uptMod) => metric.distance(centroids(clusterID), uptMod) <= epsilon }
+				allModHaveConverged = centroids.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
 			}
 			else
 			{
@@ -101,7 +101,7 @@ class KMeans(
 				
 				labeled.unpersist(false)
 
-				allModHaveConverged = centroidsUpdated.forall{ case (clusterID, uptMod) => metric.distance(centroids(clusterID), uptMod) <= epsilon }
+				allModHaveConverged = centroidsUpdated.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
 				
 				centroidsUpdated.foreach{ case (clusterID, mod) => centroids(clusterID) = mod }
 			}

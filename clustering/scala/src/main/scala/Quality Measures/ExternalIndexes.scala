@@ -8,7 +8,7 @@ import _root_.scala.collection.immutable.{HashMap, Map}
  * @author Beck Gaël
  *
  */
-class ScalaExternalsIndexes
+class ExternalIndexes
 {
 	private def mutualInformationInternal(x: Array[Int], y:Array[Int]) =
 	{
@@ -46,7 +46,7 @@ class ScalaExternalsIndexes
 
 }
 
-object ScalaExternalsIndexes
+object ExternalIndexes
 {
 	/**
 	 * Compute the mutual information
@@ -54,7 +54,7 @@ object ScalaExternalsIndexes
 	 **/
 	def mutualInformation(x: Array[Int], y:Array[Int]) =
 	{
-		(new ScalaExternalsIndexes).mutualInformationInternal(x, y)._1
+		(new ExternalIndexes).mutualInformationInternal(x, y)._1
 	}
 
 	/**
@@ -64,7 +64,7 @@ object ScalaExternalsIndexes
 	 **/
 	def nmi(x: Array[Int], y:Array[Int], normalization: String = "sqrt") =
 	{
-		val (mi, hu, hv) = (new ScalaExternalsIndexes).mutualInformationInternal(x, y)
+		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(x, y)
 		val nmi = normalization match
 		{
 			case "sqrt" => mi / sqrt(hu * hv)

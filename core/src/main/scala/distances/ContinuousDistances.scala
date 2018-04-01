@@ -5,10 +5,9 @@ import _root_.scala.math.{pow, sqrt}
 /**
  * @author Beck Gaël
  **/
-trait ContinuousDistances extends Distance
+trait ContinuousDistances extends Distance[Array[Double]]
 {
-	type T = Double
-	def distance(vector1: Seq[T], vector2: Seq[T]): Double
+	def d(vector1: Array[Double], vector2: Array[Double]): Double
 }
 
 

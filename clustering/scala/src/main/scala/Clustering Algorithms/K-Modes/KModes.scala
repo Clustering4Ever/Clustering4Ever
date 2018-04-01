@@ -22,7 +22,7 @@ class KModes(
 		val kmodes = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
 		val kmodesCpt = kmodes.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestModID(v: Array[Int]): ClusterID = kmodes.toArray.map{ case(clusterID, mod) => (clusterID, metric.distance(mod, v)) }.sortBy(_._2).head._1
+		def obtainNearestModID(v: Array[Int]): ClusterID = kmodes.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 
 		val zeroMod = Array.fill(dim)(0)
 		var cpt = 0
@@ -47,7 +47,7 @@ class KModes(
 
 			kmodes.foreach{ case (clusterID, mod) => kmodes(clusterID) = mod.map( v => if( v * 2 >= kmodesCpt(clusterID) ) 1 else 0 ) }
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.distance(previousMod, kmodes(clusterID)) <= epsilon }
+			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, kmodes(clusterID)) <= epsilon }
 
 			cpt += 1
 		}

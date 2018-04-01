@@ -62,7 +62,7 @@ class KMeans(
 		val kmodes = initializationCentroids
 		val kmodesCardinalities = kmodes.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestModID(v: Array[Double]): ClusterID = kmodes.toArray.map{ case(clusterID, mod) => (clusterID, metric.distance(mod, v)) }.sortBy(_._2).head._1
+		def obtainNearestModID(v: Array[Double]): ClusterID = kmodes.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 
 		val zeroMod = Array.fill(dim)(0D)
 		var cpt = 0
@@ -87,7 +87,7 @@ class KMeans(
 
 			kmodes.foreach{ case (clusterID, mod) => kmodes(clusterID) = mod.map(_ / kmodesCardinalities(clusterID)) }
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.distance(previousMod, kmodes(clusterID)) <= epsilon }
+			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, kmodes(clusterID)) <= epsilon }
 
 			cpt += 1
 		}

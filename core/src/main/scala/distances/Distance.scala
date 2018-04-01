@@ -2,9 +2,9 @@ package clustering4ever.math.distances
 
 /**
  * @author Beck Gaël
+ * Most general notion of Distance, taking two object of type T and returning a Double
  **/
-trait Distance extends Serializable
+trait Distance[T] extends Serializable
 {
-	type T
-	def distance(vector1: Seq[T], vector2: Seq[T]): Double
+	def d(obj1: T, obj2: T): Double
 }
