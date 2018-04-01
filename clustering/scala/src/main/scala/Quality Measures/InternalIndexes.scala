@@ -5,14 +5,14 @@ import _root_.scala.collection.parallel.mutable.ParArray
 import _root_.scala.collection.immutable.{HashMap, Map}
 import _root_.clustering4ever.math.distances.scalar.Euclidean
 import _root_.clustering4ever.math.distances.ContinuousDistances
-import _root_.clustering4ever.clustering.datasetstype.RealScalaDatasets
+import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.util.SumArrays
 
 /**
  * @author Beck Gaël
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */
-class InternalIndexes extends RealScalaDatasets
+class InternalIndexes extends DataSetsTypes[Int, Double]
 {
   /**
   * Measure of how good the clustering scheme is
@@ -120,7 +120,7 @@ class InternalIndexes extends RealScalaDatasets
 
 }
 
-object InternalIndexes extends RealScalaDatasets
+object InternalIndexes extends DataSetsTypes[Int, Double]
 {
   /**
    * Monothreaded version of davies bouldin index

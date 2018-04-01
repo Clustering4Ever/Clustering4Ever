@@ -4,8 +4,8 @@ import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
 import _root_.clustering4ever.math.distances.BinaryDistance
 import _root_.clustering4ever.util.SumArrays
-import _root_.clustering4ever.clustering.datasetstype.BinaryScalaDatasets
-import _root_.clustering4ever.clustering.ScalaClusteringAlgorithm
+import _root_.clustering4ever.clustering.datasetstype.ClusteringTypes
+import _root_.clustering4ever.clustering.ClusteringAlgorithms
 
 class KModes(
 	data: Array[(Int, Array[Int])],
@@ -13,7 +13,7 @@ class KModes(
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: BinaryDistance
-) extends ScalaClusteringAlgorithm with BinaryScalaDatasets
+) extends ClusteringAlgorithms[Int, Int, Array[(Int, (Int, Array[Int]))]]
 {
 	val dim = data.head._2.size
 
@@ -62,7 +62,7 @@ class KModes(
 	
 }
 
-object KModes extends BinaryScalaDatasets
+object KModes extends ClusteringTypes[Int, Int, Array[(Int, (Int, Array[Int]))]]
 {
 
 	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): ClusterizedData =

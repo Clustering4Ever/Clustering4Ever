@@ -8,8 +8,8 @@ import scala.annotation.meta.param
 import scala.reflect.ClassTag
 import scala.math.{min, max}
 import clustering4ever.math.distances.ContinuousDistances
-import clustering4ever.clustering.SparkRealClusteringAlgorithm
-import clustering4ever.clustering.datasetstype.RDDDataSetsTypes
+import clustering4ever.clustering.datasetstype.ClusteringTypes
+import clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.util.SumArrays
 
 /**
@@ -28,13 +28,13 @@ class KMeans(
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: ContinuousDistances
-) extends SparkRealClusteringAlgorithm
+) extends ClusteringAlgorithms[Long, Double, RDD[(Int, (Long, Array[Double]))]]
 {
 	type CentroidsMap = mutable.HashMap[Int, Array[Double]]
 
 	def obtainNearestModID(v: Array[Double], kModesCentroids: CentroidsMap): Int = kModesCentroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 
-	def run(): ClusterizedRDD =
+	def run(): ClusterizedData =
 	{
 		val dim = data.first._2.size
 		
@@ -120,11 +120,10 @@ class KMeans(
 }
 
 
-object KMeans extends RDDDataSetsTypes
+object KMeans extends ClusteringTypes[Long, Double, RDD[(Int, (Long, Array[Double]))]]
 {
-	def run(@(transient @param) sc: SparkContext, data: RDD[(ID, Array[Double])], k: Int, epsilon: Double, maxIter: Int, metric: ContinuousDistances) =
+	def run(@(transient @param) sc: SparkContext, data: RDD[(ID, Array[Double])], k: Int, epsilon: Double, maxIter: Int, metric: ContinuousDistances): ClusterizedData =
 	{
-		//val cachedData = data.cache
 		val kmodes = new KMeans(sc, data, k, epsilon, maxIter, metric)
 		kmodes.run()
 	}

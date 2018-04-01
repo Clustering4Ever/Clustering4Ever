@@ -1,11 +1,11 @@
 package clustering4ever.clustering
 
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
+import _root_.clustering4ever.clustering.datasetstype.ClusteringTypes
 
 /**
  * @author Beck Gaël
  **/
-trait ScalaClusteringAlgorithm extends DataSetsTypes
+trait ClusteringAlgorithms[ID, NaturesValue, ClusterizedNature] extends ClusteringTypes[ID, NaturesValue, ClusterizedNature]
 {
 	/**
 	 * Execute the corresponding clustering algorithm

@@ -1,7 +1,7 @@
 package clustering4ever.scala.clustering.kmeans
 
-import _root_.clustering4ever.clustering.ScalaClusteringAlgorithm
-import _root_.clustering4ever.clustering.datasetstype.RealScalaDatasets
+import _root_.clustering4ever.clustering.datasetstype.ClusteringTypes
+import _root_.clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.clustering4ever.util.SumArrays
 import _root_.scala.math.{min, max}
@@ -23,7 +23,7 @@ class KMeans(
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: ContinuousDistances
-) extends ScalaClusteringAlgorithm with RealScalaDatasets
+) extends ClusteringAlgorithms[Int, Double, Array[(Int, (Int, Array[Double]))]]
 {
 	val dim = data.head._2.size
 
@@ -101,7 +101,7 @@ class KMeans(
 	}
 }
 
-object KMeans extends RealScalaDatasets
+object KMeans extends ClusteringTypes[Int, Double, Array[(Int, (Int, Array[Double]))]]
 {
 	/**
 	 * Run the K-Means
