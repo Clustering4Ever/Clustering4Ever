@@ -8,7 +8,7 @@ You will find additional contents about clustering algorithms [here](https://git
 
 ## Include it in your project
 
-Add `"clustering4ever" % "clustering4ever_2.11" % "0.1.27"` to your `libraryDependencies` in your build.sbt.
+Add `"clustering4ever" % "clustering4ever_2.11" % "0.2.0"` to your `libraryDependencies` in your build.sbt.
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
 * core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
 * clusteringscala [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
@@ -22,6 +22,8 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ##### Batch
 * _K_-Means
+  * Implementation allowing the choice of the dissimilarity measure.
+  * Complexity **_O(k.n.t)_**
 * Self Organizing Maps
 * [Mean Shift](https://github.com/beckgael/Mean-Shift-LSH)
   * Complexity
@@ -33,6 +35,8 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ### Binary data
 * _K_-Modes
+  * Complexity **_O(k.n.t)_**
+  * Implementation allowing the choice of the dissimilarity measure.
 
 ### Mixed data
 * Self Organizing Maps
@@ -47,11 +51,17 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ### Clustering algorithms
 
 #### Scalar data
-* [Jenks Natural Breaks](https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization), a mono dimensionnal clustering
-* [_K_-Means](clustering/scala/src/main/scala/K-Means/README.md), a _K_-Means implementation allowing the choice of the dissimilarity measure.
+* [Jenks Natural Breaks](https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization)
+  * A mono dimensionnal clustering
+* [_K_-Means](clustering/scala/src/main/scala/K-Means/README.md)
+  * Complexity **_O(k.n.t)_**
+  * Implementation allowing the choice of the dissimilarity measure.
 
 #### Binary data
 * _K_-Modes
+  * Complexity **_O(k.n.t)_**
+  * Implementation allowing the choice of the dissimilarity measure.
+  * Implementation allowing the choice of the dissimilarity measure.
 
 ## [Quality Indexes](Documentation/doc/QualityIndexes.md)
 
