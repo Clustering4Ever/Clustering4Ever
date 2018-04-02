@@ -11,6 +11,7 @@ import clustering4ever.math.distances.ContinuousDistances
 import clustering4ever.clustering.datasetstype.ClusteringTypes
 import clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.util.SumArrays
+import _root_.clustering4ever.spark.clustering.accumulators.{CentroidsScalarAccumulator, CardinalitiesAccumulator}
 
 /**
  * @author Beck Gaël
@@ -64,7 +65,7 @@ class KMeans(
 		var centroids = initializationModes()
 		var cpt = 0
 		var allModHaveConverged = false
-		val centroidsAccumulator = new CentroidsAccumulator(centroids.map{ case (k, v) => (k, Array.fill(dim)(0D)) }, k, dim)
+		val centroidsAccumulator = new CentroidsScalarAccumulator(centroids.map{ case (k, v) => (k, Array.fill(dim)(0D)) }, k, dim)
 		val cardinalitiesAccumulator = new CardinalitiesAccumulator(centroids.map{ case (k, _) => (k, 0L) }, k)
 		sc.register(centroidsAccumulator, "centroidsAccumulator")
 		sc.register(cardinalitiesAccumulator, "cardinalitiesAccumulator")

@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.kmeans
+package clustering4ever.spark.clustering.accumulators
 
 import org.apache.spark.util.AccumulatorV2
 import scala.collection.mutable
