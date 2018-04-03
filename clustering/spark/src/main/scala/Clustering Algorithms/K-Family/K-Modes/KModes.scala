@@ -39,29 +39,18 @@ class KModes(
 	def run(): ClusterizedData =
 	{
 		val dim = data.first._2.size
-		var centroids = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
+		val centroids = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
+		val centroidsUpdated = centroids.clone
 		var cpt = 0
 		var allModHaveConverged = false
-		val centroidsAccumulator = new CentroidsBinaryAccumulator(centroids.map{ case (k, v) => (k, Array.fill(dim)(0)) }, k, dim)
-		val cardinalitiesAccumulator = new CardinalitiesAccumulator(centroids.map{ case (k, _) => (k, 0L) }, k)
-		sc.register(centroidsAccumulator, "centroidsAccumulator")
-		sc.register(cardinalitiesAccumulator, "cardinalitiesAccumulator")
-
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			val labeled = data.foreach{ case (id, v) =>
-			{
-				val clusterID = obtainNearestModID(v, centroids)
-				centroidsAccumulator.addOne(clusterID, v)
-				cardinalitiesAccumulator.addOne(clusterID, 1L)
-			}}
-			centroids = centroidsAccumulator.value.map{ case (clusterID, centroid) => (clusterID, centroid.map( v => if( 2 * v >= cardinalitiesAccumulator.value(clusterID) ) 1 else 0)) }
-
-			centroidsAccumulator.reset
-			cardinalitiesAccumulator.reset
+			data.map{ case (id, v) => (obtainNearestModID(v, centroids), (1, v)) }.reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map(_ / cardinality)) }.collect.foreach{ case (clusterID, mean) => centroids(clusterID) = mean }
 
 			allModHaveConverged = centroids.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
 			
+			centroidsUpdated.foreach{ case (clusterID, mod) => centroids(clusterID) = mod }	
+
 			cpt += 1
 		}
 

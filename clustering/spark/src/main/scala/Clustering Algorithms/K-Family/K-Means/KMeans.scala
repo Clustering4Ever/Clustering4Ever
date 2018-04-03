@@ -62,28 +62,17 @@ class KMeans(
 			modes
 		}
 		
-		var centroids = initializationModes()
+		val centroids = initializationModes()
+		val centroidsUpdated = centroids.clone
 		var cpt = 0
 		var allModHaveConverged = false
-		val centroidsAccumulator = new CentroidsScalarAccumulator(centroids.map{ case (k, v) => (k, Array.fill(dim)(0D)) }, k, dim)
-		val cardinalitiesAccumulator = new CardinalitiesAccumulator(centroids.map{ case (k, _) => (k, 0L) }, k)
-		sc.register(centroidsAccumulator, "centroidsAccumulator")
-		sc.register(cardinalitiesAccumulator, "cardinalitiesAccumulator")
-
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			val labeled = data.foreach{ case (id, v) =>
-			{
-				val clusterID = obtainNearestModID(v, centroids)
-				centroidsAccumulator.addOne(clusterID, v)
-				cardinalitiesAccumulator.addOne(clusterID, 1L)
-			}}
-			centroids = centroidsAccumulator.value.map{ case (clusterID, centroid) => (clusterID, centroid.map(_ / cardinalitiesAccumulator.value(clusterID))) }
+			data.map{ case (id, v) => (obtainNearestModID(v, centroids), (1, v)) }.reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality)) }.collect.foreach{ case (clusterID, mean) => centroidsUpdated(clusterID) = mean }
 
-			centroidsAccumulator.reset
-			cardinalitiesAccumulator.reset
-
-			allModHaveConverged = centroids.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
+			allModHaveConverged = centroidsUpdated.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
+			
+			centroidsUpdated.foreach{ case (clusterID, mod) => centroids(clusterID) = mod }	
 			
 			cpt += 1
 		}
