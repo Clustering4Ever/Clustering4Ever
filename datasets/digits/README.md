@@ -1,0 +1,3 @@
+# Digits
+
+This datasets is composed with 2000 observations as 15x16 pixels image. 200 first are a 0, 200 following are a 1, ...
