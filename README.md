@@ -61,7 +61,6 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * _K_-Modes
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
-  * Implementation allowing the choice of the dissimilarity measure.
 
 ## [Quality Indexes](Documentation/doc/QualityIndexes.md)
 
