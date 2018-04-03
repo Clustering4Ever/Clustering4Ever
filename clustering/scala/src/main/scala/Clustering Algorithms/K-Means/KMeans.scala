@@ -1,6 +1,6 @@
 package clustering4ever.scala.clustering.kmeans
 
-import _root_.clustering4ever.clustering.datasetstype.ClusteringTypes
+import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.clustering4ever.util.SumArrays
@@ -23,7 +23,7 @@ class KMeans(
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: ContinuousDistances
-) extends ClusteringAlgorithms[Int, Double, Array[(Int, (Int, Array[Double]))]]
+) extends ClusteringAlgorithms[Int, Double]
 {
 	val dim = data.head._2.size
 
@@ -50,66 +50,61 @@ class KMeans(
 		})
 
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val modes = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
-		modes
+		val centroids = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+		centroids
 	}
 
 	/**
 	 * Run the K-Means
 	 **/
-	def run(): ClusterizedData =
+	def run(): KMeansModel =
 	{
-		val kmodes = initializationCentroids
-		val kmodesCardinalities = kmodes.map{ case (clusterID, _) => (clusterID, 0) }
+		val centroids = initializationCentroids
+		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestModID(v: Array[Double]): ClusterID = kmodes.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+		def obtainNearestModID(v: Array[Double]): ClusterID = centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 
 		val zeroMod = Array.fill(dim)(0D)
 		var cpt = 0
 		var allModsHaveConverged = false
 		while( cpt < iterMax && ! allModsHaveConverged )
 		{
-			// Allocation to modes
+			// Allocation to nearest centroid
 			val clusterized = data.map{ case (id, v) => (id, v, obtainNearestModID(v)) }
 
-			val kModesBeforeUpdate = kmodes.clone
+			val kModesBeforeUpdate = centroids.clone
 
-			// Reinitialization of modes
-			kmodes.foreach{ case (clusterID, mod) => kmodes(clusterID) = zeroMod }
-			kmodesCardinalities.foreach{ case (clusterID, _) => kmodesCardinalities(clusterID) = 0 }
+			// Reinitialization of centroids
+			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = zeroMod }
+			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
 
 			// Updatating Modes
 			clusterized.foreach{ case (_, v, clusterID) =>
 			{
-				kmodes(clusterID) = SumArrays.sumArraysNumerics(kmodes(clusterID), v)
-				kmodesCardinalities(clusterID) += 1
+				centroids(clusterID) = SumArrays.sumArraysNumerics(centroids(clusterID), v)
+				clustersCardinality(clusterID) += 1
 			}}
 
-			kmodes.foreach{ case (clusterID, mod) => kmodes(clusterID) = mod.map(_ / kmodesCardinalities(clusterID)) }
+			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = mod.map(_ / clustersCardinality(clusterID)) }
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, kmodes(clusterID)) <= epsilon }
+			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centroids(clusterID)) <= epsilon }
 
 			cpt += 1
 		}
 
-		val finalClustering = data.map{ case (id, v) =>
-		{
-			val clusterID = obtainNearestModID(v)
-			(clusterID, (id, v))
-		}}
-		finalClustering
+		new KMeansModel(centroids, clustersCardinality, metric)
 	}
 }
 
-object KMeans extends ClusteringTypes[Int, Double, Array[(Int, (Int, Array[Double]))]]
+object KMeans extends DataSetsTypes[Int, Double]
 {
 	/**
 	 * Run the K-Means
 	 **/
-	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): ClusterizedData =
+	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): KMeansModel =
 	{
-		val kmodes = new KMeans(data, k, epsilon, iterMax, metric)
-		val kmodesClusterized = kmodes.run()
-		kmodesClusterized
+		val kMeans = new KMeans(data, k, epsilon, iterMax, metric)
+		val kmeansModel = kMeans.run()
+		kmeansModel
 	}
 }

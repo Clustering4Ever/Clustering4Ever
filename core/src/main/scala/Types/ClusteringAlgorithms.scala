@@ -1,15 +1,15 @@
 package clustering4ever.clustering
 
-import _root_.clustering4ever.clustering.datasetstype.ClusteringTypes
+import clustering4ever.clustering.datasetstype.DataSetsTypes
 
 /**
  * @author Beck Gaël
  **/
-trait ClusteringAlgorithms[ID, NaturesValue, ClusterizedNature] extends ClusteringTypes[ID, NaturesValue, ClusterizedNature]
+trait ClusteringAlgorithms[IDNature, NaturesValue] extends DataSetsTypes[IDNature, NaturesValue]
 {
 	/**
 	 * Execute the corresponding clustering algorithm
-	 * @return Array[(ClusterID, (ID, Vector))]
+	 * @return ClusteringModel
 	 **/
-	def run(): ClusterizedData
+	def run(): ClusteringModel
 }

@@ -8,8 +8,3 @@ trait DataSetsTypes[IDNature, NaturesValue]
 	type OriginalVector = Array[NaturesValue]
 	type Mod = Array[NaturesValue]
 }
-
-trait ClusteringTypes[IDNature, NaturesValue, ClusterizedNature] extends DataSetsTypes[IDNature, NaturesValue]
-{
-	type ClusterizedData = ClusterizedNature
-}

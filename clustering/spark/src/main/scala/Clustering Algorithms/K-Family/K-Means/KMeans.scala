@@ -7,11 +7,11 @@ import org.apache.spark.rdd.RDD
 import scala.annotation.meta.param
 import scala.reflect.ClassTag
 import scala.math.{min, max}
-import clustering4ever.math.distances.ContinuousDistances
-import clustering4ever.clustering.datasetstype.ClusteringTypes
-import clustering4ever.clustering.ClusteringAlgorithms
+import _root_.clustering4ever.math.distances.ContinuousDistances
+import _root_.clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.util.SumArrays
 import _root_.clustering4ever.spark.clustering.accumulators.{CentroidsScalarAccumulator, CardinalitiesAccumulator}
+import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 
 /**
  * @author Beck Gaël
@@ -29,13 +29,13 @@ class KMeans(
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: ContinuousDistances
-) extends ClusteringAlgorithms[Long, Double, RDD[(Int, (Long, Array[Double]))]]
+) extends ClusteringAlgorithms[Long, Double]
 {
 	type CentroidsMap = mutable.HashMap[Int, Array[Double]]
 
 	def obtainNearestModID(v: Array[Double], kModesCentroids: CentroidsMap): Int = kModesCentroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 
-	def run(): ClusterizedData =
+	def run(): KMeansModel =
 	{
 		val dim = data.first._2.size
 		
@@ -64,11 +64,18 @@ class KMeans(
 		
 		val centroids = initializationModes()
 		val centroidsUpdated = centroids.clone
+		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0L) }
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			data.map{ case (id, v) => (obtainNearestModID(v, centroids), (1, v)) }.reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality)) }.collect.foreach{ case (clusterID, mean) => centroidsUpdated(clusterID) = mean }
+			val info = data.map{ case (id, v) => (obtainNearestModID(v, centroids), (1L, v)) }.reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality), cardinality) }.collect
+
+			info.foreach{ case (clusterID, mean, cardinality) =>
+			{
+				centroidsUpdated(clusterID) = mean
+				clustersCardinality(clusterID) = cardinality
+			}}
 
 			allModHaveConverged = centroidsUpdated.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
 			
@@ -77,22 +84,17 @@ class KMeans(
 			cpt += 1
 		}
 
-		val finalClustering =  data.map{ case (id, v) =>
-		{
-			val clusterID = obtainNearestModID(v, centroids)
-			(clusterID, (id, v))
-		}}
-
-		finalClustering
+		new KMeansModel(centroids, clustersCardinality, metric)
 	}
 }
 
 
-object KMeans extends ClusteringTypes[Long, Double, RDD[(Int, (Long, Array[Double]))]]
+object KMeans extends DataSetsTypes[Long, Double]
 {
-	def run(@(transient @param) sc: SparkContext, data: RDD[(ID, Array[Double])], k: Int, epsilon: Double, maxIter: Int, metric: ContinuousDistances): ClusterizedData =
+	def run(@(transient @param) sc: SparkContext, data: RDD[(ID, Array[Double])], k: Int, epsilon: Double, maxIter: Int, metric: ContinuousDistances): KMeansModel =
 	{
-		val kmodes = new KMeans(sc, data, k, epsilon, maxIter, metric)
-		kmodes.run()
+		val kmeans = new KMeans(sc, data, k, epsilon, maxIter, metric)
+		val kmeansModel = kmeans.run()
+		kmeansModel
 	}
 }
