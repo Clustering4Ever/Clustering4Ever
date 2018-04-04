@@ -35,7 +35,7 @@ class ExternalIndexes
 		for( m <- maxOneIndices ) for( l <- maxTwoIndices ) ai(m) += count(m)(l)
 		for( m <- maxTwoIndices ) for( l <- maxOneIndices ) bj(m) += count(l)(m)
 
-		val nN = ai.reduce(_ + _)
+		val nN = ai.sum
 		var hu = 0D
 		ai.foreach( v => { val c = v / nN; if( c > 0 ) hu -= c * log(c) } )
 

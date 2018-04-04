@@ -1,5 +1,7 @@
 # Clustering 4 Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clustering4ever/_latestVersion)
 
+<p align="center"><img src ="https://media.giphy.com/media/2viYwU7kHW8uNmmKvd/giphy.gif" /></p>
+
 Welcome to the LIPN Big Data Clustering Library gathering algorithms and quality indexes.
 
 You will find additional contents about clustering algorithms [here](https://github.com/PhDStudentsP13/Clustering).
@@ -8,6 +10,8 @@ Don't hesitate to ask questions or recommendations in our [Gitter](https://gitte
 
 ## [API documentation](http://www.beckgael.fr/doc/clustering4ever/)
 
+## [SparkNotebook](https://github.com/spark-notebook/spark-notebook)
+Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
 
 ## Include it in your project
 
@@ -86,7 +90,3 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 #### Internal indexes
 * Davies Bouldin (scala)
 * Silhouette (scala)
-
-
-## [SparkNotebook](https://github.com/spark-notebook/spark-notebook)
-Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
