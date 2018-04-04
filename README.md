@@ -8,7 +8,10 @@ You will find additional contents about clustering algorithms [here](https://git
 
 ## Include it in your project
 
-Add `"clustering4ever" % "clustering4ever_2.11" % "0.2.1"` to your `libraryDependencies` in your build.sbt.
+Add following lines in your build.sbt:
+* `"clustering4ever" % "clustering4ever_2.11" % "0.2.2"` to your `libraryDependencies`
+* `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
+
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
 * core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
 * clusteringscala [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
@@ -24,6 +27,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * _K_-Means
   * Implementation allowing the choice of the dissimilarity measure.
   * Complexity **_O(k.n.t)_**
+  * **Warning*** -> works only with Euclidean distance at the moment
 * Self Organizing Maps
 * [Mean Shift](https://github.com/beckgael/Mean-Shift-LSH)
   * Complexity
@@ -33,18 +37,22 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ##### Streaming
 * [GStream](https://github.com/Spark-clustering-notebook/G-stream)
 
-### Binary data
+#### Binary data
 * _K_-Modes
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
+  * **Warning*** -> works only with Hamming distance at the moment
 
-### Mixed data
+#### Mixed data
 * Self Organizing Maps
   * Mixed topological Map
+
+`*` We deliberately choose to not implement other distances than Hamming and Euclidean for Spark version of _K_-Modes and _K_-Means for reason explain in their Scala cousins versions.
 
 ### Preprocessing algorithms
 * Gradient ascent
 * Feature selection
+
 
 ## Pure Scala algorithms
 
@@ -56,11 +64,13 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * [_K_-Means](clustering/scala/src/main/scala/K-Means/README.md)
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
+  * **Warning** -> with another distance than Euclidean, similarity matrix (O(n<sup>2</sup>)) of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Euclidean
 
 #### Binary data
 * _K_-Modes
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
+  * **Warning** -> with another distance than Hamming, similarity matrix (O(n<sup>2</sup>)) of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Hamming
 
 ## [Quality Indexes](Documentation/doc/QualityIndexes.md)
 

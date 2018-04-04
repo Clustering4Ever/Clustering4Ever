@@ -32,7 +32,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
 		bintrayRepository := "Clustering4Ever",
-	 	version := "0.2.2",
+	 	version := "0.2.3",
 		scalaVersion := "2.11.8",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
@@ -55,7 +55,7 @@ lazy val clusteringSpark = (project in file("clustering/spark"))
 	.settings(
 		sparkDeps
 	)
-	.dependsOn(core)
+	.dependsOn(core, clusteringScala)
 
 lazy val documentation = (project in file("Documentation"))
 	.settings(commonSettingsC4E: _*)

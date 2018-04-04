@@ -1,4 +1,4 @@
-package clustering4ever.clustering.indexes
+package clustering4ever.scala.indexes
 
 import _root_.scala.math.{pow, sqrt, max, min}
 import _root_.scala.collection.parallel.mutable.ParArray

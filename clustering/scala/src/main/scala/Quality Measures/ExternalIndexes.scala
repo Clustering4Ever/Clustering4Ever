@@ -3,6 +3,7 @@ package clustering4ever.scala.indexes
 import _root_.scala.math.{max, log, sqrt}
 import _root_.scala.collection.parallel.mutable.ParArray
 import _root_.scala.collection.immutable.{HashMap, Map}
+import _root_.clustering4ever.scala.indexes.NmiNormalizationNature._
 
 /**
  * @author Beck Gaël
@@ -62,13 +63,13 @@ object ExternalIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 **/
-	def nmi(x: Array[Int], y:Array[Int], normalization: String = "sqrt") =
+	def nmi(x: Array[Int], y:Array[Int], normalization: Normalization = SQRT) =
 	{
 		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(x, y)
 		val nmi = normalization match
 		{
-			case "sqrt" => mi / sqrt(hu * hv)
-			case "max" => mi / max(hu, hv)
+			case SQRT => mi / sqrt(hu * hv)
+			case MAX => mi / max(hu, hv)
 			case _ => { println("Default value sqrt"); mi / sqrt(hu * hv) }
 		}
 		nmi

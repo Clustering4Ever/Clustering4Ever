@@ -1,18 +1,20 @@
 package clustering4ever.spark.indexes
 
-import _root_.scala.math.{max, log, sqrt}
-import _root_.scala.collection.parallel.mutable.ParArray
+import _root_.scala.annotation.meta.param
 import _root_.scala.collection.immutable.{HashMap, Map}
+import _root_.scala.collection.parallel.mutable.ParArray
+import _root_.scala.math.{max, log, sqrt}
 import _root_.org.apache.spark.rdd.RDD
 import _root_.org.apache.spark.SparkContext
+import _root_.clustering4ever.scala.indexes.NmiNormalizationNature._
 
 /**
  * @author Beck Gaël
  *
  */
-class SparkExternalsIndexes
+class ExternalIndexes
 {
-	private def mutualInformationInternal(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
+	private def mutualInformationInternal(@(transient @param) sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
 	{
 		val n = trueAndPredict.count
 		val maxX = trueAndPredict.max()(Ordering[Int].on(_._1))._1
@@ -49,29 +51,31 @@ class SparkExternalsIndexes
 
 }
 
-object SparkExternalsIndexes
+object ExternalIndexes
 {
 	/**
 	 * Compute the mutual information
+	 * It is advise to cache trueAndPredict before passing it to this method.
 	 * @return (Mutual Information, entropy x, entropy y)
 	 **/
 	def mutualInformation(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
 	{
-		(new SparkExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)._1
+		(new ExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)._1
 	}
 
 	/**
 	 * Compute the normalize mutual entropy
+	 * It is advise to cache trueAndPredict before passing it to this method.
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 **/
-	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: String = "sqrt") =
+	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: Normalization = SQRT) =
 	{
-		val (mi, hu, hv) = (new SparkExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)
+		val (mi, hu, hv) = (new ExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)
 		val nmi = normalization match
 		{
-			case "sqrt" => mi / sqrt(hu * hv)
-			case "max" => mi / max(hu, hv)
+			case SQRT => mi / sqrt(hu * hv)
+			case MAX => mi / max(hu, hv)
 			case _ => { println("Default value sqrt"); mi / sqrt(hu * hv) }
 		}
 		nmi
