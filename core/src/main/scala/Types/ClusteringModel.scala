@@ -3,4 +3,4 @@ package clustering4ever.clustering
 /**
  * @author Beck Gaël
  **/
-trait ClusteringModel
+trait ClusteringModel extends Serializable

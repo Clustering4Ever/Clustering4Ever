@@ -25,7 +25,7 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
  **/
 class KModes(
 	@transient val sc: SparkContext,
-	val data: RDD[(Long, Array[Int])],
+	data: RDD[(Long, Array[Int])],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,

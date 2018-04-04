@@ -24,7 +24,7 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
  **/
 class KMeans(
 	@transient val sc: SparkContext,
-	val data: RDD[(Long, Array[Double])],
+	data: RDD[(Long, Array[Double])],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
