@@ -9,7 +9,7 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
 
 class KModes(
-	data: Array[(Int, Array[Int])],
+	data: Seq[(Int, Array[Int])],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
@@ -34,7 +34,7 @@ class KModes(
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMode(arr: Array[Array[Int]]): Array[Int] =
+		def obtainMode(arr: Seq[Array[Int]]): Array[Int] =
 		{
 			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).reduce(_ + _) / arr.size) )).sortBy(_._2).head._1
 		}

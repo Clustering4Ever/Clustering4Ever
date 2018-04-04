@@ -20,7 +20,7 @@ class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardin
 	/**
 	 * Return the nearest mode for a dataset
 	 **/
-	def predict(data: Array[Array[Double]]): Array[(ClusterID, Vector)] = {
+	def predict(data: Seq[Array[Double]]): Seq[(ClusterID, Vector)] = {
 		val centroidsAsArray = centroids.toArray
 
 		def predictCluster(v: Array[Double]) = {

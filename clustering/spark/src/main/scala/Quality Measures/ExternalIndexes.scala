@@ -60,7 +60,7 @@ object ExternalIndexes
 	 **/
 	def mutualInformation(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
 	{
-		(new ExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)._1
+		(new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict)._1
 	}
 
 	/**
@@ -71,12 +71,11 @@ object ExternalIndexes
 	 **/
 	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: Normalization = SQRT) =
 	{
-		val (mi, hu, hv) = (new ExternalsIndexes).mutualInformationInternal(sc, trueAndPredict)
+		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict)
 		val nmi = normalization match
 		{
 			case SQRT => mi / sqrt(hu * hv)
 			case MAX => mi / max(hu, hv)
-			case _ => { println("Default value sqrt"); mi / sqrt(hu * hv) }
 		}
 		nmi
 	}

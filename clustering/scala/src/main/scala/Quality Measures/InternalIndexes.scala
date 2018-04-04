@@ -27,7 +27,7 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
    * Measure average distance to centroïd
    * @return Double - Scatter value
    **/
-  private[this] def scatter(cluster: Array[Array[Double]], centroid: Array[Double], metric: ContinuousDistances) = ( for(p <- cluster) yield(metric.d(centroid, p)) ).reduce(_ + _) / cluster.size
+  private[this] def scatter(cluster: Array[Array[Double]], centroid: Array[Double], metric: ContinuousDistances) = ( for(p <- cluster) yield(metric.d(centroid, p)) ).sum / cluster.size
 
 
 
@@ -55,7 +55,7 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
       val rijList = for( ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) <- cart ) yield( ((idClust1, idClust2), good(centroid1, centroid2, scatter1, scatter2, metric)) )
       val di = (for( ((idClust1, _), good) <- rijList) yield((idClust1, good))).groupBy(_._1).map{ case (idClust, goods)=> (idClust, goods.map(_._2).reduce(max(_,_))) }
       val numCluster = clusterLabels.size
-      val daviesBouldinIndex = di.map(_._2).fold(0D)(_ + _) / numCluster
+      val daviesBouldinIndex = di.map(_._2).sum / numCluster
       daviesBouldinIndex
     }
   }
@@ -76,7 +76,7 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
     {
       val pointPairs = for( i <- cluster; j <- cluster if( i._1 != j._1 ) ) yield( (i,j) )
       val allPointsDistances = for( pp <- pointPairs ) yield( ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2)) )
-      val totalDistanceList = allPointsDistances.map(v => (v._1._1, v._2)).groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).reduce(_ + _)) }
+      val totalDistanceList = allPointsDistances.map(v => (v._1._1, v._2)).groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).sum) }
       val count = totalDistanceList.size
       val aiList = totalDistanceList.map{ case (k, v) => (k, (v / (count - 1))) }
       aiList
@@ -95,9 +95,9 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
       val cart = for( i <- target; j <- others ) yield( (i, j) )
 
       //get the sum distance between each point and other clusters
-      val allDistances = cart.map{ case (((_, vector1), id1), ((clusterID2, vector2), _)) => ((id1, clusterID2), metric.d(vector1, vector2)) }.groupBy(_._1).map{ case (k,v)=> (k, v.map(_._2).reduce(_ + _)) }.toArray
+      val allDistances = cart.map{ case (((_, vector1), id1), ((clusterID2, vector2), _)) => ((id1, clusterID2), metric.d(vector1, vector2)) }.groupBy(_._1).map{ case (k,v)=> (k, v.map(_._2).sum) }.toArray
       // numbers of point of others clusters
-      val numPoints = others.map( v => (v._1._1, 1) ).groupBy(_._1).map{ case (k, v)=> (k, v.map(_._2).reduce(_ + _)) }
+      val numPoints = others.map( v => (v._1._1, 1) ).groupBy(_._1).map{ case (k, v)=> (k, v.map(_._2).sum) }
       //mean distance of point to the points of the other clusters 
       val deltas = allDistances.map( v => (v._1._1, v._2 / numPoints.getOrElse(v._1._2, 1)) )
       // Compute b(i) the smallest of these mean distances
@@ -111,11 +111,11 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
         .map{ case (id, rest) => (id, rest.map(_._2)) }.map{ case (id, rest) => (id, rest.head, rest.last) }
         .map{ case (id, a, b) => if( a._1.isDefined ) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get)) }
         .map( x => (x._2._1 - x._2._2) / max(x._2._2, x._2._1) )
-      val sk = si.reduce(_ + _) / si.size
+      val sk = si.sum / si.size
       sk
     }
 
-    clusterLabels.map(sk).reduce(_ + _) / clusterLabels.size
+    clusterLabels.map(sk).sum / clusterLabels.size
   }
 
 }

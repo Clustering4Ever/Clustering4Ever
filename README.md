@@ -4,7 +4,10 @@ Welcome to the LIPN Big Data Clustering Library gathering algorithms and quality
 
 You will find additional contents about clustering algorithms [here](https://github.com/PhDStudentsP13/Clustering).
 
-## [Documentation](http://www.beckgael.fr/doc/clustering4ever/)
+Don't hesitate to ask questions or recommendations in our [Gitter](https://gitter.im/Clustering4Ever/Lobby).
+
+## [API documentation](http://www.beckgael.fr/doc/clustering4ever/)
+
 
 ## Include it in your project
 
@@ -31,8 +34,8 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * Self Organizing Maps
 * [Mean Shift](https://github.com/beckgael/Mean-Shift-LSH)
   * Complexity
-    * Initial complexity **O(n<sup>2</sup>)**
-    * Improved complexity **O(n)** under some conditions
+    * Initial complexity **_O(n<sup>2</sup>)_**
+    * Improved complexity **_O(n)_** under some conditions
 
 ##### Streaming
 * [GStream](https://github.com/Spark-clustering-notebook/G-stream)
@@ -58,19 +61,21 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ### Clustering algorithms
 
+#### A good scala clustering complementary library aka [Smile](https://haifengl.github.io/smile/clustering.html)
+
 #### Scalar data
 * [Jenks Natural Breaks](https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization)
   * A mono dimensionnal clustering
 * [_K_-Means](clustering/scala/src/main/scala/K-Means/README.md)
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
-  * **Warning** -> with another distance than Euclidean, similarity matrix (O(n<sup>2</sup>)) of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Euclidean
+  * **Warning** -> with another distance than Euclidean, similarity matrix in _O(n<sup>2</sup>)_ of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Euclidean
 
 #### Binary data
 * _K_-Modes
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
-  * **Warning** -> with another distance than Hamming, similarity matrix (O(n<sup>2</sup>)) of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Hamming
+  * **Warning** -> with another distance than Hamming, similarity matrix in _O(n<sup>2</sup>)_ of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Hamming
 
 ## [Quality Indexes](Documentation/doc/QualityIndexes.md)
 

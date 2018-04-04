@@ -70,7 +70,6 @@ object ExternalIndexes
 		{
 			case SQRT => mi / sqrt(hu * hv)
 			case MAX => mi / max(hu, hv)
-			case _ => { println("Default value sqrt"); mi / sqrt(hu * hv) }
 		}
 		nmi
 	}

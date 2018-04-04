@@ -18,7 +18,7 @@ import _root_.scala.util.Random
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
 class KMeans(
-	data: Array[(Int, Array[Double])],
+	data: Seq[(Int, Array[Double])],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
