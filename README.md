@@ -15,14 +15,14 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 
 ## Include it in your project
 
-Add following lines in your build.sbt:
+Add following lines in your build.sbt :
 * `"clustering4ever" % "clustering4ever_2.11" % "0.2.3"` to your `libraryDependencies`
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
-* core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
-* clusteringscala [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
-* clusteringspark[ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringspark/_latestVersion)
+* Core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
+* Scala Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
+* Spark Clustering[ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringspark/_latestVersion)
 
 ## Distributed algorithms, through Spark
 
@@ -65,7 +65,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ### Clustering algorithms
 
-#### A good scala clustering complementary library aka [Smile](https://haifengl.github.io/smile/clustering.html)
+#### An excelent machine learning scala/java library which keeps your [Smile](https://haifengl.github.io/smile/clustering.html)
 
 #### Scalar data
 * [Jenks Natural Breaks](https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization)
