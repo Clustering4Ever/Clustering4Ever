@@ -36,7 +36,7 @@ class KModes(
 		 **/
 		def obtainMode(arr: Seq[Array[Int]]): Array[Int] =
 		{
-			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).reduce(_ + _) / arr.size) )).sortBy(_._2).head._1
+			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).sum / arr.size) )).sortBy(_._2).head._1
 		}
 
 		val zeroMod = Array.fill(dim)(0)

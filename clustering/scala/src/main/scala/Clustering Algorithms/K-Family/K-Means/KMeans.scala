@@ -3,6 +3,7 @@ package clustering4ever.scala.clustering.kmeans
 import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.math.distances.ContinuousDistances
+import _root_.clustering4ever.math.distances.scalar.Euclidean
 import _root_.clustering4ever.util.SumArrays
 import _root_.scala.math.{min, max}
 import _root_.scala.collection.{immutable, mutable}
@@ -62,7 +63,18 @@ class KMeans(
 		val centroids = initializationCentroids
 		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestModID(v: Array[Double]): ClusterID = centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+		def obtainNearestModID(v: Array[Double]): ClusterID =
+		{
+			centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+		}
+
+		/**
+		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
+		 **/
+		def obtainCentroid(arr: Seq[Array[Double]]): Array[Double] =
+		{
+			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).sum / arr.size) )).sortBy(_._2).head._1
+		}
 
 		val zeroMod = Array.fill(dim)(0D)
 		var cpt = 0
@@ -78,14 +90,26 @@ class KMeans(
 			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = zeroMod }
 			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
 
-			// Updatating Modes
-			clusterized.foreach{ case (_, v, clusterID) =>
+			if( metric.isInstanceOf[Euclidean] )
 			{
-				centroids(clusterID) = SumArrays.sumArraysNumerics(centroids(clusterID), v)
-				clustersCardinality(clusterID) += 1
-			}}
+				// Updatating Modes
+				clusterized.foreach{ case (_, v, clusterID) =>
+				{
+					centroids(clusterID) = SumArrays.sumArraysNumerics(centroids(clusterID), v)
+					clustersCardinality(clusterID) += 1
+				}}
 
-			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = mod.map(_ / clustersCardinality(clusterID)) }
+				centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = mod.map(_ / clustersCardinality(clusterID)) }
+			}
+			else
+			{
+				clusterized.groupBy{ case (_, _, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
+				{
+					val cluster = aggregates.map{ case (_, vector, _) => vector }
+					val centroid = obtainCentroid(cluster)
+					centroids(clusterID) = centroid
+				}}
+			}
 
 			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centroids(clusterID)) <= epsilon }
 
