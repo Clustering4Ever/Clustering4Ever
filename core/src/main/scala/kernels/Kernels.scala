@@ -4,7 +4,7 @@ import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.clustering4ever.math.distances.scalar.Euclidean
 import _root_.scala.math.{exp, tanh, pow}
 import _root_.clustering4ever.util.SumArrays
-
+import _root_.clustering4ever.scala.kernels.KernelNature._
 /**
  * @author Beck Gaël
  * Kernels gathers some of the most known kernels
@@ -35,13 +35,12 @@ object Kernels
 	 * @param bandwitch of the kernel approach
 	 * @param metric is the dissimilarity measure used for kernels computation
 	 **/
-	def computeModesThroughKernels(v: Array[Double], env: Array[(Array[Double])], bandwitch: Double, kernelType: String, metric: ContinuousDistances) =
+	def computeModesThroughKernels(v: Array[Double], env: Seq[(Array[Double])], bandwitch: Double, kernelType: KernelType, metric: ContinuousDistances) =
 	{
 		val kernel: (Array[Double], Array[Double], Double, ContinuousDistances) => Double = kernelType match
 		{
-			case gaussian if( gaussian == "gaussian" ) => gaussianKernel
-			case flat if( flat == "flat" ) => flatKernel
-			case _ => throw new Exception("you give a wrong kernel name")
+			case KernelNature.Gaussian => gaussianKernel
+			case KernelNature.Flat => flatKernel
 		}
 
 		val (preMod, kernelValue) = env.map{ vi =>
@@ -50,7 +49,7 @@ object Kernels
 		  (vi.map( _ * kernelVal ), kernelVal)
 		}}.reduce( (a, b) => (SumArrays.sumArraysNumerics(a._1, b._1), a._2 + b._2) )
 
-		val mod = preMod.map(_ / kernelValue)
-		mod		
+		val mode = preMod.map(_ / kernelValue)
+		mode		
 	}
 }
