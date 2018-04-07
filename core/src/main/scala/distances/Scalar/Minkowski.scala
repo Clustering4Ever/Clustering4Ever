@@ -16,7 +16,9 @@ class Minkowski(p: Int) extends ContinuousDistances
 	  **/
 	override def d(dot1: Array[Double], dot2: Array[Double]): Double =
 	{
-		pow( ( for( i <- 0 until dot1.size ) yield( pow(dot1(i) - dot2(i), p) ) ).reduce(_ + _), 1D / p )
+		var predDistance = 0D
+		for( i <- dot1.indices ) predDistance += pow(dot1(i) - dot2(i), p)
+		pow(predDistance, 1D / p )
 	}
 }
 

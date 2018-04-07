@@ -11,7 +11,7 @@ object SumArrays
 	/**
 	 * Sum two vector of Numeric into one
 	 **/
-	def sumArraysNumerics[T](a: Array[T], b: Array[T])(implicit num: Numeric[T], ct: ClassTag[T]) : Array[T] = (for( i <- a.indices ) yield( num.plus(a(i), b(i)) )).toArray
+	def sumArraysNumerics[T](a: Array[T], b: Array[T])(implicit num: Numeric[T], ct: ClassTag[T]) : Array[T] = for( i <- a.indices.toArray ) yield( num.plus(a(i), b(i)) )
 
 	/**
 	 * Reduce an Array[Array[T]] into an Array[T]

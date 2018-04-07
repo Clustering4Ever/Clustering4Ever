@@ -12,7 +12,7 @@ class Cosine extends ContinuousDistances
 	private def norm(dot1: Array[Double]) =
 	{
 		var preNorm = 0D
-		for( i <- 0 until dot1.size ) preNorm += pow(dot1(i), 2)
+		for( i <- dot1.indices ) preNorm += pow(dot1(i), 2)
 		sqrt(preNorm)
 	}
 

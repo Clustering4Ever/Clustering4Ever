@@ -34,7 +34,7 @@ class KModes(
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMode(arr: Seq[Array[Int]]): Array[Int] =
+		def obtainMedoid(arr: Seq[Array[Int]]): Array[Int] =
 		{
 			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).sum / arr.size) )).sortBy(_._2).head._1
 		}
@@ -69,7 +69,7 @@ class KModes(
 				clusterized.groupBy{ case (_, _, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
 				{
 					val cluster = aggregates.map{ case (_, vector, _) => vector }
-					val mode = obtainMode(cluster)
+					val mode = obtainMedoid(cluster)
 					modes(clusterID) = mode
 				}}
 			}
