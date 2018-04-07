@@ -15,96 +15,89 @@ import _root_.clustering4ever.scala.kernels.KernelNature._
 import _root_.clustering4ever.scala.kernels.KernelNature
 /**
  * @author Beck Gaël
- *
- * Mean-Shift-LSH clustering 
- * This algorithm could be used to analyse complex multivariate multidimensional data.
- * It can also be apply in order to analyse image, to use this features it is recommanded to convert image from RGB space to L*u*v* space
- * The major class where MS-LSH algorithm and prediction fonction are implemented
+ * Mean Shift gradient ascent
+ * @param kernelType defines the nature of kernel usud in the gradient ascent
  */
-class KernelGradientAscent(
+class GradientAscent(
   var epsilon: Double,
   var maxIterations: Int,
   metric: ContinuousDistances,
   kernelType: KernelType,
-  bandwitch: Double
-)
+  kernelArgs: Array[String]
+) extends DataSetsTypes[Int, Double]
 {
-
-  def gradientAscent(readyToGA: Seq[(Int, Array[Double])], maxIterations: Int) =
+  def gradientAscent(readyToGA: Seq[(Int, Vector)], maxIterations: Int) =
   {
     var ind = 0
     val haveNotConverged = false
     var everyPointsHaveConverged = false
-    var gradientAscentData: ParArray[(Int, Array[Double], Array[Double], Boolean)] = readyToGA.toParArray.map{ case (id, vector) => (id, vector, vector, haveNotConverged) }
+    var gradientAscentData: ParArray[(ID, Vector, Vector, Boolean)] = readyToGA.toParArray.map{ case (id, vector) => (id, vector, vector, haveNotConverged) }
     val kernelLocality = readyToGA.map{ case (_, vector) => vector }
-  
-    def kernelGradientAscent(toExplore: ParArray[(Int, Array[Double], Array[Double], Boolean)]) =
+    
+    while( ind < maxIterations && ! everyPointsHaveConverged )
     {
       var cptConvergedPoints = 0
-      val convergingData = toExplore.map{ case (id, vector, mod, haveConverged) =>
-      { 
-        val newMod = if( haveConverged )
-        {
-          mod
-        }
-        else
-        {
-          kernelType match
-          {
-            case kernel if( kernel == Gaussian || kernel == Flat ) =>  Kernels.computeModesThroughKernels(mod, kernelLocality, bandwitch, kernelType, metric)
-            //case KernelNature.Sigmoid =>  Kernels.computeSigmoidKernel(mod, kernelLocality, bandwitch)
-          }
-        }
-        
-        val modShift = metric.d(newMod, mod)
-        val hasConverged = if( modShift <= epsilon )
-        {
-          cptConvergedPoints += 1
-          true
-        }
-        else 
-        {
-          false
-        }
-
-        (id, vector, newMod, hasConverged)
-      }}
-
-      (convergingData, cptConvergedPoints)
-    }
-
-      while( ind < maxIterations && ! everyPointsHaveConverged )
+      
+      def kernelGradientAscent(toExplore: ParArray[(ID, Vector, Vector, Boolean)]) =
       {
-        val (gaDStmp, cptConvergedPoints) = kernelGradientAscent(gradientAscentData)
-        gradientAscentData = gaDStmp
-        ind += 1
-        everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
+        val convergingData = toExplore.map{ case (id, vector, mode, haveConverged) =>
+        { 
+          val newMode = if( haveConverged )
+          {
+            mode
+          }
+          else
+          {
+            kernelType match
+            {
+              case kernel if( kernel == Gaussian || kernel == Flat ) =>  Kernels.obtainModeThroughKernel(mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
+              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocality, kernelArgs.head.toInt, metric)
+              case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
+            }
+          }
+          
+          val modeShift = metric.d(newMode, mode)
+          val hasConverged = if( modeShift <= epsilon )
+          {
+            cptConvergedPoints += 1
+            true
+          }
+          else 
+          {
+            false
+          }
+
+          (id, vector, newMode, hasConverged)
+        }}
+
+        convergingData
       }
+
+      gradientAscentData = kernelGradientAscent(gradientAscentData)
+      everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
+      ind += 1
+    }
       gradientAscentData
   }
 }
 
-object KernelGradientAscent
+object GradientAscent extends DataSetsTypes[Int, Double]
 {
-
   /**
-   * Trains a MS-LSH model using the given set of parameters.
-   *
    * @param data : an RDD[(String,Vector)] where String is the ID and Vector the rest of data
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
-   *
    **/
    def run(
-    data: Seq[(Int, Array[Double])],
+    data: Seq[(ID, Vector)],
     metric: ContinuousDistances,
     epsilon: Double,
     maxIterations: Int,
     kernelType: KernelType,
-    bandwitch: Double
+    kernelArgs: Array[String]
     ) =
   {
-    val meanShift = new KernelGradientAscent(epsilon, maxIterations, metric, kernelType, bandwitch)
+    val meanShift = new GradientAscent(epsilon, maxIterations, metric, kernelType, kernelArgs)
     meanShift.gradientAscent(data, maxIterations)
   }
 }

@@ -35,7 +35,7 @@ object Kernels
 	 * @param bandwitch of the kernel approach
 	 * @param metric is the dissimilarity measure used for kernels computation
 	 **/
-	def computeModesThroughKernels(v: Array[Double], env: Seq[(Array[Double])], bandwitch: Double, kernelType: KernelType, metric: ContinuousDistances) =
+	def obtainModeThroughKernel(v: Array[Double], env: Seq[Array[Double]], bandwitch: Double, kernelType: KernelType, metric: ContinuousDistances) =
 	{
 		val kernel: (Array[Double], Array[Double], Double, ContinuousDistances) => Double = kernelType match
 		{
@@ -51,5 +51,23 @@ object Kernels
 
 		val mode = preMod.map(_ / kernelValue)
 		mode		
+	}
+
+	def obtainModeThroughSigmoid(v: Array[Double], env: Seq[Array[Double]], a: Double, b: Double) =
+	{
+		val (preMod, kernelValue) = env.map{ vi =>
+		{
+		  val kernelVal = sigmoidKernel(v, vi, a, b)
+		  (vi.map( _ * kernelVal ), kernelVal)
+		}}.reduce( (a, b) => (SumArrays.sumArraysNumerics(a._1, b._1), a._2 + b._2) )
+
+		val mode = preMod.map(_ / kernelValue)
+		mode		
+	}
+
+	def knnKernel(v: Array[Double], env: Seq[Array[Double]], k: Int, metric: ContinuousDistances) =
+	{
+		val knn = env.map( v2 => (v2, metric.d(v, v2)) ).sortBy(_._2).take(k).map(_._1)
+		SumArrays.obtainCentroid(knn)
 	}
 }
