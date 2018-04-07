@@ -19,15 +19,14 @@ import _root_.scala.util.Random
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
 class KMeans(
-	data: Seq[(Int, Array[Double])],
+	data: Seq[Array[Double]],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: ContinuousDistances
 ) extends ClusteringAlgorithms[Int, Double]
 {
-	val dim = data.head._2.size
-
+	val dim = data.head.size
 	/**
 	 * Simplest centroids initializations
 	 * We search range for each dimension and take a random value between each range 
@@ -44,7 +43,7 @@ class KMeans(
 			)
 		}
 
-		val (minv, maxv) = data.map{ case (_, v) => (v, v) }.reduce( (minMaxa, minMaxb) =>
+		val (minv, maxv) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
 		{
 			val minAndMax = for( i <- vectorRange ) yield( obtainMinMax(i, minMaxa, minMaxb) )
 			minAndMax.unzip
@@ -82,7 +81,7 @@ class KMeans(
 		while( cpt < iterMax && ! allModsHaveConverged )
 		{
 			// Allocation to nearest centroid
-			val clusterized = data.map{ case (id, v) => (id, v, obtainNearestModID(v)) }
+			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
 
 			val kModesBeforeUpdate = centroids.clone
 
@@ -93,7 +92,7 @@ class KMeans(
 			if( metric.isInstanceOf[Euclidean] )
 			{
 				// Updatating Modes
-				clusterized.foreach{ case (_, v, clusterID) =>
+				clusterized.foreach{ case (v, clusterID) =>
 				{
 					centroids(clusterID) = SumArrays.sumArraysNumerics(centroids(clusterID), v)
 					clustersCardinality(clusterID) += 1
@@ -103,9 +102,9 @@ class KMeans(
 			}
 			else
 			{
-				clusterized.groupBy{ case (_, _, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
+				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
 				{
-					val cluster = aggregates.map{ case (_, vector, _) => vector }
+					val cluster = aggregates.map{ case (vector, _) => vector }
 					val centroid = obtainMedoid(cluster)
 					centroids(clusterID) = centroid
 				}}
@@ -115,7 +114,6 @@ class KMeans(
 
 			cpt += 1
 		}
-
 		new KMeansModel(centroids, clustersCardinality, metric)
 	}
 }
@@ -125,7 +123,7 @@ object KMeans extends DataSetsTypes[Int, Double]
 	/**
 	 * Run the K-Means
 	 **/
-	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): KMeansModel =
+	def run(data: Array[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): KMeansModel =
 	{
 		val kMeans = new KMeans(data, k, epsilon, iterMax, metric)
 		val kmeansModel = kMeans.run()

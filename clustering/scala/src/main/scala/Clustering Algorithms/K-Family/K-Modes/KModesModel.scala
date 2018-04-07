@@ -10,26 +10,19 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
  **/
 class KModesModel(val centroids: mutable.HashMap[Int, Array[Int]], val cardinalities: mutable.HashMap[Int, Int], val metric: BinaryDistance) extends ClusteringModel with DataSetsTypes[Int, Int]
 {
+	val centroidsAsArray = centroids.toArray
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
 	def predict(v: Array[Int]): ClusterID =
 	{
-		centroids.toArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
 	}
-
 	/**
 	 * Return the nearest mode for a dataset
 	 **/
 	def predict(data: Seq[Array[Int]]): Seq[(ClusterID, Vector)] =
 	{
-		val centroidsAsArray = centroids.toArray
-
-		def predictCluster(v: Array[Int]) =
-		{
-			centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
-		}
-
-		data.map( v => (predictCluster(v), v) )
+		data.map( v => (predict(v), v) )
 	}
 }
