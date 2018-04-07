@@ -11,7 +11,9 @@ class Cosine extends ContinuousDistances
 
 	private def norm(dot1: Array[Double]) =
 	{
-		sqrt(( for( i <- 0 until dot1.size ) yield( pow(dot1(i), 2) ) ).reduce(_ + _))
+		var preNorm = 0D
+		for( i <- 0 until dot1.size ) preNorm += pow(dot1(i), 2)
+		sqrt(preNorm)
 	}
 
 	private def dotProd(dot1: Array[Double], dot2: Array[Double]) =
@@ -22,8 +24,8 @@ class Cosine extends ContinuousDistances
 	}
 
 	/**
-	  * The famous Minkowski distance implemented
-	  * @return The Minkowski distance between dot1 and dot2
+	  * The cosine distance implemented
+	  * @return The cosine distance between dot1 and dot2
 	  **/
 	override def d(dot1: Array[Double], dot2: Array[Double]): Double =
 	{
