@@ -8,7 +8,7 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 /**
  * @author Beck Gaël
  **/
-class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Int, Double]
+class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Int, Array[Double]]
 {
 	val centroidsAsArray = centroids.toArray
 	/**

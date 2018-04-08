@@ -30,7 +30,7 @@ class KMeans(
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: ContinuousDistances
-) extends ClusteringAlgorithms[Long, Double]
+) extends ClusteringAlgorithms[Long, Array[Double]]
 {
 	type CentroidsMap = mutable.HashMap[Int, Array[Double]]
 
@@ -98,7 +98,7 @@ class KMeans(
 }
 
 
-object KMeans extends DataSetsTypes[Long, Double]
+object KMeans extends DataSetsTypes[Long, Array[Double]]
 {
 	def run(@(transient @param) sc: SparkContext, data: RDD[Array[Double]], k: Int, epsilon: Double, maxIter: Int, metric: ContinuousDistances): KMeansModel =
 	{

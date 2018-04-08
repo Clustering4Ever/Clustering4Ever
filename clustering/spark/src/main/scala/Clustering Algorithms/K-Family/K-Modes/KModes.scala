@@ -30,7 +30,7 @@ class KModes(
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: BinaryDistance
-) extends ClusteringAlgorithms[Long, Int]
+) extends ClusteringAlgorithms[Long, Array[Int]]
 {
 	type ModesMap = mutable.HashMap[Int, Array[Int]]
 

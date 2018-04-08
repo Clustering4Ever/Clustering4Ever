@@ -24,7 +24,7 @@ class GradientAscent(
   metric: ContinuousDistances,
   kernelType: KernelType,
   kernelArgs: Array[String]
-) extends DataSetsTypes[Int, Double]
+) extends DataSetsTypes[Int, Array[Double]]
 {
   def gradientAscent(readyToGA: Seq[(Int, Vector)], maxIterations: Int) =
   {
@@ -81,7 +81,7 @@ class GradientAscent(
   }
 }
 
-object GradientAscent extends DataSetsTypes[Int, Double]
+object GradientAscent extends DataSetsTypes[Int, Array[Double]]
 {
   /**
    * @param data : an RDD[(String,Vector)] where String is the ID and Vector the rest of data

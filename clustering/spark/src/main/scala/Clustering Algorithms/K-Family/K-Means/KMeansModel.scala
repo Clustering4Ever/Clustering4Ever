@@ -9,7 +9,7 @@ import _root_.org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Long], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Long, Double]
+class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Long], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Long, Array[Double]]
 {
 	val centroidsAsArray = centroids.toArray
 	/**

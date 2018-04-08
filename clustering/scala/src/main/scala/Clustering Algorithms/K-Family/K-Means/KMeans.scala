@@ -24,7 +24,7 @@ class KMeans(
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: ContinuousDistances
-) extends ClusteringAlgorithms[Int, Double]
+) extends ClusteringAlgorithms[Int, Array[Double]]
 {
 	val dim = data.head.size
 	/**
@@ -118,7 +118,7 @@ class KMeans(
 	}
 }
 
-object KMeans extends DataSetsTypes[Int, Double]
+object KMeans extends DataSetsTypes[Int, Array[Double]]
 {
 	/**
 	 * Run the K-Means

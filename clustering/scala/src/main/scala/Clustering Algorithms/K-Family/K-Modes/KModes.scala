@@ -14,7 +14,7 @@ class KModes(
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: BinaryDistance
-) extends ClusteringAlgorithms[Int, Int]
+) extends ClusteringAlgorithms[Int, Array[Int]]
 {
 	val dim = data.head.size
 
@@ -84,7 +84,7 @@ class KModes(
 	
 }
 
-object KModes extends DataSetsTypes[Int, Int]
+object KModes extends DataSetsTypes[Int, Array[Int]]
 {
 
 	def run(data: Array[Vector], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =

@@ -9,7 +9,7 @@ import _root_.org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-class KModesModel(val modes: mutable.HashMap[Int, Array[Int]], val cardinalities: mutable.HashMap[Int, Long], val metric: BinaryDistance) extends ClusteringModel with DataSetsTypes[Long, Int]
+class KModesModel(val modes: mutable.HashMap[Int, Array[Int]], val cardinalities: mutable.HashMap[Int, Long], val metric: BinaryDistance) extends ClusteringModel with DataSetsTypes[Long, Array[Int]]
 {
 	val modesAsArray = modes.toArray
 	/**
