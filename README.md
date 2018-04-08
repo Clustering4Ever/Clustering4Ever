@@ -111,5 +111,5 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * Normalized Mutual Information (scala & spark)
 
 #### Internal indexes
-* Davies Bouldin (scala)
+* Davies Bouldin (scala & spark)
 * Silhouette (scala)
