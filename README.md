@@ -10,6 +10,8 @@ Don't hesitate to ask questions or make recommendations in our [Gitter](https://
 
 ## [API documentation](http://clustering4ever.org/API%20Documentation/)
 
+## [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
+
 ## [SparkNotebook](https://github.com/spark-notebook/spark-notebook)
 Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
 
@@ -32,7 +34,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ##### Batch
 * _K_-Means
-  * Implementation allowing the choice of the dissimilarity measure.
+  * Implementation that will allow choice of the dissimilarity measure.
   * Complexity **_O(k.n.t)_**
   * **Warning*** -> works only with Euclidean distance at the moment
 * Self Organizing Maps
@@ -47,17 +49,21 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 #### Binary data
 * _K_-Modes
   * Complexity **_O(k.n.t)_**
-  * Implementation allowing the choice of the dissimilarity measure.
+  * Implementation that will allowi choice of the dissimilarity measure.
   * **Warning*** -> works only with Hamming distance at the moment
 
 #### Mixed data
+* _K_-Protoypes
+  * Complexity **_O(k.n.t)_**
+  * Implementation that will allowi choice of the dissimilarity measure.
+  * **Warning*** -> works only with Hamming and Euclidean distance at the moment
 * Self Organizing Maps
   * Mixed topological Map
 
 `*` We deliberately choose to not implement other distances than Hamming and Euclidean for Spark version of _K_-Modes and _K_-Means for reason explain in their Scala cousins versions.
 
 ### Preprocessing algorithms
-* Gradient ascent
+* Gradient ascent (Euclidean)
 * Feature selection
 
 
@@ -83,6 +89,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ### Preprocessing algorithms
 * Gradient ascent
+    * **Warning**, there's no theorical guaranty with other distance than Euclidean
     * 3 Working kernels
       * K Nearest Neighbors
       * Gaussian
