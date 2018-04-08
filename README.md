@@ -6,9 +6,9 @@ Welcome to the LIPN Big Data Clustering Library gathering clustering algorithms 
 
 You will find additional contents about clustering algorithms [here](https://github.com/PhDStudentsP13/Clustering).
 
-Don't hesitate to ask questions or recommendations in our [Gitter](https://gitter.im/Clustering4Ever/Lobby).
+Don't hesitate to ask questions or make recommendations in our [Gitter](https://gitter.im/Clustering4Ever/Lobby).
 
-## [API documentation](http://www.beckgael.fr/doc/clustering4ever/)
+## [API documentation](http://clustering4ever.org/API%20Documentation/)
 
 ## [SparkNotebook](https://github.com/spark-notebook/spark-notebook)
 Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
@@ -80,6 +80,13 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
   * **Warning** -> with another distance than Hamming, similarity matrix in _O(n<sup>2</sup>)_ of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Hamming
+
+### Preprocessing algorithms
+* Gradient ascent
+    * 3 Working kernels
+      * K Nearest Neighbors
+      * Gaussian
+      * Flat
 
 ## [Quality Indexes](Documentation/doc/QualityIndexes.md)
 

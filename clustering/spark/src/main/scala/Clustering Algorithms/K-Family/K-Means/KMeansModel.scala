@@ -11,23 +11,17 @@ import _root_.org.apache.spark.rdd.RDD
  **/
 class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Long], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Long, Double]
 {
+	val centroidsAsArray = centroids.toArray
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
 	def predict(v: Array[Double]): ClusterID = {
-		centroids.toArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
 	}
-
 	/**
 	 * Return the nearest mode for a dataset
 	 **/
 	def predict(data: RDD[Array[Double]]): RDD[(ClusterID, Vector)] = {
-		val centroidsAsArray = centroids.toArray
-
-		def predictCluster(v: Array[Double]) = {
-			centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
-		}
-
-		data.map( v => (predictCluster(v), v) )
+		data.map( v => (predict(v), v) )
 	}
 }
