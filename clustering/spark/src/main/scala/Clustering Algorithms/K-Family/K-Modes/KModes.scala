@@ -25,20 +25,23 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
  **/
 class KModes(
 	@transient val sc: SparkContext,
-	data: RDD[(Long, Array[Int])],
+	data: RDD[Array[Int]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: BinaryDistance
-) extends ClusteringAlgorithms[Long, Int]
+) extends ClusteringAlgorithms[Long, Array[Int]]
 {
-	type CentroidsMap = mutable.HashMap[Int, Array[Int]]
+	type ModesMap = mutable.HashMap[Int, Array[Int]]
 
-	def obtainNearestModID(v: Array[Int], kModesCentroids: CentroidsMap): Int = kModesCentroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+	def obtainNearestModID(v: Array[Int], kModes: ModesMap): Int =
+	{
+		kModes.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+	}
 
 	def run(): KModesModel =
 	{
-		val dim = data.first._2.size
+		val dim = data.first.size
 		val modes = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
 		val modesCardinality = modes.map{ case (clusterID, _) => (clusterID, 0L) }
 		val modesUpdated = modes.clone
@@ -48,7 +51,7 @@ class KModes(
 		{
 			if( metric.isInstanceOf[Hamming] )
 			{
-				val info = data.map{ case (id, v) => (obtainNearestModID(v, modes), (1L, v)) }.reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
+				val info = data.map( v => (obtainNearestModID(v, modes), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
 
 				info.foreach{ case (clusterID, mode, cardinality) =>
 				{
@@ -62,19 +65,17 @@ class KModes(
 			}
 			else
 			{
-				println("Results have no sense for the moment")
+				println("Results will have no sense for the moment with another distance than Hamming, but we're working on it")
 			}
-
 			cpt += 1
 		}
-
 		new KModesModel(modes, modesCardinality, metric)
 	}
 }
 
 object KModes extends DataSetsTypes[Long, Int]
 {
-	def run(@(transient @param) sc: SparkContext, data: RDD[(ID, Array[Int])], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
+	def run(@(transient @param) sc: SparkContext, data: RDD[Array[Int]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
 	{
 		val kmodes = new KModes(sc, data, k, epsilon, maxIter, metric)
 		val kModesModel = kmodes.run()

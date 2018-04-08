@@ -9,14 +9,14 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
 
 class KModes(
-	data: Seq[(Int, Array[Int])],
+	data: Seq[Array[Int]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: BinaryDistance
-) extends ClusteringAlgorithms[Int, Int]
+) extends ClusteringAlgorithms[Int, Array[Int]]
 {
-	val dim = data.head._2.size
+	val dim = data.head.size
 
 	def run(): KModesModel =
 	{
@@ -34,9 +34,9 @@ class KModes(
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMode(arr: Seq[Array[Int]]): Array[Int] =
+		def obtainMedoid(arr: Seq[Array[Int]]): Array[Int] =
 		{
-			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).reduce(_ + _) / arr.size) )).sortBy(_._2).head._1
+			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).sum / arr.size) )).sortBy(_._2).head._1
 		}
 
 		val zeroMod = Array.fill(dim)(0)
@@ -45,7 +45,7 @@ class KModes(
 		while( cpt < maxIter && ! allModsHaveConverged )
 		{
 			// Allocation to modes
-			val clusterized = data.map{ case (id, v) => (id, v, obtainNearestModID(v)) }
+			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
 
 			val kModesBeforeUpdate = modes.clone
 
@@ -56,7 +56,7 @@ class KModes(
 			if( metric.isInstanceOf[Hamming] )
 			{
 				// Updatating Modes
-				clusterized.foreach{ case (_, v, clusterID) =>
+				clusterized.foreach{ case (v, clusterID) =>
 				{
 					modes(clusterID) = SumArrays.sumArraysNumerics(modes(clusterID), v)
 					modesCardinality(clusterID) += 1
@@ -66,10 +66,10 @@ class KModes(
 			}
 			else
 			{	
-				clusterized.groupBy{ case (_, _, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
+				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
 				{
-					val cluster = aggregates.map{ case (_, vector, _) => vector }
-					val mode = obtainMode(cluster)
+					val cluster = aggregates.map{ case (vector, _) => vector }
+					val mode = obtainMedoid(cluster)
 					modes(clusterID) = mode
 				}}
 			}
@@ -84,10 +84,10 @@ class KModes(
 	
 }
 
-object KModes extends DataSetsTypes[Int, Int]
+object KModes extends DataSetsTypes[Int, Array[Int]]
 {
 
-	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
+	def run(data: Array[Vector], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
 	{
 		val kmodes = new KModes(data, k, epsilon, maxIter, metric)
 		val kModesModel = kmodes.run()

@@ -9,28 +9,21 @@ import _root_.org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-class KModesModel(val centroids: mutable.HashMap[Int, Array[Int]], val cardinalities: mutable.HashMap[Int, Long], val metric: BinaryDistance) extends ClusteringModel with DataSetsTypes[Long, Int]
+class KModesModel(val modes: mutable.HashMap[Int, Array[Int]], val cardinalities: mutable.HashMap[Int, Long], val metric: BinaryDistance) extends ClusteringModel with DataSetsTypes[Long, Array[Int]]
 {
+	val modesAsArray = modes.toArray
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
 	def predict(v: Array[Int]): ClusterID =
 	{
-		centroids.toArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+		modesAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
 	}
-
 	/**
 	 * Return the nearest mode for a dataset
 	 **/
 	def predict(data: RDD[Array[Int]]): RDD[(ClusterID, Vector)] =
 	{
-		val centroidsAsArray = centroids.toArray
-
-		def predictCluster(v: Array[Int]) =
-		{
-			centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
-		}
-
-		data.map( v => (predictCluster(v), v) )
+		data.map( v => (predict(v), v) )
 	}
 }
