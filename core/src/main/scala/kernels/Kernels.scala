@@ -68,6 +68,6 @@ object Kernels
 	def knnKernel(v: Array[Double], env: Seq[Array[Double]], k: Int, metric: ContinuousDistances) =
 	{
 		val knn = env.map( v2 => (v2, metric.d(v, v2)) ).sortBy(_._2).take(k).map(_._1)
-		SumArrays.obtainCentroid(knn)
+		SumArrays.obtainMean(knn)
 	}
 }

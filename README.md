@@ -81,6 +81,8 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
   * **Warning** -> with another distance than Euclidean, similarity matrix in _O(n<sup>2</sup>)_ of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Euclidean
+* [Gaussian Mixture](https://en.wikipedia.org/wiki/Mixture_model)
+  * Complexity **_O(k.n.t)_**
 
 #### Binary data
 * _K_-Modes
@@ -96,10 +98,11 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ### Preprocessing algorithms
 * Gradient ascent
     * **Warning**, there's no theorical guaranty with other distance than Euclidean
-    * 3 Working kernels
+    * 4 kernels
       * K Nearest Neighbors
       * Gaussian
       * Flat
+      * Sigmoid
 
 ## [Quality Indexes](Documentation/doc/QualityIndexes.md)
 

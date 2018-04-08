@@ -12,28 +12,10 @@ import _root_.clustering4ever.util.SumArrays
  * @author Beck Gaël
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */
-class InternalIndexes extends DataSetsTypes[Int, Double]
+class InternalIndexes extends DataSetsTypes[Int, Array[Double]]
 {
-  /**
-  * Measure of how good the clustering scheme is
-  * Params:
-  *  scatter1,scatter2: Double - the scatter value of cluster 1 and cluster 2
-  *  center1,center2: Array[Double] - The centroid of cluster 1 and cluster 2
-  **/
-  private[this] def good(scatter1: Double, scatter2: Double, center1: Array[Double], center2: Array[Double], metric: ContinuousDistances) = (scatter1 + scatter2) / metric.d(center1, center2)
-
-  /**
-   * Scatter of point in cluster
-   * Measure average distance to centroïd
-   * @return Double - Scatter value
-   **/
-  private[this] def scatter(cluster: Array[Array[Double]], centroid: Array[Double], metric: ContinuousDistances) = ( for(p <- cluster) yield(metric.d(centroid, p)) ).sum / cluster.size
-
-
-
-  private def daviesBouldinIndexInside(data: Array[(Int, Array[Double])], clusterLabels: Array[Int], metric: ContinuousDistances) =
+  private def daviesBouldinIndexInside(data: Array[(Int, Vector)], clusterLabels: Array[Int], metric: ContinuousDistances) =
   {
-  
     if( clusterLabels.size == 1 )
     {
       println(" One Cluster found")
@@ -42,8 +24,8 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
     else
     {
       val clusters = data.groupBy(_._1).map{ case (k, v) => (k, v.map(_._2)) }.toParArray
-      val centers = clusters.map{ case (k, v) => (k, SumArrays.obtainCentroid(v)) }
-      val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, scatter(v, centers(idCLust)._2, metric)) }
+      val centers = clusters.map{ case (k, v) => (k, SumArrays.obtainMean(v)) }
+      val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, InternalIndexesDBCommons.scatter(v, centers(idCLust)._2, metric)) }
       val clustersWithCenterandScatters = (
         centers.map{ case (id, ar) => (id, (Some(ar), None)) } ++ 
         scatters.map{ case (id, v) => (id, (None, Some(v))) }
@@ -52,7 +34,7 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
         .map{ case (id, rest) => (id, rest.head, rest.last) }
         .map{ case (id, a, b) => if( a._1.isDefined ) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get)) }
       val cart = ( for( i <- clustersWithCenterandScatters; j <- clustersWithCenterandScatters if( i._1 != j._1 ) ) yield( (i, j) ) )
-      val rijList = for( ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) <- cart ) yield( ((idClust1, idClust2), good(centroid1, centroid2, scatter1, scatter2, metric)) )
+      val rijList = for( ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) <- cart ) yield( ((idClust1, idClust2), InternalIndexesDBCommons.good(centroid1, centroid2, scatter1, scatter2, metric)) )
       val di = (for( ((idClust1, _), good) <- rijList) yield((idClust1, good))).groupBy(_._1).map{ case (idClust, goods)=> (idClust, goods.map(_._2).reduce(max(_,_))) }
       val numCluster = clusterLabels.size
       val daviesBouldinIndex = di.map(_._2).sum / numCluster
@@ -65,14 +47,14 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
    * Silhouette Index
    * Complexity : O(n<sup>2</sup>)
    **/
-  def silhouette(clusterLabels: Array[Int], data: Array[(Int, Array[Double])], metric: ContinuousDistances) =
+  def silhouette(clusterLabels: Array[Int], data: Array[(Int, Vector)], metric: ContinuousDistances) =
   {  
     /*
      * Compute the  within-cluster mean distance a(i) for all the point in cluster
-     * Param: cluster: RDD[Array[Double]]
+     * Param: cluster: RDD[Vector]
      * Return index of point and the corresponding a(i) Array[(Int, Double)]
      */
-    def aiList(cluster:Array[(Int, Array[Double])]) =
+    def aiList(cluster:Array[(Int, Vector)]) =
     {
       val pointPairs = for( i <- cluster; j <- cluster if( i._1 != j._1 ) ) yield( (i,j) )
       val allPointsDistances = for( pp <- pointPairs ) yield( ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2)) )
@@ -120,13 +102,13 @@ class InternalIndexes extends DataSetsTypes[Int, Double]
 
 }
 
-object InternalIndexes extends DataSetsTypes[Int, Double]
+object InternalIndexes extends DataSetsTypes[Int, Array[Double]]
 {
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n)
    **/
-  def daviesBouldinIndex(data: Array[(ClusterID, Array[Double])], clusterLabels: Array[Int], metric: ContinuousDistances) =
+  def daviesBouldinIndex(data: Array[(ClusterID, Vector)], clusterLabels: Array[Int], metric: ContinuousDistances) =
   {
     (new InternalIndexes).daviesBouldinIndexInside(data, clusterLabels, metric)
   }
@@ -135,13 +117,13 @@ object InternalIndexes extends DataSetsTypes[Int, Double]
    * Monothreaded version of davies bouldin index
    * Complexity O(n)
    **/
-  def daviesBouldinIndex(data: Array[(ClusterID, Array[Double])], metric: ContinuousDistances) =
+  def daviesBouldinIndex(data: Array[(ClusterID, Vector)], metric: ContinuousDistances) =
   {
     val clusterLabels = data.map(_._1).distinct.toArray
     (new InternalIndexes).daviesBouldinIndexInside(data, clusterLabels, metric) 
   }
 
-  def silhouette(clusterLabels: Array[Int], data: Array[(Int, Array[Double])], metric: ContinuousDistances) =
+  def silhouette(clusterLabels: Array[Int], data: Array[(Int, Vector)], metric: ContinuousDistances) =
   {
     (new InternalIndexes).silhouette(clusterLabels, data, metric)
   }
