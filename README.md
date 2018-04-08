@@ -49,13 +49,12 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 #### Binary data
 * _K_-Modes
   * Complexity **_O(k.n.t)_**
-  * Implementation that will allowi choice of the dissimilarity measure.
+  * Implementation that will allow choice of the dissimilarity measure.
   * **Warning*** -> works only with Hamming distance at the moment
 
 #### Mixed data
 * _K_-Protoypes
   * Complexity **_O(k.n.t)_**
-  * Implementation that will allowi choice of the dissimilarity measure.
   * **Warning*** -> works only with Hamming and Euclidean distance at the moment
 * Self Organizing Maps
   * Mixed topological Map
@@ -86,6 +85,11 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
   * **Warning** -> with another distance than Hamming, similarity matrix in _O(n<sup>2</sup>)_ of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Hamming
+
+#### Mixed data
+* _K_-Protoypes
+  * Complexity **_O(k.n.t)_**
+  * **Warning*** -> works only with Hamming and Euclidean distance at the moment
 
 ### Preprocessing algorithms
 * Gradient ascent
