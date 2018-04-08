@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering.kmeans
+package clustering4ever.scala.clustering.gaussianmixtures
 
 import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
@@ -19,20 +19,19 @@ import clustering4ever.scala.kernels.Kernels
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
 class GaussianMixtures(
-	data: Seq[(Int, Array[Double])],
+	data: Seq[Array[Double]],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: ContinuousDistances
-) extends ClusteringAlgorithms[Int, Double]
+) extends ClusteringAlgorithms[Int, Array[Double]]
 {
-	val dim = data.head._2.size
-
+	val dim = data.head.size
 	/**
 	 * Simplest centroids initializations
 	 * We search range for each dimension and take a random value between each range 
 	 **/
-	def initializationCentroids =
+	def initializationCentroids(): mutable.HashMap[Int, Array[Double]] =
 	{
 		val vectorRange = (0 until dim).toArray
 
@@ -44,7 +43,7 @@ class GaussianMixtures(
 			)
 		}
 
-		val (minv, maxv) = data.map{ case (_, v) => (v, v) }.reduce( (minMaxa, minMaxb) =>
+		val (minv, maxv) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
 		{
 			val minAndMax = for( i <- vectorRange ) yield( obtainMinMax(i, minMaxa, minMaxb) )
 			minAndMax.unzip
@@ -58,10 +57,9 @@ class GaussianMixtures(
 	/**
 	 * Run the Gaussian Mixture
 	 **/
-	// distance au prototype pondéré par la proba à postériori
-	def run(): KMeansModel =
+	def run(): GaussianMixturesModel =
 	{
-		val centroids = initializationCentroids
+		val centroids = initializationCentroids()
 		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
 
 		def obtainNearestModID(v: Array[Double]): ClusterID = centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
@@ -73,13 +71,15 @@ class GaussianMixtures(
 
 		def sd(vectors: Array[Array[Double]], mean: Array[Double]) =
 		{
-			vectors.map( v =>
-			{
-				var sum = Array.fill(v.size)(0D)
-				for( i <- v.indices ) sum(i) += pow(v(i) - mean(i), 2)
-				sum 
-			}).reduce(_.zip(_).map( x => x._1 + x._2))
-			.map(sqrt(_))
+			sqrt(
+				vectors.map( v =>
+				{
+					var sum = 0D
+					for( i <- v.indices ) sum += pow(v(i) - mean(i), 2)
+					//sqrt(sum)
+					sum
+				}).sum
+			)
 		}
 
 		def reduceMatricColumns(a: Array[Double], b: Array[Double]) =
@@ -92,44 +92,55 @@ class GaussianMixtures(
 		def reduceMeans(a: Array[Array[Double]], b: Array[Array[Double]]) =
 		{
 			var sum = Array.fill(a.size)(Array.fill(a.head.size)(0D))
-			for( i <- a.indices ) sum(i) = a(i).zip(b(i)).map( y => y._1 + y._2)
+			for( i <- a.indices ) sum(i) = SumArrays.sumArraysNumerics(a(i), b(i))
 			sum
 		}
 
+		def diffDotProduct(v1: Array[Double], v2: Array[Double]) =
+		{
+			(for( i <- v1.indices.toArray ) yield(v1(i) - v2(i))).map(pow(_, 2)).sum			
+		}
+
 		// Allocation to nearest centroid
-		val clusterized = data.map{ case (id, v) => (id, v, obtainNearestModID(v)) }
+		val clusterized = data.map( v => (obtainNearestModID(v), v) )
 	
-		val normalLawFeatures = clusterized.groupBy(_._3).map{ case (clusterID, aggregates) =>
+		val normalLawFeatures = mutable.HashMap(clusterized.groupBy(_._1).map{ case (clusterID, aggregates) =>
 		{
 			val vectors = aggregates.map(_._2).toArray
 			val meanC = mean(vectors)
 			val sdC = sd(vectors, meanC)
 			(clusterID, (meanC, sdC))
-		}}
+		}}.toSeq:_*)
 
 		val zeroMod = Array.fill(dim)(0D)
 		var cpt = 0
 		var allModsHaveConverged = false
-		
-		//var gammas = clusterized.map{ case (clusterID, (id, v)) => (id, v, Map.empty[Int, Double]) }
-
-		val weights = normalLawFeatures.map{ case (clusterID, _) => (clusterID, 1D / k)}
+		val πks = normalLawFeatures.map{ case (clusterID, _) => (clusterID, 1D / k) }
 		while( cpt < iterMax && ! allModsHaveConverged )
 		{
-			val gammas = data.map{ case (id, v) =>
+			val gammas = data.map( v =>
 			{
-				val genProb = normalLawFeatures.toSeq.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
+				val genProb = normalLawFeatures.toArray.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
 
-				val averaging = genProb.map{ case (clusterID, prob) => prob * weights(clusterID) }.sum 
+				val averaging = genProb.map{ case (clusterID, prob) => prob * πks(clusterID) }.sum 
 
-				val gammaByCluster = genProb.map{ case (clusterID, prob) => (clusterID, (weights(clusterID) * prob) / averaging) }.toArray.sortBy(_._1)
+				val gammaByCluster = genProb.map{ case (clusterID, prob) => (clusterID, (πks(clusterID) * prob) / averaging) }.sortBy(_._1)
 
 				(v, gammaByCluster)
-			}}
+			})
 
-			val gammasSum = gammas.map(_._2).reduce(reduceMatricColumns)
+			val gammasSums = SumArrays.sumColumnArrays(gammas.map(_._2.map(_._2)))
 
-			val means = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map(_._2).map( coef => v.map(_ * coef) ) }.reduce(reduceMeans)
+			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef / gammasSums(clusterID)) }}.reduce(reduceMeans)
+
+			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID)  }})
+
+			val πksUpdated = gammasSums.map(_ / k)
+
+
+			// Update parameters
+			πksUpdated.zipWithIndex.foreach{ case (gammaz, clusterID) => πks(clusterID) = gammaz }
+			normalLawFeatures.foreach{ case (clusterID, _) => normalLawFeatures(clusterID) = (μs(clusterID), σs(clusterID)) }
 
 
 
@@ -139,8 +150,8 @@ class GaussianMixtures(
 			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = zeroMod }
 			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
 
-			// Updatating Modes
-			clusterized.foreach{ case (_, v, clusterID) =>
+			// Updatating means
+			clusterized.foreach{ case (clusterID, v) =>
 			{
 				centroids(clusterID) = SumArrays.sumArraysNumerics(centroids(clusterID), v)
 				clustersCardinality(clusterID) += 1
@@ -152,17 +163,16 @@ class GaussianMixtures(
 
 			cpt += 1
 		}
-
 		new GaussianMixturesModel(centroids, clustersCardinality, metric)
 	}
 }
 
-object GaussianMixtures extends DataSetsTypes[Int, Double]
+object GaussianMixtures extends DataSetsTypes[Int, Array[Double]]
 {
 	/**
 	 * Run the K-Means
 	 **/
-	def run(data: Array[(ID, Vector)], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): KMeansModel =
+	def run(data: Array[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): GaussianMixturesModel =
 	{
 		val kMeans = new GaussianMixtures(data, k, epsilon, iterMax, metric)
 		val kmeansModel = kMeans.run()
