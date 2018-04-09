@@ -1,6 +1,5 @@
 import sbt._
 import Keys._
-//import com.typesafe.sbt.SbtGit.GitKeys._
 
 val sparkVersion = "2.2.0"
 
@@ -32,7 +31,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
 		bintrayRepository := "Clustering4Ever",
-	 	version := "0.3.7",
+	 	version := "0.3.8",
 		scalaVersion := "2.11.8",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),

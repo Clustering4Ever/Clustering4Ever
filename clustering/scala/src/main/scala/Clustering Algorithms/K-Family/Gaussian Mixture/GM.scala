@@ -7,6 +7,7 @@ import _root_.clustering4ever.util.SumArrays
 import _root_.scala.math.{min, max, sqrt, pow}
 import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
+import _root_.clustering4ever.stats.Stats
 import clustering4ever.scala.kernels.Kernels
 
 /**
@@ -64,51 +65,14 @@ class GaussianMixtures(
 
 		def obtainNearestModID(v: Array[Double]): ClusterID = centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 
-		def mean(vectors: Array[Array[Double]]) =
-		{
-			vectors.reduce(_.zip(_).map( x => x._1 + x._2 )).map(_ / vectors.size)
-		}
-
-		def sd(vectors: Array[Array[Double]], mean: Array[Double]) =
-		{
-			sqrt(
-				vectors.map( v =>
-				{
-					var sum = 0D
-					for( i <- v.indices ) sum += pow(v(i) - mean(i), 2)
-					//sqrt(sum)
-					sum
-				}).sum
-			)
-		}
-
-		def reduceMatricColumns(a: Array[Double], b: Array[Double]) =
-		{
-			var sum = Array.fill(a.size)(0D)
-			for( i <- a.indices ) sum(i) += (a(i) + b(i))
-			sum
-		}
-
-		def reduceMeans(a: Array[Array[Double]], b: Array[Array[Double]]) =
-		{
-			var sum = Array.fill(a.size)(Array.fill(a.head.size)(0D))
-			for( i <- a.indices ) sum(i) = SumArrays.sumArraysNumerics(a(i), b(i))
-			sum
-		}
-
-		def diffDotProduct(v1: Array[Double], v2: Array[Double]) =
-		{
-			(for( i <- v1.indices.toArray ) yield(v1(i) - v2(i))).map(pow(_, 2)).sum			
-		}
-
 		// Allocation to nearest centroid
 		val clusterized = data.map( v => (obtainNearestModID(v), v) )
 	
 		val normalLawFeatures = mutable.HashMap(clusterized.groupBy(_._1).map{ case (clusterID, aggregates) =>
 		{
 			val vectors = aggregates.map(_._2).toArray
-			val meanC = mean(vectors)
-			val sdC = sd(vectors, meanC)
+			val meanC = Stats.mean(vectors)
+			val sdC = Stats.sd(vectors, meanC)
 			(clusterID, (meanC, sdC))
 		}}.toSeq:_*)
 
@@ -131,18 +95,15 @@ class GaussianMixtures(
 
 			val gammasSums = SumArrays.sumColumnArrays(gammas.map(_._2.map(_._2)))
 
-			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef / gammasSums(clusterID)) }}.reduce(reduceMeans)
+			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef / gammasSums(clusterID)) }}.reduce(Stats.reduceMultipleMatriceColumns)
 
-			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID)  }})
+			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => Stats.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID)  }})
 
 			val πksUpdated = gammasSums.map(_ / k)
-
 
 			// Update parameters
 			πksUpdated.zipWithIndex.foreach{ case (gammaz, clusterID) => πks(clusterID) = gammaz }
 			normalLawFeatures.foreach{ case (clusterID, _) => normalLawFeatures(clusterID) = (μs(clusterID), σs(clusterID)) }
-
-
 
 			val kModesBeforeUpdate = centroids.clone
 
@@ -170,7 +131,7 @@ class GaussianMixtures(
 object GaussianMixtures extends DataSetsTypes[Int, Array[Double]]
 {
 	/**
-	 * Run the K-Means
+	 * Run the Gaussian Mixture
 	 **/
 	def run(data: Array[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): GaussianMixturesModel =
 	{
