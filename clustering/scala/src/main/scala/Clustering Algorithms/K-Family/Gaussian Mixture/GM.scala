@@ -63,7 +63,10 @@ class GaussianMixtures(
 		val centroids = initializationCentroids()
 		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestModID(v: Array[Double]): ClusterID = centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+		def obtainNearestModID(v: Array[Double]): ClusterID =
+		{
+			centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+		}
 
 		// Allocation to nearest centroid
 		val clusterized = data.map( v => (obtainNearestModID(v), v) )
@@ -82,20 +85,11 @@ class GaussianMixtures(
 		val πks = normalLawFeatures.map{ case (clusterID, _) => (clusterID, 1D / k) }
 		while( cpt < iterMax && ! allModsHaveConverged )
 		{
-			val gammas = data.map( v =>
-			{
-				val genProb = normalLawFeatures.toArray.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
-
-				val averaging = genProb.map{ case (clusterID, prob) => prob * πks(clusterID) }.sum 
-
-				val gammaByCluster = genProb.map{ case (clusterID, prob) => (clusterID, (πks(clusterID) * prob) / averaging) }.sortBy(_._1)
-
-				(v, gammaByCluster)
-			})
+			val gammas = data.map( v => (v, Stats.obtainGammeByCluster(v, normalLawFeatures, πks)) )
 
 			val gammasSums = SumArrays.sumColumnArrays(gammas.map(_._2.map(_._2)))
 
-			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef / gammasSums(clusterID)) }}.reduce(Stats.reduceMultipleMatriceColumns)
+			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef) }}.reduce(Stats.reduceMultipleMatriceColumns).zipWithIndex.map{ case (v, clusterID) => v.map(_ / gammasSums(clusterID)) }
 
 			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => Stats.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID)  }})
 
@@ -105,26 +99,17 @@ class GaussianMixtures(
 			πksUpdated.zipWithIndex.foreach{ case (gammaz, clusterID) => πks(clusterID) = gammaz }
 			normalLawFeatures.foreach{ case (clusterID, _) => normalLawFeatures(clusterID) = (μs(clusterID), σs(clusterID)) }
 
-			val kModesBeforeUpdate = centroids.clone
-
-			// Reinitialization of centroids
-			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = zeroMod }
-			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
-
-			// Updatating means
-			clusterized.foreach{ case (clusterID, v) =>
-			{
-				centroids(clusterID) = SumArrays.sumArraysNumerics(centroids(clusterID), v)
-				clustersCardinality(clusterID) += 1
-			}}
-
-			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = mod.map(_ / clustersCardinality(clusterID)) }
-
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centroids(clusterID)) <= epsilon }
-
 			cpt += 1
 		}
-		new GaussianMixturesModel(centroids, clustersCardinality, metric)
+
+		val finalAffectation = data.map( v =>
+		{
+			val gammaByCluster = Stats.obtainGammeByCluster(v, normalLawFeatures, πks)
+			val clusterID = gammaByCluster.sortBy(_._2).last._1
+			(clusterID, v)
+		})
+
+		new GaussianMixturesModel(centroids, clustersCardinality, metric, finalAffectation)
 	}
 }
 

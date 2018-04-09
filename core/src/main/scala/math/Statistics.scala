@@ -2,13 +2,22 @@ package clustering4ever.stats
 
 import _root_.scala.math.{sqrt, pow}
 import _root_.clustering4ever.util.SumArrays
+import _root_.scala.collection.mutable
+import _root_.clustering4ever.scala.kernels.Kernels
+import _root_.clustering4ever.math.distances.ContinuousDistances
+import _root_.clustering4ever.math.distances.scalar.Euclidean
 
 object Stats
 {
 
+	def reduceColumns(vectors: Array[Array[Double]]) =
+	{
+		vectors.reduce( (a, b) => for( i <- a.indices.toArray ) yield (a(i) + b(i)) )
+	}
+
 	def mean(vectors: Array[Array[Double]]) =
 	{
-		vectors.reduce( (a, b) => for( i <- a.indices.toArray ) yield (a(i) + b(i)) ).map(_ / vectors.size)
+		reduceColumns(vectors).map(_ / vectors.size)
 	}
 
 	def sd(vectors: Array[Array[Double]], mean: Array[Double]) =
@@ -37,4 +46,16 @@ object Stats
 	{
 		( for( i <- v1.indices.toArray ) yield (v1(i) - v2(i)) ).map(pow(_, 2)).sum			
 	}
+
+	def obtainGammeByCluster(v: Array[Double], normalLawFeatures: mutable.HashMap[Int, (Array[Double], Double)], πks: mutable.HashMap[Int, Double], metric: ContinuousDistances = new Euclidean(true)) =
+	{
+		val genProb = normalLawFeatures.toArray.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
+
+		val averaging = genProb.map{ case (clusterID, prob) => prob * πks(clusterID) }.sum 
+
+		val gammaByCluster = genProb.map{ case (clusterID, prob) => (clusterID, (πks(clusterID) * prob) / averaging) }.sortBy(_._1)
+
+		gammaByCluster
+	}
+
 }
