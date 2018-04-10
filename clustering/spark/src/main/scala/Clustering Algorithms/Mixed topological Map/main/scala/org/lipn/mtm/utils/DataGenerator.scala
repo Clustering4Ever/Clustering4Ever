@@ -4,16 +4,13 @@ import util.Random
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import scala.Array
-
+import scala.annotation.meta.param
 
 /**
- * Created with IntelliJ IDEA.
- * User: tug
- * Date: 27/03/13
- * Time: 17:07
- * To change this template use File | Settings | File Templates.
- */
-object DataGen extends Serializable {
+ * @author Sarazin Tugdual
+ **/
+object DataGen extends Serializable
+{
 
   class Center(val cls: Int, val rayon: Double, val elements: Array[Double]) extends Serializable
   {
@@ -21,7 +18,8 @@ object DataGen extends Serializable {
   }
 
 
-  def generate(sc: SparkContext,
+  def generate(
+    @(transient @param) sc: SparkContext,
     numPoints: Int,
     nbCls: Int,
     d: Int,
@@ -32,12 +30,13 @@ object DataGen extends Serializable {
     val r = 1.0
     val centers = Array.fill(nbCls)(Array.fill(d)(rand.nextGaussian() * r))
     // Then generate points around each center
-    sc.parallelize(0 until numPoints, numPartitions).map{ idx =>
+    sc.parallelize(0 until numPoints, numPartitions).map( idx =>
+    {
       val cls = idx % nbCls
       val center = centers(cls)
       val rand2 = new Random(42 + idx)
       new NamedVector(Array.tabulate(d)(i => center(i) + rand2.nextGaussian()), cls)
-    }
+    })
   }
 }
 
@@ -72,24 +71,33 @@ object DataGenerator extends Serializable
   val CLS_3 = 3
   val CLS_4 = 4
 
-  def genH2Dims(N: Int) = new SModel(N, Array(
-    PModel2D(CLS_1, 1, 1, 1),
-    PModel2D(CLS_1, 1, 1, 2),
-    PModel2D(CLS_1, 1, 1, 3),
-    PModel2D(CLS_1, 1, 2, 2),
-    PModel2D(CLS_1, 1, 3, 1),
-    PModel2D(CLS_1, 1, 3, 2),
-    PModel2D(CLS_1, 1, 3, 3)
-  ))
+  def genH2Dims(n: Int) = new SModel(
+    n,
+    Array(
+      PModel2D(CLS_1, 1, 1, 1),
+      PModel2D(CLS_1, 1, 1, 2),
+      PModel2D(CLS_1, 1, 1, 3),
+      PModel2D(CLS_1, 1, 2, 2),
+      PModel2D(CLS_1, 1, 3, 1),
+      PModel2D(CLS_1, 1, 3, 2),
+      PModel2D(CLS_1, 1, 3, 3)
+    )
+  )
 
-  def gen2Cls2Dims(N: Int) = new SModel(N, Array(
-    PModel2D(CLS_1, 1, 1, 1),
-    PModel2D(CLS_2, 2, 2, 2)
-  ))
+  def gen2Cls2Dims(n: Int) = new SModel(
+    n,
+    Array(
+      PModel2D(CLS_1, 1, 1, 1),
+      PModel2D(CLS_2, 2, 2, 2)
+    )
+  )
 
-  def gen2ClsNDims(N: Int, dims: Int) = new SModel(N, Array(
-    PModelND(CLS_1, dims, 1, 1),
-    PModelND(CLS_2, dims, 2, 2)
-  ))
+  def gen2ClsNDims(n: Int, dims: Int) = new SModel(
+    n,
+    Array(
+      PModelND(CLS_1, dims, 1, 1),
+      PModelND(CLS_2, dims, 2, 2)
+    )
+  )
 }
 

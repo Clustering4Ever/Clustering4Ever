@@ -12,7 +12,9 @@ import clustering4ever.spark.clustering.mtm.utils.NamedVector
 import clustering4ever.spark.clustering.mtm.utils.DataGenerator
 import clustering4ever.spark.clustering.mtm.utils.Output
 
-
+/**
+ * @author Sarazin Tugdual & Beck Gaël
+ **/
 object RunSom
 {
 
@@ -44,13 +46,7 @@ object RunSom
       sep,
       initMap,
       initMapFile,
-      nbRealVars
-    )(
-      {
-        val sparkConf = new SparkConf().setAppName(execName)
-        sparkConf.setMaster(sparkMaster)
-        new SparkContext(sparkConf)
-      },
+      nbRealVars,
       true
     )
   }
@@ -67,25 +63,26 @@ object RunSom
 		sep : String = ";",
 		initMap: Int = 0,
 		initMapFile : String = "",
-		nbRealVars : Int = 10
-    )(sc:SparkContext, stop:Boolean=false) =
-    {
-      val somOptions = Map(
-        "clustering.som.nbrow" -> nbRow.toString, 
-        "clustering.som.nbcol" -> nbCol.toString,
-        "clustering.som.tmin" -> tmin.toString,
-        "clustering.som.tmax" -> tmax.toString,
-        "clustering.som.initMap" -> initMap.toString,
-        "clustering.som.initMapFile" -> initMapFile.toString,   
-        "clustering.som.separator" -> sep.toString,
-        "clustering.som.nbRealVars" -> nbRealVars.toString
-      )
+		nbRealVars : Int = 10,
+    stop: Boolean = false
+  ) =
+  {
+    val somOptions = Map(
+      "clustering.som.nbrow" -> nbRow.toString, 
+      "clustering.som.nbcol" -> nbCol.toString,
+      "clustering.som.tmin" -> tmin.toString,
+      "clustering.som.tmax" -> tmax.toString,
+      "clustering.som.initMap" -> initMap.toString,
+      "clustering.som.initMapFile" -> initMapFile,   
+      "clustering.som.separator" -> sep,
+      "clustering.som.nbRealVars" -> nbRealVars.toString
+    )
 
-val trainingDataset = intputFile 
+    val trainingDataset = intputFile 
 
     println(s"nbRow: ${trainingDataset.count()}")
-
-	 val som = new SomTrainerA
+    
+    val som = new SomTrainerA
     val startLearningTime = System.currentTimeMillis()
     val model = som.training(trainingDataset, Some(somOptions), maxIter, convergeDist)
     val somDuration = (System.currentTimeMillis - startLearningTime) / 1000D

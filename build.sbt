@@ -26,7 +26,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 		credentials += Credentials(Path.userHome / ".sbt" / "credentials"),
 		assemblyOption in assembly := (assemblyOption in assembly).value.copy(cacheUnzip = true),
 		assemblyOption in assembly := (assemblyOption in assembly).value.copy(cacheOutput = false)
-		)
+	)
 
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
