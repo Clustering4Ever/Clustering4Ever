@@ -16,7 +16,7 @@ class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardin
 	 **/
 	def predict(v: Array[Double]): ClusterID =
 	{
-		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 
 	/**

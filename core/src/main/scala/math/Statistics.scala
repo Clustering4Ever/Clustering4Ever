@@ -47,13 +47,16 @@ object Stats
 		( for( i <- v1.indices.toArray ) yield (v1(i) - v2(i)) ).map(pow(_, 2)).sum			
 	}
 
-	def obtainGammaByCluster(v: Array[Double], gaussianLawFeatures: mutable.HashMap[Int, (Array[Double], Double)], πks: mutable.HashMap[Int, Double], metric: ContinuousDistances = new Euclidean(true)) =
+	type Mean = Array[Double]
+	type SD = Double
+	type ClusterID = Int
+	def obtainGammaByCluster(v: Array[Double], gaussianLawFeaturesSortedByClusterID: Array[(ClusterID, (Mean, SD))], πksortedByClusterID: Array[Double], metric: ContinuousDistances = new Euclidean(true)) =
 	{
-		val genProb = gaussianLawFeatures.toArray.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
+		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
 
-		val averaging = genProb.map{ case (clusterID, prob) => prob * πks(clusterID) }.sum 
+		val averaging = genProb.map{ case (clusterID, prob) => prob * πksortedByClusterID(clusterID) }.sum 
 
-		val gammaByCluster = genProb.map{ case (clusterID, prob) => (clusterID, (πks(clusterID) * prob) / averaging) }.sortBy(_._1)
+		val gammaByCluster = genProb.map{ case (clusterID, prob) => (clusterID, (πksortedByClusterID(clusterID) * prob) / averaging) }
 
 		gammaByCluster
 	}

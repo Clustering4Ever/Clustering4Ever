@@ -8,7 +8,7 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 /**
  * @author Beck Gaël
  **/
-class GaussianMixturesModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances, val finalAffectation: Seq[(Int, Array[Double])]) extends ClusteringModel with DataSetsTypes[Int, Array[Double]]
+class GaussianMixtureModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances, val finalAffectation: Seq[(Int, Array[Double], Array[Double])]) extends ClusteringModel with DataSetsTypes[Int, Array[Double]]
 {
 	val centroidsAsArray = centroids.toArray
 	/**
@@ -16,7 +16,7 @@ class GaussianMixturesModel(val centroids: mutable.HashMap[Int, Array[Double]], 
 	 **/
 	def predict(v: Array[Double]): ClusterID =
 	{
-		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 	/**
 	 * Return the nearest mode for a dataset

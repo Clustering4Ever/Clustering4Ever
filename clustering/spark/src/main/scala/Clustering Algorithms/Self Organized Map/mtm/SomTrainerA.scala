@@ -101,7 +101,6 @@ class SomTrainerA extends AbstractTrainer
         {
           scala.collection.immutable.Vector.empty[(Double, Double)]
         }
-
         //ML: dans le cas de non présence de réelle vecteur vide, pareil pour les varibales binaires
         new SomObsA(new DenseVector(d.toArray.take(sizeRealVars).map(_ * factor)), factor, mapBinPondere, neuron.id)
         // ligne originale
@@ -126,9 +125,9 @@ class SomTrainerA extends AbstractTrainer
   }//end trainingIteration
 
   //protected def processT(maxIt:Int, currentIt:Int) = maxIt.toFloat - currentIt
-  protected def processT(maxIt:Int, currentIt:Int) =
+  protected def processT(maxIt: Int, currentIt: Int) =
   {
-    this.tmax*math.pow(this.tmin/this.tmax,currentIt/(maxIt.toFloat-1))
+    this.tmax * math.pow(this.tmin / this.tmax, currentIt / (maxIt.toFloat - 1))
   }
 
   protected class SomModel(val nbRow: Int, val nbCol: Int, neurons: Array[SomNeuron]) extends AbstractModel(neurons.asInstanceOf[Array[AbstractPrototype]])
@@ -171,7 +170,7 @@ class SomTrainerA extends AbstractTrainer
       // TO DO
       // calcul de la somme des pondÃ©ration des 1 et des 0
       //ML:ajouter la condition (d.length > this.sizeRealVars)
-      val mapBinPonderation2: scala.collection.immutable.Vector[(Double, Double)] = if ( mapBinPonderation.size > 0 )
+      val mapBinPonderation2: scala.collection.immutable.Vector[(Double, Double)] = if( mapBinPonderation.size > 0 )
       {
         for (i <-0 until mapBinPonderation.size)
         {

@@ -17,7 +17,7 @@ class KModesModel(val modes: mutable.HashMap[Int, Array[Int]], val cardinalities
 	 **/
 	def predict(v: Array[Int]): ClusterID =
 	{
-		modesAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+		modesAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 	/**
 	 * Return the nearest mode for a dataset

@@ -17,13 +17,15 @@ class KPrototypesModel(val centroids: mutable.HashMap[Int, BinaryScalarVector], 
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
-	def predict(v: BinaryScalarVector): ClusterID = {
-		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+	def predict(v: BinaryScalarVector): ClusterID =
+	{
+		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 	/**
 	 * Return the nearest mode for a dataset
 	 **/
-	def predict(data: RDD[BinaryScalarVector]): RDD[(ClusterID, Vector)] = {
+	def predict(data: RDD[BinaryScalarVector]): RDD[(ClusterID, Vector)] =
+	{
 		data.map( v => (predict(v), v) )
 	}
 }

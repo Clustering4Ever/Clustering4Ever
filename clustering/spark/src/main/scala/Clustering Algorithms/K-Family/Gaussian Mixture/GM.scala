@@ -60,7 +60,7 @@ class GaussianMixtures(
 	/**
 	 * Run the Gaussian Mixture
 	 **/
-	def run(): GaussianMixturesModel =
+	def run(): GaussianMixtureModel =
 	{
 		val centroids = initializationCentroids()
 		val centroidsAsArray = centroids.toArray
@@ -78,15 +78,13 @@ class GaussianMixtures(
 		def addToBuffer(buff: mutable.ArrayBuffer[Vector], elem: Vector) = buff += elem
 		def aggregateBuff(buff1: mutable.ArrayBuffer[Vector], buff2: mutable.ArrayBuffer[Vector]) = buff1 ++= buff2
 
-		val gaussianLawFeatures = mutable.HashMap(
-			clusterized.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).map{ case (clusterID, aggregates) =>
-			{
-				val vectors = aggregates.toArray
-				val meanC = Stats.mean(vectors)
-				val sdC = Stats.sd(vectors, meanC)
-				(clusterID, (meanC, sdC))
-			}}.collect
-		:_*)
+		val gaussianLawFeatures = clusterized.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).map{ case (clusterID, aggregates) =>
+		{
+			val vectors = aggregates.toArray
+			val meanC = Stats.mean(vectors)
+			val sdC = Stats.sd(vectors, meanC)
+			(clusterID, (meanC, sdC))
+		}}.collect.sortBy(_._1)
 
 		def reduceColumnsMatrixRDD(rdd: RDD[Vector]) =
 		{
@@ -96,11 +94,11 @@ class GaussianMixtures(
 			}}
 		}
 
-		val checkingMeans = gaussianLawFeatures.toArray.sortBy(_._1).map(_._2._1)
+		val checkingMeans = gaussianLawFeatures.map(_._2._1)
 		val zeroMod = Array.fill(dim)(0D)
 		var cpt = 0
 		var allModsHaveConverged = false
-		val πks = gaussianLawFeatures.map{ case (clusterID, _) => (clusterID, 1D / k) }
+		val πks = gaussianLawFeatures.map( x => 1D / k )
 		while( cpt < iterMax && ! allModsHaveConverged )
 		{
 			val gammas = data.map( v => (v, Stats.obtainGammaByCluster(v, gaussianLawFeatures, πks)) )
@@ -115,7 +113,7 @@ class GaussianMixtures(
 
 			// Update parameters
 			πksUpdated.zipWithIndex.foreach{ case (gammaz, clusterID) => πks(clusterID) = gammaz }
-			gaussianLawFeatures.foreach{ case (clusterID, _) => gaussianLawFeatures(clusterID) = (μs(clusterID), σs(clusterID)) }
+			gaussianLawFeatures.foreach{ case (clusterID, _) => gaussianLawFeatures(clusterID) = (clusterID, (μs(clusterID), σs(clusterID))) }
 
 			val zipedμs = μs.zipWithIndex
 			allModsHaveConverged = zipedμs.forall{ case (updatedMean, clusterID) => metric.d(updatedMean, checkingMeans(clusterID)) <= epsilon }
@@ -131,7 +129,7 @@ class GaussianMixtures(
 			(clusterID, v)
 		})
 
-		new GaussianMixturesModel(centroids, clustersCardinality, metric, finalAffectation)
+		new GaussianMixtureModel(centroids, clustersCardinality, metric, finalAffectation)
 	}
 }
 
@@ -140,7 +138,7 @@ object GaussianMixtures extends DataSetsTypes[Long, Array[Double]]
 	/**
 	 * Run the Gaussian Mixture
 	 **/
-	def run(data: RDD[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances = new Euclidean(true)): GaussianMixturesModel =
+	def run(data: RDD[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances = new Euclidean(true)): GaussianMixtureModel =
 	{
 		val gm = new GaussianMixtures(data, k, epsilon, iterMax, metric)
 		val gmModel = gm.run()

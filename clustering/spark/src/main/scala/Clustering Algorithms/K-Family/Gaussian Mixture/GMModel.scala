@@ -9,7 +9,7 @@ import _root_.org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-class GaussianMixturesModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances, val finalAffectation: RDD[(Int, Array[Double])]) extends ClusteringModel with DataSetsTypes[Int, Array[Double]]
+class GaussianMixtureModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances, val finalAffectation: RDD[(Int, Array[Double])]) extends ClusteringModel with DataSetsTypes[Int, Array[Double]]
 {
 	val centroidsAsArray = centroids.toArray
 	/**

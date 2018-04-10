@@ -17,7 +17,7 @@ class KPrototypesModel(val centroids: mutable.HashMap[Int, BinaryScalarVector], 
 	 **/
 	def predict(v: BinaryScalarVector): ClusterID =
 	{
-		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.sortBy(_._2).head._1
+		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 	/**
 	 * Return the nearest mode for a dataset
