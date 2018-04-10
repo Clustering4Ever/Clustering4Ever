@@ -10,7 +10,7 @@ import _root_.scala.math.{min, max, sqrt, pow}
 import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
 import _root_.org.apache.spark.rdd.RDD
-
+import _root_.clustering4ever.math.distances.scalar.Euclidean
 
 /**
  * @author Beck Gaël
@@ -78,7 +78,7 @@ class GaussianMixtures(
 		def addToBuffer(buff: mutable.ArrayBuffer[Vector], elem: Vector) = buff += elem
 		def aggregateBuff(buff1: mutable.ArrayBuffer[Vector], buff2: mutable.ArrayBuffer[Vector]) = buff1 ++= buff2
 
-		val normalLawFeatures = mutable.HashMap(
+		val gaussianLawFeatures = mutable.HashMap(
 			clusterized.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).map{ case (clusterID, aggregates) =>
 			{
 				val vectors = aggregates.toArray
@@ -96,13 +96,14 @@ class GaussianMixtures(
 			}}
 		}
 
+		val checkingMeans = gaussianLawFeatures.toArray.sortBy(_._1).map(_._2._1)
 		val zeroMod = Array.fill(dim)(0D)
 		var cpt = 0
 		var allModsHaveConverged = false
-		val πks = normalLawFeatures.map{ case (clusterID, _) => (clusterID, 1D / k) }
+		val πks = gaussianLawFeatures.map{ case (clusterID, _) => (clusterID, 1D / k) }
 		while( cpt < iterMax && ! allModsHaveConverged )
 		{
-			val gammas = data.map( v => (v, Stats.obtainGammeByCluster(v, normalLawFeatures, πks)) )
+			val gammas = data.map( v => (v, Stats.obtainGammaByCluster(v, gaussianLawFeatures, πks)) )
 
 			val gammasSums = reduceColumnsMatrixRDD(gammas.map(_._2.map(_._2)))
 
@@ -114,19 +115,19 @@ class GaussianMixtures(
 
 			// Update parameters
 			πksUpdated.zipWithIndex.foreach{ case (gammaz, clusterID) => πks(clusterID) = gammaz }
-			normalLawFeatures.foreach{ case (clusterID, _) => normalLawFeatures(clusterID) = (μs(clusterID), σs(clusterID)) }
+			gaussianLawFeatures.foreach{ case (clusterID, _) => gaussianLawFeatures(clusterID) = (μs(clusterID), σs(clusterID)) }
 
-
-			//val kModesBeforeUpdate = centroids.clone
-			//allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, newCentroids(clusterID)) <= epsilon }
+			val zipedμs = μs.zipWithIndex
+			allModsHaveConverged = zipedμs.forall{ case (updatedMean, clusterID) => metric.d(updatedMean, checkingMeans(clusterID)) <= epsilon }
+			zipedμs.foreach{ case (updatedMean, clusterID) => checkingMeans(clusterID) = updatedMean }
 
 			cpt += 1
 		}
 
 		val finalAffectation = data.map( v =>
 		{
-			val gammaByCluster = Stats.obtainGammeByCluster(v, normalLawFeatures, πks)
-			val clusterID = gammaByCluster.sortBy(_._2).last._1
+			val gammaByCluster = Stats.obtainGammaByCluster(v, gaussianLawFeatures, πks)
+			val clusterID = gammaByCluster.maxBy(_._2)._1
 			(clusterID, v)
 		})
 
@@ -139,10 +140,10 @@ object GaussianMixtures extends DataSetsTypes[Long, Array[Double]]
 	/**
 	 * Run the Gaussian Mixture
 	 **/
-	def run(data: RDD[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): GaussianMixturesModel =
+	def run(data: RDD[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances = new Euclidean(true)): GaussianMixturesModel =
 	{
-		val kMeans = new GaussianMixtures(data, k, epsilon, iterMax, metric)
-		val kmeansModel = kMeans.run()
-		kmeansModel
+		val gm = new GaussianMixtures(data, k, epsilon, iterMax, metric)
+		val gmModel = gm.run()
+		gmModel
 	}
 }

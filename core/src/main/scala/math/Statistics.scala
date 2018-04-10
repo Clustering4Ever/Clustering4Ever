@@ -47,9 +47,9 @@ object Stats
 		( for( i <- v1.indices.toArray ) yield (v1(i) - v2(i)) ).map(pow(_, 2)).sum			
 	}
 
-	def obtainGammeByCluster(v: Array[Double], normalLawFeatures: mutable.HashMap[Int, (Array[Double], Double)], πks: mutable.HashMap[Int, Double], metric: ContinuousDistances = new Euclidean(true)) =
+	def obtainGammaByCluster(v: Array[Double], gaussianLawFeatures: mutable.HashMap[Int, (Array[Double], Double)], πks: mutable.HashMap[Int, Double], metric: ContinuousDistances = new Euclidean(true)) =
 	{
-		val genProb = normalLawFeatures.toArray.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
+		val genProb = gaussianLawFeatures.toArray.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
 
 		val averaging = genProb.map{ case (clusterID, prob) => prob * πks(clusterID) }.sum 
 
