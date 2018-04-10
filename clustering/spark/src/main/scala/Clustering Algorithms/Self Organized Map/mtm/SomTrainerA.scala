@@ -86,26 +86,27 @@ class SomTrainerA extends AbstractTrainer
         scala.collection.immutable.Vector.empty[(Int, Int)]
       }
 
-      _somModel.get.prototypes.map{proto =>
-      val neuron = proto.asInstanceOf[SomNeuron]
-      val factor = neuron.factorDist(bestNeuron, t) // K(delta(.-.)/T)
-         
-      //binary part
-      val mapBinPondere: scala.collection.immutable.Vector[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
-      if( mapBin.size > 0 )
-      {
-        mapBin.map{ case (x, y) => (x * factor, y * factor) }
-      }
-      else
-      {
-        scala.collection.immutable.Vector.empty[(Double, Double)]
-      }
+      _somModel.get.prototypes.map( proto =>
+      { 
+        val neuron = proto.asInstanceOf[SomNeuron]
+        val factor = neuron.factorDist(bestNeuron, t) // K(delta(.-.)/T)
+           
+        //binary part
+        val mapBinPondere: scala.collection.immutable.Vector[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
+        if( mapBin.size > 0 )
+        {
+          mapBin.map{ case (x, y) => (x * factor, y * factor) }
+        }
+        else
+        {
+          scala.collection.immutable.Vector.empty[(Double, Double)]
+        }
 
-      //ML: dans le cas de non présence de réelle vecteur vide, pareil pour les varibales binaires
-      new SomObsA(new DenseVector(d.toArray.take(sizeRealVars).map(_ * factor)), factor, mapBinPondere, neuron.id)
-      // ligne originale
-      //new SomObsA(Vector(d.toArray.take(sizeRealVars)) * factor, factor, mapBinPondere, neuron.id)
-      }
+        //ML: dans le cas de non présence de réelle vecteur vide, pareil pour les varibales binaires
+        new SomObsA(new DenseVector(d.toArray.take(sizeRealVars).map(_ * factor)), factor, mapBinPondere, neuron.id)
+        // ligne originale
+        //new SomObsA(Vector(d.toArray.take(sizeRealVars)) * factor, factor, mapBinPondere, neuron.id)
+      })
     }) //end mapping
 
     // Concat observations
