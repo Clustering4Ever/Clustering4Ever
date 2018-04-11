@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.gaussianmixtures
+package clustering4ever.spark.clustering.gaussianmixture
 
 import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
@@ -21,7 +21,7 @@ import _root_.clustering4ever.math.distances.scalar.Euclidean
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
-class GaussianMixtures(
+class GaussianMixture(
 	data: RDD[Array[Double]],
 	var k: Int,
 	var epsilon: Double,
@@ -31,10 +31,10 @@ class GaussianMixtures(
 {
 	val dim = data.first.size
 	/**
-	 * Simplest centroids initializations
+	 * Simplest centers initializations
 	 * We search range for each dimension and take a random value between each range 
 	 **/
-	def initializationCentroids(): mutable.HashMap[Int, Array[Double]] =
+	def initializationCenters(): mutable.HashMap[Int, Array[Double]] =
 	{
 		val vectorRange = (0 until dim).toArray
 
@@ -53,8 +53,8 @@ class GaussianMixtures(
 		})
 
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val centroids = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
-		centroids
+		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+		centers
 	}
 
 	/**
@@ -62,13 +62,13 @@ class GaussianMixtures(
 	 **/
 	def run(): GaussianMixtureModel =
 	{
-		val centroids = initializationCentroids()
-		val centroidsAsArray = centroids.toArray
-		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers = initializationCenters()
+		val centersAsArray = centers.toArray
+		val clustersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		def obtainNearestModID(v: Array[Double]): ClusterID =
 		{
-			centroidsAsArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+			centersAsArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
 		}
 
 		// Allocation to nearest centroid
@@ -129,18 +129,18 @@ class GaussianMixtures(
 			(clusterID, v)
 		})
 
-		new GaussianMixtureModel(centroids, clustersCardinality, metric, finalAffectation)
+		new GaussianMixtureModel(centers, clustersCardinality, metric, finalAffectation)
 	}
 }
 
-object GaussianMixtures extends DataSetsTypes[Long, Array[Double]]
+object GaussianMixture extends DataSetsTypes[Long, Array[Double]]
 {
 	/**
 	 * Run the Gaussian Mixture
 	 **/
 	def run(data: RDD[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances = new Euclidean(true)): GaussianMixtureModel =
 	{
-		val gm = new GaussianMixtures(data, k, epsilon, iterMax, metric)
+		val gm = new GaussianMixture(data, k, epsilon, iterMax, metric)
 		val gmModel = gm.run()
 		gmModel
 	}

@@ -9,14 +9,14 @@ import _root_.org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Long], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Long, Array[Double]]
+class KMeansModel(val centers: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Long], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Long, Array[Double]]
 {
-	val centroidsAsArray = centroids.toArray
+	val centersAsArray = centers.toArray
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
 	def predict(v: Array[Double]): ClusterID = {
-		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
+		centersAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 	/**
 	 * Return the nearest mode for a dataset

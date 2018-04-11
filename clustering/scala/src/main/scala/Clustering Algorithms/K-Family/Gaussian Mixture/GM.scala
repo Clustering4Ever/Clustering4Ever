@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering.gaussianmixtures
+package clustering4ever.scala.clustering.gaussianmixture
 
 import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
@@ -20,7 +20,7 @@ import _root_.clustering4ever.math.distances.scalar.Euclidean
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
-class GaussianMixtures(
+class GaussianMixture(
 	data: Seq[Array[Double]],
 	var k: Int,
 	var epsilon: Double,
@@ -30,7 +30,7 @@ class GaussianMixtures(
 {
 	val dim = data.head.size
 	/**
-	 * Simplest centroids initializations
+	 * Simplest centers initializations
 	 * We search range for each dimension and take a random value between each range 
 	 **/
 	def initializationCentroids(): mutable.HashMap[Int, Array[Double]] =
@@ -52,8 +52,8 @@ class GaussianMixtures(
 		})
 
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val centroids = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
-		centroids
+		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+		centers
 	}
 
 	/**
@@ -61,13 +61,13 @@ class GaussianMixtures(
 	 **/
 	def run(): GaussianMixtureModel =
 	{
-		val centroids = initializationCentroids()
-		val centroidsAsArray = centroids.toArray
-		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers = initializationCentroids()
+		val centersAsArray = centers.toArray
+		val clustersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		def obtainNearestModID(v: Array[Double]): ClusterID =
 		{
-			centroidsAsArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+			centersAsArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
 		}
 
 		// Allocation to the nearest centroid
@@ -81,7 +81,7 @@ class GaussianMixtures(
 			(clusterID, (meanC, sdC))
 		}}.toArray.sortBy(_._1)
 
-		val checkingMeans = gaussianLawFeatures.toArray.map(_._2._1)
+		val checkingMeans = gaussianLawFeatures.map(_._2._1)
 		val zeroMod = Array.fill(dim)(0D)
 		var cpt = 0
 		var allModsHaveConverged = false
@@ -92,11 +92,9 @@ class GaussianMixtures(
 
 			val gammasSums = SumArrays.sumColumnArrays(gammas.map(_._2.map(_._2)))
 
-			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef) }}.reduce(Stats.reduceMultipleMatriceColumns).zipWithIndex.map{ case (v, clusterID) => v.map(_ / gammasSums(clusterID)) }
+			val μs = gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef) }}.reduce(Stats.reduceMultipleMatriceColumns).zip(gammasSums).map{ case (v, gammaSum) => v.map(_ / gammaSum) }
 
-			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => Stats.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID)  }})
-
-			//println(σs.mkString(","))
+			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => Stats.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID) } })
 
 			val πksUpdated = gammasSums.map(_ / k)
 
@@ -110,9 +108,6 @@ class GaussianMixtures(
 			
 			cpt += 1
 		}
-
-		println("piK : " + πks.mkString(", "))
-		println("meanSigma : " + gaussianLawFeatures.map(_._2).mkString(", "))
 
 		val finalAffectation = data.map( v =>
 		{
@@ -129,14 +124,14 @@ class GaussianMixtures(
 	}
 }
 
-object GaussianMixtures extends DataSetsTypes[Int, Array[Double]]
+object GaussianMixture extends DataSetsTypes[Int, Array[Double]]
 {
 	/**
 	 * Run the Gaussian Mixture
 	 **/
 	def run(data: Array[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances = new Euclidean(true)): GaussianMixtureModel =
 	{
-		val kMeans = new GaussianMixtures(data, k, epsilon, iterMax, metric)
+		val kMeans = new GaussianMixture(data, k, epsilon, iterMax, metric)
 		val kmeansModel = kMeans.run()
 		kmeansModel
 	}

@@ -32,18 +32,18 @@ class KMeans(
 	var metric: ContinuousDistances
 ) extends ClusteringAlgorithms[Long, Array[Double]]
 {
-	type CentroidsMap = mutable.HashMap[Int, Array[Double]]
+	type CentersMap = mutable.HashMap[Int, Array[Double]]
 
-	def obtainNearestModID(v: Array[Double], kModesCentroids: CentroidsMap): Int =
+	def obtainNearestModID(v: Array[Double], kModesCenters: CentersMap): Int =
 	{
-		kModesCentroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+		kModesCenters.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
 	}
 
 	def run(): KMeansModel =
 	{
 		val dim = data.first.size
 		
-		def initializationModes() =
+		def initializationCenters() =
 		{
 			val vectorRange = (0 until dim).toArray
 
@@ -62,30 +62,30 @@ class KMeans(
 			})
 
 			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-			val modes = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
-			modes
+			val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+			centers
 		}
 		
-		val centroids = initializationModes()
-		val centroidsUpdated = centroids.clone
-		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0L) }
+		val centers = initializationCenters()
+		val centersUpdated = centers.clone
+		val clustersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0L) }
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
 			if( metric.isInstanceOf[Euclidean] )
 			{
-				val info = data.map( v => (obtainNearestModID(v, centroids), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality), cardinality) }.collect
+				val info = data.map( v => (obtainNearestModID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality), cardinality) }.collect
 
 				info.foreach{ case (clusterID, mean, cardinality) =>
 				{
-					centroidsUpdated(clusterID) = mean
+					centersUpdated(clusterID) = mean
 					clustersCardinality(clusterID) = cardinality
 				}}
 
-				allModHaveConverged = centroidsUpdated.forall{ case (clusterID, uptMod) => metric.d(centroids(clusterID), uptMod) <= epsilon }
+				allModHaveConverged = centersUpdated.forall{ case (clusterID, uptMod) => metric.d(centers(clusterID), uptMod) <= epsilon }
 				
-				centroidsUpdated.foreach{ case (clusterID, mod) => centroids(clusterID) = mod }	
+				centersUpdated.foreach{ case (clusterID, mod) => centers(clusterID) = mod }	
 			}
 			else
 			{
@@ -93,7 +93,7 @@ class KMeans(
 			}
 			cpt += 1
 		}
-		new KMeansModel(centroids, clustersCardinality, metric)
+		new KMeansModel(centers, clustersCardinality, metric)
 	}
 }
 

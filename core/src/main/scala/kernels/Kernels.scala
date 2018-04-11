@@ -19,7 +19,7 @@ object Kernels
 
 	def gaussianKernel(v1: Array[Double], v2: Array[Double], bandwidth: Double, metric: ContinuousDistances) =
 	{
-		exp( - bandwidth * metric.d(v1, v2) )
+		exp( - bandwidth * pow(metric.d(v1, v2), 2) )
 	}
 
 	def sigmoidKernel(v1: Array[Double], v2: Array[Double], a: Double = 1D, b: Double = 0D) =

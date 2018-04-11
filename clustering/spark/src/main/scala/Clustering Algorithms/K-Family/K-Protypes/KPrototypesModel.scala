@@ -11,15 +11,15 @@ import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  * @author Beck Gaël
  **/
-class KPrototypesModel(val centroids: mutable.HashMap[Int, BinaryScalarVector], val cardinalities: mutable.HashMap[Int, Long], val metric: MixtDistance) extends ClusteringModel with DataSetsTypes[Long, BinaryScalarVector]
+class KPrototypesModel(val centers: mutable.HashMap[Int, BinaryScalarVector], val cardinalities: mutable.HashMap[Int, Long], val metric: MixtDistance) extends ClusteringModel with DataSetsTypes[Long, BinaryScalarVector]
 {
-	val centroidsAsArray = centroids.toArray
+	val centersAsArray = centers.toArray
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
 	def predict(v: BinaryScalarVector): ClusterID =
 	{
-		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
+		centersAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 	/**
 	 * Return the nearest mode for a dataset

@@ -20,15 +20,15 @@ class KModes(
 
 	def run(): KModesModel =
 	{
-		val modes = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
-		val modesCardinality = modes.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
+		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		/**
 		 * Return the nearest mode for a specific point
 		 **/
 		def obtainNearestModID(v: Array[Int]): ClusterID =
 		{
-			modes.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+			centers.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
 		}
 
 		/**
@@ -47,22 +47,22 @@ class KModes(
 			// Allocation to modes
 			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
 
-			val kModesBeforeUpdate = modes.clone
+			val kCentersBeforeUpdate = centers.clone
 
 			// Reinitialization of modes
-			modes.foreach{ case (clusterID, mod) => modes(clusterID) = zeroMod }
-			modesCardinality.foreach{ case (clusterID, _) => modesCardinality(clusterID) = 0 }
+			centers.foreach{ case (clusterID, mod) => centers(clusterID) = zeroMod }
+			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
 
 			if( metric.isInstanceOf[Hamming] )
 			{
 				// Updatating Modes
 				clusterized.foreach{ case (v, clusterID) =>
 				{
-					modes(clusterID) = SumArrays.sumArraysNumerics(modes(clusterID), v)
-					modesCardinality(clusterID) += 1
+					centers(clusterID) = SumArrays.sumArraysNumerics(centers(clusterID), v)
+					centersCardinality(clusterID) += 1
 				}}
 
-				modes.foreach{ case (clusterID, mod) => modes(clusterID) = mod.map( v => if( v * 2 >= modesCardinality(clusterID) ) 1 else 0 ) }
+				centers.foreach{ case (clusterID, mod) => centers(clusterID) = mod.map( v => if( v * 2 >= centersCardinality(clusterID) ) 1 else 0 ) }
 			}
 			else
 			{	
@@ -70,16 +70,16 @@ class KModes(
 				{
 					val cluster = aggregates.map{ case (vector, _) => vector }
 					val mode = obtainMedoid(cluster)
-					modes(clusterID) = mode
+					centers(clusterID) = mode
 				}}
 			}
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, modes(clusterID)) <= epsilon }
+			allModsHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
 
 			cpt += 1
 		}
 
-		new KModesModel(modes, modesCardinality, metric)
+		new KModesModel(centers, centersCardinality, metric)
 	}
 	
 }

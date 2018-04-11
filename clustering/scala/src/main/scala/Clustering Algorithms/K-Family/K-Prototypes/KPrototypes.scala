@@ -33,7 +33,7 @@ class KPrototypes(
 	 * Simplest centroids initializations
 	 * We search range for each dimension and take a random value between each range for scalar data and take a random {0, 1} for binary data
 	 **/
-	def initializationCentroids(): mutable.HashMap[Int, BinaryScalarVector] =
+	def initializationCenters(): mutable.HashMap[Int, BinaryScalarVector] =
 	{
 		val vectorRange = (0 until dimScalar).toArray
 
@@ -54,9 +54,9 @@ class KPrototypes(
 		})
 
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val scalarCentroids = (0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
+		val scalarCenters = (0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
 		
-		mutable.HashMap(binaryModes.zip(scalarCentroids).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
+		mutable.HashMap(binaryModes.zip(scalarCenters).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
 	}
 
 	/**
@@ -64,12 +64,12 @@ class KPrototypes(
 	 **/
 	def run(): KPrototypesModel =
 	{
-		val centroids = initializationCentroids
-		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers = initializationCenters
+		val clustersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		def obtainNearestModID(v: BinaryScalarVector): ClusterID =
 		{
-			centroids.toArray.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.sortBy(_._2).head._1
+			centers.toArray.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
 		}
 
 		val zeroMod = new BinaryScalarVector(Array.fill(dimBinary)(0), Array.fill(dimScalar)(0D))
@@ -80,10 +80,10 @@ class KPrototypes(
 			// Allocation to nearest centroid
 			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
 
-			val kModesBeforeUpdate = centroids.clone
+			val kModesBeforeUpdate = centers.clone
 
-			// Reinitialization of centroids
-			centroids.foreach{ case (clusterID, mode) => centroids(clusterID) = zeroMod }
+			// Reinitialization of centers
+			centers.foreach{ case (clusterID, mode) => centers(clusterID) = zeroMod }
 			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
 
 			if( metric.isInstanceOf[HammingAndEuclidean] )
@@ -91,17 +91,17 @@ class KPrototypes(
 				// Updatating Modes
 				clusterized.foreach{ case (v, clusterID) =>
 				{
-					centroids(clusterID) =
+					centers(clusterID) =
 					{
 						new BinaryScalarVector(
-							SumArrays.sumArraysNumerics(centroids(clusterID).binary, v.binary),
-							SumArrays.sumArraysNumerics(centroids(clusterID).scalar, v.scalar)
+							SumArrays.sumArraysNumerics(centers(clusterID).binary, v.binary),
+							SumArrays.sumArraysNumerics(centers(clusterID).scalar, v.scalar)
 						)
 					}
 					clustersCardinality(clusterID) += 1
 				}}
 
-				centroids.foreach{ case (clusterID, mode) => centroids(clusterID) =
+				centers.foreach{ case (clusterID, mode) => centers(clusterID) =
 				{
 					new BinaryScalarVector(
 						mode.binary.map( v => if( v * 2 > clustersCardinality(clusterID) ) 1 else 0 ),
@@ -114,11 +114,11 @@ class KPrototypes(
 				println("We have a bit of time before thinking of mixt data with custom distances")
 			}
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centroids(clusterID)) <= epsilon }
+			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
 
 			cpt += 1
 		}
-		new KPrototypesModel(centroids, clustersCardinality, metric)
+		new KPrototypesModel(centers, clustersCardinality, metric)
 	}
 }
 

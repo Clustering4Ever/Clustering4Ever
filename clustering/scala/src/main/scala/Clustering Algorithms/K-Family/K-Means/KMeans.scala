@@ -28,10 +28,10 @@ class KMeans(
 {
 	val dim = data.head.size
 	/**
-	 * Simplest centroids initializations
+	 * Simplest centers initializations
 	 * We search range for each dimension and take a random value between each range 
 	 **/
-	def initializationCentroids =
+	def initializationCenters =
 	{
 		val vectorRange = (0 until dim).toArray
 
@@ -50,8 +50,8 @@ class KMeans(
 		})
 
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val centroids = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
-		centroids
+		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+		centers
 	}
 
 	/**
@@ -59,12 +59,12 @@ class KMeans(
 	 **/
 	def run(): KMeansModel =
 	{
-		val centroids = initializationCentroids
-		val clustersCardinality = centroids.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers = initializationCenters
+		val clustersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		def obtainNearestModID(v: Array[Double]): ClusterID =
 		{
-			centroids.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+			centers.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
 		}
 
 		/**
@@ -83,10 +83,10 @@ class KMeans(
 			// Allocation to nearest centroid
 			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
 
-			val kModesBeforeUpdate = centroids.clone
+			val kModesBeforeUpdate = centers.clone
 
-			// Reinitialization of centroids
-			centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = zeroMod }
+			// Reinitialization of centers
+			centers.foreach{ case (clusterID, mod) => centers(clusterID) = zeroMod }
 			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
 
 			if( metric.isInstanceOf[Euclidean] )
@@ -94,11 +94,11 @@ class KMeans(
 				// Updatating Modes
 				clusterized.foreach{ case (v, clusterID) =>
 				{
-					centroids(clusterID) = SumArrays.sumArraysNumerics(centroids(clusterID), v)
+					centers(clusterID) = SumArrays.sumArraysNumerics(centers(clusterID), v)
 					clustersCardinality(clusterID) += 1
 				}}
 
-				centroids.foreach{ case (clusterID, mod) => centroids(clusterID) = mod.map(_ / clustersCardinality(clusterID)) }
+				centers.foreach{ case (clusterID, mod) => centers(clusterID) = mod.map(_ / clustersCardinality(clusterID)) }
 			}
 			else
 			{
@@ -106,15 +106,15 @@ class KMeans(
 				{
 					val cluster = aggregates.map{ case (vector, _) => vector }
 					val centroid = obtainMedoid(cluster)
-					centroids(clusterID) = centroid
+					centers(clusterID) = centroid
 				}}
 			}
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centroids(clusterID)) <= epsilon }
+			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
 
 			cpt += 1
 		}
-		new KMeansModel(centroids, clustersCardinality, metric)
+		new KMeansModel(centers, clustersCardinality, metric)
 	}
 }
 

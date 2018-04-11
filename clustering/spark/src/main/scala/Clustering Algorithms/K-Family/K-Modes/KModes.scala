@@ -32,36 +32,36 @@ class KModes(
 	var metric: BinaryDistance
 ) extends ClusteringAlgorithms[Long, Array[Int]]
 {
-	type ModesMap = mutable.HashMap[Int, Array[Int]]
+	type CentersMap = mutable.HashMap[Int, Array[Int]]
 
-	def obtainNearestModID(v: Array[Int], kModes: ModesMap): Int =
+	def obtainNearestModID(v: Array[Int], kModes: CentersMap): Int =
 	{
-		kModes.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.sortBy(_._2).head._1
+		kModes.toArray.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
 	}
 
 	def run(): KModesModel =
 	{
 		val dim = data.first.size
-		val modes = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
-		val modesCardinality = modes.map{ case (clusterID, _) => (clusterID, 0L) }
-		val modesUpdated = modes.clone
+		val centers = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
+		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0L) }
+		val centersUpdated = centers.clone
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
 			if( metric.isInstanceOf[Hamming] )
 			{
-				val info = data.map( v => (obtainNearestModID(v, modes), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
+				val info = data.map( v => (obtainNearestModID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
 
 				info.foreach{ case (clusterID, mode, cardinality) =>
 				{
-					modesUpdated(clusterID) = mode
-					modesCardinality(clusterID) = cardinality
+					centersUpdated(clusterID) = mode
+					centersCardinality(clusterID) = cardinality
 				}}
 
-				allModHaveConverged = modes.forall{ case (clusterID, uptMod) => metric.d(modes(clusterID), uptMod) <= epsilon }
+				allModHaveConverged = centers.forall{ case (clusterID, uptMod) => metric.d(centers(clusterID), uptMod) <= epsilon }
 				
-				modesUpdated.foreach{ case (clusterID, mod) => modes(clusterID) = mod }
+				centersUpdated.foreach{ case (clusterID, mode) => centers(clusterID) = mode }
 			}
 			else
 			{
@@ -69,7 +69,7 @@ class KModes(
 			}
 			cpt += 1
 		}
-		new KModesModel(modes, modesCardinality, metric)
+		new KModesModel(centers, centersCardinality, metric)
 	}
 }
 

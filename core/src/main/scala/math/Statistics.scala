@@ -28,7 +28,7 @@ object Stats
 				var sum = 0D
 				for( i <- v.indices ) sum += pow(v(i) - mean(i), 2)
 				sum
-			}).sum
+			}).sum / (vectors.size - 1)
 		)
 	}
 
@@ -52,7 +52,7 @@ object Stats
 	type ClusterID = Int
 	def obtainGammaByCluster(v: Array[Double], gaussianLawFeaturesSortedByClusterID: Array[(ClusterID, (Mean, SD))], πksortedByClusterID: Array[Double], metric: ContinuousDistances = new Euclidean(true)) =
 	{
-		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / pow(sdC, 2), metric)) }
+		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }
 
 		val averaging = genProb.map{ case (clusterID, prob) => prob * πksortedByClusterID(clusterID) }.sum 
 

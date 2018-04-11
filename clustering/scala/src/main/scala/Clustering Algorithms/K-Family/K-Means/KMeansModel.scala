@@ -8,15 +8,15 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 /**
  * @author Beck Gaël
  **/
-class KMeansModel(val centroids: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Int, Array[Double]]
+class KMeansModel(val centers: mutable.HashMap[Int, Array[Double]], val cardinalities: mutable.HashMap[Int, Int], val metric: ContinuousDistances) extends ClusteringModel with DataSetsTypes[Int, Array[Double]]
 {
-	val centroidsAsArray = centroids.toArray
+	val centersAsArray = centers.toArray
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
 	def predict(v: Array[Double]): ClusterID =
 	{
-		centroidsAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
+		centersAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 
 	/**
