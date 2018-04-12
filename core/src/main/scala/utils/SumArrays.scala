@@ -1,6 +1,7 @@
 package clustering4ever.util
 
 import _root_.scala.reflect.ClassTag
+import _root_.scala.math.pow
 
 /**
  * @author Beck Gaël
@@ -28,5 +29,20 @@ object SumArrays
 	def obtainMean(cluster: Seq[Array[Double]]): Array[Double] =
 	{
 		sumColumnArrays(cluster).map( _ / cluster.size )
+	}
+	/**
+	 * Reduce Array of multiple vectors
+	 **/
+	def reduceMultipleVectorsMatrice(a: Array[Array[Double]], b: Array[Array[Double]]) =
+	{
+		for( i <- a.indices.toArray ) yield sumArraysNumerics(a(i), b(i))
+	}
+	/**
+	 * Make the dot product of the difference v1 - v2
+	 * @return dor product of difference
+	 **/
+	def diffDotProduct(v1: Array[Double], v2: Array[Double]) =
+	{
+		( for( i <- v1.indices.toArray ) yield (v1(i) - v2(i)) ).map(pow(_, 2)).sum			
 	}
 }

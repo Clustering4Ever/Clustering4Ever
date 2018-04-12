@@ -8,6 +8,7 @@ import _root_.clustering4ever.util.SumArrays
 import _root_.scala.math.{min, max}
 import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
+import _root_.clustering4ever.stats.Stats
 
 /**
  * @author Beck Gaël
@@ -33,22 +34,7 @@ class KMeans(
 	 **/
 	def initializationCenters =
 	{
-		val vectorRange = (0 until dim).toArray
-
-		def obtainMinMax(idx: Int, vminMax1: (Array[Double], Array[Double]), vminMax2: (Array[Double], Array[Double])) =
-		{
-			(
-				min(vminMax1._1(idx), vminMax2._1(idx)),
-				max(vminMax1._2(idx), vminMax2._2(idx))
-			)
-		}
-
-		val (minv, maxv) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
-		{
-			val minAndMax = for( i <- vectorRange ) yield( obtainMinMax(i, minMaxa, minMaxb) )
-			minAndMax.unzip
-		})
-
+		val (minv, maxv) = Stats.obtainMinAndMax(data)
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
 		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
 		centers

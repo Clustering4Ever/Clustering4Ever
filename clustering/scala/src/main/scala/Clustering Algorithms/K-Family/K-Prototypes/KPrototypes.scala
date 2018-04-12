@@ -9,6 +9,7 @@ import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
 import _root_.clustering4ever.math.distances.MixtDistance
 import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
+import _root_.clustering4ever.stats.Stats
 
 /**
  * @author Beck Gaël
@@ -37,19 +38,11 @@ class KPrototypes(
 	{
 		val vectorRange = (0 until dimScalar).toArray
 
-		val binaryModes = for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dimBinary)(Random.nextInt(2))) )
-
-		def obtainMinMax(idx: Int, vminMax1: (Array[Double], Array[Double]), vminMax2: (Array[Double], Array[Double])) =
-		{
-			(
-				min(vminMax1._1(idx), vminMax2._1(idx)),
-				max(vminMax1._2(idx), vminMax2._2(idx))
-			)
-		}
+		val binaryModes = for( clusterID <- 0 until k ) yield ((clusterID, Array.fill(dimBinary)(Random.nextInt(2))))
 
 		val (minv, maxv) = data.map( v => (v.scalar, v.scalar) ).reduce( (minMaxa, minMaxb) =>
 		{
-			val minAndMax = for( i <- vectorRange ) yield( obtainMinMax(i, minMaxa, minMaxb) )
+			val minAndMax = for( i <- vectorRange ) yield (Stats.obtainIthMinMax(i, minMaxa, minMaxb))
 			minAndMax.unzip
 		})
 

@@ -215,11 +215,9 @@ class SomTrainerA extends AbstractTrainer
 
     override def toString =
     {
-      numerator.toString() + " : " + denominator.toString
+      numerator.toString + " : " + denominator.toString
     }
-  }//end SomObsA
-
-
+  }
 
   def purity(dataset: RDD[NamedVector]): Double =
   {
@@ -227,26 +225,11 @@ class SomTrainerA extends AbstractTrainer
 
     val maxByCluster = sumAffectedDatas.map{ case ((id, cls), count) => (id, count) }.reduceByKey(max).map(_._2).collect
 
-    maxByCluster.sum.toDouble / dataset.count()
+    maxByCluster.sum.toDouble / dataset.count
   }
 
   def affectations(dataset: RDD[NamedVector]): RDD[(Int, Int)] =
   {
     dataset.map( d => (d.cls, _somModel.get.findClosestPrototype(d).id) )
-  }
-} //end SomTrainerA
-
-class pointObj(
-  val data: DenseVector,//the numeric part of the data-point
-  //val label: Int,            //the real (provided) label
-  val id: Int               //the identifier(=numeroLigne) of the data-point
-  ) extends Serializable
-{
-  override def toString: String =
-  {
-    " "
-    //data.toArray.deep.mkString(", ") + pointPartBin.toArray.deep.mkString(", ")
-    /*"partieNumerique -> "+pointPartNum.toArray.deep.mkString("[", ", ", "]") +
-    "; partieBinaire -> "+pointPartBin.toArray.deep.mkString("[", ", ", "]")*/ 
   }
 }

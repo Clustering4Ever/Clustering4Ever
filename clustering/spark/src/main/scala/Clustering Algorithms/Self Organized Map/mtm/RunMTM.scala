@@ -83,7 +83,7 @@ object RunSom
     println(s"nbRow: ${trainingDataset.count()}")
     
     val som = new SomTrainerA
-    val startLearningTime = System.currentTimeMillis()
+    val startLearningTime = System.currentTimeMillis
     val model = som.training(trainingDataset, Some(somOptions), maxIter, convergeDist)
     val somDuration = (System.currentTimeMillis - startLearningTime) / 1000D
     

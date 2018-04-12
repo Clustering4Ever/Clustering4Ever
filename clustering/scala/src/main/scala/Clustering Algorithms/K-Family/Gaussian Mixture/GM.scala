@@ -92,9 +92,9 @@ class GaussianMixture(
 
 			val gammasSums = SumArrays.sumColumnArrays(gammas.map(_._2.map(_._2)))
 
-			val μs = gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef) }}.reduce(Stats.reduceMultipleMatriceColumns).zip(gammasSums).map{ case (v, gammaSum) => v.map(_ / gammaSum) }
+			val μs = gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef) }}.reduce(SumArrays.reduceMultipleVectorsMatrice).zip(gammasSums).map{ case (v, gammaSum) => v.map(_ / gammaSum) }
 
-			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => Stats.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID) } })
+			val σs = SumArrays.sumColumnArrays(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => SumArrays.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID) } })
 
 			val πksUpdated = gammasSums.map(_ / k)
 
@@ -131,8 +131,8 @@ object GaussianMixture extends DataSetsTypes[Int, Array[Double]]
 	 **/
 	def run(data: Array[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances = new Euclidean(true)): GaussianMixtureModel =
 	{
-		val kMeans = new GaussianMixture(data, k, epsilon, iterMax, metric)
-		val kmeansModel = kMeans.run()
-		kmeansModel
+		val gaussianMixture = new GaussianMixture(data, k, epsilon, iterMax, metric)
+		val gaussianMixtureModel = gaussianMixture.run()
+		gaussianMixtureModel
 	}
 }

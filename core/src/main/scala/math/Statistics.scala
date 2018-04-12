@@ -1,6 +1,6 @@
 package clustering4ever.stats
 
-import _root_.scala.math.{sqrt, pow}
+import _root_.scala.math.{sqrt, pow, min, max}
 import _root_.clustering4ever.util.SumArrays
 import _root_.scala.collection.mutable
 import _root_.clustering4ever.scala.kernels.Kernels
@@ -9,18 +9,28 @@ import _root_.clustering4ever.math.distances.scalar.Euclidean
 
 object Stats
 {
+	type Mean = Array[Double]
+	type SD = Double
+	type ClusterID = Int
 
+	/**
+	 * Reduce a matrix into a vector where each component is the sum of its associate column 
+	 **/
 	def reduceColumns(vectors: Array[Array[Double]]) =
 	{
 		vectors.reduce( (a, b) => for( i <- a.indices.toArray ) yield (a(i) + b(i)) )
 	}
-
-	def mean(vectors: Array[Array[Double]]) =
+	/**
+	 * Compute the mean of multiple vectors
+	 **/
+	def mean(vectors: Array[Array[Double]]): Mean =
 	{
 		reduceColumns(vectors).map(_ / vectors.size)
 	}
-
-	def sd(vectors: Array[Array[Double]], mean: Array[Double]) =
+	/**
+	 * Compute the standard deviation between vectors and a mean
+	 **/
+	def sd(vectors: Array[Array[Double]], mean: Array[Double]): SD =
 	{
 		sqrt(
 			vectors.map( v =>
@@ -31,25 +41,30 @@ object Stats
 			}).sum / (vectors.size - 1)
 		)
 	}
-
-	def reduceMatriceColumns(a: Array[Double], b: Array[Double]) =
+	/**
+	 * @return min and max for the ith component in reduce style
+	 **/
+	def obtainIthMinMax(idx: Int, vminMax1: (Array[Double], Array[Double]), vminMax2: (Array[Double], Array[Double])) =
 	{
-		for( i <- a.indices.toArray ) yield (a(i) + b(i))
+		(
+			min(vminMax1._1(idx), vminMax2._1(idx)),
+			max(vminMax1._2(idx), vminMax2._2(idx))
+		)
 	}
 
-	def reduceMultipleMatriceColumns(a: Array[Array[Double]], b: Array[Array[Double]]) =
+	def obtainMinAndMax(data: Seq[Array[Double]]) =
 	{
-		for( i <- a.indices.toArray ) yield SumArrays.sumArraysNumerics(a(i), b(i))
+		val dim = data.head.size
+		val vectorRange = (0 until dim).toArray
+
+		val (minValues, maxValues) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
+		{
+			val minAndMax = for( i <- vectorRange ) yield (obtainIthMinMax(i, minMaxa, minMaxb))
+			minAndMax.unzip
+		})
+		(minValues, maxValues)
 	}
 
-	def diffDotProduct(v1: Array[Double], v2: Array[Double]) =
-	{
-		( for( i <- v1.indices.toArray ) yield (v1(i) - v2(i)) ).map(pow(_, 2)).sum			
-	}
-
-	type Mean = Array[Double]
-	type SD = Double
-	type ClusterID = Int
 	def obtainGammaByCluster(v: Array[Double], gaussianLawFeaturesSortedByClusterID: Array[(ClusterID, (Mean, SD))], πksortedByClusterID: Array[Double], metric: ContinuousDistances = new Euclidean(true)) =
 	{
 		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }

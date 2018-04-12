@@ -14,6 +14,7 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import _root_.clustering4ever.math.distances.MixtDistance
 import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
+import _root_.clustering4ever.stats.Stats
 
 /**
  * @author Beck Gaël

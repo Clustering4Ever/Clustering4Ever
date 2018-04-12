@@ -13,6 +13,7 @@ import _root_.clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.util.SumArrays
 import _root_.clustering4ever.spark.clustering.accumulators.{CentroidsScalarAccumulator, CardinalitiesAccumulator}
 import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
+import _root_.clustering4ever.stats.Stats
 
 /**
  * @author Beck Gaël
@@ -45,21 +46,20 @@ class KMeans(
 		
 		def initializationCenters() =
 		{
-			val vectorRange = (0 until dim).toArray
-
-			def obtainMinMax(idx: Int, vminMax1: (Array[Double], Array[Double]), vminMax2: (Array[Double], Array[Double])) =
+			def obtainMinAndMax(data: RDD[Array[Double]]) =
 			{
-				(
-					min(vminMax1._1(idx), vminMax2._1(idx)),
-					max(vminMax1._2(idx), vminMax2._2(idx))
-				)
+				val dim = data.first.size
+				val vectorRange = (0 until dim).toArray
+
+				val (minValues, maxValues) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
+				{
+					val minAndMax = for( i <- vectorRange ) yield (Stats.obtainIthMinMax(i, minMaxa, minMaxb))
+					minAndMax.unzip
+				})
+				(minValues, maxValues)
 			}
 
-			val (minv, maxv) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
-			{
-				val minAndMax = for( i <- vectorRange ) yield( obtainMinMax(i, minMaxa, minMaxb) )
-				minAndMax.unzip
-			})
+			val (minv, maxv) = obtainMinAndMax(data)
 
 			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
 			val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)

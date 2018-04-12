@@ -105,9 +105,9 @@ class GaussianMixture(
 
 			val gammasSums = reduceColumnsMatrixRDD(gammas.map(_._2.map(_._2)))
 
-			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef) } }.reduce(Stats.reduceMultipleMatriceColumns).zipWithIndex.map{ case (v, clusterID) => v.map(_ / gammasSums(clusterID)) }
+			val μs = gammas.map{ case (v, gammaByCluster) =>  gammaByCluster.map{ case (clusterID, coef) => v.map(_ * coef) } }.reduce(SumArrays.reduceMultipleVectorsMatrice).zipWithIndex.map{ case (v, clusterID) => v.map(_ / gammasSums(clusterID)) }
 
-			val σs = reduceColumnsMatrixRDD(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => Stats.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID)  }})
+			val σs = reduceColumnsMatrixRDD(gammas.map{ case (v, gammaByCluster) => gammaByCluster.map{ case (clusterID, coef) => SumArrays.diffDotProduct(v, μs(clusterID)) *  coef / gammasSums(clusterID)  }})
 
 			val πksUpdated = gammasSums.map(_ / k)
 

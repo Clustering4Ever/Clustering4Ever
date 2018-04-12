@@ -25,8 +25,8 @@ object JenksNaturalBreaks
 
     val matrixIter = (0 until nbValues).toArray
     val matrixIter2 = (0 until nbCat).toArray
-    val mat1 = for( i <- matrixIter ) yield( for( j <- matrixIter2 ) yield( 1D ) )
-    val mat2 = for( i <- matrixIter ) yield( for( j <- matrixIter2 ) yield( Double.MaxValue ) )
+    val mat1 = for( i <- matrixIter ) yield ( for( j <- matrixIter2 ) yield 1D )
+    val mat2 = for( i <- matrixIter ) yield ( for( j <- matrixIter2 ) yield Double.MaxValue )
     
     for( l <- 2 to nbValues)
     {
