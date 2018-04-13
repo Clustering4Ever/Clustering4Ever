@@ -250,7 +250,7 @@ class PLS extends CommonMBPLSTypes
 
 object PLS extends CommonMBPLSTypes
 {
-	def runMBPLS(dsX:Array[IdWithX], dsY:Array[Y], g:Int, h:Int) =
+	def runPLS(dsX:Array[IdWithX], dsY:Array[Y], g:Int, h:Int) =
 	{
 		val mbplsObj = new PLS
 		val n = dsX(g).size

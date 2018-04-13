@@ -15,7 +15,7 @@ trait ClusterwiseTypes
 	type ClassedDS = Array[(Int, DSPerClass)]
 	type IDXDS = Array[ArrayBuffer[(Int, Xvector)]]
 	type YDS = Array[ArrayBuffer[Yvector]]
-	type regPerClassType = (Double, DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])
-	type classedDSperGrpType = Array[(Int, Array[(Int, Int, Array[(ClassID, Int, Xvector, Yvector)])])]
+	type RegPerClass = (Double, DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])
+	type ClassedDSperGrp = Array[(Int, Array[(Int, Int, Array[(ClassID, Int, Xvector, Yvector)])])]
 	
 }

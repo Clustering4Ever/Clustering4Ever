@@ -9,22 +9,22 @@ import breeze.linalg.{DenseMatrix, DenseVector}
 import org.apache.spark.broadcast.Broadcast
 import _root_.scala.util.Random
 
-object PredictionSimplified
+class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]], val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])])
 {
 	type IDXtest = Array[(Long, Xvector)]
-	type IDXYtest = Array[(Int, (Xvector, Yvector))]
+	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
 	type Xvector = Array[Double]
 	type Yvector = Array[Double]
 
-	val knn = (v: Array[Double], neighbors: Array[(Array[Double], Int)], k:Int) =>
+	private[this] def knn(v: Array[Double], neighbors: Array[(Array[Double], Int)], k:Int) =
 	{
-		neighbors.map{ case (v2, label) => ((for( i <- v2.indices ) yield( pow(v(i) - v2(i), 2) )).reduce(_ + _), (v2, label)) }
+		neighbors.map{ case (v2, label) => ((for( i <- v2.indices ) yield (pow(v(i) - v2(i), 2))).sum, (v2, label)) }
 			.sortBy{ case (dist, _) => dist }
 			.take(k)
 			.map{ case (_, (vector, label)) => (vector, label) }
 	}
 
-	def knnMajorityVote(xyTrain: Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]], xyTest: IDXtest, k: Int, g: Int) : Array[(Long, Int, Array[Double])] =
+	private[this] def knnMajorityVote(xyTest: IDXtest, k: Int, g: Int): Array[(Long, Int, Array[Double])] =
 	{
 		xyTest.map{ case (idx, x) => 
 		{
@@ -38,7 +38,7 @@ object PredictionSimplified
 	}
 
 
-	def knnMajorityVoteWithY(xyTrain:Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]], xyTest: IDXYtest, k: Int, g: Int) : Array[(Int, Int, Array[Double])] =
+	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): Seq[(Int, Int, Array[Double])] =
 	{
 		xyTest.map{ case (idx, (x, y)) => 
 		{
@@ -51,28 +51,47 @@ object PredictionSimplified
 		}}
 	}
 
-	def cwPredictionKNNdistributed(
-		xyTrain:Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]],
-		xyTest: RDD[(Int, (Array[Double],Array[Double]))],
+	def predictKNNLocal(
+		xyTest: Array[(Int, (Array[Double],Array[Double]))],
 		k: Int,
-		g: Int,
-		interceptXYcoefPredByClass: _root_.scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])]) =
+		g: Int
+	) =
 	{
-		val labelisedData = xyTest.mapPartitions( it => knnMajorityVoteWithY(xyTrain, it.toArray, k, g).toIterator ).sortBy{ case(id, label, y) => id }
+		val labelisedData = knnMajorityVoteWithY(xyTest, k, g)
 
-		val yPred = labelisedData.map{ case(id, label, x) => (id, (label, (DenseVector(interceptXYcoefPredByClass(label)._1).t + DenseVector(x).t * interceptXYcoefPredByClass(label)._2).t)) }
+		val yPred = labelisedData.map{ case(id, label, x) =>
+		{
+			val (intercept, xyCoef, _) = interceptXYcoefPredByClass(label)
+			(id, (label, (DenseVector(intercept).t + DenseVector(x).t * xyCoef).t))
+		}}
 
 		yPred
 	}
 
 	def cwPredictionKNNdistributed(
-		xyTrain:Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]],
-		xyTest: RDD[(Long, Array[Double])],
+		xyTest: RDD[(Int, (Array[Double],Array[Double]))],
 		k: Int,
-		g: Int,
-		interceptXYcoefPredByClass: _root_.scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])])(implicit d: DummyImplicit) =
+		g: Int
+	) =
 	{
-		val labelisedData = xyTest.mapPartitions( it => knnMajorityVote(xyTrain, it.toArray, k, g).toIterator ).sortBy{ case(id, label, y) => id }
+		val labelisedData = xyTest.mapPartitions( it => knnMajorityVoteWithY(it.toSeq, k, g).toIterator )
+
+		val yPred = labelisedData.map{ case(id, label, x) =>
+		{
+			val (intercept, xyCoef, _) = interceptXYcoefPredByClass(label)
+			(id, (label, (DenseVector(intercept).t + DenseVector(x).t * xyCoef).t))
+		}}
+
+		yPred
+	}
+
+	def predictKNN(
+		toPredict: RDD[(Long, Array[Double])],
+		k: Int,
+		g: Int
+	)(implicit d: DummyImplicit) =
+	{
+		val labelisedData = toPredict.mapPartitions( it => knnMajorityVote(it.toArray, k, g).toIterator )
 
 		val yPred = labelisedData.map{ case(id, label, x) => (id, (label, (DenseVector(interceptXYcoefPredByClass(label)._1).t + DenseVector(x).t * interceptXYcoefPredByClass(label)._2).t)) }
 

@@ -6,22 +6,15 @@ import _root_.scala.collection.mutable.{ArrayBuffer, HashMap}
 import _root_.scala.collection.immutable.IndexedSeq
 import util.control.Breaks._
 
-class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var h:Int, var g:Int)(var allGroupedData:HashMap[Int,Int], var nbBloc:Int)  extends Serializable
-{
-	type ClassID = Int
-	type ID = Int
-	type Xvector = Array[Double]
-	type Yvector = Array[Double]
-	type IDXYtest = Array[(Int, (Xvector, Yvector))]
-	type IDXtest = Array[(Long, Xvector)]
-	type DSPerClass = Array[(ID, (Xvector, Yvector, ClassID))]
-	type ClassedDS = Array[(Int, DSPerClass)]
-	type IDXDS = Array[ArrayBuffer[(Int, Xvector)]]
-	type YDS = Array[ArrayBuffer[Yvector]]
-	type regPerClassType = (Double, DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])
-	type classedDSperGrpType = Array[(Int, Array[(Int, Int, Array[(ClassID, Int, Xvector, Yvector)])])]
-	
-	var nbMaxAttemps = 30
+class Regression(
+	val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))],
+	var h:Int,
+	var g:Int)(
+	var allGroupedData: Option[HashMap[Int,Int]],
+	var nbBloc:Int,
+	var nbMaxAttemps: Int
+)  extends ClusterwiseTypes with Serializable
+{	
 
 	val rangeOverClasses = (0 until g).toArray
 
@@ -57,7 +50,7 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 		}
 	}
 	                          //classedDS:Array[(class, Array[(class, bucketID, Array[(bucketID, ID, X, Y)])])])]
-	val prepareMovingPointByGroup = (classedDS:classedDSperGrpType, xDS:IDXDS,  yDS:YDS, g:Int, elemNb:Int, currClass:Int, limitsClass:Array[Int], orderedBucketSize:Array[Int]) =>
+	val prepareMovingPointByGroup = (classedDS: ClassedDSperGrp, xDS:IDXDS,  yDS:YDS, g:Int, elemNb:Int, currClass:Int, limitsClass:Array[Int], orderedBucketSize:Array[Int]) =>
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, limitsClass)
 		val elemToReplace = classedDS(currClass)._2(posInClass)._3
@@ -96,13 +89,13 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 	}
 
 
-	def plsPerDot =
+	def plsPerDot() =
 	{
 		var continue = true
 		var cptAttemps = 0
 		var classOfEachData = Array.empty[(Int, Int)]
 		var dsPerClassF = Array.empty[DSPerClass]
-		var regPerClassFinal = Array.empty[regPerClassType]
+		var regPerClassFinal = Array.empty[RegPerClass]
 	  	val mapRegCrit = HashMap.empty[Int, Double]
 	  	
 
@@ -136,7 +129,7 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 				  	while( continue && nbIte != stop )
 				  	{
 					  	val (current_dot_id, current_dot_class) = valuesToBrowse(nbIte)
-					  	val regPerClass = for( i <- rangeOverClasses ) yield( PLS.runMBPLS(inputX, inputY, i, h) )
+					  	val regPerClass = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 					  	// Temporary WorkAround when reduce data
 					  	if( ! regPerClass.map(_._1).filter(_.isNaN).isEmpty ) break
 					  	
@@ -145,11 +138,11 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 					  	val regPerClass2 =
 				  		try
 				  		{
-				  			for( i <- rangeOverClasses ) yield( PLS.runMBPLS(inputX, inputY, i, h) )
+				  			for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 				  		}
 				  		catch
 				  		{
-				  			case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[regPerClassType]
+				  			case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[RegPerClass]
 				  		}
 					  	
 					  	if( regPerClass2.isEmpty ) break
@@ -163,7 +156,7 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 					  	{
 					  		if( i == current_dot_class ) errorsIdx.map{ case ((err1, err2), idx) => err1 }
 					  		else elseCaseWhenComputingError(errorsIdx, boolTab, current_dot_class)
-					  	}).fold(0D)(_ + _)
+					  	}).sum
 					  	val minError = errors.min
 					  	val classToMovePointInto = errors.indexOf(minError)
 					  	val (point_ID, (point_X, point_Y, _)) = classedDS(currentDotIdx)
@@ -194,7 +187,7 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 			  	else
 			  	{
 					dsPerClassF = for( i <- rangeOverClasses ) yield( classedDS.filter{ case (_, (_, _, _class)) => _class == i } )
-					regPerClassFinal = for( i <- rangeOverClasses ) yield( PLS.runMBPLS(inputX, inputY, i, h) )
+					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 					classOfEachData = classedDS.map{ case (id, (_, _, _class)) => (id, _class) }	
 			  	}
 			}
@@ -221,13 +214,13 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 
 	}
 
-	def plsPerGroup =
+	def plsPerGroup() =
 	{
 		var continue = true
 		var cptAttemps = 0
 		var classOfEachData = Array.empty[(Int, Int)]
-		var dsPerClassF = Array.empty[classedDSperGrpType]
-		var regPerClassFinal = Array.empty[regPerClassType]
+		var dsPerClassF = Array.empty[ClassedDSperGrp]
+		var regPerClassFinal = Array.empty[RegPerClass]
 	  	val mapRegCrit = HashMap.empty[Int,Double]	
 
 	  	do
@@ -238,18 +231,16 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 			  	// Initialisation par groupe
 			  	val perGroupClassInit = for( i <- 0 until nbBloc ) yield(Random.nextInt(g))
 
-			  	// Array[(Int, Array[(Int, Int, Array[(Int, Int, Array[Double], Array[Double])])])]
-			  	// Array[(class,Array[(class, bucketID, Array[(bucketID, ID, X, Y)])])])]
-			  	val dsPerClassPerBucket = dsXYTrain.map{ case (id, (x, y)) => (allGroupedData(id), id, x, y) }
-							  						.groupBy(_._1)
-							  						.toArray
-							  						.map{ case (grpId, grpId_id_x_y) => (perGroupClassInit(grpId), grpId, grpId_id_x_y) }
-							  						.groupBy{ case (_class, grpId, grpId_id_x_y) => _class }
-							  						.toArray
-							  						.sortBy{ case (_class, _) => _class }
-				// Array[class,Array[BucketID]]
-				val bucketOrderPerClass = (for( (_class, buckets) <- dsPerClassPerBucket ) yield( (_class, buckets.map{ case (_class, grpId, grpId_id_x_y) => grpId }) )).toArray
-				// Array[(BucketID,class),loopIdx]
+			  	val dsPerClassPerBucket = dsXYTrain.map{ case (id, (x, y)) => (allGroupedData.get(id), id, x, y) }
+					.groupBy(_._1)
+					.toArray
+					.map{ case (grpId, grpId_id_x_y) => (perGroupClassInit(grpId), grpId, grpId_id_x_y) }
+					.groupBy{ case (_class, grpId, grpId_id_x_y) => _class }
+					.toArray
+					.sortBy{ case (_class, _) => _class }
+
+				val bucketOrderPerClass = (for( (_class, buckets) <- dsPerClassPerBucket ) yield ((_class, buckets.map{ case (_class, grpId, grpId_id_x_y) => grpId }))).toArray
+
 				val indexedFlatBucketOrder = bucketOrderPerClass.flatMap{ case (_class, grpIds) => grpIds.map( grpId => (grpId, _class) ) }.zipWithIndex
 
 				val preSize = dsPerClassPerBucket.map{ case (_class, dsPerBucket) => dsPerBucket.map{ case (_class, grpId, ds) => ds.size } }
@@ -267,7 +258,7 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 			  	var currentClass = 0
 			  	var nbIte = 0
 				val stop = indexedFlatBucketOrder.size - 1
-			  	//val tmpError = ArrayBuffer.empty[Array[(Int,Int,Double,Double)]]	
+
 		  		breakable
 		  		{
 			  		// if init starts with empty classes we retry
@@ -279,7 +270,7 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 				  		val ((grpId, current_class), current_idx) = indexedFlatBucketOrder(nbIte)
 				  	
 					  	// Regression with Point inside one Class and not the Rest
-					  	val regPerClass = for( i <- rangeOverClasses ) yield( PLS.runMBPLS(inputX, inputY, i, h) )
+					  	val regPerClass = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 					  	val error1 = regPerClass.map(_._1)
 					  	prepareMovingPointByGroup(dsPerClassPerBucket, inputX, inputY, g, currentDotsGrpIdx, currentClass, limitsClass, orderedBucketSize)
 					  	if( inputX.exists(_.size == 0) )
@@ -288,41 +279,48 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 					  		break
 					  	}
 					  	// Regression with Point inside all other Class and not the former
-					  	val regPerClass2 = 
-					  		try for( i <- rangeOverClasses ) yield( PLS.runMBPLS(inputX, inputY, i, h) )
-					  		catch { case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[regPerClassType] }
+					  	val regPerClass2 =
+					  	{
+
+					  		try for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
+					  		catch { case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[RegPerClass] }
+					  	}
+
 					  	if( regPerClass2.isEmpty ) break
 			  	  		val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
 					  	val errorsIdx = error1.zip(error2).zipWithIndex
-					  	//tmpError += errorsIdx.map{ case ((err1, err2), idx) => (current_idx, idx, err1, err2) }
+
 					  	boolTab(current_class) = false
 					  	val errors = for( i <- rangeOverClasses ) yield(
 					  	{
 					  		if( i == current_class ) errorsIdx.map{ case ((err1, err2), idx) => err1 }
 					  		else elseCaseWhenComputingError(errorsIdx, boolTab, current_class)
 
-					  	}).fold(0D)(_ + _)
+					  	}).sum
 					  	val minError = errors.min
 					  	val classToMoveGroupInto = errors.indexOf(minError)
-					  	//val posInClass = if( currentClass == 0 ) currentDotsGrpIdx else currentDotsGrpIdx - limitsClass(currentClass - 1) -1
 					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, limitsClass)
-					  	// Array[(class,Array[(class, bucketID, Array[(bucketID, ID, X, Y)])])])]
-					  	val (_, bucketIDtoUpdate, grpId_ID_X_Y) = dsPerClassPerBucket(currentClass)._2(posInClass)
+					  	val (_, bucketIDtoUpdate, grpIdIDXY) = dsPerClassPerBucket(currentClass)._2(posInClass)
 					  	if( classToMoveGroupInto != current_class )
 					  	{
-						  	dsPerClassPerBucket(currentClass)._2(posInClass) = (classToMoveGroupInto, bucketIDtoUpdate, grpId_ID_X_Y)
+						  	dsPerClassPerBucket(currentClass)._2(posInClass) = (classToMoveGroupInto, bucketIDtoUpdate, grpIdIDXY)
 						  	val classWithoutDots = rangeOverClasses.filter( _class => _class != classToMoveGroupInto && _class != current_class)
 						  	for( j <- classWithoutDots )
-						  		for( i <- 0 until orderedBucketSize(currentDotsGrpIdx) ) removeLastXY(j, inputX, inputY)
+						  	{
+						  		for( i <- 0 until orderedBucketSize(currentDotsGrpIdx) )
+						  		{
+						  			removeLastXY(j, inputX, inputY)
+						  		}
+						  	}
 					  	}
 					  	else
 					  	{
 						  	val classWithoutDots = rangeOverClasses.filter(_ != current_class)
 						  	for( j <- classWithoutDots )
 						  		for( i <- 0 until orderedBucketSize(currentDotsGrpIdx) ) removeLastXY(j, inputX, inputY)
-						  	inputX(current_class) ++= grpId_ID_X_Y.map{ case (grpId, id, x, y) => (id, x) }
-						  	inputY(current_class) ++= grpId_ID_X_Y.map{ case (grpId, id, x, y) => y }
+						  	inputX(current_class) ++= grpIdIDXY.map{ case (grpId, id, x, y) => (id, x) }
+						  	inputY(current_class) ++= grpIdIDXY.map{ case (grpId, id, x, y) => y }
 					  	}
 					  	mapRegCrit += ( current_idx -> minError )
 					  	continue = inputX.filter(_.isEmpty).isEmpty
@@ -335,14 +333,17 @@ class Regression(val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))], var
 			  	if( continue ) mapRegCrit.clear
 			  	else
 			  	{
-			  		dsPerClassF = for( i <- rangeOverClasses ) yield( dsPerClassPerBucket.filter{ case (_class, _) => _class == i } )
-					regPerClassFinal = for( i <- rangeOverClasses ) yield( PLS.runMBPLS(inputX, inputY, i, h) )
+			  		dsPerClassF = for( i <- rangeOverClasses ) yield (dsPerClassPerBucket.filter{ case (_class, _) => _class == i })
+					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 			  		classOfEachData = dsPerClassPerBucket.flatMap{ case (_class, dsPerBucket) => dsPerBucket.flatMap{ case (_, grpId, ds) => ds.map{ case (_, id, x, y) => (id,_class) } } }
 			  	}
 			}
-			catch { case svdExcept : breeze.linalg.NotConvergedException => {
-				mapRegCrit.clear
-				println("\nThere was an Singular Value Decomposition Issue, retry with new initialisation")
+			catch
+			{
+				case svdExcept : breeze.linalg.NotConvergedException =>
+				{
+					mapRegCrit.clear
+					println("\nThere was an Singular Value Decomposition Issue, retry with new initialisation")
 				}
 			}
 		}

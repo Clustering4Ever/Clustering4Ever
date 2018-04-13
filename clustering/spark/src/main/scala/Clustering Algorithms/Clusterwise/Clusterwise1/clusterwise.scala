@@ -19,14 +19,14 @@ class Clusterwise(
 	var h: Int,
 	var nbCV: Int,
 	var init: Int,
-	var perGroup: Boolean,
-	var sizeBloc: Int,
 	var trainSize0: Double,
 	var k: Int,
-	var numberMaxBatch: Int	
+	var standardized: Boolean,
+	var sizeBloc: Int,
+	var nbMaxAttemps: Int
 ) extends Serializable
 {
-	def run =
+	def run: (Array[Double], Array[Double], Array[ClusterwiseModel], (Array[Double], Array[Double], Array[Double], Array[Double])) =
 	{
 		val n = dataXY.size
 		val first = dataXY.head
@@ -35,23 +35,18 @@ class Clusterwise(
 		val dp = sc.defaultParallelism
 
 		var nbBloc = (n / sizeBloc).toInt
-		val sqrmseCal = ArrayBuffer.empty[Double]
-		val corYpredCal = ArrayBuffer.empty[Double]
-		val sqrmseVal = ArrayBuffer.empty[Double]
-		val corYpredVal = ArrayBuffer.empty[Double]
-		val modelingTimeBuf = ArrayBuffer.empty[Double]
-		val predictTimeBuf = ArrayBuffer.empty[Double]
-		val idLabelized = ArrayBuffer.empty[Array[(Int, Int)]]
-		val interceptXYcoefPredByClass = ArrayBuffer.empty[_root_.scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])]]
-		val bcTrainData = ArrayBuffer.empty[Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]]]
+		val sqRmseCal = ArrayBuffer.empty[Double]
+		val sqRmseVal = ArrayBuffer.empty[Double]
+		val clusterwiseModels = ArrayBuffer.empty[ClusterwiseModel]
 
-		def reduceXY(a: (Array[Double], Array[Double]), b: (Array[Double], Array[Double])) : (Array[Double], Array[Double]) =
+		def reduceXY(a: (Array[Double], Array[Double]), b: (Array[Double], Array[Double])): (Array[Double], Array[Double]) =
+		{
 			( a._1.zip(b._1).map( x => x._1 + x._2), a._2.zip(b._2).map( x => x._1 + x._2) )
+		}
 
 
 		// Center reduction of dataset
-		// (x - mu) / sd
-  		val (preMeanX, preMeanY) = dataXY.map{ case (_, (x, y)) => (x, y) }.reduce( reduceXY(_, _) )
+  		val (preMeanX, preMeanY) = dataXY.map{ case (_, (x, y)) => (x, y) }.reduce(reduceXY)
   		val meanX = preMeanX.map(_ / n)
   		val meanY = preMeanY.map(_ / n)
 
@@ -64,7 +59,7 @@ class Clusterwise(
   		val standardizationParameters = (meanX, meanY, sdX, sdY)
 
   		// Center Reduct
-  		val centerReductRDD = if( true )
+  		val centerReductRDD = if( standardized )
   		{
   			dataXY.map{ case (id, (x, y)) =>
   			(
@@ -77,7 +72,7 @@ class Clusterwise(
   		}
   		else dataXY
 
-  	  	val groupedData = if( perGroup )
+  	  	val groupedData = if( sizeBloc != 1 )
 		{
   	  		val kkmeans = nbBloc
 	  	  	val kmData = centerReductRDD.map{ case (_, (x, y)) => x ++ y }
@@ -86,25 +81,21 @@ class Clusterwise(
 	  	  	val kmeans = new KMeans(kmData, kkmeans, epsilon, iterMax)
 	  	  	val kmeansModel = kmeans.run()
   	  		val groupedDataIn = HashMap(centerReductRDD.map{ case (id, (x, y)) => (id, kmeansModel.predict(x ++ y)) }:_*)
-  	  		groupedDataIn
+  	  		Some(groupedDataIn)
 		}
 		else
 		{
-			HashMap.empty[Int, Int]
+			None
 		}
 
 		val splits = scala.util.Random.shuffle(centerReductRDD).grouped(centerReductRDD.size / nbCV).map(_.toArray).toArray
-
-  	  	val dividedInSecond = 1000000000
 
 		val trainDS = for( j <- 0 until nbCV ) yield ((for( u <- 0 until nbCV if( u != j )) yield (splits(u))).reduce(_ ++ _).sortBy{ case (id, _) => id })
 
 		val bcTrainDS = sc.broadcast(trainDS)
 		val bcGroupedData = sc.broadcast(groupedData)
 
-	  	val t01 = System.nanoTime
-
-	 // Launch Meta Reg on each partition
+		// Launch Meta Reg on each partition
 		val resRegOut = sc.parallelize( 1 to 88888, init * nbCV).mapPartitionsWithIndex( (idx, it) => it.map( x => idx % nbCV ) ).mapPartitions( it =>
 		{
 
@@ -119,12 +110,12 @@ class Clusterwise(
 			val coIntercept = ArrayBuffer.empty[Array[Array[Double]]]
 			val coXYcoef = ArrayBuffer.empty[Array[Array[Double]]]
 
-			val regClass = new Regression(bcTrainDS.value(idxCV), h, g)(bcGroupedData.value, nbBloc)
+			val regClass = new Regression(bcTrainDS.value(idxCV), h, g)(bcGroupedData.value, nbBloc, nbMaxAttemps)
 			  
-		  	//Pour un element
-		  	if( ! perGroup )
+		  	// Per one element
+		  	if( sizeBloc == 1 )
 		  	{
-		  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerDot
+		  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerDot()
 		  		predFitted += predFitted0
 		  		coIntercept += coIntercept0
 		  		coXYcoef += coXYcoef0
@@ -134,7 +125,7 @@ class Clusterwise(
 		  	}
 		  	else
 		  	{
-		  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerGroup
+		  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerGroup()
 		  		predFitted += predFitted0
 		  		coIntercept += coIntercept0
 		  		coXYcoef += coXYcoef0
@@ -142,11 +133,7 @@ class Clusterwise(
 		  		mapsRegCrit += mapsRegCrit0
 		  		classedReg += classedReg0
 		  	}
-			// Comparison of the predicted X.train and Y.train (normalized rmse, and cv-r2)
-			// On prend le meilleur score de regression
-			//val predictionMapsPerNode = prediction.map(_.toMap)
-			//val labelizedTestPerNode = for(i<-predictionMapsPerNode.indices) yield(splits(j).value.map(x => (x._2,x._1,predictionMapsPerNode(i)(x._2))))
-
+			// Comparison of the predicted X.train and Y.train (standardized rmse, and cv-r2)
 			val minRegCritPerInit = mapsRegCrit.map(_.values.min)
 			val bestInitScore = minRegCritPerInit.min
 			val idxBestInit = minRegCritPerInit.indexOf(bestInitScore)
@@ -176,17 +163,10 @@ class Clusterwise(
 			/***********************************************************************************/
 			/* 4. Compute the final G separate multiblock analyses (with the complete dataset) */
 			/***********************************************************************************/
-
 			val labeledRDD = sc.parallelize(bcTrainDS.value(idxCv)).map{ case (id, (x, y)) => (mapBestClassifiedDataOut(id), (id, x, y)) }
-			//.map{ case (idx, x, y, label) => (label, (idx, x, y))}.cache
-
-
-			// Keep labeled data
-			idLabelized += labeledRDD.map{ case (label, (id, _, _)) => (id, label) }.sortBy(_._1).collect
 
 			val finals = labeledRDD.partitionBy( new HashPartitioner(g) ).mapPartitions( it => {
 					val dataXYg = it.toArray.groupBy{ case (label, (idx, x, y)) => label }
-					//val classRegression = for( (label2, array2) <- dataXYg ) yield(
 					val classRegression = dataXYg.map{ case (label2, array2) =>
 					{
 						val ng = array2.size
@@ -200,105 +180,68 @@ class Clusterwise(
 						(label2,( _Intercept, _XYcoef, _Pred))
 					}}
 					classRegression.toIterator
-				}).collectAsMap//.sortBy{ case (label, _, _, _) => label }
-
-
-			val t02 = System.nanoTime
-			val modelingTime = (t02 - t01).toDouble / dividedInSecond
-			modelingTimeBuf += modelingTime
-
-			println("Modeling : "+ modelingTime + " s")
+				}).collectAsMap
 
 			/********************************************************************************************************/
 			/* 										Test the model on testing set 									*/
 			/********************************************************************************************************/
 
-			val ttest1 = System.nanoTime
-
 			val bcLocalTrainData = sc.broadcast( labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }.collect )
+			val clusterwiseModel = new ClusterwiseModel(bcLocalTrainData, finals)
+			clusterwiseModels += clusterwiseModel
 
-			val tmpRDD = sc.parallelize(splits(idxCv)).repartitionAndSortWithinPartitions(new HashPartitioner(dp)).cache
-
-			val prediction = new Prediction(bcLocalTrainData, tmpRDD, k, g)()
-
-			//val labelAndPrediction = prediction.cwPredictionKNNdistributed(tabHash, nbBucketLSH, lshPred, finals)
-			val labelAndPrediction = PredictionSimplified.cwPredictionKNNdistributed(bcLocalTrainData, tmpRDD, k, g, finals)
+			val labelAndPrediction = clusterwiseModel.predictKNNLocal(splits(idxCv), k, g)
 
 			val yPredTrainSort = bestFittedOut.reduce(_ ++ _).toArray.sortBy(_._1)
 
-			val ttest2 = System.nanoTime
-			val predictTime = (ttest2 - ttest1).toDouble / dividedInSecond
-			predictTimeBuf += predictTime
 			/********************************************************************************************************/
 			/*										Measure quality of prediction 									*/
 			/********************************************************************************************************/
-
 			val trainY = bcTrainDS.value(idxCv).map{ case (_, (_, y)) => y }
-		 	val sdYtrain = trainY.map(_.zipWithIndex).map(_.map( y => pow(y._1 - meanY(y._2), 2))).reduce(_.zip(_).map( x => (x._1 + x._2))).map(x => sqrt(x / (bcTrainDS.value(idxCv).size - 1)))
-		 	val testSize = tmpRDD.count
-		 	val sdYtest = tmpRDD.map{ case (_, (_, y)) => y }.map(_.zipWithIndex).map( _.map{ case(y, meanId) => pow(y - meanY(meanId), 2) }).reduce(_.zip(_).map( x => x._1 + x._2 )).map( x => sqrt(x / (testSize - 1)))
+		 	val testSize = splits(idxCv).size
 
-			val sqrmseCalIn = if( q == 1 )
+		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanY(meanIdx), 2) }).reduce(_.zip(_).map( x => (x._1 + x._2))).map(x => sqrt(x / (bcTrainDS.value(idxCv).size - 1)))
+		 	val sdYtest = splits(idxCv).map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanY(meanIdx), 2) }).reduce(_.zip(_).map( x => x._1 + x._2 )).map( x => sqrt(x / (testSize - 1)))
+
+			val sqRmseCalIn = if( q == 1 )
 			{
-			  	val sqrmse = trainY.zip(yPredTrainSort).map{ case ((tY, (_, yPred))) => pow(tY(0) - yPred(0), 2)}.reduce(_+_) / trainY.size / sdYtrain(0)
-				//corYpredCal += pow(MyFct.pearson(DenseVector(trainY.map(_(0))), DenseVector(yPredTrainSort.map(_._2(0)))), 2) 
+			  	val sqrmse = trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => pow(trueY(0) - yPred.head, 2)}.sum / trainY.size / sdYtrain.head
 				sqrmse
 			}
 			else
 		 	{
 			 	val meanY = trainY.reduce(_.zip(_).map( x => x._1 + x._2 )).map(_ / n)
-
-			    val preColSum = trainY.zip(yPredTrainSort).map{ case ((tY, (_, yPred))) => tY.zip(yPred).map( x => x._1 - x._2 ).map(pow(_, 2)) }
+			    val preColSum = trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => x._1 - x._2 ).map(pow(_, 2)) }
 			    val colSum = preColSum.reduce(_.zip(_).map( x => x._1 + x._2 ))
-			    val sqrmse_y_cal = colSum.map( _ / trainY.size ).zip(sdYtrain).map{ case (v, sdy) => v / sdy }
-			    val mean_sqrmse_y_cal = sqrmse_y_cal.reduce(_+_) / sqrmse_y_cal.size
-				mean_sqrmse_y_cal
+			    val sqRmseYCal = colSum.map( _ / trainY.size ).zip(sdYtrain).map{ case (v, sdy) => v / sdy }
+			    val meanSqRmseYCal = sqRmseYCal.sum / sqRmseYCal.size
+				meanSqRmseYCal
 			}						
 
-			val testAndPredRDD = tmpRDD.zip(labelAndPrediction.repartitionAndSortWithinPartitions(new HashPartitioner(dp))).cache
+			val testAndPredData = splits(idxCv).zip(labelAndPrediction)
 
-
-			// Check veracity of values
-			val denormalizeData = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => (y, ypred.toArray) }
-				.map{ case (y, ypred) => y.zip(ypred).zipWithIndex.map{ case ((yy, yypred), idx) => ( (yy * sdY(idx)) + meanY(idx), (yypred * sdY(idx)) + meanY(idx) ) }.head }
-				//.map{ case (yy, yypred) => (if( yy == 1D ) 1 else 0, if( yypred >= 0.5 ) 1 else 0) }
-				//.mkString(", ") }
-				//((y.head * sdY.head) + meanY.head, (ypred.head * sdY.head) + meanY.head) }
-				//.collect
-				//.foreach(println)
-
-			val sqrmseValoo = if( q == 1 ) denormalizeData.map{ case (y, ypred) => pow(y - ypred, 2) }.reduce(_ + _) / testSize / sdYtrain(0)
-			println("sqrmseValoo : " + sqrmseValoo)
-
-			val sqrmseValIn = if( q == 1 ) testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => pow(y(0) - ypred(0), 2) }.reduce(_ + _) / testSize / sdYtrain(0)
+			val sqRmseValIn = if( q == 1 )
+			{
+				testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => pow(y.head - yPred(0), 2) }.sum / testSize / sdYtrain(0)
+			}
 			else
 			{
-				val sqrmseYVal = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => y.zip(ypred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) } }
+				val sqrmseYVal = testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) } }
 					.reduce( _.zip(_).map( x => x._1 + x._2 ) )
 					.zipWithIndex
 					.map{ case (value, idx) => value / testSize / sdYtest(idx) }
-				val sqrmse_y_val_mean = sqrmseYVal.reduce(_ + _) / q
-				sqrmse_y_val_mean
+				val sqRmseYValMean = sqrmseYVal.sum / q
+				sqRmseYValMean
 			}
-			sqrmseCal += sqrmseCalIn
-			sqrmseVal += sqrmseValIn
-			interceptXYcoefPredByClass += finals
-			bcTrainData += bcLocalTrainData
+			sqRmseCal += sqRmseCalIn
+			sqRmseVal += sqRmseValIn
 		}
 
 		(
-			sqrmseCal, 
-			sqrmseVal
-	/*		
-			modelingTimeBuf, 
-			kmeansTime, 
-			predictTimeBuf, 
-			idLabelized, 
-			interceptXYcoefPredByClass,
-			standardizationParameters,
-			centerReductRDD,
-			bcTrainData
-	*/
+			sqRmseCal.toArray, 
+			sqRmseVal.toArray,
+			clusterwiseModels.toArray,
+			standardizationParameters
 		)
 
 	}
@@ -308,7 +251,6 @@ class Clusterwise(
 object Clusterwise extends ClusterwiseTypes with Serializable
 {
 	/**
-	 *	Return 
 	 *
 	 *
 	 */
@@ -319,14 +261,14 @@ object Clusterwise extends ClusterwiseTypes with Serializable
 		h: Int,
 		nbCV: Int,
 		init: Int,
-		perGroup: Boolean,
-		sizeBloc: Int,
 		trainSize: Double,
 		k: Int,
-		numberMaxBatch: Int
-	) = 
+		standardized: Boolean = true,
+		sizeBloc: Int = 1,
+		nbMaxAttemps: Int = 30
+	): (Array[Double], Array[Double], Array[ClusterwiseModel], (Array[Double], Array[Double], Array[Double], Array[Double])) = 
 	{
-		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, perGroup, sizeBloc, trainSize, k, numberMaxBatch)
+		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, trainSize, k, standardized, sizeBloc, nbMaxAttemps)
 		clusterwise.run	
 	}
 }
