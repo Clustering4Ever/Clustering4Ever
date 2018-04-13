@@ -32,7 +32,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * Scala Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
 * Spark Clustering[ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringspark/_latestVersion)
 
-## Distributed algorithms, through Spark
+## Scalable algorithms, through Spark
 
 ### Clustering algorithms
 
