@@ -1,6 +1,6 @@
 # Clustering 4 Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clustering4ever/_latestVersion)
 
-<p align="center"><img src ="https://media.giphy.com/media/2viYwU7kHW8uNmmKvd/giphy.gif" /></p>
+<p align="center"><img src ="https://sites.google.com/site/lebbah/sml/fig2sml.png" /></p>
 
 Welcome to Big Data Clustering Library gathering clustering algorithms and quality indexes.
 
