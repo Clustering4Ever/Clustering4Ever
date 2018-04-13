@@ -217,10 +217,12 @@ class Clusterwise(
 
 			val bcLocalTrainData = sc.broadcast( labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }.collect )
 
-			val prediction = new Prediction(bcLocalTrainData, splits(idxCv), k, g)()
+			val tmpRDD = sc.parallelize(splits(idxCv)).repartitionAndSortWithinPartitions(new HashPartitioner(dp)).cache
+
+			val prediction = new Prediction(bcLocalTrainData, tmpRDD, k, g)()
 
 			//val labelAndPrediction = prediction.cwPredictionKNNdistributed(tabHash, nbBucketLSH, lshPred, finals)
-			val labelAndPrediction = PredictionSimplified.cwPredictionKNNdistributed(bcLocalTrainData, splits(idxCv), k, g, finals)
+			val labelAndPrediction = PredictionSimplified.cwPredictionKNNdistributed(bcLocalTrainData, tmpRDD, k, g, finals)
 
 			val yPredTrainSort = bestFittedOut.reduce(_ ++ _).toArray.sortBy(_._1)
 
@@ -233,9 +235,8 @@ class Clusterwise(
 
 			val trainY = bcTrainDS.value(idxCv).map{ case (_, (_, y)) => y }
 		 	val sdYtrain = trainY.map(_.zipWithIndex).map(_.map( y => pow(y._1 - meanY(y._2), 2))).reduce(_.zip(_).map( x => (x._1 + x._2))).map(x => sqrt(x / (bcTrainDS.value(idxCv).size - 1)))
-		 	val testSet = splits(idxCv).cache
-		 	val testSize = testSet.count
-		 	val sdYtest = testSet.map{ case (_, (_, y)) => y }.map(_.zipWithIndex).map( _.map{ case(y, meanId) => pow(y - meanY(meanId), 2) }).reduce(_.zip(_).map( x => x._1 + x._2 )).map( x => sqrt(x / (testSize - 1)))
+		 	val testSize = tmpRDD.count
+		 	val sdYtest = tmpRDD.map{ case (_, (_, y)) => y }.map(_.zipWithIndex).map( _.map{ case(y, meanId) => pow(y - meanY(meanId), 2) }).reduce(_.zip(_).map( x => x._1 + x._2 )).map( x => sqrt(x / (testSize - 1)))
 
 			val sqrmseCalIn = if( q == 1 )
 			{
@@ -254,7 +255,7 @@ class Clusterwise(
 				mean_sqrmse_y_cal
 			}						
 
-			val testAndPredRDD = splits(idxCv).zip(labelAndPrediction.repartitionAndSortWithinPartitions(new HashPartitioner(dp))).cache
+			val testAndPredRDD = tmpRDD.zip(labelAndPrediction.repartitionAndSortWithinPartitions(new HashPartitioner(dp))).cache
 
 
 			// Check veracity of values
@@ -279,81 +280,26 @@ class Clusterwise(
 				val sqrmse_y_val_mean = sqrmseYVal.reduce(_ + _) / q
 				sqrmse_y_val_mean
 			}
+			sqrmseCal += sqrmseCalIn
+			sqrmseVal += sqrmseValIn
+			interceptXYcoefPredByClass += finals
+			bcTrainData += bcLocalTrainData
+		}
 
-	/*
-			val pearsonCoef = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => {
-				val dot = for(i <- y.indices) yield( y(i) * ypred(i) )
-				val yDot = for(i <- y) yield( i * i )
-				val yPredDot = for(i <- ypred.toArray) yield( i * i )
-				Array(dot.toArray, yDot.toArray, yPredDot.toArray, y, ypred.toArray)
-				}}.reduce(_.zip(_).map( dots => dots._1.zip(dots._2).map( x => x._1 + x._2 )))
-
-			val numeratorPearson = for( i <- 0 until q ) yield( pearsonCoef(0)(i) - ( ( pearsonCoef(3)(i) * pearsonCoef(4)(i) ) / testSize ) )
-			
-			val denumPearson = for( i <- 0 until q ) yield( sqrt( ( pearsonCoef(1)(i) - ( pow(pearsonCoef(3)(i), 2) / testSize ) ) * ( pearsonCoef(2)(i) - ( pow(pearsonCoef(4)(i), 2) / testSize ) ) ) )
-
-			val squaredPearsonCor = numeratorPearson.zip(denumPearson).map{ case (num, denum) => pow(num / denum, 2) }
-			val meanPearsonCor = squaredPearsonCor.reduce(_ + _) / q
-
-			corYpredVal += meanPearsonCor
+		(
+			sqrmseCal, 
+			sqrmseVal
+	/*		
+			modelingTimeBuf, 
+			kmeansTime, 
+			predictTimeBuf, 
+			idLabelized, 
+			interceptXYcoefPredByClass,
+			standardizationParameters,
+			centerReductRDD,
+			bcTrainData
 	*/
-	/*
-			{
-				import smile.plot._
-				import java.awt.Color
-				val testPred = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => (y, ypred, x) }.collect
-				val testV = testPred.map(_._1)
-				val predV = testPred.map(_._2.toArray)
-				val originalV = testPred.map(_._3)
-				val labels = Array.fill(testV.size)(0) ++ Array.fill(testV.size)(1) //++ Array.fill(testV.size)(2)
-				val testpred = testV ++ predV //++ originalV
-				plot(testpred, labels, '*', Array(Color.RED, Color.BLUE, Color.GREEN))
-
-			}
-		/* PLot simData */
-		import smile.plot._
-		import java.awt.Color
-		val yTrue = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => y }.collect
-		val yPred = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => ypred.toArray }.collect
-
-		val toPlot = yTrue ++ yPred
-		val labels = Array.fill(yPred.size)(0) ++ Array.fill(yPred.size)(1)
-		plot(toPlot, labels, '*', Array(Color.RED, Color.BLUE))
-	*/
-		/* PLot k500 */
-		/*
-		import smile.plot._
-		import java.awt.Color
-		val yTrue = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => x ++ y }.collect
-		val yPred = testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => x ++ ypred.toArray }.collect
-
-		testAndPredRDD.map{ case ((idx, (x, y)), (idx2, (label, ypred))) => label }.distinct.collect.foreach(println)
-
-		val toPlot = yTrue ++ yPred
-		val labels = Array.fill(yPred.size)(0) ++ Array.fill(yPred.size)(1)
-		plot(toPlot, labels, '*', Array(Color.RED, Color.BLUE))
-		*/
-		sqrmseCal += sqrmseCalIn
-		sqrmseVal += sqrmseValIn
-		interceptXYcoefPredByClass += finals
-		bcTrainData += bcLocalTrainData
-	}
-
-//	(sqrmseCal, corYpredCal, sqrmseVal, corYpredVal)	
-	(
-		sqrmseCal, 
-		Array(8.8), 
-		sqrmseVal, 
-		Array(8.8), 
-		modelingTimeBuf, 
-		kmeansTime, 
-		predictTimeBuf, 
-		idLabelized, 
-		interceptXYcoefPredByClass,
-		standardizationParameters,
-		centerReductRDD,
-		bcTrainData
-	)
+		)
 
 	}
 }
@@ -368,21 +314,19 @@ object Clusterwise extends ClusterwiseTypes with Serializable
 	 */
 	def run(
 		@(transient @param) sc: SparkContext,
-		dataXY: RDD[(ID, (Xvector, Yvector))],
+		dataXY: Seq[(ID, (Xvector, Yvector))],
 		g: Int,
 		h: Int,
 		nbCV: Int,
 		init: Int,
 		perGroup: Boolean,
 		sizeBloc: Int,
-		nbBucketLSH: Int,
-		lshPred: Boolean,
 		trainSize: Double,
 		k: Int,
 		numberMaxBatch: Int
 	) = 
 	{
-		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, perGroup, sizeBloc, nbBucketLSH, lshPred, trainSize, k, numberMaxBatch)
+		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, perGroup, sizeBloc, trainSize, k, numberMaxBatch)
 		clusterwise.run	
 	}
 }
