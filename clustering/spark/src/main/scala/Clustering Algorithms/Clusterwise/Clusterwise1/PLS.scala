@@ -5,41 +5,15 @@ import _root_.scala.collection.mutable.ArrayBuffer
 import _root_.scala.collection.mutable.HashMap
 import breeze.linalg._
 
-trait CommonMBPLSTypes
+trait CommonPLSTypes
 {
 	type IdWithX = ArrayBuffer[(Int, Array[Double])]
 	type Y = ArrayBuffer[Array[Double]]
 }
 
-class PLS extends CommonMBPLSTypes
+class PLS(dsXi: ArrayBuffer[(Int, Array[Double])], dsY: ArrayBuffer[Array[Double]], n: Int, h:Int, lw: Double, ktabXdudiY: (Int, Double, Double)) extends AbstractRegression with CommonPLSTypes
 {
-
-
-	def ktabXdudiY(dsX: IdWithX, dsY: Y, n0:Int) : (Int, Double, Double) =
-	{
-		val lw = 1D / n0
-		val cw = dsX.head._2.size
-		val colw = dsY.head.size
-		val dsY0 = dsY.map(_.head)
-		val roww = dsY0.map( x => 1D / n0)
-		val ds = dsY0.zip(roww).map( x => x._1 * sca_sqrt(x._2))
-		val eigValue = ds.map( pow(_, 2) ).reduce(_ + _)
-		(cw, lw, eigValue)
-	}
-
-	def ktabXdudiY(dsX: ArrayBuffer[Array[Double]], dsY: ArrayBuffer[Array[Double]], n0: Int)(implicit d: DummyImplicit) : (Int, Double, Double) =
-	{
-		val lw = 1D / n0
-		val cw = dsX.head.size
-		val colw = dsY.head.size
-		val dsY0 = dsY.map(_.head)
-		val roww = dsY0.map( x => lw )
-		val ds = dsY0.zip(roww).map( x => x._1 * sca_sqrt(x._2))
-		val eigValue = ds.map( pow(_, 2) ).reduce(_ + _)
-		(cw, lw, eigValue)
-	}
-
-	def pls(dsXi: IdWithX, dsY: Y, lw: Double, n: Int, h: Int, ktabXdudiY: (Int, Double, Double)) = 
+	def reg() = 
 	{
 		val dsX = dsXi.map(_._2)
 		val idxDsX = dsXi.map(_._1)
@@ -178,11 +152,11 @@ class PLS extends CommonMBPLSTypes
 		{
 		  for( i <- 2 to maxdim )
 		  {
-		    val a0 = resl1(i-2).t * bxK0
+		    val a0 = resl1(i - 2).t * bxK0
 		    val a1 = sca_sqrt(reslX(i - 1).t * reslX(i - 1))
 		    val a = a0.t.map(_/a1).t
-		    aA = aA * ( identityM - (resW(i-2) * a) )
-		    resFax += aA * resW(i-1)
+		    aA = aA * ( identityM - (resW(i - 2) * a) )
+		    resFax += aA * resW(i - 1)
 		  }
 		}
 
@@ -196,9 +170,9 @@ class PLS extends CommonMBPLSTypes
 		val resYcoli = scalaResYco.map(_.zipWithIndex.map{ case(v,idx) => v / normli(idx) })
 
 
-		val rr = for(i<- 0 until ncolY) yield( for(j<- 0 until resFax.size) yield( resFax(j).map(_*resYcoli(i)(j)) ) )
+		val rr = for( i <- 0 until ncolY ) yield (for(j<- 0 until resFax.size) yield (resFax(j).map(_*resYcoli(i)(j))))
 
-		val resXYcoef = for(i<- 0 until ncolY) yield(
+		val resXYcoef = for( i <- 0 until ncolY ) yield(
 		{
 	  		var cum = DenseVector.zeros[Double](rr(0)(0).size)
 	  		for(j<- 0 until resFax.size) yield(
@@ -223,52 +197,60 @@ class PLS extends CommonMBPLSTypes
 
 		val residuals = for( i <- arrayRange1 ) yield( DenseMatrix(Array.fill(maxdim)(dataYb(::,i).toArray):_*).t - resFitted(i) )
 
-		val sum_residual_sq = for(i<- 0 until ncolY) yield(
+		val sumResidualSq = for(i<- 0 until ncolY) yield(
 		{ 
 		  val squared = residuals(i).map( x => x * x )
 		  sum(squared(::, *))
 		})
 
-		val rescritregmat = DenseMatrix((for( j <- 0 until sum_residual_sq.size ) yield( sum_residual_sq(j).t.toArray )).toArray:_* )
-		val res_crit_reg = sum( rescritregmat(::, *) )
+		val rescritregmat = DenseMatrix((for( j <- 0 until sumResidualSq.size ) yield( sumResidualSq(j).t.toArray )).toArray:_* )
+		val resCritReg = sum( rescritregmat(::, *) )
 
-		val res_crit_reg_hopt = res_crit_reg.t.toArray.apply(h - 1)
+		val resCritRegHopt = resCritReg.t.toArray.apply(h - 1)
 
 		val arrayRange2 = (0 until ncolY).toArray
 
 		val colss = for( i <- arrayRange2 ) yield( resXYcoefBreeze(i)(::,h - 1) )
-		val resXYcoefF = new DenseMatrix( rows=resXYcoefBreeze(0).rows, cols=ncolY, colss.flatMap(_.toArray) )
+		val resXYcoefF = new DenseMatrix( rows=resXYcoefBreeze(0).rows, cols = ncolY, colss.flatMap(_.toArray) )
 		val resInterceptF = resIntercept.map(_.toArray.last)
 		val colsss = for( i <- arrayRange2 ) yield( resFitted(i)(::,h - 1) )
-		val resFittedF = new DenseMatrix( rows=resFitted(0).rows, cols=ncolY, colsss.flatMap(_.toArray) )
+		val resFittedF = new DenseMatrix( rows=resFitted(0).rows, cols = ncolY, colsss.flatMap(_.toArray) )
 		val resFittedFscala = for( i <- (0 until resFittedF.rows).toArray) yield( (idxDsX(i), resFittedF(i,::).t.toArray) )
 
-		(res_crit_reg_hopt, resXYcoefF, resInterceptF, resFittedFscala) 
+		(resCritRegHopt, resXYcoefF, resInterceptF, resFittedFscala)
 	}
 }
 
 
-object PLS extends CommonMBPLSTypes
+object PLS extends CommonPLSTypes
 {
-	def runPLS(dsX:Array[IdWithX], dsY:Array[Y], g:Int, h:Int) =
+	def runPLS(dsX: Array[IdWithX], dsY: Array[Y], g: Int, h: Int) =
 	{
-		val mbplsObj = new PLS
 		val n = dsX(g).size
-		val ktabXdudiYval = mbplsObj.ktabXdudiY(dsX(g), dsY(g), n)
+		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
 		val lw = 1D / n
-		mbplsObj.pls(dsX(g), dsY(g), lw, n, h, ktabXdudiYval)
+		val mbplsObj = new PLS(dsX(g), dsY(g), g, h, lw, ktabXdudiYval)
+		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])]
 	}
 
-	def runFinalMBPLS(dsX: IdWithX, dsY:Y, lw:Double, n:Int, h:Int, ktabXdudiY: (Int, Double, Double)) =
+	def runFinalMBPLS(dsX: IdWithX, dsY: Y, lw: Double, n: Int, h:Int, ktabXdudiY: (Int, Double, Double)) =
 	{
-		val mbplsObj = new PLS
-		mbplsObj.pls(dsX, dsY, lw, n, h, ktabXdudiY)
+		val mbplsObj = new PLS(dsX, dsY, n, h, lw, ktabXdudiY)
+		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])]
 	}
 
-	def ktabXdudiY(dsX: IdWithX, dsY: Y, n0:Int) =
+	def ktabXdudiY(dsX: IdWithX, dsY: Y, n0:Int) : (Int, Double, Double) =
 	{
-		val mbplsObj = new PLS
-		mbplsObj.ktabXdudiY(dsX, dsY, n0)
+		val lw = 1D / n0
+		val cw = dsX.head._2.size
+		val colw = dsY.head.size
+		val dsY0 = dsY.map(_.head)
+		val roww = dsY0.map( x => 1D / n0)
+		val ds = dsY0.zip(roww).map( x => x._1 * sca_sqrt(x._2))
+		val eigValue = ds.map( pow(_, 2) ).reduce(_ + _)
+		(cw, lw, eigValue)
 	}
+
+
 }
 

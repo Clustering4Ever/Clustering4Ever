@@ -6,7 +6,7 @@ import _root_.scala.collection.mutable.{ArrayBuffer, HashMap}
 import _root_.scala.collection.immutable.IndexedSeq
 import util.control.Breaks._
 
-class Regression(
+class ClusterwiseCore(
 	val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))],
 	var h:Int,
 	var g:Int)(
@@ -35,7 +35,7 @@ class Regression(
 		yDS(_class).remove(0)
 	}
 
-	val prepareMovingPoint = (classedDS: ClassedDS, xDS:  IDXDS, yDS: YDS, g: Int, elemNb: Int, currClass: Int, limitsClass: Array[Int]) =>
+	def prepareMovingPoint(classedDS: ClassedDS, xDS:  IDXDS, yDS: YDS, g: Int, elemNb: Int, currClass: Int, limitsClass: Array[Int]) =
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, limitsClass)
 		val (elemToReplace_ID, (elemToReplace_X, elemToReplace_Y, _)) = classedDS(currClass)._2(posInClass)
@@ -49,16 +49,20 @@ class Regression(
 		  }
 		}
 	}
-	                          //classedDS:Array[(class, Array[(class, bucketID, Array[(bucketID, ID, X, Y)])])])]
-	val prepareMovingPointByGroup = (classedDS: ClassedDSperGrp, xDS:IDXDS,  yDS:YDS, g:Int, elemNb:Int, currClass:Int, limitsClass:Array[Int], orderedBucketSize:Array[Int]) =>
+
+	def prepareMovingPointByGroup(classedDS: ClassedDSperGrp, xDS:IDXDS,  yDS:YDS, g:Int, elemNb:Int, currClass:Int, limitsClass:Array[Int], orderedBucketSize:Array[Int]) =
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, limitsClass)
 		val elemToReplace = classedDS(currClass)._2(posInClass)._3
 		for( j <- 0 until g )
 		{
 		  if( j == currClass )
+		  {
 		    for( i <- 0 until orderedBucketSize(elemNb) )
+		  	{
 		    	removeFirstElemXY(j, xDS, yDS)
+		  	}
+		  }
 		  else
 		  {
 		    xDS(j) ++= elemToReplace.map{ case(grpId, id, x, y) => (id, x) }
@@ -72,20 +76,19 @@ class Regression(
 	{
 		var b = true
 		errorsIndexes.map{ case ((err1, err2), idx) =>
+		{
+			if( idx == currentClass ) err2
+			else
 			{
-				if( idx == currentClass ) err2
-  			else
+  			if( boolTab(idx) && b )
   			{
-	  			if( boolTab(idx) && b )
-	  			{
-	  				boolTab(idx) = false
-	  				b = false
-	  				err2
-	  			}
-	  			else err1
-				}
+  				boolTab(idx) = false
+  				b = false
+  				err2
+  			}
+  			else err1
 			}
-		}					  			
+		}}					  			
 	}
 
 
@@ -97,7 +100,6 @@ class Regression(
 		var dsPerClassF = Array.empty[DSPerClass]
 		var regPerClassFinal = Array.empty[RegPerClass]
 	  	val mapRegCrit = HashMap.empty[Int, Double]
-	  	
 
 		do
 		{
@@ -128,7 +130,7 @@ class Regression(
 				  	
 				  	while( continue && nbIte != stop )
 				  	{
-					  	val (current_dot_id, current_dot_class) = valuesToBrowse(nbIte)
+					  	val (currentDotId, currentDotClass) = valuesToBrowse(nbIte)
 					  	val regPerClass = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 					  	// Temporary WorkAround when reduce data
 					  	if( ! regPerClass.map(_._1).filter(_.isNaN).isEmpty ) break
@@ -150,31 +152,31 @@ class Regression(
 					  	val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
 					  	val errorsIdx = error1.zip(error2).zipWithIndex
-					  	//tmpError += errorsIdx.map{ case ((err1, err2), idx) => (current_dot_id, idx, err1, err2) }
-					  	boolTab(current_dot_class) = false
+					  	//tmpError += errorsIdx.map{ case ((err1, err2), idx) => (currentDotId, idx, err1, err2) }
+					  	boolTab(currentDotClass) = false
 					  	val errors = for( i <- rangeOverClasses ) yield(
 					  	{
-					  		if( i == current_dot_class ) errorsIdx.map{ case ((err1, err2), idx) => err1 }
-					  		else elseCaseWhenComputingError(errorsIdx, boolTab, current_dot_class)
+					  		if( i == currentDotClass ) errorsIdx.map{ case ((err1, err2), idx) => err1 }
+					  		else elseCaseWhenComputingError(errorsIdx, boolTab, currentDotClass)
 					  	}).sum
 					  	val minError = errors.min
 					  	val classToMovePointInto = errors.indexOf(minError)
 					  	val (point_ID, (point_X, point_Y, _)) = classedDS(currentDotIdx)
-					  	if( classToMovePointInto != current_dot_class )
+					  	if( classToMovePointInto != currentDotClass )
 					  	{
 						  	classedDS(currentDotIdx) = (point_ID, (point_X, point_Y, classToMovePointInto))
-						  	val classWithoutDot = rangeOverClasses.filter( _class => _class != classToMovePointInto && _class != current_dot_class)
+						  	val classWithoutDot = rangeOverClasses.filter( _class => _class != classToMovePointInto && _class != currentDotClass)
 						  	for( j <- classWithoutDot ) removeLastXY(j, inputX, inputY)
 					  	}
 					  	else
 					  	{
-						  	val classWithoutDot = rangeOverClasses.filter(_ != current_dot_class)
+						  	val classWithoutDot = rangeOverClasses.filter(_ != currentDotClass)
 						  	for( j <- classWithoutDot ) removeLastXY(j, inputX, inputY)
-							inputX(current_dot_class) += ( (point_ID, point_X) )
-							inputY(current_dot_class) += point_Y
+							inputX(currentDotClass) += ( (point_ID, point_X) )
+							inputY(currentDotClass) += point_Y
 					  	}
 					  	continue = inputX.filter(_.isEmpty).isEmpty
-					  	mapRegCrit += ( current_dot_id -> minError )
+					  	mapRegCrit += ( currentDotId -> minError )
 					  	
 					  	nbIte += 1
 				  		
@@ -249,8 +251,6 @@ class Regression(
 				val classSize2 = preSize.map(_.reduce(_ + _))
 				val limitsClass = (for( i <- 0 until classSize.size ) yield( (for( j <- 0 to i ) yield( classSize(j) )).reduce(_ + _) )).map(_ - 1).toArray
 
-				// Array[ArrayBuffer[(Int,Array[Double])]]
-
 			  	val inputX = dsPerClassPerBucket.map{ case (_class, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (_class, grpId, ds) => ds.map{ case (grpId, id, x, y) => (id, x) }}:_*)}
 			  	val inputY = dsPerClassPerBucket.map{ case (_class, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (_class, grpId, ds) => ds.map{ case (grpId, id, x, y) => y }}:_*)}
 
@@ -261,7 +261,7 @@ class Regression(
 
 		  		breakable
 		  		{
-			  		// if init starts with empty classes we retry
+			  		// if init starts with empty classes, retry
 			  		if( inputX.size != g ) break
 			  		if( inputX.exists(_.size == 0) ) break
 
