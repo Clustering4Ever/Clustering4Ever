@@ -2,7 +2,7 @@
 
 <p align="center"><img src ="https://media.giphy.com/media/2viYwU7kHW8uNmmKvd/giphy.gif" /></p>
 
-Welcome to the LIPN Big Data Clustering Library gathering clustering algorithms and quality indexes.
+Welcome to Big Data Clustering Library gathering clustering algorithms and quality indexes.
 
 You will find additional contents about clustering algorithms [here](https://github.com/PhDStudentsP13/Clustering).
 
@@ -14,7 +14,7 @@ Don't hesitate to ask questions or make recommendations in our [Gitter](https://
 
 ## Don't forget to mention us, better contribute :smile:
 If you publish material based on informations obtained from this repository, then, in your acknowledgements, please note the assistance you received by using this community work. This will help others to obtain the same informations and **replicate your experiments**, because having results is cool but being able to compare to others is better.
-Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Ever“, institution = “Paris 13 University” }`
+Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Ever“, institution = “Paris 13 University, LIPN UMR CNRS 7030” }`
 
 ## Incoming soon: Improved Spark Mean Shift, 2 new scalable clustering algorithms, Clusterwise, [G-Stream](https://github.com/Spark-clustering-notebook/G-stream)
 
