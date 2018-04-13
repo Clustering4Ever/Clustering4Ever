@@ -12,6 +12,10 @@ Don't hesitate to ask questions or make recommendations in our [Gitter](https://
 
 ## [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
 
+## Don't forget to mention us, better contribute :smile:
+If you publish material based on informations obtained from this repository, then, in your acknowledgements, please note the assistance you received by using this community work. This will help others to obtain the same informations and **replicate your experiments**, because having results is cool but being able to compare to others is better.
+Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Ever“, institution = “Paris 13 University” }`
+
 ## Incoming soon: Improved Spark Mean Shift, 2 new scalable clustering algorithms, Clusterwise, [G-Stream](https://github.com/Spark-clustering-notebook/G-stream)
 
 ## [SparkNotebook](https://github.com/spark-notebook/spark-notebook)
