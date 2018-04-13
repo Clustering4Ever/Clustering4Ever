@@ -1,3 +1,4 @@
+/*
 package clusterwise
 
 import org.apache.spark.{SparkContext, SparkConf, HashPartitioner}
@@ -359,3 +360,5 @@ class Clusterwise(@transient val sc:SparkContext, val dataXY:RDD[(Int, (Array[Do
 	(sqrmseCal, Array(8.8), sqrmseVal, Array(8.8), modelingTimeBuf, kmeansTime, predictTimeBuf, idLabelized)	
 	}
 }
+
+*/

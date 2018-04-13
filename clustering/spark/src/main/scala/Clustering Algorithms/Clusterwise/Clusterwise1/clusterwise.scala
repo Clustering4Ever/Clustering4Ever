@@ -83,7 +83,7 @@ class Clusterwise(@transient val sc:SparkContext, val dataXY:RDD[(Int, (Array[Do
 					  	// For classic clusterwise with moove of one element
 					  	if( ! perGroup )
 					  	{
-					  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.mbplsPerDot()
+					  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerDot()
 					  		predFitted += predFitted0
 					  		coIntercept += coIntercept0
 					  		coXYcoef += coXYcoef0
@@ -94,7 +94,7 @@ class Clusterwise(@transient val sc:SparkContext, val dataXY:RDD[(Int, (Array[Do
 					  	// For clusterwise per micro-cluster
 					  	else
 					  	{
-					  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.mbplsPerGroup()
+					  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerGroup()
 					  		predFitted += predFitted0
 					  		coIntercept += coIntercept0
 					  		coXYcoef += coXYcoef0
@@ -150,7 +150,7 @@ class Clusterwise(@transient val sc:SparkContext, val dataXY:RDD[(Int, (Array[Do
 
 			val bcLocalTrainRDD = sc.broadcast(labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label))}.collect)
 
-			val prediction = new Prediction(bcLocalTrainRDD, splits(j), k, g)
+			val prediction = new Prediction(bcLocalTrainRDD, splits(j), k, g)()
 
 			val labelAndPrediction = prediction.cwPredictionKNNdistributed(finals)
 
