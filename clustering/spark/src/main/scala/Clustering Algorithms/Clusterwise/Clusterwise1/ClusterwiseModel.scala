@@ -130,4 +130,14 @@ class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[
 		yPred
 	}
 
+	def standardizeData(toStandardize: RDD[(Long, Xvector)]) =
+	{
+		toStandardize.map{ case (id, x) =>
+		(
+			id,
+			x.zipWithIndex.map{ case (value, idx) => (value - meanX(idx)) / sdX(idx) }
+		)
+		}
+	}
+
 }

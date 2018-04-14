@@ -1,17 +1,17 @@
 package clustering4ever.spark.clustering.clusterwise
 
-import org.apache.spark.{SparkContext, SparkConf, HashPartitioner}
 import _root_.scala.util.Random
 import _root_.scala.collection.mutable.{ArrayBuffer, HashMap}
 import _root_.scala.math.{pow, sqrt}
+import _root_.clustering4ever.scala.clustering.kmeans.KMeans
+import _root_.clustering4ever.util.SumArrays
+import _root_.scala.annotation.meta.param
 import breeze.linalg.{DenseVector, DenseMatrix}
+import org.apache.spark.{SparkContext, SparkConf, HashPartitioner}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.clustering._
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
-import _root_.scala.annotation.meta.param
 import org.apache.spark.broadcast.Broadcast
-import _root_.clustering4ever.scala.clustering.kmeans.KMeans
-import _root_.clustering4ever.util.SumArrays
 
 class Clusterwise(
 	@(transient @param) sc: SparkContext,
@@ -24,17 +24,20 @@ class Clusterwise(
 	var k: Int,
 	var standardized: Boolean,
 	var sizeBloc: Int,
-	var nbMaxAttemps: Int
-) extends Serializable
+	var nbMaxAttemps: Int,
+	var epsilonKmeans: Double,
+	var iterMaxKmeans: Int
+	) extends Serializable
 {
-	def run: (Array[(Double, Double)], Array[ClusterwiseModel]) =
+	type SqRmseCal = Double
+	type SqRmseVal = Double
+
+	def run: (Array[(SqRmseCal, SqRmseVal)], Array[ClusterwiseModel]) =
 	{
 		val n = dataXY.size
 		val first = dataXY.head
 		val p = first._2._1.size  // dimX
 		val q = first._2._2.size  // dimY
-		val dp = sc.defaultParallelism
-
 		val nbBloc = (n / sizeBloc).toInt
 		val clusterwiseModels = ArrayBuffer.empty[ClusterwiseModel]
 
@@ -74,15 +77,16 @@ class Clusterwise(
   				)
   			)}
   		}
-  		else dataXY
+  		else
+  		{
+  			dataXY
+  		}
 
   	  	val groupedData = if( sizeBloc != 1 )
 		{
   	  		val kkmeans = nbBloc
 	  	  	val kmData = centerReductRDD.map{ case (_, (x, y)) => x ++ y }
-	  	  	val epsilon = 0.0001
-	  	  	val iterMax = 100
-	  	  	val kmeans = new KMeans(kmData, kkmeans, epsilon, iterMax)
+	  	  	val kmeans = new KMeans(kmData, kkmeans, epsilonKmeans, iterMaxKmeans)
 	  	  	val kmeansModel = kmeans.run()
   	  		val groupedDataIn = HashMap(centerReductRDD.map{ case (id, (x, y)) => (id, kmeansModel.predict(x ++ y)) }:_*)
   	  		Some(groupedDataIn)
@@ -167,11 +171,11 @@ class Clusterwise(
 				val ng = aggregate.size
 				val lw = 1D / ng
 				val tmpBuffer = ArrayBuffer(aggregate:_*)
-				val _X = tmpBuffer.map{ case (_, (idx, x, _)) => (idx, x) }
-				val _Y = tmpBuffer.map{ case (_, (_, _, y)) => y }
-				val ktabXdudiY = PLS.ktabXdudiY(_X, _Y, ng)
-				val (_, _XYcoef, _Intercept, _Pred) = PLS.runFinalMBPLS(_X, _Y, lw, ng, h, ktabXdudiY)
-				(clusterID,( _Intercept, _XYcoef, _Pred))
+				val xDs = tmpBuffer.map{ case (_, (idx, x, _)) => (idx, x) }
+				val yDs = tmpBuffer.map{ case (_, (_, _, y)) => y }
+				val ktabXdudiY = PLS.ktabXdudiY(xDs, yDs, ng)
+				val (_, xyCoef, intercept, prediction) = PLS.runFinalMBPLS(xDs, yDs, lw, ng, h, ktabXdudiY)
+				(clusterID,( intercept, xyCoef, prediction))
 			}}.toMap
 
 			/********************************************************************************************************/
@@ -239,7 +243,6 @@ class Clusterwise(
 	}
 }
 
-
 object Clusterwise extends ClusterwiseTypes with Serializable
 {
 	/**
@@ -257,10 +260,12 @@ object Clusterwise extends ClusterwiseTypes with Serializable
 		k: Int,
 		standardized: Boolean = true,
 		sizeBloc: Int = 1,
-		nbMaxAttemps: Int = 30
+		nbMaxAttemps: Int = 30,
+		epsilonKmeans: Double = 0.00001,
+		iterMaxKmeans: Int = 100
 	): (Array[(Double, Double)], Array[ClusterwiseModel]) = 
 	{
-		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, trainSize, k, standardized, sizeBloc, nbMaxAttemps)
+		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, trainSize, k, standardized, sizeBloc, nbMaxAttemps, epsilonKmeans, iterMaxKmeans)
 		clusterwise.run	
 	}
 }

@@ -1,6 +1,6 @@
 package clustering4ever.spark.clustering.clusterwise
 
-trait AbstractRegression
+trait AbstractRegression extends Serializable
 {
 	def reg: Any
 }

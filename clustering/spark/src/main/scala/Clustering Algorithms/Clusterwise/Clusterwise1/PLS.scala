@@ -12,7 +12,7 @@ trait CommonPLSTypes
 	type Y = ArrayBuffer[Array[Double]]
 }
 
-class PLS(dsXi: ArrayBuffer[(Int, Array[Double])], dsY: ArrayBuffer[Array[Double]], n: Int, h:Int, lw: Double, ktabXdudiY: (Int, Double, Double)) extends AbstractRegression with CommonPLSTypes
+class PLS(dsXi: ArrayBuffer[(Int, Array[Double])], dsY: ArrayBuffer[Array[Double]], n: Int, h: Int, lw: Double, ktabXdudiY: (Int, Double, Double)) extends AbstractRegression with CommonPLSTypes
 {
 	def reg() = 
 	{
@@ -211,12 +211,12 @@ class PLS(dsXi: ArrayBuffer[(Int, Array[Double])], dsY: ArrayBuffer[Array[Double
 
 		val arrayRange2 = (0 until ncolY).toArray
 
-		val colss = for( i <- arrayRange2 ) yield( resXYcoefBreeze(i)(::,h - 1) )
-		val resXYcoefF = new DenseMatrix( rows=resXYcoefBreeze(0).rows, cols = ncolY, colss.flatMap(_.toArray) )
+		val colss = for( i <- arrayRange2 ) yield resXYcoefBreeze(i)(::,h - 1)
+		val resXYcoefF = new DenseMatrix(rows = resXYcoefBreeze(0).rows, cols = ncolY, colss.flatMap(_.toArray) )
 		val resInterceptF = resIntercept.map(_.toArray.last)
-		val colsss = for( i <- arrayRange2 ) yield( resFitted(i)(::,h - 1) )
-		val resFittedF = new DenseMatrix( rows=resFitted(0).rows, cols = ncolY, colsss.flatMap(_.toArray) )
-		val resFittedFscala = for( i <- (0 until resFittedF.rows).toArray) yield( (idxDsX(i), resFittedF(i,::).t.toArray) )
+		val colsss = for( i <- arrayRange2 ) yield resFitted(i)(::,h - 1)
+		val resFittedF = new DenseMatrix(rows = resFitted(0).rows, cols = ncolY, colsss.flatMap(_.toArray) )
+		val resFittedFscala = for( i <- (0 until resFittedF.rows).toArray) yield (idxDsX(i), resFittedF(i,::).t.toArray)
 
 		(resCritRegHopt, resXYcoefF, resInterceptF, resFittedFscala)
 	}
