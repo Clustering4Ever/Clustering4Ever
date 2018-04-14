@@ -3,6 +3,7 @@ package clustering4ever.spark.clustering.clusterwise
 import _root_.scala.math.{pow, sqrt => sca_sqrt}
 import _root_.scala.collection.mutable.ArrayBuffer
 import _root_.scala.collection.mutable.HashMap
+import _root_.clustering4ever.util.SumArrays
 import breeze.linalg._
 
 trait CommonPLSTypes
@@ -21,8 +22,8 @@ class PLS(dsXi: ArrayBuffer[(Int, Array[Double])], dsY: ArrayBuffer[Array[Double
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce( _.zip(_).map( x => x._1 + x._2) ).map(_ / n)
-		val meanY = dsY.reduce( _.zip(_).map( x => x._1 + x._2) ).map(_ / n)
+		val meanX = dsX.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n)
+		val meanY = dsY.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n)
 
 		val yK = dsY.map( _.zip(meanY).map( x => (x._1 - x._2) ) )
 		val xK = dsX.map( _.zip(meanX).map( x => (x._1 - x._2) ) )

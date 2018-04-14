@@ -9,7 +9,8 @@ import util.control.Breaks._
 class ClusterwiseCore(
 	val dsXYTrain: Array[(Int, (Array[Double],Array[Double]))],
 	var h:Int,
-	var g:Int)(
+	var g:Int
+	)(
 	var allGroupedData: Option[HashMap[Int,Int]],
 	var nbBloc:Int,
 	var nbMaxAttemps: Int
@@ -80,13 +81,13 @@ class ClusterwiseCore(
 			if( idx == currentClass ) err2
 			else
 			{
-  			if( boolTab(idx) && b )
-  			{
-  				boolTab(idx) = false
-  				b = false
-  				err2
-  			}
-  			else err1
+	  			if( boolTab(idx) && b )
+	  			{
+	  				boolTab(idx) = false
+	  				b = false
+	  				err2
+	  			}
+	  			else err1
 			}
 		}}					  			
 	}
@@ -109,14 +110,11 @@ class ClusterwiseCore(
 			  	// Set randomly a class to each data point
 			  	val classedDS = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g)))}.sortBy{ case (id, (x, y, _class)) => _class}
 			  	var valuesToBrowse = classedDS.map{  case (id, (x, y, _class)) => (id, _class) }
-			  	//val valuesToBrowseMap = HashMap(valuesToBrowse.map(_._1).zipWithIndex:_*)
-			  	//val tmpError = ArrayBuffer.empty[IndexedSeq[(Int, Int, Double, Double)]]	
 				var dsPerClass = classedDS.groupBy{ case (id, (x, y, _class)) => _class }.toArray.sortBy{ case (_class, idXYClass) => _class }
-				//val classPosByID = HashMap.empty[Int, (Int, Int)]
 			  	val inputX = dsPerClass.map{ case (_class, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, _class))  => (id, x) }:_*) }
 			  	val inputY = dsPerClass.map{ case (_class, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, _class)) => y }:_*) }
 			  	var preLimitsClass = (for( i <- 0 until inputY.size ) yield( inputY(i).size )).toArray
-			  	var limitsClass = (for( i <- 0 until preLimitsClass.size ) yield( (for( j <- 0 to i ) yield( preLimitsClass(j) )).reduce(_ + _) )).map(_ - 1).toArray
+			  	var limitsClass = (for( i <- 0 until preLimitsClass.size ) yield( (for( j <- 0 to i ) yield( preLimitsClass(j) )).sum )).map(_ - 1).toArray
 			  	var currentDotIdx = 0
 			  	var currentClass = 0
 			  	var nbIte = 0
@@ -177,9 +175,7 @@ class ClusterwiseCore(
 					  	}
 					  	continue = inputX.filter(_.isEmpty).isEmpty
 					  	mapRegCrit += ( currentDotId -> minError )
-					  	
 					  	nbIte += 1
-				  		
 				  		currentDotIdx += 1
 				  		if( currentDotIdx > limitsClass(currentClass) ) currentClass += 1
 				  	}
@@ -248,8 +244,8 @@ class ClusterwiseCore(
 				val preSize = dsPerClassPerBucket.map{ case (_class, dsPerBucket) => dsPerBucket.map{ case (_class, grpId, ds) => ds.size } }
 				val orderedBucketSize = preSize.flatten
 				val classSize = preSize.map(_.size )
-				val classSize2 = preSize.map(_.reduce(_ + _))
-				val limitsClass = (for( i <- 0 until classSize.size ) yield( (for( j <- 0 to i ) yield( classSize(j) )).reduce(_ + _) )).map(_ - 1).toArray
+				val classSize2 = preSize.map(_.sum)
+				val limitsClass = (for( i <- 0 until classSize.size ) yield ((for( j <- 0 to i ) yield( classSize(j) )).sum)).map(_ - 1).toArray
 
 			  	val inputX = dsPerClassPerBucket.map{ case (_class, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (_class, grpId, ds) => ds.map{ case (grpId, id, x, y) => (id, x) }}:_*)}
 			  	val inputY = dsPerClassPerBucket.map{ case (_class, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (_class, grpId, ds) => ds.map{ case (grpId, id, x, y) => y }}:_*)}
@@ -282,8 +278,14 @@ class ClusterwiseCore(
 					  	val regPerClass2 =
 					  	{
 
-					  		try for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
-					  		catch { case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[RegPerClass] }
+					  		try
+					  		{
+					  			for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
+					  		}
+					  		catch
+					  		{
+					  			case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[RegPerClass]
+					  		}
 					  	}
 
 					  	if( regPerClass2.isEmpty ) break
@@ -349,7 +351,10 @@ class ClusterwiseCore(
 		}
 		while( continue && cptAttemps < nbMaxAttemps )
 
-		if( continue && cptAttemps == nbMaxAttemps ) throw new Exception("There was too many unsuccesufull attemps due to empty classes, try to diminish number of class or size of blocs")
+		if( continue && cptAttemps == nbMaxAttemps )
+		{
+			throw new Exception("There was too many unsuccesufull attemps due to empty classes, try to diminish number of class or size of blocs")
+		}
 
 
 	  	val resReg = regPerClassFinal.map(_._1)

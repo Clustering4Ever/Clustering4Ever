@@ -8,19 +8,29 @@ import org.apache.spark.SparkContext
 import breeze.linalg.{DenseMatrix, DenseVector}
 import org.apache.spark.broadcast.Broadcast
 import _root_.scala.util.Random
+import _root_.clustering4ever.math.distances.ContinuousDistances
+import _root_.clustering4ever.math.distances.scalar.Euclidean
+import _root_.clustering4ever.clustering.ClusteringModel
 
-class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]], val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])], standardizationParameters: Option[(Array[Double], Array[Double], Array[Double], Array[Double])] = None)
+class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]], val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])], standardizationParameters: Option[(Array[Double], Array[Double], Array[Double], Array[Double])] = None, metric: ContinuousDistances = new Euclidean(true)) extends ClusteringModel
 {
 	type IDXtest = Array[(Long, Xvector)]
 	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
 	type Xvector = Array[Double]
 	type Yvector = Array[Double]
 
-	val (meanX, meanY, sdX, sdY) = if( standardizationParameters.isDefined ) standardizationParameters.get else (Array.empty[Double], Array.empty[Double], Array.empty[Double], Array.empty[Double])
+	val (meanX, meanY, sdX, sdY) = if( standardizationParameters.isDefined )
+	{
+		standardizationParameters.get
+	}
+	else
+	{
+		(Array.empty[Double], Array.empty[Double], Array.empty[Double], Array.empty[Double])
+	}
 
 	private[this] def knn(v: Array[Double], neighbors: Array[(Array[Double], Int)], k:Int) =
 	{
-		neighbors.map{ case (v2, clusterID) => ((for( i <- v2.indices ) yield (pow(v(i) - v2(i), 2))).sum, (v2, clusterID)) }
+		neighbors.map{ case (v2, clusterID) => (metric.d(v, v2), (v2, clusterID)) }
 			.sortBy{ case (dist, _) => dist }
 			.take(k)
 			.map{ case (_, (vector, clusterID)) => (vector, clusterID) }
@@ -54,7 +64,7 @@ class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[
 	}
 
 	def predictKNNLocal(
-		xyTest: Array[(Int, (Array[Double],Array[Double]))],
+		xyTest: Array[(Int, (Xvector, Yvector))],
 		k: Int,
 		g: Int
 	) =
@@ -72,7 +82,7 @@ class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[
 	}
 
 	def cwPredictionKNNdistributed(
-		xyTest: RDD[(Int, (Array[Double],Array[Double]))],
+		xyTest: RDD[(Int, (Xvector, Yvector))],
 		k: Int,
 		g: Int
 	) =
@@ -89,7 +99,7 @@ class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[
 	}
 
 	def predictKNN(
-		toPredict: RDD[(Long, Array[Double])],
+		toPredict: RDD[(Long, Xvector)],
 		k: Int,
 		g: Int
 	)(implicit d: DummyImplicit) =
