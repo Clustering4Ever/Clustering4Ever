@@ -2,18 +2,11 @@
 
 **Welcome** to Big Data Clustering Library gathering clustering algorithms and quality indexes. Don't hesitate to ask questions or make recommendations in our [Gitter](https://gitter.im/Clustering4Ever/Lobby).
 You will find additional contents about clustering algorithms [here](https://github.com/PhDStudentsP13/Clustering).
-
 <p align="center"><img src ="https://media.giphy.com/media/2viYwU7kHW8uNmmKvd/giphy.gif" /></p>
 
-## Citation:
+## Citation
 If you publish material based on informations obtained from this repository, then, in your acknowledgements, please note the assistance you received by using this community work. This will help others to obtain the same informations and **replicate your experiments**, because having results is cool but being able to compare to others is better.
 Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Ever“, institution = “Paris 13 University, LIPN UMR CNRS 7030”}`
-
-## [API documentation](http://clustering4ever.org/API%20Documentation/)
-
-## [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
-
-## Incoming soon: Improved Spark Mean Shift, 2 new scalable clustering algorithms, Clusterwise, [G-Stream](https://github.com/Spark-clustering-notebook/G-stream)
 
 ## [SparkNotebook](https://github.com/spark-notebook/spark-notebook)
 Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
@@ -28,6 +21,12 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * Core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
 * Scala Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
 * Spark Clustering[ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringspark/_latestVersion)
+
+## [API documentation](http://clustering4ever.org/API%20Documentation/)
+
+## Incoming soon: Improved Spark Mean Shift, 2 new scalable clustering algorithms, Clusterwise, [G-Stream](https://github.com/Spark-clustering-notebook/G-stream)
+
+## [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
 
 ## Scalable algorithms, through Spark
 
