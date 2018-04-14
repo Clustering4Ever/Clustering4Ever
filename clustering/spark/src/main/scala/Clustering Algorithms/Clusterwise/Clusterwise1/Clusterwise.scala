@@ -15,7 +15,7 @@ import org.apache.spark.broadcast.Broadcast
 
 class Clusterwise(
 	@(transient @param) sc: SparkContext,
-	val dataXY: Seq[(Int, (Array[Double],Array[Double]))],
+	val dataXY: Seq[(Int, (Array[Double], Array[Double]))],
 	var g: Int,
 	var h: Int,
 	var nbCV: Int,
@@ -102,7 +102,7 @@ class Clusterwise(
 		val bcTrainDS = sc.broadcast(trainDS)
 		val bcGroupedData = sc.broadcast(groupedData)
 		// Launch Meta Reg on each partition
-		val resRegOut = sc.parallelize( 1 to 8888, init * nbCV).mapPartitionsWithIndex( (idx, it) => it.map( x => idx % nbCV ) ).mapPartitions( it =>
+		val resRegOut = sc.parallelize( 1 to 8888, init * nbCV).mapPartitionsWithIndex( (idx, it) => Iterator(idx % nbCV) ).mapPartitions( it =>
 		{
 			val idxCV = it.next
 			val modelTrain = ArrayBuffer.empty[Array[Array[(Int,(Array[Double], Array[Double],Int))]]]
@@ -113,7 +113,7 @@ class Clusterwise(
 			val classedReg = ArrayBuffer.empty[Array[(Int, Int)]]
 			val coIntercept = ArrayBuffer.empty[Array[Array[Double]]]
 			val coXYcoef = ArrayBuffer.empty[Array[Array[Double]]]
-			val regClass = new ClusterwiseCore(bcTrainDS.value(idxCV), h, g)(bcGroupedData.value, nbBloc, nbMaxAttemps)
+			val regClass = new ClusterwiseCore(bcTrainDS.value(idxCV), bcGroupedData.value, h, g, nbBloc, nbMaxAttemps)
 		  	// Per one element
 		  	if( sizeBloc == 1 )
 		  	{
@@ -145,7 +145,6 @@ class Clusterwise(
 			val bestFitted = predFitted(idxBestInit)
 
 		  	Iterator((idxCV, (bestClassifiedData, bestInitScore, bestCoInterceptIn, bestCoXYcoefIn, bestFitted)))
-
   		}).collect
 
 		val aggregateByCVIdx = resRegOut.groupBy{ case (idxCV, _) => idxCV }.map{ case (idxCV, aggregate) => (idxCV, aggregate.map(_._2)) }

@@ -8,15 +8,13 @@ import util.control.Breaks._
 
 class ClusterwiseCore(
 	val dsXYTrain: Array[(Int, (Array[Double], Array[Double]))],
-	var h:Int,
-	var g:Int
-	)(
 	val allGroupedData: Option[HashMap[Int, Int]],
-	var nbBloc:Int,
+	var h: Int,
+	var g: Int,
+	val nbBloc: Int,
 	var nbMaxAttemps: Int
 )  extends ClusterwiseTypes with Serializable
-{	
-
+{
 	val rangeOverClasses = (0 until g).toArray
 
 	def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) =
@@ -123,8 +121,8 @@ class ClusterwiseCore(
 				var dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, idXYClass) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
 			  	val inputY = dsPerClass.map{ case (clusterID, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID)) => y }:_*) }
-			  	var preLimitsClass = (for( i <- 0 until inputY.size ) yield inputY(i).size).toArray
-			  	var limitsClass = (for( i <- 0 until preLimitsClass.size ) yield (for( j <- 0 to i ) yield( preLimitsClass(j) )).sum).map(_ - 1).toArray
+			  	val preLimitsClass = (for( i <- 0 until inputY.size ) yield inputY(i).size).toArray
+			  	val limitsClass = (for( i <- 0 until preLimitsClass.size ) yield (for( j <- 0 to i ) yield preLimitsClass(j)).sum).map(_ - 1).toArray
 			  	var currentDotIdx = 0
 			  	var currentClass = 0
 			  	var nbIte = 0
@@ -149,8 +147,7 @@ class ClusterwiseCore(
 					  	}
 					  	val error1 = regPerClass.map(_._1)
 					  	prepareMovingPoint(dsPerClass, inputX, inputY, g, currentDotIdx, currentClass, limitsClass)
-					  	val regPerClass2 =
-				  		try
+					  	val regPerClass2 = try
 				  		{
 				  			for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 				  		}
@@ -175,10 +172,10 @@ class ClusterwiseCore(
 					  	}).sum
 					  	val minError = errors.min
 					  	val classToMovePointInto = errors.indexOf(minError)
-					  	val (point_ID, (point_X, point_Y, _)) = classedDS(currentDotIdx)
+					  	val (pointID, (pointX, pointY, _)) = classedDS(currentDotIdx)
 					  	if( classToMovePointInto != currentDotClass )
 					  	{
-						  	classedDS(currentDotIdx) = (point_ID, (point_X, point_Y, classToMovePointInto))
+						  	classedDS(currentDotIdx) = (pointID, (pointX, pointY, classToMovePointInto))
 						  	val classWithoutDot = rangeOverClasses.filter( clusterID => clusterID != classToMovePointInto && clusterID != currentDotClass)
 						  	for( j <- classWithoutDot ) removeLastXY(j, inputX, inputY)
 					  	}
@@ -186,14 +183,17 @@ class ClusterwiseCore(
 					  	{
 						  	val classWithoutDot = rangeOverClasses.filter(_ != currentDotClass)
 						  	for( j <- classWithoutDot ) removeLastXY(j, inputX, inputY)
-							inputX(currentDotClass) += ( (point_ID, point_X) )
-							inputY(currentDotClass) += point_Y
+							inputX(currentDotClass) += ((pointID, pointX))
+							inputY(currentDotClass) += pointY
 					  	}
 					  	continue = inputX.filter(_.isEmpty).isEmpty
 					  	mapRegCrit += ( currentDotId -> minError )
 					  	nbIte += 1
 				  		currentDotIdx += 1
-				  		if( currentDotIdx > limitsClass(currentClass) ) currentClass += 1
+				  		if( currentDotIdx > limitsClass(currentClass) )
+				  		{
+				  			currentClass += 1
+				  		}
 				  	}
 			  	}
 			  	continue = nbIte != stop
@@ -203,7 +203,7 @@ class ClusterwiseCore(
 			  	}
 			  	else
 			  	{
-					dsPerClassF = for( i <- rangeOverClasses ) yield (classedDS.filter{ case (_, (_, _, clusterID)) => clusterID == i })
+					dsPerClassF = for( i <- rangeOverClasses ) yield classedDS.filter{ case (_, (_, _, clusterID)) => clusterID == i }
 					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 					classOfEachData = classedDS.map{ case (id, (_, _, clusterID)) => (id, clusterID) }	
 			  	}
@@ -239,7 +239,7 @@ class ClusterwiseCore(
 		var classOfEachData = Array.empty[(Int, Int)]
 		var dsPerClassF = Array.empty[ClassedDSperGrp]
 		var regPerClassFinal = Array.empty[RegPerClass]
-	  	val mapRegCrit = HashMap.empty[Int,Double]
+	  	val mapRegCrit = HashMap.empty[Int, Double]
 	  	do
 	  	{
 			try
