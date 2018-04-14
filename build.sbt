@@ -17,6 +17,10 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided"
 //		"org.scalaz" %% "scalaz-core" % "7.2.18"
 	)
+lazy val scalaDeps = libraryDependencies ++= Seq(
+	  "org.scalanlp" %% "breeze" % "0.13.2",
+	  "org.scalanlp" %% "breeze-natives" % "0.13.2"
+	)
 
 lazy val commonCredentialsAndResolvers = Seq(
 		resolvers += Resolver.sonatypeRepo("releases"),
@@ -41,7 +45,10 @@ lazy val commonSettingsC4E = Seq(
 
 lazy val core = (project in file("core"))
 	.settings(commonSettingsC4E:_*)
-	.settings(mergeStrategyC4E)
+	.settings(
+		//scalaDeps,
+		mergeStrategyC4E
+	)
 
 lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(commonSettingsC4E:_*)

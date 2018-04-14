@@ -139,7 +139,12 @@ class ClusterwiseCore(
 				  	while( continue && nbIte != stop )
 				  	{
 					  	val (currentDotId, currentDotClass) = valuesToBrowse(nbIte)
-					  	val regPerClass = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
+					  	
+
+					  	val regPerClass = for( i <- rangeOverClasses ) yield(
+					  	{
+					  		PLS.runPLS(inputX, inputY, i, h)
+					  	})
 					  	// Temporary WorkAround when reduce data
 					  	if( ! regPerClass.map(_._1).filter(_.isNaN).isEmpty )
 					  	{
