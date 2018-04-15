@@ -198,11 +198,11 @@ class Clusterwise(
 
 		 	val meanTrain = trainY.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / trainY.size)
 
-		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - /*meanTrain*/meanY(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics(_, _)).map(x => sqrt(x / (bcTrainDS.value(idxCv).size - 1)))
+		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics(_, _)).map( x => sqrt(x / (bcTrainDS.value(idxCv).size - 1)) )
 		 	
 		 	val meanTest = testY.map(_._2._2).reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / testSize)
 		 	
-		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - /*meanTest*/meanY(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics(_, _)).map( x => sqrt(x / (testSize - 1)))
+		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics(_, _)).map( x => sqrt(x / (testSize - 1)))
 
 			val sqRmseCalIn = if( q == 1 )
 			{
@@ -211,10 +211,12 @@ class Clusterwise(
 			}
 			else
 		 	{
-			    val preColSum = trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ) }
-			    val colSum = preColSum.reduce(SumArrays.sumArraysNumerics(_, _))
-			    val sqRmseYCal = colSum.map( _ / trainY.size ).zip(sdYtrain).map{ case (v, sdy) => v / sdy }
-			    val meanSqRmseYCal = sqRmseYCal.sum / sqRmseYCal.size
+			    val meanSqRmseYCal = trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ) }
+			    	.reduce(SumArrays.sumArraysNumerics(_, _))
+			    	.map( _ / trainY.size )
+			    	.zip(sdYtrain)
+			    	.map{ case (rmseTrain, sdy) => rmseTrain / sdy }
+			    	.sum / q
 				meanSqRmseYCal
 			}						
 
@@ -222,15 +224,15 @@ class Clusterwise(
 
 			val sqRmseValIn = if( q == 1 )
 			{
-				testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => pow(y.head - yPred(0), 2) }.sum / testSize / sdYtrain(0)
+				testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => pow(y.head - yPred(0), 2) }.sum / testSize / sdYtest.head
 			}
 			else
 			{
-				val sqrmseYVal = testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) } }
+				val sqRmseYValMean = testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) } }
 					.reduce(SumArrays.sumArraysNumerics(_, _))
-					.zipWithIndex
-					.map{ case (value, idx) => value / testSize / sdYtest(idx) }
-				val sqRmseYValMean = sqrmseYVal.sum / q
+					.zip(sdYtest)
+					.map{ case (rmseTest, sdTest) => rmseTest / sdTest }
+					.sum / q
 				sqRmseYValMean
 			}
 			(sqRmseCalIn, sqRmseValIn)
