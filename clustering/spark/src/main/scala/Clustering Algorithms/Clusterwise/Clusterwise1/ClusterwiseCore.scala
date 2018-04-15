@@ -35,7 +35,7 @@ class ClusterwiseCore(
 		}
 	}
 
-	val removeFirstElemXY = (clusterID: Int, xDS: IDXDS, yDS: YDS) =>
+	def removeFirstElemXY(clusterID: Int, xDS: IDXDS, yDS: YDS) =
 	{
 		xDS(clusterID).remove(0)
 		yDS(clusterID).remove(0)
@@ -44,7 +44,7 @@ class ClusterwiseCore(
 	def prepareMovingPoint(classedDS: ClassedDS, xDS: IDXDS, yDS:YDS, g: Int, elemNb: Int, currClass: Int, limitsClass: Array[Int]) =
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, limitsClass)
-		val (elemToReplace_ID, (elemToReplace_X, elemToReplace_Y, _)) = classedDS(currClass)._2(posInClass)
+		val (elemToReplaceID, (elemToReplaceX, elemToReplaceY, _)) = classedDS(currClass)._2(posInClass)
 		for( j <- 0 until g )
 		{
 		  if( j == currClass )
@@ -53,13 +53,22 @@ class ClusterwiseCore(
 		  }
 		  else
 		  {
-		    xDS(j) += ( (elemToReplace_ID, elemToReplace_X) )
-		    yDS(j) += elemToReplace_Y
+		    xDS(j) += ( (elemToReplaceID, elemToReplaceX) )
+		    yDS(j) += elemToReplaceY
 		  }
 		}
 	}
 
-	def prepareMovingPointByGroup(classedDS: ClassedDSperGrp, xDS: IDXDS,  yDS: YDS, g: Int, elemNb: Int, currClass: Int, limitsClass: Array[Int], orderedBucketSize: Array[Int]) =
+	def prepareMovingPointByGroup(
+		classedDS: ClassedDSperGrp,
+		xDS: IDXDS,
+		yDS: YDS,
+		g: Int,
+		elemNb: Int,
+		currClass: Int,
+		limitsClass: Array[Int],
+		orderedBucketSize: Array[Int]
+	) =
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, limitsClass)
 		val elemToReplace = classedDS(currClass)._2(posInClass)._3
@@ -287,7 +296,7 @@ class ClusterwiseCore(
 
 				  	while( continue && nbIte != stop )
 				  	{
-				  		val ((grpId, currentclusterID), current_idx) = indexedFlatBucketOrder(nbIte)
+				  		val ((grpId, currentclusterID), currentIdx) = indexedFlatBucketOrder(nbIte)
 				  	
 					  	// Regression with Point inside one Class and not the Rest
 					  	val regPerClass = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
@@ -344,11 +353,13 @@ class ClusterwiseCore(
 					  	{
 						  	val classWithoutDots = rangeOverClasses.filter(_ != currentclusterID)
 						  	for( j <- classWithoutDots )
+						  	{
 						  		for( i <- 0 until orderedBucketSize(currentDotsGrpIdx) ) removeLastXY(j, inputX, inputY)
+						  	}
 						  	inputX(currentclusterID) ++= grpIdIDXY.map{ case (grpId, id, x, y) => (id, x) }
 						  	inputY(currentclusterID) ++= grpIdIDXY.map{ case (grpId, id, x, y) => y }
 					  	}
-					  	mapRegCrit += ( current_idx -> minError )
+					  	mapRegCrit += ( currentIdx -> minError )
 					  	continue = inputX.filter(_.isEmpty).isEmpty
 						nbIte += 1
 				  		currentDotsGrpIdx += 1

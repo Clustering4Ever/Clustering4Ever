@@ -20,8 +20,7 @@ class Clusterwise(
 	var h: Int,
 	var nbCV: Int,
 	var init: Int,
-	var trainSize0: Double,
-	var k: Int,
+	var kPredict: Int,
 	var standardized: Boolean,
 	var sizeBloc: Int,
 	var nbMaxAttemps: Int,
@@ -96,15 +95,22 @@ class Clusterwise(
 			None
 		}
 
-		val splits = scala.util.Random.shuffle(centerReductRDD).grouped(centerReductRDD.size / nbCV).map(ArrayBuffer(_:_*)).toArray
-		val trainDSbuff = for( j <- 0 until nbCV ) yield ((for( u <- 0 until nbCV if( u != j )) yield (splits(u))).reduce(_ ++= _).sortBy{ case (id, _) => id })
+		val splits = scala.util.Random.shuffle(centerReductRDD).grouped((centerReductRDD.size / nbCV) + 1).toArray
+
+		println(splits.map(_.size).mkString(", "))
+		
+		val trainDSbuff = for( j <- 0 until nbCV ) yield ((for( u <- 0 until nbCV if( u != j )) yield (splits(u))).reduce(_ ++ _).sortBy{ case (id, _) => id })
 		val trainDS = trainDSbuff.map(_.toArray)
+		
+		println("---------------")
+		println(trainDS.map(_.size).mkString(", "))
+		
 		val bcTrainDS = sc.broadcast(trainDS)
 		val bcGroupedData = sc.broadcast(groupedData)
 		// Launch Meta Reg on each partition
-		val resRegOut = sc.parallelize( 1 to 8888, init * nbCV).mapPartitionsWithIndex( (idx, it) => Iterator(idx % nbCV) ).mapPartitions( it =>
+		val resRegOut = sc.parallelize( 1 to 8888, init * nbCV).mapPartitionsWithIndex( (idx, it) =>
 		{
-			val idxCV = it.next
+			val idxCV = idx % nbCV
 			val modelTrain = ArrayBuffer.empty[Array[Array[(Int,(Array[Double], Array[Double],Int))]]]
 			val predFitted = ArrayBuffer.empty[Array[Array[(Int, Array[Double])]]]
 			val prediction = ArrayBuffer.empty[ArrayBuffer[(Int, Int)]]
@@ -186,8 +192,8 @@ class Clusterwise(
 			clusterwiseModels += clusterwiseModel
 
 			val testY = splits(idxCv).toArray
-			val labelAndPrediction = clusterwiseModel.predictKNNLocal(testY, k, g)
-			val yPredTrainSort = bestFittedOut.map(ArrayBuffer(_:_*)).reduce(_ ++= _).toArray.sortBy(_._1)
+			val labelAndPrediction = clusterwiseModel.predictKNNLocal(testY, kPredict, g)
+			val yPredTrainSort = bestFittedOut.reduce(_ ++ _).toArray.sortBy(_._1)
 
 			/********************************************************************************************************/
 			/*										Measure quality of prediction 									*/
@@ -195,10 +201,15 @@ class Clusterwise(
 			val trainY = bcTrainDS.value(idxCv).map{ case (_, (_, y)) => y }
 		 	val testSize = testY.size
 
+		 	val (meanX, meanY, sdX, sdY) = standardizationParameters.get
+
 		 	val meanTrain = trainY.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / trainY.size)
-		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics(_, _)).map(x => sqrt(x / (bcTrainDS.value(idxCv).size - 1)))
+
+		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - /*meanTrain*/meanY(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics(_, _)).map(x => sqrt(x / (bcTrainDS.value(idxCv).size - 1)))
+		 	
 		 	val meanTest = testY.map(_._2._2).reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / testSize)
-		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }).reduce(_.zip(_).map( x => x._1 + x._2 )).map( x => sqrt(x / (testSize - 1)))
+		 	
+		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - /*meanTest*/meanY(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics(_, _)).map( x => sqrt(x / (testSize - 1)))
 
 			val sqRmseCalIn = if( q == 1 )
 			{
@@ -207,7 +218,7 @@ class Clusterwise(
 			}
 			else
 		 	{
-			    val preColSum = trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => x._1 - x._2 ).map(pow(_, 2)) }
+			    val preColSum = trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ) }
 			    val colSum = preColSum.reduce(SumArrays.sumArraysNumerics(_, _))
 			    val sqRmseYCal = colSum.map( _ / trainY.size ).zip(sdYtrain).map{ case (v, sdy) => v / sdy }
 			    val meanSqRmseYCal = sqRmseYCal.sum / sqRmseYCal.size
@@ -255,7 +266,6 @@ object Clusterwise extends ClusterwiseTypes with Serializable
 		h: Int,
 		nbCV: Int,
 		init: Int,
-		trainSize: Double,
 		k: Int,
 		standardized: Boolean = true,
 		sizeBloc: Int = 1,
@@ -264,7 +274,7 @@ object Clusterwise extends ClusterwiseTypes with Serializable
 		iterMaxKmeans: Int = 100
 	): (Array[(Double, Double)], Array[ClusterwiseModel]) = 
 	{
-		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, trainSize, k, standardized, sizeBloc, nbMaxAttemps, epsilonKmeans, iterMaxKmeans)
+		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, k, standardized, sizeBloc, nbMaxAttemps, epsilonKmeans, iterMaxKmeans)
 		clusterwise.run	
 	}
 }

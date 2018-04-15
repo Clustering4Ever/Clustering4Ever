@@ -195,7 +195,7 @@ class PLS(
 
 		val arrayRange1 = (0 until ncolY).toArray
 
-		val resXYcoefBreeze = for( i <- arrayRange1 ) yield( new DenseMatrix(rows=ncolX, cols=maxdim, resXYcoef(i).toArray.flatMap(_.toArray)) )
+		val resXYcoefBreeze = for( i <- arrayRange1 ) yield new DenseMatrix(rows=ncolX, cols = maxdim, resXYcoef(i).toArray.flatMap(_.toArray))
 
 		val resIntercept = for( i <- arrayRange1 ) yield (DenseVector(meanX).t * resXYcoefBreeze(i)).t.map(meanY(i) - _)
 
@@ -216,7 +216,7 @@ class PLS(
 
 		val arrayRange2 = (0 until ncolY).toArray
 
-		val colss = for( i <- arrayRange2 ) yield resXYcoefBreeze(i)(::,h - 1)
+		val colss = for( i <- arrayRange2 ) yield resXYcoefBreeze(i)(::, h - 1)
 		val resXYcoefF = new DenseMatrix(rows = resXYcoefBreeze(0).rows, cols = ncolY, colss.flatMap(_.toArray) )
 		val resInterceptF = resIntercept.map(_.toArray.last)
 		val colsss = for( i <- arrayRange2 ) yield resFitted(i)(::,h - 1)
@@ -245,15 +245,15 @@ object PLS extends CommonPLSTypes
 		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])]
 	}
 
-	def ktabXdudiY(dsX: IdWithX, dsY: Y, n0:Int) : (Int, Double, Double) =
+	def ktabXdudiY(dsX: IdWithX, dsY: Y, n: Int): (Int, Double, Double) =
 	{
-		val lw = 1D / n0
+		val lw = 1D / n
 		val cw = dsX.head._2.size
 		val colw = dsY.head.size
 		val dsY0 = dsY.map(_.head)
-		val roww = dsY0.map( x => 1D / n0)
+		val roww = dsY0.map( x => 1D / n )
 		val ds = dsY0.zip(roww).map( x => x._1 * ssqrt(x._2))
-		val eigValue = ds.map( pow(_, 2) ).reduce(_ + _)
+		val eigValue = ds.map( pow(_, 2) ).sum
 		(cw, lw, eigValue)
 	}
 
