@@ -23,7 +23,7 @@ class ClusterwiseCore(
 	  	inputY(clusterID).remove( inputY(clusterID).size - 1 )
 	}
 
-	def posInClassForMovingPoints(currClass: Int, elemNb: Int, limitsClass: Array[Int]) =
+	def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: Array[Int]) =
 	{
 		if( currClass == 0 )
 		{
@@ -31,7 +31,7 @@ class ClusterwiseCore(
 		}
 		else
 		{
-			elemNb - limitsClass( currClass - 1 ) - 1
+			elemNb - classlimits( currClass - 1 ) - 1
 		}
 	}
 
@@ -41,9 +41,9 @@ class ClusterwiseCore(
 		yDS(clusterID).remove(0)
 	}
 
-	def prepareMovingPoint(classedDS: ClassedDS, xDS: IDXDS, yDS:YDS, g: Int, elemNb: Int, currClass: Int, limitsClass: Array[Int]) =
+	def prepareMovingPoint(classedDS: ClassedDS, xDS: IDXDS, yDS:YDS, g: Int, elemNb: Int, currClass: Int, classlimits: Array[Int]) =
 	{
-		val posInClass = posInClassForMovingPoints(currClass, elemNb, limitsClass)
+		val posInClass = posInClassForMovingPoints(currClass, elemNb, classlimits)
 		val (elemToReplaceID, (elemToReplaceX, elemToReplaceY, _)) = classedDS(currClass)._2(posInClass)
 		for( j <- 0 until g )
 		{
@@ -66,11 +66,11 @@ class ClusterwiseCore(
 		g: Int,
 		elemNb: Int,
 		currClass: Int,
-		limitsClass: Array[Int],
+		classlimits: Array[Int],
 		orderedBucketSize: Array[Int]
 	) =
 	{
-		val posInClass = posInClassForMovingPoints(currClass, elemNb, limitsClass)
+		val posInClass = posInClassForMovingPoints(currClass, elemNb, classlimits)
 		val elemToReplace = classedDS(currClass)._2(posInClass)._3
 		for( j <- 0 until g )
 		{
@@ -130,13 +130,12 @@ class ClusterwiseCore(
 				var dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, idXYClass) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
 			  	val inputY = dsPerClass.map{ case (clusterID, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID)) => y }:_*) }
-			  	val preLimitsClass = (for( i <- 0 until inputY.size ) yield inputY(i).size).toArray
-			  	val limitsClass = (for( i <- 0 until preLimitsClass.size ) yield (for( j <- 0 to i ) yield preLimitsClass(j)).sum).map(_ - 1).toArray
+			  	val preClassLimits = (for( i <- 0 until inputY.size ) yield inputY(i).size).toArray
+			  	val classlimits = (for( i <- 0 until preClassLimits.size ) yield (for( j <- 0 to i ) yield preClassLimits(j)).sum).map(_ - 1).toArray
 			  	var currentDotIdx = 0
 			  	var currentClass = 0
 			  	var nbIte = 0
 			  	val stop = valuesToBrowse.size - 1
-			  	var numberBatch = 0
 
 		  		breakable
 		  		{
@@ -160,7 +159,7 @@ class ClusterwiseCore(
 					  		break
 					  	}
 					  	val error1 = regPerClass.map(_._1)
-					  	prepareMovingPoint(dsPerClass, inputX, inputY, g, currentDotIdx, currentClass, limitsClass)
+					  	prepareMovingPoint(dsPerClass, inputX, inputY, g, currentDotIdx, currentClass, classlimits)
 					  	val regPerClass2 = try
 				  		{
 				  			for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
@@ -204,7 +203,7 @@ class ClusterwiseCore(
 					  	mapRegCrit += ( currentDotId -> minError )
 					  	nbIte += 1
 				  		currentDotIdx += 1
-				  		if( currentDotIdx > limitsClass(currentClass) )
+				  		if( currentDotIdx > classlimits(currentClass) )
 				  		{
 				  			currentClass += 1
 				  		}
@@ -278,7 +277,7 @@ class ClusterwiseCore(
 				val orderedBucketSize = preSize.flatten
 				val classSize = preSize.map(_.size )
 				val classSize2 = preSize.map(_.sum)
-				val limitsClass = (for( i <- 0 until classSize.size ) yield ((for( j <- 0 to i ) yield( classSize(j) )).sum)).map(_ - 1).toArray
+				val classlimits = (for( i <- 0 until classSize.size ) yield ((for( j <- 0 to i ) yield( classSize(j) )).sum)).map(_ - 1).toArray
 
 			  	val inputX = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => (id, x) }}:_*)}
 			  	val inputY = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => y }}:_*)}
@@ -301,7 +300,7 @@ class ClusterwiseCore(
 					  	// Regression with Point inside one Class and not the Rest
 					  	val regPerClass = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 					  	val error1 = regPerClass.map(_._1)
-					  	prepareMovingPointByGroup(dsPerClassPerBucket, inputX, inputY, g, currentDotsGrpIdx, currentClass, limitsClass, orderedBucketSize)
+					  	prepareMovingPointByGroup(dsPerClassPerBucket, inputX, inputY, g, currentDotsGrpIdx, currentClass, classlimits, orderedBucketSize)
 					  	if( inputX.exists(_.size == 0) )
 					  	{
 					  		println("Problemo one class is becoming empty")
@@ -335,7 +334,7 @@ class ClusterwiseCore(
 					  	}).sum
 					  	val minError = errors.min
 					  	val classToMoveGroupInto = errors.indexOf(minError)
-					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, limitsClass)
+					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, classlimits)
 					  	val (_, bucketIDtoUpdate, grpIdIDXY) = dsPerClassPerBucket(currentClass)._2(posInClass)
 					  	if( classToMoveGroupInto != currentclusterID )
 					  	{
@@ -363,7 +362,7 @@ class ClusterwiseCore(
 					  	continue = inputX.filter(_.isEmpty).isEmpty
 						nbIte += 1
 				  		currentDotsGrpIdx += 1
-				  		if( currentDotsGrpIdx > limitsClass(currentClass) ) currentClass += 1
+				  		if( currentDotsGrpIdx > classlimits(currentClass) ) currentClass += 1
 			  		}
 			  	}
 			  	continue = nbIte != stop
@@ -400,3 +399,34 @@ class ClusterwiseCore(
 	  	(dsPerClassF, pred, coIntercept, coXYcoef, resReg, mapRegCrit, classOfEachData)
 	}
 }
+
+object ClusterwiseCore extends Serializable
+{
+	def plsPerDot(
+		dsXYTrain: Array[(Int, (Array[Double], Array[Double]))],
+		h: Int,
+		g: Int,
+		allGroupedData: Option[HashMap[Int, Int]] = None,
+		nbBloc: Int = 1,
+		nbMaxAttemps: Int = 30
+	) =
+	{
+		val oneClusterwise = new ClusterwiseCore(dsXYTrain, allGroupedData, h, g, nbBloc, nbMaxAttemps)
+		val (dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = oneClusterwise.plsPerDot()
+		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)
+	}
+
+	def plsPerGroup(
+		dsXYTrain: Array[(Int, (Array[Double], Array[Double]))],
+		h: Int,
+		g: Int,
+		allGroupedData: Option[HashMap[Int, Int]] = None,
+		nbBloc: Int = 1,
+		nbMaxAttemps: Int = 30
+	) =
+	{
+		val oneClusterwise = new ClusterwiseCore(dsXYTrain, allGroupedData, h, g, nbBloc, nbMaxAttemps)
+		val (dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = oneClusterwise.plsPerGroup()
+		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)
+	}
+} 

@@ -97,30 +97,22 @@ class Clusterwise(
 
 		val splits = scala.util.Random.shuffle(centerReductRDD).grouped((centerReductRDD.size / nbCV) + 1).toArray
 
-		println(splits.map(_.size).mkString(", "))
-		
 		val trainDSbuff = for( j <- 0 until nbCV ) yield ((for( u <- 0 until nbCV if( u != j )) yield (splits(u))).reduce(_ ++ _).sortBy{ case (id, _) => id })
 		val trainDS = trainDSbuff.map(_.toArray)
-		
-		println("---------------")
-		println(trainDS.map(_.size).mkString(", "))
-		
 		val bcTrainDS = sc.broadcast(trainDS)
 		val bcGroupedData = sc.broadcast(groupedData)
 		// Launch Meta Reg on each partition
 		val resRegOut = sc.parallelize( 1 to 8888, init * nbCV).mapPartitionsWithIndex( (idx, it) =>
 		{
 			val idxCV = idx % nbCV
-			val modelTrain = ArrayBuffer.empty[Array[Array[(Int,(Array[Double], Array[Double],Int))]]]
 			val predFitted = ArrayBuffer.empty[Array[Array[(Int, Array[Double])]]]
-			val prediction = ArrayBuffer.empty[ArrayBuffer[(Int, Int)]]
 			val critReg = ArrayBuffer.empty[Array[Double]]
 			val mapsRegCrit = ArrayBuffer.empty[HashMap[Int, Double]]
 			val classedReg = ArrayBuffer.empty[Array[(Int, Int)]]
 			val coIntercept = ArrayBuffer.empty[Array[Array[Double]]]
 			val coXYcoef = ArrayBuffer.empty[Array[Array[Double]]]
 			val regClass = new ClusterwiseCore(bcTrainDS.value(idxCV), bcGroupedData.value, h, g, nbBloc, nbMaxAttemps)
-		  	// Per one element
+		  	// Clusterwise
 		  	if( sizeBloc == 1 )
 		  	{
 		  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerDot()
@@ -131,6 +123,7 @@ class Clusterwise(
 		  		mapsRegCrit += mapsRegCrit0
 		  		classedReg += classedReg0
 		  	}
+		  	// Clusterwise mb
 		  	else
 		  	{
 		  		val (_, predFitted0, coIntercept0, coXYcoef0, critReg0, mapsRegCrit0, classedReg0) = regClass.plsPerGroup()
@@ -187,11 +180,11 @@ class Clusterwise(
 			/* 										Test the model on testing set 									*/
 			/********************************************************************************************************/
 
-			val bcLocalTrainData = sc.broadcast(labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) })
-			val clusterwiseModel = new ClusterwiseModel(bcLocalTrainData, finals, standardizationParameters)
+			val localTrainData = labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }
+			val clusterwiseModel = new ClusterwiseModel(localTrainData, finals, standardizationParameters)
 			clusterwiseModels += clusterwiseModel
 
-			val testY = splits(idxCv).toArray
+			val testY = splits(idxCv)
 			val labelAndPrediction = clusterwiseModel.predictKNNLocal(testY, kPredict, g)
 			val yPredTrainSort = bestFittedOut.reduce(_ ++ _).toArray.sortBy(_._1)
 

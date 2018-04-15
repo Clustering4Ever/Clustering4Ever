@@ -12,12 +12,17 @@ import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.clustering4ever.math.distances.scalar.Euclidean
 import _root_.clustering4ever.clustering.ClusteringModel
 
-class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[Double], Int))]], val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])], standardizationParameters: Option[(Array[Double], Array[Double], Array[Double], Array[Double])] = None, metric: ContinuousDistances = new Euclidean(true)) extends ClusteringModel
+class ClusterwiseModel(
+	val xyTrain: Array[(Int, (Array[Double], Array[Double], Int))],
+	val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])],
+	standardizationParameters: Option[(Array[Double], Array[Double], Array[Double], Array[Double])] = None,
+	metric: ContinuousDistances = new Euclidean(true)
+) extends ClusteringModel
 {
-	type IDXtest = Array[(Long, Xvector)]
-	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
 	type Xvector = Array[Double]
 	type Yvector = Array[Double]
+	type IDXtest = Array[(Long, Xvector)]
+	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
 
 	val (meanX, meanY, sdX, sdY) = if( standardizationParameters.isDefined )
 	{
@@ -40,7 +45,7 @@ class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[
 	{
 		xyTest.map{ case (idx, x) => 
 		{
-			val neighbours = xyTrain.value.map{ case (_, (x2, _, clusterID)) => (x2, clusterID) }
+			val neighbours = xyTrain.map{ case (_, (x2, _, clusterID)) => (x2, clusterID) }
 			val majVote = knn(x, neighbours, k)
 			val cptVote = Array.fill(g)(0)
 			majVote.foreach{ case (_, clusterID) => cptVote(clusterID % g) += 1 }
@@ -54,7 +59,7 @@ class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[
 	{
 		xyTest.map{ case (idx, (x, y)) => 
 		{
-			val neighbours = xyTrain.value.map{ case (_, (x2, y2, label2)) => (x2 ++ y2, label2) }
+			val neighbours = xyTrain.map{ case (_, (x2, y2, label2)) => (x2 ++ y2, label2) }
 			val majVote = knn(x ++ y, neighbours, k)
 			val cptVote = Array.fill(g)(0)
 			majVote.foreach{ case (_, clusterID) => cptVote(clusterID % g) += 1 }
@@ -64,7 +69,7 @@ class ClusterwiseModel(val xyTrain: Broadcast[Array[(Int, (Array[Double], Array[
 	}
 
 	def predictKNNLocal(
-		xyTest: Array[(Int, (Xvector, Yvector))],
+		xyTest: Seq[(Int, (Xvector, Yvector))],
 		k: Int,
 		g: Int
 	) =
