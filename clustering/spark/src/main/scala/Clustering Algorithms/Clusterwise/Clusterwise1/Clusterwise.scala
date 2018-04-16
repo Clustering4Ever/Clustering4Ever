@@ -37,7 +37,7 @@ class Clusterwise(
 		val first = dataXY.head
 		val p = first._2._1.size  // dimX
 		val q = first._2._2.size  // dimY
-		val nbBloc = (n / sizeBloc).toInt
+		val kmeansKValue = (n / sizeBloc).toInt
 		val clusterwiseModels = ArrayBuffer.empty[ClusterwiseModel]
 
 		def reduceXY(a: (Array[Double], Array[Double]), b: (Array[Double], Array[Double])): (Array[Double], Array[Double]) =
@@ -83,9 +83,8 @@ class Clusterwise(
 
   	  	val microClusterById = if( sizeBloc != 1 )
 		{
-  	  		val kkmeans = nbBloc
 	  	  	val kmData = centerReductRDD.map{ case (_, (x, y)) => x ++ y }
-	  	  	val kmeans = new KMeans(kmData, kkmeans, epsilonKmeans, iterMaxKmeans)
+	  	  	val kmeans = new KMeans(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans)
 	  	  	val kmeansModel = kmeans.run()
   	  		val microClusterByIdIn = HashMap(centerReductRDD.map{ case (id, (x, y)) => (id, kmeansModel.predict(x ++ y)) }:_*)
   	  		Some(microClusterByIdIn)
@@ -110,7 +109,7 @@ class Clusterwise(
 			val classedRegBuff = ArrayBuffer.empty[Array[(Int, Int)]]
 			val coInterceptBuff = ArrayBuffer.empty[Array[Array[Double]]]
 			val coXYcoefBuff = ArrayBuffer.empty[Array[Array[Double]]]
-			val regClass = new ClusterwiseCore(broadcastedTrainData.value(idxCV), broadcastedmicroClusterById.value, h, g, nbBloc, nbMaxAttemps)
+			val regClass = new ClusterwiseCore(broadcastedTrainData.value(idxCV), broadcastedmicroClusterById.value, h, g, kmeansKValue, nbMaxAttemps)
 		  	// Clusterwise
 		  	if( sizeBloc == 1 )
 		  	{

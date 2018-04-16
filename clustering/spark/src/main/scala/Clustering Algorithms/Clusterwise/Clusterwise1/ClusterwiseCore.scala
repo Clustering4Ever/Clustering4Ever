@@ -11,7 +11,7 @@ class ClusterwiseCore(
 	val allGroupedData: Option[HashMap[Int, Int]],
 	var h: Int,
 	var g: Int,
-	val nbBloc: Int,
+	val microClusterNumber: Int,
 	var nbMaxAttemps: Int
 )  extends ClusterwiseTypes with Serializable
 {
@@ -126,8 +126,8 @@ class ClusterwiseCore(
 				cptAttemps += 1
 			  	// Set randomly a class to each data point
 			  	val classedDS = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.sortBy{ case (id, (x, y, clusterID)) => clusterID }
-			  	var valuesToBrowse = classedDS.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
-				var dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, idXYClass) => clusterID }
+			  	val valuesToBrowse = classedDS.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
+				val dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, idXYClass) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
 			  	val inputY = dsPerClass.map{ case (clusterID, idXYClass) => ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID)) => y }:_*) }
 			  	val preClassLimits = (for( i <- 0 until inputY.size ) yield inputY(i).size).toArray
@@ -259,7 +259,7 @@ class ClusterwiseCore(
 			{
 		  		cptAttemps += 1
 			  	// Initialisation par groupe
-			  	val perGroupClassInit = for( i <- 0 until nbBloc ) yield Random.nextInt(g)
+			  	val perGroupClassInit = for( i <- 0 until microClusterNumber ) yield Random.nextInt(g)
 
 			  	val dsPerClassPerBucket = dsXYTrain.map{ case (id, (x, y)) => (allGroupedData.get(id), id, x, y) }
 					.groupBy(_._1)
@@ -362,16 +362,22 @@ class ClusterwiseCore(
 					  	continue = inputX.filter(_.isEmpty).isEmpty
 						nbIte += 1
 				  		currentDotsGrpIdx += 1
-				  		if( currentDotsGrpIdx > classlimits(currentClass) ) currentClass += 1
+				  		if( currentDotsGrpIdx > classlimits(currentClass) )
+				  		{
+				  			currentClass += 1
+			  			}
 			  		}
 			  	}
 			  	continue = nbIte != stop
-			  	if( continue ) mapRegCrit.clear
+			  	if( continue )
+			  	{
+			  		mapRegCrit.clear
+			  	}
 			  	else
 			  	{
 			  		dsPerClassF = for( i <- rangeOverClasses ) yield (dsPerClassPerBucket.filter{ case (clusterID, _) => clusterID == i })
 					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
-			  		classOfEachData = dsPerClassPerBucket.flatMap{ case (clusterID, dsPerBucket) => dsPerBucket.flatMap{ case (_, grpId, ds) => ds.map{ case (_, id, x, y) => (id,clusterID) } } }
+			  		classOfEachData = dsPerClassPerBucket.flatMap{ case (clusterID, dsPerBucket) => dsPerBucket.flatMap{ case (_, grpId, ds) => ds.map{ case (_, id, x, y) => (id, clusterID) } } }
 			  	}
 			}
 			catch
@@ -407,11 +413,11 @@ object ClusterwiseCore extends Serializable
 		h: Int,
 		g: Int,
 		allGroupedData: Option[HashMap[Int, Int]] = None,
-		nbBloc: Int = 1,
+		microClusterNumber: Int = 1,
 		nbMaxAttemps: Int = 30
 	) =
 	{
-		val oneClusterwise = new ClusterwiseCore(dsXYTrain, allGroupedData, h, g, nbBloc, nbMaxAttemps)
+		val oneClusterwise = new ClusterwiseCore(dsXYTrain, allGroupedData, h, g, microClusterNumber, nbMaxAttemps)
 		val (dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = oneClusterwise.plsPerDot()
 		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)
 	}
@@ -421,11 +427,11 @@ object ClusterwiseCore extends Serializable
 		h: Int,
 		g: Int,
 		allGroupedData: Option[HashMap[Int, Int]] = None,
-		nbBloc: Int = 1,
+		microClusterNumber: Int = 1,
 		nbMaxAttemps: Int = 30
 	) =
 	{
-		val oneClusterwise = new ClusterwiseCore(dsXYTrain, allGroupedData, h, g, nbBloc, nbMaxAttemps)
+		val oneClusterwise = new ClusterwiseCore(dsXYTrain, allGroupedData, h, g, microClusterNumber, nbMaxAttemps)
 		val (dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = oneClusterwise.plsPerGroup()
 		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)
 	}
