@@ -48,7 +48,7 @@ class ClusterwiseModel(
 			val neighbours = xyTrain.map{ case (_, (x2, _, clusterID)) => (x2, clusterID) }
 			val majVote = knn(x, neighbours, k)
 			val cptVote = Array.fill(g)(0)
-			majVote.foreach{ case (_, clusterID) => cptVote(clusterID % g) += 1 }
+			majVote.foreach{ case (_, clusterID) => cptVote(clusterID) += 1 }
 			val classElem = cptVote.indexOf(cptVote.max)
 			(idx, classElem, x)
 		}}
@@ -59,8 +59,8 @@ class ClusterwiseModel(
 	{
 		xyTest.map{ case (idx, (x, y)) => 
 		{
-			val neighbours = xyTrain.map{ case (_, (x2, y2, label2)) => (x2 ++ y2, label2) }
-			val majVote = knn(x ++ y, neighbours, k)
+			val neighbours = xyTrain.map{ case (_, (x2, y2, label2)) => (x2, label2) }
+			val majVote = knn(x, neighbours, k)
 			val cptVote = Array.fill(g)(0)
 			majVote.foreach{ case (_, clusterID) => cptVote(clusterID % g) += 1 }
 			val classElem = cptVote.indexOf(cptVote.max)
@@ -68,7 +68,7 @@ class ClusterwiseModel(
 		}}
 	}
 
-	def predictKNNLocal(
+	def predictClusterViaKNNLocal(
 		xyTest: Seq[(Int, (Xvector, Yvector))],
 		k: Int,
 		g: Int

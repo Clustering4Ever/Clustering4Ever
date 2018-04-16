@@ -239,7 +239,7 @@ object PLS extends CommonPLSTypes
 		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])]
 	}
 
-	def runFinalMBPLS(dsX: IdWithX, dsY: Y, lw: Double, n: Int, h:Int, ktabXdudiY: (Int, Double, Double)) =
+	def runFinalPLS(dsX: IdWithX, dsY: Y, lw: Double, n: Int, h:Int, ktabXdudiY: (Int, Double, Double)) =
 	{
 		val mbplsObj = new PLS(dsX, dsY, n, h, lw, ktabXdudiY)
 		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])]
