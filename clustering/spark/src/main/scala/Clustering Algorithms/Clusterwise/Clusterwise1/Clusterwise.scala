@@ -86,9 +86,8 @@ class Clusterwise(
 	  	  	val kmData = centerReductRDD.map{ case (_, (x, y)) => x ++ y }
 	  	  	val kmeans = new KMeans(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans)
 	  	  	val kmeansModel = kmeans.run()
-	  	  	val clusterPredict = centerReductRDD.map{ case (id, (x, y)) => (id, kmeansModel.predict(x ++ y)) }
-  	  		val microClusterByIdIn = HashMap(clusterPredict.toSeq:_*)
-  	  		//println("microClusterByIdIn.map(_._2).toSeq.distinct.size : " + microClusterByIdIn.map(_._2).toSeq.distinct.size)
+	  	  	// We have to perform a toArray to make results of clustering working, if not, there is juste one cluster...
+  	  		val microClusterByIdIn = HashMap(centerReductRDD.map{ case (id, (x, y)) => (id, kmeansModel.predict(x ++ y)) }.toArray:_*)
   	  		Some(microClusterByIdIn)
 		}
 		else
@@ -97,7 +96,6 @@ class Clusterwise(
 		}
 
 		val splits = scala.util.Random.shuffle(centerReductRDD).grouped((centerReductRDD.size / nbCV) + 1).toArray
-
 		val trainDS = for( j <- 0 until nbCV ) yield ((for( u <- 0 until nbCV if( u != j )) yield splits(u)).flatten.sortBy{ case (id, _) => id }).toArray
 		val broadcastedTrainData = sc.broadcast(trainDS)
 		val broadcastedmicroClusterById = sc.broadcast(microClusterById)
