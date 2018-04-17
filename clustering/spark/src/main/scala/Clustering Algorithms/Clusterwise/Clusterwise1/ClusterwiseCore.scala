@@ -269,6 +269,8 @@ class ClusterwiseCore(
 					.toArray
 					.sortBy{ case (clusterID, _) => clusterID }
 
+				println("dsPerClassPerBucket : " + dsPerClassPerBucket.size)
+
 				val bucketOrderPerClass = (for( (clusterID, buckets) <- dsPerClassPerBucket ) yield ((clusterID, buckets.map{ case (clusterID, grpId, grpIdIdXY) => grpId }))).toArray
 
 				val indexedFlatBucketOrder = bucketOrderPerClass.flatMap{ case (clusterID, grpIds) => grpIds.map( grpId => (grpId, clusterID) ) }.zipWithIndex
@@ -279,8 +281,8 @@ class ClusterwiseCore(
 				val classSize2 = preSize.map(_.sum)
 				val classlimits = (for( i <- 0 until classSize.size ) yield ((for( j <- 0 to i ) yield( classSize(j) )).sum)).map(_ - 1).toArray
 
-			  	val inputX = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => (id, x) }}:_*)}
-			  	val inputY = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => y }}:_*)}
+			  	val inputX = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => (id, x) } }:_*) }
+			  	val inputY = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => y } }:_*) }
 
 			  	var currentDotsGrpIdx = 0
 			  	var currentClass = 0

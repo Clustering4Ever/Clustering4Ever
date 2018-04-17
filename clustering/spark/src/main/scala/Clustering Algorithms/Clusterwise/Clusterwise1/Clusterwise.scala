@@ -86,7 +86,9 @@ class Clusterwise(
 	  	  	val kmData = centerReductRDD.map{ case (_, (x, y)) => x ++ y }
 	  	  	val kmeans = new KMeans(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans)
 	  	  	val kmeansModel = kmeans.run()
-  	  		val microClusterByIdIn = HashMap(centerReductRDD.map{ case (id, (x, y)) => (id, kmeansModel.predict(x ++ y)) }:_*)
+	  	  	val clusterPredict = centerReductRDD.map{ case (id, (x, y)) => (id, kmeansModel.predict(x ++ y)) }
+  	  		val microClusterByIdIn = HashMap(clusterPredict.toSeq:_*)
+  	  		//println("microClusterByIdIn.map(_._2).toSeq.distinct.size : " + microClusterByIdIn.map(_._2).toSeq.distinct.size)
   	  		Some(microClusterByIdIn)
 		}
 		else
