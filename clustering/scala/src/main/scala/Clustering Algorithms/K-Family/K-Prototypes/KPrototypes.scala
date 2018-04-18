@@ -120,7 +120,7 @@ object KPrototypes extends DataSetsTypes[Int, BinaryScalarVector]
 	/**
 	 * Run the K-Protypes
 	 **/
-	def run(data: Array[Vector], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance): KPrototypesModel =
+	def run(data: Seq[Vector], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance): KPrototypesModel =
 	{
 		val kPrototypes = new KPrototypes(data, k, epsilon, iterMax, metric)
 		val kPrototypesModel = kPrototypes.run()

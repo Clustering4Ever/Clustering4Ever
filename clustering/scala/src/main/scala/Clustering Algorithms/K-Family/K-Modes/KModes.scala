@@ -87,7 +87,7 @@ class KModes(
 object KModes extends DataSetsTypes[Int, Array[Int]]
 {
 
-	def run(data: Array[Vector], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
+	def run(data: Seq[Vector], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
 	{
 		val kmodes = new KModes(data, k, epsilon, maxIter, metric)
 		val kModesModel = kmodes.run()

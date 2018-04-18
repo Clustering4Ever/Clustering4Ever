@@ -109,7 +109,7 @@ object KMeans extends DataSetsTypes[Int, Array[Double]]
 	/**
 	 * Run the K-Means
 	 **/
-	def run(data: Array[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): KMeansModel =
+	def run(data: Seq[Vector], k: Int, epsilon: Double, iterMax: Int, metric: ContinuousDistances): KMeansModel =
 	{
 		val kMeans = new KMeans(data, k, epsilon, iterMax, metric)
 		val kmeansModel = kMeans.run()
