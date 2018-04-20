@@ -9,7 +9,7 @@ import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  * @author Beck Gaël
  **/
-class KPrototypesModel(val centers: mutable.HashMap[Int, BinaryScalarVector], val cardinalities: mutable.HashMap[Int, Int], val metric: MixtDistance) extends ClusteringModel with DataSetsTypes[Int, BinaryScalarVector]
+class KPrototypesModel(val centers: mutable.HashMap[Int, BinaryScalarVector], val metric: MixtDistance) extends ClusteringModel with DataSetsTypes[Int, BinaryScalarVector]
 {
 	val centersAsArray = centers.toArray
 	/**

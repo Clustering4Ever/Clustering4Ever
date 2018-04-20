@@ -20,7 +20,7 @@ import _root_.clustering4ever.stats.Stats
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
 class KMeans(
-	data: Seq[Array[Double]],
+	val data: Seq[Array[Double]],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
@@ -32,7 +32,7 @@ class KMeans(
 	 * Simplest centers initializations
 	 * We search range for each dimension and take a random value between each range 
 	 **/
-	def initializationCenters =
+	def initializationCenters() =
 	{
 		val (minv, maxv) = Stats.obtainMinAndMax(data)
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
@@ -45,12 +45,12 @@ class KMeans(
 	 **/
 	def run(): KMeansModel =
 	{
-		val centers = initializationCenters
-		val clustersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers = initializationCenters()
+		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestModID(v: Array[Double]): ClusterID =
+		def obtainNearestCenterID(v: Array[Double]): ClusterID =
 		{
-			centers.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
+			centers.map{ case(clusterID, center) => (clusterID, metric.d(center, v)) }.minBy(_._2)._1
 		}
 
 		/**
@@ -58,33 +58,38 @@ class KMeans(
 		 **/
 		def obtainMedoid(arr: Seq[Array[Double]]): Array[Double] =
 		{
-			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).sum / arr.size) )).sortBy(_._2).head._1
+			(for( v1 <- arr) yield ((v1, (for( v2 <- arr ) yield metric.d(v1, v2)).sum / arr.size))).minBy(_._2)._1
 		}
 
-		val zeroMod = Array.fill(dim)(0D)
+		val zeroCenter = Array.fill(dim)(0D)
 		var cpt = 0
-		var allModsHaveConverged = false
-		while( cpt < iterMax && ! allModsHaveConverged )
+		var allCentersHaveConverged = false
+		while( cpt < iterMax && ! allCentersHaveConverged )
 		{
 			// Allocation to nearest centroid
-			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
+			val clusterized = data.map( v => (v, obtainNearestCenterID(v)) )
 
-			val kModesBeforeUpdate = centers.clone
+			val kCentersBeforeUpdate = centers.clone
 
 			// Reinitialization of centers
-			centers.foreach{ case (clusterID, mod) => centers(clusterID) = zeroMod }
-			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
+			centers.foreach{ case (clusterID, center) => centers(clusterID) = zeroCenter }
+			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
 
 			if( metric.isInstanceOf[Euclidean] )
 			{
-				// Updatating Modes
+				// Updatating Center
 				clusterized.foreach{ case (v, clusterID) =>
 				{
 					centers(clusterID) = SumArrays.sumArraysNumerics(centers(clusterID), v)
-					clustersCardinality(clusterID) += 1
+					centersCardinality(clusterID) += 1
 				}}
 
-				centers.foreach{ case (clusterID, mod) => centers(clusterID) = mod.map(_ / clustersCardinality(clusterID)) }
+				// Check if there are empty centers and remove them
+				val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
+				centers --= emptyCenterIDs
+				kCentersBeforeUpdate --= emptyCenterIDs
+				// Update center vector
+				centers.foreach{ case (clusterID, center) => centers(clusterID) = center.map(_ / centersCardinality(clusterID)) }
 			}
 			else
 			{
@@ -96,11 +101,11 @@ class KMeans(
 				}}
 			}
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
+			allCentersHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
 
 			cpt += 1
 		}
-		new KMeansModel(centers, clustersCardinality, metric)
+		new KMeansModel(centers, metric)
 	}
 }
 

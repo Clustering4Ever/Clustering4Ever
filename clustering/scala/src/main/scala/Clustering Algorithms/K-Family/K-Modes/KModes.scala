@@ -26,9 +26,9 @@ class KModes(
 		/**
 		 * Return the nearest mode for a specific point
 		 **/
-		def obtainNearestModID(v: Array[Int]): ClusterID =
+		def obtainNearestCenterID(v: Array[Int]): ClusterID =
 		{
-			centers.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
+			centers.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
 		}
 
 		/**
@@ -36,7 +36,7 @@ class KModes(
 		 **/
 		def obtainMedoid(arr: Seq[Array[Int]]): Array[Int] =
 		{
-			(for( v1 <- arr) yield( (v1, (for( v2 <- arr ) yield(metric.d(v1, v2))).sum / arr.size) )).sortBy(_._2).head._1
+			(for( v1 <- arr) yield ((v1, (for( v2 <- arr ) yield metric.d(v1, v2)).sum / arr.size))).minBy(_._2)._1
 		}
 
 		val zeroMod = Array.fill(dim)(0)
@@ -45,7 +45,7 @@ class KModes(
 		while( cpt < maxIter && ! allModsHaveConverged )
 		{
 			// Allocation to modes
-			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
+			val clusterized = data.map( v => (v, obtainNearestCenterID(v)) )
 
 			val kCentersBeforeUpdate = centers.clone
 
@@ -61,7 +61,11 @@ class KModes(
 					centers(clusterID) = SumArrays.sumArraysNumerics(centers(clusterID), v)
 					centersCardinality(clusterID) += 1
 				}}
-
+				// Check if there are empty centers and remove them
+				val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
+				centers --= emptyCenterIDs
+				kCentersBeforeUpdate --= emptyCenterIDs
+				// Update center vector
 				centers.foreach{ case (clusterID, mod) => centers(clusterID) = mod.map( v => if( v * 2 >= centersCardinality(clusterID) ) 1 else 0 ) }
 			}
 			else
@@ -79,7 +83,7 @@ class KModes(
 			cpt += 1
 		}
 
-		new KModesModel(centers, centersCardinality, metric)
+		new KModesModel(centers, metric)
 	}
 	
 }

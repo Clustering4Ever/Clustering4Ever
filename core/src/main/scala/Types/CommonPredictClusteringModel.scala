@@ -9,13 +9,12 @@ import _root_.scala.collection.mutable
 abstract class CommonPredictClusteringModel[T](val centers: mutable.HashMap[Int, T], val metric: Distance[T]) extends ClusteringModel
 {
 	type ClusterID = Int
-	val centersAsArray = centers.toArray
 	/**
 	 * Return the nearest mode for a specific point
 	 **/
 	def predict(v: T): ClusterID =
 	{
-		centersAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
+		centers.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
 	}
 	/**
 	 * Return the nearest mode for a dataset

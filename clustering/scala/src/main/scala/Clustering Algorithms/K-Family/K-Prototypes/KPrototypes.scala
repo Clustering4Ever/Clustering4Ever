@@ -57,27 +57,27 @@ class KPrototypes(
 	 **/
 	def run(): KPrototypesModel =
 	{
-		val centers = initializationCenters
-		val clustersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers = initializationCenters()
+		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		def obtainNearestModID(v: BinaryScalarVector): ClusterID =
 		{
-			centers.toArray.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
+			centers.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
 		}
 
 		val zeroMod = new BinaryScalarVector(Array.fill(dimBinary)(0), Array.fill(dimScalar)(0D))
 		var cpt = 0
-		var allModsHaveConverged = false
-		while( cpt < iterMax && ! allModsHaveConverged )
+		var allCentersHaveConverged = false
+		while( cpt < iterMax && ! allCentersHaveConverged )
 		{
 			// Allocation to nearest centroid
 			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
 
-			val kModesBeforeUpdate = centers.clone
+			val kCentersBeforeUpdate = centers.clone
 
 			// Reinitialization of centers
 			centers.foreach{ case (clusterID, mode) => centers(clusterID) = zeroMod }
-			clustersCardinality.foreach{ case (clusterID, _) => clustersCardinality(clusterID) = 0 }
+			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
 
 			if( metric.isInstanceOf[HammingAndEuclidean] )
 			{
@@ -91,14 +91,18 @@ class KPrototypes(
 							SumArrays.sumArraysNumerics(centers(clusterID).scalar, v.scalar)
 						)
 					}
-					clustersCardinality(clusterID) += 1
+					centersCardinality(clusterID) += 1
 				}}
-
+				// Check if there are empty centers and remove them
+				val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
+				centers --= emptyCenterIDs
+				kCentersBeforeUpdate --= emptyCenterIDs
+				// Update center vector
 				centers.foreach{ case (clusterID, mode) => centers(clusterID) =
 				{
 					new BinaryScalarVector(
-						mode.binary.map( v => if( v * 2 > clustersCardinality(clusterID) ) 1 else 0 ),
-						mode.scalar.map(_ / clustersCardinality(clusterID))
+						mode.binary.map( v => if( v * 2 > centersCardinality(clusterID) ) 1 else 0 ),
+						mode.scalar.map(_ / centersCardinality(clusterID))
 					)
 				}}
 			}
@@ -107,11 +111,11 @@ class KPrototypes(
 				println("We have a bit of time before thinking of mixt data with custom distances")
 			}
 
-			allModsHaveConverged = kModesBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
+			allCentersHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
 
 			cpt += 1
 		}
-		new KPrototypesModel(centers, clustersCardinality, metric)
+		new KPrototypesModel(centers, metric)
 	}
 }
 
