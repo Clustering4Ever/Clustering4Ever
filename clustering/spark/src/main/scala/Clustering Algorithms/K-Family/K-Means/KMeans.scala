@@ -84,16 +84,15 @@ class KMeans(
 				}}
 
 				allModHaveConverged = centersUpdated.forall{ case (clusterID, uptMod) => metric.d(centers(clusterID), uptMod) <= epsilon }
-				
 				centersUpdated.foreach{ case (clusterID, mod) => centers(clusterID) = mod }	
 			}
 			else
 			{
-				println("Results will have no sense for the moment with another distance than Euclidean, but we're working on it")
+				println("Results will have no sense or cost O(n²) for the moment with another distance than Euclidean, but we're working on it")
 			}
 			cpt += 1
 		}
-		new KMeansModel(centers, clustersCardinality, metric)
+		new KMeansModel(centers, metric)
 	}
 }
 

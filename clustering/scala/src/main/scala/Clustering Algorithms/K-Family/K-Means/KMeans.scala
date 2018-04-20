@@ -60,6 +60,15 @@ class KMeans(
 		{
 			(for( v1 <- arr) yield ((v1, (for( v2 <- arr ) yield metric.d(v1, v2)).sum / arr.size))).minBy(_._2)._1
 		}
+		/**
+		 * Check if there are empty centers and remove them
+		 **/
+		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, Array[Double]]) =
+		{
+			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
+			centers --= emptyCenterIDs
+			kCentersBeforeUpdate --= emptyCenterIDs
+		}
 
 		val zeroCenter = Array.fill(dim)(0D)
 		var cpt = 0
@@ -68,9 +77,7 @@ class KMeans(
 		{
 			// Allocation to nearest centroid
 			val clusterized = data.map( v => (v, obtainNearestCenterID(v)) )
-
 			val kCentersBeforeUpdate = centers.clone
-
 			// Reinitialization of centers
 			centers.foreach{ case (clusterID, center) => centers(clusterID) = zeroCenter }
 			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
@@ -83,11 +90,7 @@ class KMeans(
 					centers(clusterID) = SumArrays.sumArraysNumerics(centers(clusterID), v)
 					centersCardinality(clusterID) += 1
 				}}
-
-				// Check if there are empty centers and remove them
-				val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
-				centers --= emptyCenterIDs
-				kCentersBeforeUpdate --= emptyCenterIDs
+				removeEmptyClusters(kCentersBeforeUpdate)
 				// Update center vector
 				centers.foreach{ case (clusterID, center) => centers(clusterID) = center.map(_ / centersCardinality(clusterID)) }
 			}
@@ -98,11 +101,12 @@ class KMeans(
 					val cluster = aggregates.map{ case (vector, _) => vector }
 					val centroid = obtainMedoid(cluster)
 					centers(clusterID) = centroid
+					centersCardinality(clusterID) += 1
 				}}
+				removeEmptyClusters(kCentersBeforeUpdate)
 			}
 
 			allCentersHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
-
 			cpt += 1
 		}
 		new KMeansModel(centers, metric)

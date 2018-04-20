@@ -64,6 +64,17 @@ class KPrototypes(
 		{
 			centers.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
 		}
+		/**
+		 * Check if there are empty centers and remove them
+		 **/
+		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, BinaryScalarVector]) =
+		{
+			// Check if there are empty centers and remove them
+			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
+			centers --= emptyCenterIDs
+			kCentersBeforeUpdate --= emptyCenterIDs
+		}
+
 
 		val zeroMod = new BinaryScalarVector(Array.fill(dimBinary)(0), Array.fill(dimScalar)(0D))
 		var cpt = 0
@@ -93,10 +104,6 @@ class KPrototypes(
 					}
 					centersCardinality(clusterID) += 1
 				}}
-				// Check if there are empty centers and remove them
-				val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
-				centers --= emptyCenterIDs
-				kCentersBeforeUpdate --= emptyCenterIDs
 				// Update center vector
 				centers.foreach{ case (clusterID, mode) => centers(clusterID) =
 				{
@@ -105,14 +112,13 @@ class KPrototypes(
 						mode.scalar.map(_ / centersCardinality(clusterID))
 					)
 				}}
+				removeEmptyClusters(kCentersBeforeUpdate)
 			}
 			else
 			{
 				println("We have a bit of time before thinking of mixt data with custom distances")
 			}
-
 			allCentersHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
-
 			cpt += 1
 		}
 		new KPrototypesModel(centers, metric)

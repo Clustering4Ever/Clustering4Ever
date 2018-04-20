@@ -5,7 +5,6 @@ import scala.collection.mutable
 
 /**
  * @author Beck Gaël
- * Accumulator for the maximum value of every real Custom Data
  **/
 case class CardinalitiesAccumulator(initialValue: mutable.HashMap[Int, Long], k: Int) extends AccumulatorV2[mutable.HashMap[Int, Long], mutable.HashMap[Int, Long]]
 {

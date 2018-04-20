@@ -65,11 +65,11 @@ class KModes(
 			}
 			else
 			{
-				println("Results will have no sense for the moment with another distance than Hamming, but we're working on it")
+				println("Results will have no sense or cost O(n²) for the moment with another distance than Hamming, but we're working on it")
 			}
 			cpt += 1
 		}
-		new KModesModel(centers, centersCardinality, metric)
+		new KModesModel(centers, metric)
 	}
 }
 

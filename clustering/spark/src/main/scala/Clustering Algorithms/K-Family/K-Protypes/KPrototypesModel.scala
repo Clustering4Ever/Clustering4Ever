@@ -1,9 +1,8 @@
 package clustering4ever.spark.clustering.kprototypes
 
-import _root_.clustering4ever.clustering.ClusteringModel
 import _root_.scala.collection.mutable
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.org.apache.spark.rdd.RDD
+import _root_.clustering4ever.clustering.CommonRDDPredictClusteringModel
 import _root_.clustering4ever.math.distances.MixtDistance
 import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
 
@@ -11,21 +10,4 @@ import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  * @author Beck Gaël
  **/
-class KPrototypesModel(val centers: mutable.HashMap[Int, BinaryScalarVector], val cardinalities: mutable.HashMap[Int, Long], val metric: MixtDistance) extends ClusteringModel with DataSetsTypes[Long, BinaryScalarVector]
-{
-	val centersAsArray = centers.toArray
-	/**
-	 * Return the nearest mode for a specific point
-	 **/
-	def predict(v: BinaryScalarVector): ClusterID =
-	{
-		centersAsArray.map{ case(clusterID, centroid) => (clusterID, metric.d(centroid, v)) }.minBy(_._2)._1
-	}
-	/**
-	 * Return the nearest mode for a dataset
-	 **/
-	def predict(data: RDD[BinaryScalarVector]): RDD[(ClusterID, Vector)] =
-	{
-		data.map( v => (predict(v), v) )
-	}
-}
+class KPrototypesModel(centers: mutable.HashMap[Int, BinaryScalarVector], metric: MixtDistance) extends CommonRDDPredictClusteringModel(centers, metric)
