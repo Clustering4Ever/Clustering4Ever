@@ -24,7 +24,8 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ## [API documentation](http://clustering4ever.org/API%20Documentation/)
 
-## Incoming soon: Improved Spark Mean Shift, 2 new scalable clustering algorithms, Clusterwise, [G-Stream](https://github.com/Spark-clustering-notebook/G-stream)
+## Incoming soon: 
+ Improved Spark Mean Shift, 2 new scalable clustering algorithms, Clusterwise, [G-Stream](https://github.com/Spark-clustering- notebook/G-stream)
 
 ## [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
 
