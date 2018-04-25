@@ -8,7 +8,6 @@ import _root_.scala.collection.mutable
  **/
 abstract class CommonPredictClusteringModel[T](val centers: mutable.HashMap[Int, T], val metric: Distance[T]) extends ClusteringModel
 {
-	type ClusterID = Int
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point

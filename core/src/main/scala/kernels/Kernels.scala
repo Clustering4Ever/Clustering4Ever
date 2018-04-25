@@ -17,6 +17,15 @@ object Kernels
 		if( metric.d(v1, v2) / pow(bandwidth, 2) <= λ ) 1D else 0D 
 	}
 
+	def flatKernel(v1: Array[Double], v2: Array[Double], bandwidth: Double, metric: ContinuousDistances, λ: Double = 1D) =
+	{
+		if( metric.d(v1, v2) / pow(bandwidth, 2) <= λ ) 1D else 0D 
+	}
+	/** 
+	 * Simpliest form of Gaussian kernel as e<sup>(-λ|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
+	 *  - λ is the bandwitch
+	 *  - |x<sub>1</sub>-x<sub>2</sub>| is the distance between x<sub>1</sub> and x<sub>2</sub>
+	 **/
 	def gaussianKernel(v1: Array[Double], v2: Array[Double], bandwidth: Double, metric: ContinuousDistances) =
 	{
 		exp( - bandwidth * pow(metric.d(v1, v2), 2) )
@@ -31,7 +40,7 @@ object Kernels
 
 	/**
 	 * Compute the local mode of a point v knowing its environement env, the bandwidth, kernelType and metric
-	 * @param kernelType can be either "gaussian" or "flat"
+	 * @param kernelType can be either "gaussian" or "flat", if "flat" λ = 1
 	 * @param bandwidth of the kernel approach
 	 * @param metric is the dissimilarity measure used for kernels computation
 	 **/
@@ -65,6 +74,10 @@ object Kernels
 		mode		
 	}
 
+	/**
+	 * The KNN kernel, it select KNN using a specific distance measure and compute the mean<sup>*</sup> of them
+	 * @note Mean computation has a sense only for euclidean distance.
+	 **/
 	def knnKernel(v: Array[Double], env: Seq[Array[Double]], k: Int, metric: ContinuousDistances) =
 	{
 		val knn = env.map( v2 => (v2, metric.d(v, v2)) ).sortBy(_._2).take(k).map(_._1)

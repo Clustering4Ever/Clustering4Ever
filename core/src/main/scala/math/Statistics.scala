@@ -6,13 +6,12 @@ import _root_.scala.collection.mutable
 import _root_.clustering4ever.scala.kernels.Kernels
 import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.clustering4ever.math.distances.scalar.Euclidean
+import _root_.clustering4ever.clustering.ClusteringCommons
 
-object Stats
+object Stats extends ClusteringCommons
 {
 	type Mean = Array[Double]
 	type SD = Double
-	type ClusterID = Int
-
 	/**
 	 * Reduce a matrix into a vector where each component is the sum of its associate column 
 	 **/
