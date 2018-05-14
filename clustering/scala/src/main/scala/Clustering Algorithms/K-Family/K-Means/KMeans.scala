@@ -24,7 +24,7 @@ class KMeans(
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
-	var metric: ContinuousDistances
+	var metric: ContinuousDistances = new Euclidean(true)
 ) extends ClusteringAlgorithms[Int, Array[Double]]
 {
 	val dim = data.head.size
