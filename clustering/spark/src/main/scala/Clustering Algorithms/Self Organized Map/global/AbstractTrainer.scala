@@ -38,7 +38,7 @@ trait AbstractTrainer extends Serializable
 
     val model = initModel(dataset, modelOptions)
     _it = 0
-    _converge = 1.0
+    _converge = 1D
 
     while (_converge > endConvergeDistance && _it < maxIteration)
     {

@@ -33,11 +33,11 @@ class InternalIndexes extends DataSetsTypes[Int, Array[Double]]
         .map{ case (id, rest) => (id, rest.map(_._2)) }
         .map{ case (id, rest) => (id, rest.head, rest.last) }
         .map{ case (id, a, b) => if( a._1.isDefined ) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get)) }
-      val cart = ( for( i <- clustersWithCenterandScatters; j <- clustersWithCenterandScatters if( i._1 != j._1 ) ) yield( (i, j) ) )
-      val rijList = for( ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) <- cart ) yield( ((idClust1, idClust2), InternalIndexesDBCommons.good(centroid1, centroid2, scatter1, scatter2, metric)) )
-      val di = (for( ((idClust1, _), good) <- rijList) yield((idClust1, good))).groupBy(_._1).map{ case (idClust, goods)=> (idClust, goods.map(_._2).reduce(max(_,_))) }
+      val cart = for( i <- clustersWithCenterandScatters; j <- clustersWithCenterandScatters if( i._1 != j._1 ) ) yield (i, j)
+      val rijList = for( ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) <- cart ) yield (idClust1, InternalIndexesDBCommons.good(centroid1, centroid2, scatter1, scatter2, metric))
+      val di = rijList.groupBy(_._1).par.map{ case (_, goods) => goods.map(_._2).reduce(max(_,_)) }
       val numCluster = clusterLabels.size
-      val daviesBouldinIndex = di.map(_._2).sum / numCluster
+      val daviesBouldinIndex = di.sum / numCluster
       daviesBouldinIndex
     }
   }

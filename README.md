@@ -14,7 +14,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 ## Include it in your project
 
 Add following lines in your build.sbt :
-* `"clustering4ever" % "clustering4ever_2.11" % "0.3.7"` to your `libraryDependencies`
+* `"clustering4ever" % "clustering4ever_2.11" % "0.4.0"` to your `libraryDependencies`
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
