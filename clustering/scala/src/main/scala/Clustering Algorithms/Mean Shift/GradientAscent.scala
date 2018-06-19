@@ -23,8 +23,8 @@ class GradientAscent(
   var maxIterations: Int,
   metric: ContinuousDistances,
   kernelType: KernelType,
-  kernelArgs: Array[String]
-) extends DataSetsTypes[Int, Array[Double]]
+  kernelArgs: immutable.Vector[String]
+) extends DataSetsTypes[Int, immutable.Vector[Double]]
 {
   def gradientAscent(readyToGA: Seq[(Int, Vector)], maxIterations: Int) =
   {
@@ -81,10 +81,10 @@ class GradientAscent(
   }
 }
 
-object GradientAscent extends DataSetsTypes[Int, Array[Double]]
+object GradientAscent extends DataSetsTypes[Int, immutable.Vector[Double]]
 {
   /**
-   * @param data : an RDD[(String,Vector)] where String is the ID and Vector the rest of data
+   * @param data : an RDD[(String,immutable.Vector)] where String is the ID and immutable.Vector the rest of data
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
    **/
@@ -94,7 +94,7 @@ object GradientAscent extends DataSetsTypes[Int, Array[Double]]
     epsilon: Double,
     maxIterations: Int,
     kernelType: KernelType,
-    kernelArgs: Array[String]
+    kernelArgs: immutable.Vector[String]
     ) =
   {
     val meanShift = new GradientAscent(epsilon, maxIterations, metric, kernelType, kernelArgs)

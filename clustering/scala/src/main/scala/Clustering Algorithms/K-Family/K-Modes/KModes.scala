@@ -9,24 +9,24 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 import _root_.clustering4ever.clustering.ClusteringAlgorithms
 
 class KModes(
-	data: Seq[Array[Int]],
+	data: Seq[immutable.Vector[Int]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: BinaryDistance
-) extends ClusteringAlgorithms[Int, Array[Int]]
+) extends ClusteringAlgorithms[Int, immutable.Vector[Int]]
 {
 	val dim = data.head.size
 
 	def run(): KModesModel =
 	{
-		val centers = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
+		val centers = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, immutable.Vector.fill(dim)(Random.nextInt(2))) )):_*)
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		/**
 		 * Return the nearest mode for a specific point
 		 **/
-		def obtainNearestCenterID(v: Array[Int]): ClusterID =
+		def obtainNearestCenterID(v: immutable.Vector[Int]): ClusterID =
 		{
 			centers.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
 		}
@@ -34,14 +34,14 @@ class KModes(
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMedoid(arr: Seq[Array[Int]]): Array[Int] =
+		def obtainMedoid(arr: Seq[immutable.Vector[Int]]): immutable.Vector[Int] =
 		{
 			(for( v1 <- arr) yield ((v1, (for( v2 <- arr ) yield metric.d(v1, v2)).sum / arr.size))).minBy(_._2)._1
 		}
 		/**
 		 * Check if there are empty centers and remove them
 		 **/
-		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, Array[Int]]) =
+		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, immutable.Vector[Int]]) =
 		{
 			// Check if there are empty centers and remove them
 			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
@@ -49,7 +49,7 @@ class KModes(
 			kCentersBeforeUpdate --= emptyCenterIDs
 		}
 
-		val zeroMod = Array.fill(dim)(0)
+		val zeroMod = immutable.Vector.fill(dim)(0)
 		var cpt = 0
 		var allModsHaveConverged = false
 		while( cpt < maxIter && ! allModsHaveConverged )
@@ -94,7 +94,7 @@ class KModes(
 	
 }
 
-object KModes extends DataSetsTypes[Int, Array[Int]]
+object KModes extends DataSetsTypes[Int, immutable.Vector[Int]]
 {
 
 	def run(data: Seq[Vector], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =

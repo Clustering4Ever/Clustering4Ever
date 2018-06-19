@@ -36,9 +36,10 @@ class KPrototypes(
 	 **/
 	def initializationCenters(): mutable.HashMap[Int, BinaryScalarVector] =
 	{
-		val vectorRange = (0 until dimScalar).toArray
+		val vectorRange = (0 until dimScalar).toVector
+		val numberClustersRange = (0 until k).toVector
 
-		val binaryModes = for( clusterID <- 0 until k ) yield ((clusterID, Array.fill(dimBinary)(Random.nextInt(2))))
+		val binaryModes = for( clusterID <- numberClustersRange ) yield ((clusterID, Vector.fill(dimBinary)(Random.nextInt(2))))
 
 		val (minv, maxv) = data.map( v => (v.scalar, v.scalar) ).reduce( (minMaxa, minMaxb) =>
 		{
@@ -47,7 +48,7 @@ class KPrototypes(
 		})
 
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val scalarCenters = (0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
+		val scalarCenters = numberClustersRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
 		
 		mutable.HashMap(binaryModes.zip(scalarCenters).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
 	}
@@ -76,7 +77,7 @@ class KPrototypes(
 		}
 
 
-		val zeroMod = new BinaryScalarVector(Array.fill(dimBinary)(0), Array.fill(dimScalar)(0D))
+		val zeroMode = new BinaryScalarVector(Vector.fill(dimBinary)(0), Vector.fill(dimScalar)(0D))
 		var cpt = 0
 		var allCentersHaveConverged = false
 		while( cpt < iterMax && ! allCentersHaveConverged )
@@ -87,7 +88,7 @@ class KPrototypes(
 			val kCentersBeforeUpdate = centers.clone
 
 			// Reinitialization of centers
-			centers.foreach{ case (clusterID, mode) => centers(clusterID) = zeroMod }
+			centers.foreach{ case (clusterID, mode) => centers(clusterID) = zeroMode }
 			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
 
 			if( metric.isInstanceOf[HammingAndEuclidean] )

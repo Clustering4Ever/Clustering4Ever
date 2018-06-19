@@ -12,7 +12,7 @@ import _root_.clustering4ever.util.SumArrays
  * @author Beck Gaël
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */
-class InternalIndexes extends DataSetsTypes[Int, Array[Double]]
+class InternalIndexes extends DataSetsTypes[Int, Vector[Double]]
 {
   private def daviesBouldinIndexInside(data: Array[(Int, Vector)], clusterLabels: Array[Int], metric: ContinuousDistances) =
   {
@@ -102,7 +102,7 @@ class InternalIndexes extends DataSetsTypes[Int, Array[Double]]
 
 }
 
-object InternalIndexes extends DataSetsTypes[Int, Array[Double]]
+object InternalIndexes extends DataSetsTypes[Int, Vector[Double]]
 {
   /**
    * Monothreaded version of davies bouldin index

@@ -20,12 +20,12 @@ object InternalIndexesDBCommons
   *  scatter1,scatter2: Double - the scatter value of cluster 1 and cluster 2
   *  center1,center2: Array[Double] - The centroid of cluster 1 and cluster 2
   **/
-  def good(scatter1: Double, scatter2: Double, center1: Array[Double], center2: Array[Double], metric: ContinuousDistances): Double = (scatter1 + scatter2) / metric.d(center1, center2)
+  def good(scatter1: Double, scatter2: Double, center1: Vector[Double], center2: Vector[Double], metric: ContinuousDistances): Double = (scatter1 + scatter2) / metric.d(center1, center2)
 
   /**
    * Scatter of point in cluster
    * Measure average distance to centroïd
    * @return Double - Scatter value
    **/
-  def scatter(cluster: Array[Array[Double]], centroid: Array[Double], metric: ContinuousDistances): Double = (for(p <- cluster) yield metric.d(centroid, p)).sum / cluster.size
+  def scatter(cluster: Seq[Vector[Double]], centroid: Vector[Double], metric: ContinuousDistances): Double = (for(p <- cluster) yield metric.d(centroid, p)).sum / cluster.size
 }

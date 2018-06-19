@@ -79,6 +79,6 @@ object JenksNaturalBreaks
       res += sortedValues(kclass(i - 1).toInt - 1)
     }
     
-    res
+    res.toVector
   }
 }

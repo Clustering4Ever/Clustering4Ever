@@ -10,26 +10,26 @@ import _root_.clustering4ever.clustering.ClusteringCommons
 
 object Stats extends ClusteringCommons
 {
-	type Mean = Array[Double]
+	type Mean = Vector[Double]
 	type SD = Double
 	/**
 	 * Reduce a matrix into a vector where each component is the sum of its associate column 
 	 **/
-	def reduceColumns(vectors: Array[Array[Double]]) =
+	def reduceColumns(vectors: Seq[Vector[Double]]) =
 	{
-		vectors.reduce( (a, b) => for( i <- a.indices.toArray ) yield (a(i) + b(i)) )
+		vectors.reduce( (a, b) => for( i <- a.indices.toVector ) yield (a(i) + b(i)) )
 	}
 	/**
 	 * Compute the mean of multiple vectors
 	 **/
-	def mean(vectors: Array[Array[Double]]): Mean =
+	def mean(vectors: Seq[Vector[Double]]): Mean =
 	{
 		reduceColumns(vectors).map(_ / vectors.size)
 	}
 	/**
 	 * Compute the standard deviation between vectors and a mean
 	 **/
-	def sd(vectors: Array[Array[Double]], mean: Array[Double]): SD =
+	def sd(vectors: Seq[Vector[Double]], mean: Vector[Double]): SD =
 	{
 		sqrt(
 			vectors.map( v =>
@@ -43,7 +43,7 @@ object Stats extends ClusteringCommons
 	/**
 	 * @return min and max for the ith component in reduce style
 	 **/
-	def obtainIthMinMax(idx: Int, vminMax1: (Array[Double], Array[Double]), vminMax2: (Array[Double], Array[Double])) =
+	def obtainIthMinMax(idx: Int, vminMax1: (Vector[Double], Vector[Double]), vminMax2: (Vector[Double], Vector[Double])) =
 	{
 		(
 			min(vminMax1._1(idx), vminMax2._1(idx)),
@@ -51,10 +51,10 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax(data: Seq[Array[Double]]) =
+	def obtainMinAndMax(data: Seq[Vector[Double]]) =
 	{
 		val dim = data.head.size
-		val vectorRange = (0 until dim).toArray
+		val vectorRange = (0 until dim).toVector
 
 		val (minValues, maxValues) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
 		{
@@ -64,7 +64,7 @@ object Stats extends ClusteringCommons
 		(minValues, maxValues)
 	}
 
-	def obtainGammaByCluster(v: Array[Double], gaussianLawFeaturesSortedByClusterID: Array[(ClusterID, (Mean, SD))], πksortedByClusterID: Array[Double], metric: ContinuousDistances = new Euclidean(true)) =
+	def obtainGammaByCluster(v: Vector[Double], gaussianLawFeaturesSortedByClusterID: Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: Vector[Double], metric: ContinuousDistances = new Euclidean(true)) =
 	{
 		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }
 

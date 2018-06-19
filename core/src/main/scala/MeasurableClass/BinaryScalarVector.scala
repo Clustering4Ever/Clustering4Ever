@@ -1,3 +1,3 @@
 package clustering4ever.scala.measurableclass
 
-class BinaryScalarVector(val binary: Array[Int], val scalar: Array[Double])
+class BinaryScalarVector(val binary: Vector[Int], val scalar: Vector[Double])

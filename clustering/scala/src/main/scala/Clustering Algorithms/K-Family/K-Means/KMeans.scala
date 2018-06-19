@@ -20,12 +20,12 @@ import _root_.clustering4ever.stats.Stats
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
 class KMeans(
-	val data: Seq[Array[Double]],
+	val data: Seq[immutable.Vector[Double]],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: ContinuousDistances = new Euclidean(true)
-) extends ClusteringAlgorithms[Int, Array[Double]]
+) extends ClusteringAlgorithms[Int, immutable.Vector[Double]]
 {
 	val dim = data.head.size
 	/**
@@ -48,7 +48,7 @@ class KMeans(
 		val centers = initializationCenters()
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestCenterID(v: Array[Double]): ClusterID =
+		def obtainNearestCenterID(v: immutable.Vector[Double]): ClusterID =
 		{
 			centers.map{ case(clusterID, center) => (clusterID, metric.d(center, v)) }.minBy(_._2)._1
 		}
@@ -56,21 +56,21 @@ class KMeans(
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMedoid(arr: Seq[Array[Double]]): Array[Double] =
+		def obtainMedoid(arr: Seq[immutable.Vector[Double]]): immutable.Vector[Double] =
 		{
 			(for( v1 <- arr) yield ((v1, (for( v2 <- arr ) yield metric.d(v1, v2)).sum / arr.size))).minBy(_._2)._1
 		}
 		/**
 		 * Check if there are empty centers and remove them
 		 **/
-		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, Array[Double]]) =
+		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, immutable.Vector[Double]]) =
 		{
 			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
 			centers --= emptyCenterIDs
 			kCentersBeforeUpdate --= emptyCenterIDs
 		}
 
-		val zeroCenter = Array.fill(dim)(0D)
+		val zeroCenter = immutable.Vector.fill(dim)(0D)
 		var cpt = 0
 		var allCentersHaveConverged = false
 		while( cpt < iterMax && ! allCentersHaveConverged )
@@ -113,7 +113,7 @@ class KMeans(
 	}
 }
 
-object KMeans extends DataSetsTypes[Int, Array[Double]]
+object KMeans extends DataSetsTypes[Int, immutable.Vector[Double]]
 {
 	/**
 	 * Run the K-Means

@@ -11,7 +11,7 @@ import _root_.clustering4ever.scala.indexes.NmiNormalizationNature._
  */
 class ExternalIndexes
 {
-	private def mutualInformationInternal(x: Array[Int], y:Array[Int]) =
+	private def mutualInformationInternal(x: Vector[Int], y: Vector[Int]) =
 	{
 		require( x.size == y.size )
 		val n = x.size
@@ -53,7 +53,7 @@ object ExternalIndexes
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 **/
-	def mutualInformation(x: Array[Int], y:Array[Int]) =
+	def mutualInformation(x: Vector[Int], y:Vector[Int]) =
 	{
 		(new ExternalIndexes).mutualInformationInternal(x, y)._1
 	}
@@ -63,7 +63,7 @@ object ExternalIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 **/
-	def nmi(x: Array[Int], y:Array[Int], normalization: Normalization = SQRT) =
+	def nmi(x: Vector[Int], y:Vector[Int], normalization: Normalization = SQRT) =
 	{
 		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(x, y)
 		val nmi = normalization match
@@ -77,7 +77,7 @@ object ExternalIndexes
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 **/
-	def prepareList(x: Array[Int]) =
+	def prepareList(x: Vector[Int]) =
 	{
 		val indexedValuesMap = x.distinct.zipWithIndex.toMap
 		(indexedValuesMap, x.map(indexedValuesMap))

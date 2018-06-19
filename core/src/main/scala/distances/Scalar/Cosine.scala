@@ -9,14 +9,14 @@ import _root_.scala.math.{pow, sqrt}
 class Cosine extends ContinuousDistances
 {
 
-	private def norm(dot1: Array[Double]) =
+	private def norm(dot1: Vector[Double]) =
 	{
 		var preNorm = 0D
 		for( i <- dot1.indices ) preNorm += pow(dot1(i), 2)
 		sqrt(preNorm)
 	}
 
-	private def dotProd(dot1: Array[Double], dot2: Array[Double]) =
+	private def dotProd(dot1: Vector[Double], dot2: Vector[Double]) =
 	{
 		var dotProd = 0D
 		for( i <- dot1.indices ) dotProd += dot1(i) * dot2(i)
@@ -27,7 +27,7 @@ class Cosine extends ContinuousDistances
 	  * The cosine distance implemented
 	  * @return The cosine distance between dot1 and dot2
 	  **/
-	override def d(dot1: Array[Double], dot2: Array[Double]): Double =
+	override def d(dot1: Vector[Double], dot2: Vector[Double]): Double =
 	{
 		val anorm = norm(dot1)
 		val bnorm = norm(dot2)

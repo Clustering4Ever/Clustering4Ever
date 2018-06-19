@@ -14,7 +14,7 @@ class Minkowski(p: Int) extends ContinuousDistances
 	  * @return The Minkowski distance between dot1 and dot2
 	  * @param p : Minkowsiki parameter
 	  **/
-	override def d(dot1: Array[Double], dot2: Array[Double]): Double =
+	override def d(dot1: Vector[Double], dot2: Vector[Double]): Double =
 	{
 		var predDistance = 0D
 		for( i <- dot1.indices ) predDistance += pow(dot1(i) - dot2(i), p)
