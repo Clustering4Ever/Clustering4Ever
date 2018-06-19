@@ -2,7 +2,7 @@ package clustering4ever.spark.indexes
 
 import _root_.scala.math.max
 import _root_.scala.collection.immutable.{HashMap, Map}
-import _root_.scala.collection.mutable
+import _root_.scala.collection.{mutable, immutable}
 import _root_.clustering4ever.math.distances.scalar.Euclidean
 import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
@@ -14,9 +14,9 @@ import _root_.org.apache.spark.SparkContext
  * @author Beck Gaël
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */
-class InternalIndexes extends DataSetsTypes[Int, Array[Double]]
+class InternalIndexes extends DataSetsTypes[Int, immutable.Vector[Double]]
 {
-  private def daviesBouldinIndexInside(sc: SparkContext, data: RDD[(Int, Vector)], clusterLabels: Array[Int], metric: ContinuousDistances) =
+  private def daviesBouldinIndexInside(sc: SparkContext, data: RDD[(Int, Vector)], clusterLabels: immutable.Vector[Int], metric: ContinuousDistances) =
   {
     if( clusterLabels.size == 1 )
     {
@@ -34,7 +34,7 @@ class InternalIndexes extends DataSetsTypes[Int, Array[Double]]
 
       val clusters = data.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).collect
       val centers = clusters.map{ case (k, v) => (k, SumArrays.obtainMean(v)) }
-      val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, InternalIndexesDBCommons.scatter(v.toArray, centers(idCLust)._2, metric)) }
+      val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, InternalIndexesDBCommons.scatter(v, centers(idCLust)._2, metric)) }
       val clustersWithCenterandScatters = (
         centers.map{ case (id, ar) => (id, (Some(ar), None)) } ++ 
         scatters.map{ case (id, v) => (id, (None, Some(v))) }
@@ -52,13 +52,13 @@ class InternalIndexes extends DataSetsTypes[Int, Array[Double]]
   }
 }
 
-object InternalIndexes extends DataSetsTypes[Int, Array[Double]]
+object InternalIndexes extends DataSetsTypes[Int, immutable.Vector[Double]]
 {
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n)
    **/
-  def daviesBouldinIndex(sc: SparkContext, data: RDD[(ClusterID, Vector)], clusterLabels: Array[Int], metric: ContinuousDistances) =
+  def daviesBouldinIndex(sc: SparkContext, data: RDD[(ClusterID, Vector)], clusterLabels: immutable.Vector[Int], metric: ContinuousDistances) =
   {
     (new InternalIndexes).daviesBouldinIndexInside(sc, data, clusterLabels, metric)
   }
@@ -69,7 +69,7 @@ object InternalIndexes extends DataSetsTypes[Int, Array[Double]]
    **/
   def daviesBouldinIndex(sc: SparkContext, data: RDD[(ClusterID, Vector)], metric: ContinuousDistances) =
   {
-    val clusterLabels = data.map(_._1).distinct.collect
+    val clusterLabels = data.map(_._1).distinct.collect.toVector
     (new InternalIndexes).daviesBouldinIndexInside(sc, data, clusterLabels, metric) 
   }
 

@@ -26,16 +26,16 @@ import _root_.clustering4ever.stats.Stats
  **/
 class KMeans(
 	@transient val sc: SparkContext,
-	data: RDD[Array[Double]],
+	data: RDD[immutable.Vector[Double]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: ContinuousDistances
-) extends ClusteringAlgorithms[Long, Array[Double]]
+) extends ClusteringAlgorithms[Long, immutable.Vector[Double]]
 {
-	type CentersMap = mutable.HashMap[Int, Array[Double]]
+	type CentersMap = mutable.HashMap[Int, Vector]
 
-	def obtainNearestModID(v: Array[Double], kModesCenters: CentersMap): Int =
+	def obtainNearestModID(v: Vector, kModesCenters: CentersMap): Int =
 	{
 		kModesCenters.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
 	}
@@ -46,10 +46,10 @@ class KMeans(
 		
 		def initializationCenters() =
 		{
-			def obtainMinAndMax(data: RDD[Array[Double]]) =
+			def obtainMinAndMax(data: RDD[Vector]) =
 			{
 				val dim = data.first.size
-				val vectorRange = (0 until dim).toArray
+				val vectorRange = (0 until dim).toVector
 
 				val (minValues, maxValues) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
 				{
@@ -97,9 +97,9 @@ class KMeans(
 }
 
 
-object KMeans extends DataSetsTypes[Long, Array[Double]]
+object KMeans extends DataSetsTypes[Long, immutable.Vector[Double]]
 {
-	def run(@(transient @param) sc: SparkContext, data: RDD[Array[Double]], k: Int, epsilon: Double, maxIter: Int, metric: ContinuousDistances): KMeansModel =
+	def run(@(transient @param) sc: SparkContext, data: RDD[Vector], k: Int, epsilon: Double, maxIter: Int, metric: ContinuousDistances): KMeansModel =
 	{
 		val kmeans = new KMeans(sc, data, k, epsilon, maxIter, metric)
 		val kmeansModel = kmeans.run()

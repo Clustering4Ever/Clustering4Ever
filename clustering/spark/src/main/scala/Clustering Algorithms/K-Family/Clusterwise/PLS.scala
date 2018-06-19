@@ -3,18 +3,19 @@ package clustering4ever.spark.clustering.clusterwise
 import _root_.scala.math.{pow, sqrt => ssqrt}
 import _root_.scala.collection.mutable.ArrayBuffer
 import _root_.scala.collection.mutable.HashMap
+import _root_.scala.collection.immutable
 import _root_.clustering4ever.util.SumArrays
 import breeze.linalg._
 
 trait CommonPLSTypes
 {
-	type IdWithX = ArrayBuffer[(Int, Array[Double])]
-	type Y = ArrayBuffer[Array[Double]]
+	type IdWithX = ArrayBuffer[(Int, immutable.Vector[Double])]
+	type Y = ArrayBuffer[immutable.Vector[Double]]
 }
 
 class PLS(
-	dsXi: ArrayBuffer[(Int, Array[Double])],
-	dsY: ArrayBuffer[Array[Double]],
+	dsXi: ArrayBuffer[(Int, immutable.Vector[Double])],
+	dsY: ArrayBuffer[immutable.Vector[Double]],
 	n: Int,
 	h: Int,
 	lw: Double,
@@ -30,8 +31,8 @@ class PLS(
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n)
-		val meanY = dsY.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n)
+		val meanX = dsX.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n).toArray
+		val meanY = dsY.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n).toArray
 
 
 		val yK = dsY.map( _.zip(meanY).map{ case (y, meanY) => y - meanY } )
@@ -194,26 +195,26 @@ class PLS(
 		val dataXb = DenseMatrix(dsX:_*)
 		val dataYb = DenseMatrix(dsY:_*)
 
-		val arrayRange1 = (0 until ncolY).toArray
+		val arrayRange1 = (0 until ncolY).toVector
 
-		val resXYcoefBreeze = for( i <- arrayRange1 ) yield new DenseMatrix(rows=ncolX, cols = maxdim, resXYcoef(i).toArray.flatMap(_.toArray))
+		val resXYcoefBreeze = for( i <- arrayRange1 ) yield new DenseMatrix(rows = ncolX, cols = maxdim, resXYcoef(i).toArray.flatMap(_.toArray))
 
 		val resIntercept = for( i <- arrayRange1 ) yield (DenseVector(meanX).t * resXYcoefBreeze(i)).t.map(meanY(i) - _)
 
 		val resFitted = for( i <- arrayRange1 ) yield DenseMatrix(Array.fill(nrowX)(resIntercept(i).toArray):_*) + ( dataXb * resXYcoefBreeze(i) )
 
-		val residuals = for( i <- arrayRange1 ) yield (DenseMatrix(Array.fill(maxdim)(dataYb(::,i).toArray):_*).t - resFitted(i))
+		val residuals = for( i <- arrayRange1 ) yield DenseMatrix(Array.fill(maxdim)(dataYb(::,i).toArray):_*).t - resFitted(i)
 
-		val sumResidualSq = for(i<- 0 until ncolY) yield(
+		val sumResidualSq = for( i <- 0 until ncolY ) yield(
 		{ 
-		  val squared = residuals(i).map( x => x * x )
+		  val squared = residuals(i).map(pow(_, 2))
 		  sum(squared(::, *))
 		})
 
 		val rescritregmat = DenseMatrix((for( j <- 0 until sumResidualSq.size ) yield sumResidualSq(j).t.toArray).toArray:_* )
 		val resCritReg = sum( rescritregmat(::, *) )
 
-		val resCritRegHopt = resCritReg.t.toArray.apply(h - 1)
+		val resCritRegHopt = resCritReg.t.toVector.apply(h - 1)
 
 		val arrayRange2 = (0 until ncolY).toArray
 
@@ -222,7 +223,7 @@ class PLS(
 		val resInterceptF = resIntercept.map(_.toArray.last)
 		val colsss = for( i <- arrayRange2 ) yield resFitted(i)(::,h - 1)
 		val resFittedF = new DenseMatrix(rows = resFitted(0).rows, cols = ncolY, colsss.flatMap(_.toArray) )
-		val resFittedFscala = for( i <- (0 until resFittedF.rows).toArray) yield (idxDsX(i), resFittedF(i,::).t.toArray)
+		val resFittedFscala = for( i <- (0 until resFittedF.rows).toVector) yield (idxDsX(i), resFittedF(i,::).t.toArray)
 
 		(resCritRegHopt, resXYcoefF, resInterceptF, resFittedFscala)
 	}
@@ -231,19 +232,19 @@ class PLS(
 
 object PLS extends CommonPLSTypes
 {
-	def runPLS(dsX: Array[IdWithX], dsY: Array[Y], g: Int, h: Int) =
+	def runPLS(dsX: immutable.Vector[IdWithX], dsY: immutable.Vector[Y], g: Int, h: Int) =
 	{
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
 		val lw = 1D / n
 		val mbplsObj = new PLS(dsX(g), dsY(g), n, h, lw, ktabXdudiYval)
-		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])]
+		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], immutable.Vector[(Int, immutable.Vector[Double])])]
 	}
 
-	def runFinalPLS(dsX: IdWithX, dsY: Y, lw: Double, n: Int, h:Int, ktabXdudiY: (Int, Double, Double)) =
+	def runFinalPLS(dsX: IdWithX, dsY: Y, lw: Double, n: Int, h: Int, ktabXdudiY: (Int, Double, Double)) =
 	{
 		val mbplsObj = new PLS(dsX, dsY, n, h, lw, ktabXdudiY)
-		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], Array[(Int, Array[Double])])]
+		mbplsObj.reg().asInstanceOf[(Double, breeze.linalg.DenseMatrix[Double], Array[Double], immutable.Vector[(Int, immutable.Vector[Double])])]
 	}
 
 	def ktabXdudiY(dsX: IdWithX, dsY: Y, n: Int): (Int, Double, Double) =
@@ -254,7 +255,7 @@ object PLS extends CommonPLSTypes
 		val dsY0 = dsY.map(_.head)
 		val roww = dsY0.map( x => 1D / n )
 		val ds = dsY0.zip(roww).map( x => x._1 * ssqrt(x._2))
-		val eigValue = ds.map( pow(_, 2) ).sum
+		val eigValue = ds.map(pow(_, 2)).sum
 		(cw, lw, eigValue)
 	}
 

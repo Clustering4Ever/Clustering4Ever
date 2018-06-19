@@ -48,10 +48,10 @@ class KPrototypes(
 		
 		def initializationCenters() =
 		{
-			val vectorRange = (0 until dimScalar).toArray
-			val binaryModes = for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dimBinary)(Random.nextInt(2))) )
+			val vectorRange = (0 until dimScalar).toVector
+			val binaryModes = for( clusterID <- (0 until k).toVector ) yield (clusterID, immutable.Vector.fill(dimBinary)(Random.nextInt(2)))
 
-			def obtainMinMax(idx: Int, vminMax1: (Array[Double], Array[Double]), vminMax2: (Array[Double], Array[Double])) =
+			def obtainMinMax(idx: Int, vminMax1: (immutable.Vector[Double], immutable.Vector[Double]), vminMax2: (immutable.Vector[Double], immutable.Vector[Double])) =
 			{
 				(
 					min(vminMax1._1(idx), vminMax2._1(idx)),
@@ -61,12 +61,12 @@ class KPrototypes(
 
 			val (minv, maxv) = data.map( v => (v.scalar, v.scalar) ).reduce( (minMaxa, minMaxb) =>
 			{
-				val minAndMax = for( i <- vectorRange ) yield( obtainMinMax(i, minMaxa, minMaxb) )
+				val minAndMax = for( i <- vectorRange ) yield obtainMinMax(i, minMaxa, minMaxb)
 				minAndMax.unzip
 			})
 
 			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-			val scalarCentroids = (0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
+			val scalarCentroids = (0 until k).toVector.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
 
 			mutable.HashMap(binaryModes.zip(scalarCentroids).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
 		}

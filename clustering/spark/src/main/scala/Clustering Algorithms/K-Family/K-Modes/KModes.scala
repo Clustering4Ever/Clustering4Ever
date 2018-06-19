@@ -17,7 +17,7 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : an Array with and ID and the vector
+ * @param data : an immutable.Vector with and ID and the vector
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
@@ -25,16 +25,16 @@ import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
  **/
 class KModes(
 	@transient val sc: SparkContext,
-	data: RDD[Array[Int]],
+	data: RDD[immutable.Vector[Int]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
 	var metric: BinaryDistance
-) extends ClusteringAlgorithms[Long, Array[Int]]
+) extends ClusteringAlgorithms[Long, immutable.Vector[Int]]
 {
-	type CentersMap = mutable.HashMap[Int, Array[Int]]
+	type CentersMap = mutable.HashMap[Int, immutable.Vector[Int]]
 
-	def obtainNearestModID(v: Array[Int], kModes: CentersMap): Int =
+	def obtainNearestModID(v: immutable.Vector[Int], kModes: CentersMap): Int =
 	{
 		kModes.toArray.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
 	}
@@ -42,7 +42,7 @@ class KModes(
 	def run(): KModesModel =
 	{
 		val dim = data.first.size
-		val centers = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Array.fill(dim)(Random.nextInt(2))) )):_*)
+		val centers = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, immutable.Vector.fill(dim)(Random.nextInt(2))) )):_*)
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0L) }
 		val centersUpdated = centers.clone
 		var cpt = 0
@@ -75,7 +75,7 @@ class KModes(
 
 object KModes extends DataSetsTypes[Long, Int]
 {
-	def run(@(transient @param) sc: SparkContext, data: RDD[Array[Int]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
+	def run(@(transient @param) sc: SparkContext, data: RDD[immutable.Vector[Int]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
 	{
 		val kmodes = new KModes(sc, data, k, epsilon, maxIter, metric)
 		val kModesModel = kmodes.run()
