@@ -1,12 +1,14 @@
 package clustering4ever.spark.indexes
 
-import _root_.scala.annotation.meta.param
-import _root_.scala.collection.immutable.{HashMap, Map}
-import _root_.scala.collection.parallel.mutable.ParArray
-import _root_.scala.math.{max, log, sqrt}
-import _root_.org.apache.spark.rdd.RDD
-import _root_.org.apache.spark.SparkContext
-import _root_.clustering4ever.scala.indexes.NmiNormalizationNature._
+import scala.annotation.meta.param
+import scala.collection.immutable.{HashMap, Map}
+import scala.collection.parallel.mutable.ParArray
+import scala.math.{max, log, sqrt}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.SparkContext
+import org.apache.spark.storage.StorageLevel
+import clustering4ever.scala.indexes.NmiNormalizationNature._
+import clustering4ever.util.ClusteringIndexesCommons
 
 /**
  * @author Beck Gaël
@@ -14,8 +16,10 @@ import _root_.clustering4ever.scala.indexes.NmiNormalizationNature._
  */
 class ExternalIndexes
 {
-	private def mutualInformationInternal(@(transient @param) sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
+	private def mutualInformationInternal(@(transient @param) sc: SparkContext, trueAndPredict: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) =
 	{
+		trueAndPredict.persist(persistanceLVL)
+
 		val n = trueAndPredict.count
 		val maxX = trueAndPredict.max()(Ordering[Int].on(_._1))._1
 		val maxY = trueAndPredict.max()(Ordering[Int].on(_._2))._2
@@ -35,17 +39,12 @@ class ExternalIndexes
 		for( m <- maxOneIndices ) for( l <- maxTwoIndices ) ai(m) += count(m)(l)
 		for( m <- maxTwoIndices ) for( l <- maxOneIndices ) bj(m) += count(l)(m)
 
-		val nN = ai.sum
-		var hu = 0D
-		ai.foreach( v => { val c = v / nN; if( c > 0 ) hu -= c * log(c) } )
-
-		var hv = 0D
-		bj.foreach( v => { val c = v / nN; if( c > 0) hv -= c * log(c) } ) 
-
-		var huStrichV = 0D
-		for( i <- maxOneIndices ) for( j <- maxTwoIndices ) if( count(i)(j) > 0 ) huStrichV -= count(i)(j) / nN * log( (count(i)(j)) / bj(j) )
-
+		val aiSum = ai.sum
+		val hu = ClusteringIndexesCommons.nmiIn1(ai, aiSum)
+		val hv = ClusteringIndexesCommons.nmiIn1(bj, aiSum)
+		val huStrichV = ClusteringIndexesCommons.nmiIn2(maxOneIndices, maxTwoIndices, count, aiSum, bj)
 		val mi = hu - huStrichV
+
 		(mi, hu, hv)
 	}
 
@@ -69,9 +68,9 @@ object ExternalIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 **/
-	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: Normalization = SQRT) =
+	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) =
 	{
-		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict)
+		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict, persistanceLVL)
 		val nmi = normalization match
 		{
 			case SQRT => mi / sqrt(hu * hv)
