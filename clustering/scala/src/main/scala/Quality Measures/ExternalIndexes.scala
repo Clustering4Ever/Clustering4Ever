@@ -19,19 +19,17 @@ class ExternalIndexes
 		val maxX = x.max
 		val maxY = y.max
 
-		val maxOneIndices = (0 to maxX).toArray
-		val maxTwoIndices = (0 to maxY).toArray
+		val maxOneIndices = (0 to maxX).toVector
+		val maxTwoIndices = (0 to maxY).toVector
 
 		val count = Array.fill(maxX + 1)(Array.fill(maxY +1)(0D))
 		for( i <- x.indices ) count(x(i))(y(i)) += 1D
 
-		val ai = new Array[Double](maxX + 1)
-		val bj = new Array[Double](maxY + 1)
-
-		for( m <- maxOneIndices ) for( l <- maxTwoIndices ) ai(m) += count(m)(l)
-		for( m <- maxTwoIndices ) for( l <- maxOneIndices ) bj(m) += count(l)(m)
+		val ai = ClusteringIndexesCommons.nmiObtainAi(new Array[Double](maxX + 1), maxOneIndices, maxTwoIndices, count)
+		val bj = ClusteringIndexesCommons.nmiObtainBj(new Array[Double](maxY + 1), maxTwoIndices, maxOneIndices, count)
 
 		val aiSum = ai.sum
+
 		val hu = ClusteringIndexesCommons.nmiIn1(ai, aiSum)
 		val hv = ClusteringIndexesCommons.nmiIn1(bj, aiSum)
 		val huStrichV = ClusteringIndexesCommons.nmiIn2(maxOneIndices, maxTwoIndices, count, aiSum, bj)

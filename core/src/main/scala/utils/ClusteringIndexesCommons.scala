@@ -21,23 +21,36 @@ object ClusteringIndexesCommons
 		go(0, 0D)
 	}
 
-	def nmiIn2(moi: Array[Int], mti: Array[Int], count: Array[Array[Double]], s: Double, bj: Array[Double]) =
-	{
+  def nmiIn2(moi: Vector[Int], mti: Vector[Int], count: Array[Array[Double]], s: Double, bj: Array[Double]) =
+  {
       def computeVal(i: Int, j: Int, v: Double): Double =
       {
         val tmp = count(i)(j)
         if( tmp > 0 ) v - tmp / s * log( tmp / bj(j) ) else v
       }
-      
-      @annotation.tailrec
-      def go(n1: Int, n2: Int, v: Double): Double =
+            
+      RecursivFunctions.goOverMatrix[Double](moi.size - 1, mti.size - 1, 0D, mti.size, computeVal)
+    }
+
+    def nmiObtainAi(emptyArr: Array[Double], arr1: Vector[Int], arr2: Vector[Int], count: Array[Array[Double]]): Array[Double] =
+    {
+      def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] =
       {
-        if( n1 > 0 && n2 > 0 ) go(n1, n2 - 1, computeVal(n1, n2, v))
-        else if( n1 > 0 ) go(n1 - 1, mti.size - 1, computeVal(n1, n2, v))
-        else if( n1 == 0 && n2 > 0 ) go(n1, n2 - 1, computeVal(n1, n2, v))
-        else computeVal(n1, n2, v)
+        arr(i) += count(i)(j)
+        arr
       }
-      
-      go(moi.size - 1, mti.size - 1, 0D)
-  }
+
+      RecursivFunctions.goOverMatrix[Array[Double]](arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
+    }
+
+  	def nmiObtainBj(emptyArr: Array[Double], arr1: Vector[Int], arr2: Vector[Int], count: Array[Array[Double]]): Array[Double] =
+    {
+      def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] =
+      {
+        arr(i) += count(j)(i)
+        arr
+      }
+
+      RecursivFunctions.goOverMatrix[Array[Double]](arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
+    }
 }
