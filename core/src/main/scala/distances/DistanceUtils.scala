@@ -9,7 +9,8 @@ import _root_.clustering4ever.math.distances.scalar.{Cosine, Euclidean, Minkowsk
  **/
 object DistanceUtils
 {
-	def chooseBinaryDistance(distanceAsStr: String): BinaryDistance =
+/*
+	def chooseBinaryDistance[T](distanceAsStr: String): BinaryDistance[T] =
 	{
 		val choosenDistance = distanceAsStr match
 		{
@@ -27,7 +28,7 @@ object DistanceUtils
     	}
 		choosenDistance.get
 	}
-
+*/
 	def chooseScalarDistance(distanceAsStr: String): ContinuousDistances =
 	{
 		val splittedParam = distanceAsStr.split(":")

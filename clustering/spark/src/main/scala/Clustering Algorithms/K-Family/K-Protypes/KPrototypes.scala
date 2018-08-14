@@ -15,6 +15,8 @@ import _root_.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import _root_.clustering4ever.math.distances.MixtDistance
 import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
 import _root_.clustering4ever.stats.Stats
+import _root_.org.apache.spark.storage.StorageLevel
+import _root_.clustering4ever.scala.clusterizables.ClusterizableM
 
 /**
  * @author Beck Gaël
@@ -25,20 +27,27 @@ import _root_.clustering4ever.stats.Stats
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding MixtDistance distance function
  **/
-class KPrototypes(
+class KPrototypes[ID: Numeric, Obj](
 	@transient val sc: SparkContext,
-	data: RDD[BinaryScalarVector],
+	dataIn: RDD[ClusterizableM[ID, Obj]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: MixtDistance
+	var metric: MixtDistance,
+	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 ) extends ClusteringAlgorithms[Long, BinaryScalarVector]
 {
 	type CentersMap = mutable.HashMap[Int, BinaryScalarVector]
 
+	val data = dataIn.map( clusterizable =>
+	{
+		val (binaryV, realV) = clusterizable.vector
+		new BinaryScalarVector(binaryV, realV)
+	}).persist(persistanceLVL)
+
 	def obtainNearestModID(v: BinaryScalarVector, centers: CentersMap): Int =
 	{
-		centers.toArray.map{ case(clusterID, mod) => (clusterID, metric.d(mod, v)) }.minBy(_._2)._1
+		centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
 	}
 
 	def run(): KPrototypesModel =
@@ -51,17 +60,13 @@ class KPrototypes(
 			val vectorRange = (0 until dimScalar).toVector
 			val binaryModes = for( clusterID <- (0 until k).toVector ) yield (clusterID, immutable.Vector.fill(dimBinary)(Random.nextInt(2)))
 
-			def obtainMinMax(idx: Int, vminMax1: (immutable.Vector[Double], immutable.Vector[Double]), vminMax2: (immutable.Vector[Double], immutable.Vector[Double])) =
+			val (minv, maxv) = data.map( v =>
 			{
-				(
-					min(vminMax1._1(idx), vminMax2._1(idx)),
-					max(vminMax1._2(idx), vminMax2._2(idx))
-				)
-			}
-
-			val (minv, maxv) = data.map( v => (v.scalar, v.scalar) ).reduce( (minMaxa, minMaxb) =>
+				val vector = v.scalar.toVector
+				(vector, vector)
+			}).reduce( (minMaxa, minMaxb) =>
 			{
-				val minAndMax = for( i <- vectorRange ) yield obtainMinMax(i, minMaxa, minMaxb)
+				val minAndMax = for( i <- vectorRange ) yield Stats.obtainIthMinMax(i, minMaxa, minMaxb)
 				minAndMax.unzip
 			})
 
@@ -85,8 +90,8 @@ class KPrototypes(
 					(
 						sum1 + sum2,
 						{
-							val binaryVector = SumArrays.sumArraysNumerics(v1.binary, v2.binary)
-							val scalarVector = SumArrays.sumArraysNumerics(v1.scalar, v2.scalar)
+							val binaryVector = SumArrays.sumArraysNumerics[Int](v1.binary, v2.binary)
+							val scalarVector = SumArrays.sumArraysNumerics[Double](v1.scalar, v2.scalar)
 							new BinaryScalarVector(binaryVector, scalarVector)
 						}
 					)
@@ -129,9 +134,9 @@ class KPrototypes(
 
 object KPrototypes extends DataSetsTypes[Long, BinaryScalarVector]
 {
-	def run(@(transient @param) sc: SparkContext, data: RDD[BinaryScalarVector], k: Int, epsilon: Double, maxIter: Int, metric: MixtDistance): KPrototypesModel =
+	def run[ID: Numeric, Obj](@(transient @param) sc: SparkContext, data: RDD[ClusterizableM[ID, Obj]], k: Int, epsilon: Double, maxIter: Int, metric: MixtDistance, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KPrototypesModel =
 	{
-		val kPrototypes = new KPrototypes(sc, data, k, epsilon, maxIter, metric)
+		val kPrototypes = new KPrototypes(sc, data, k, epsilon, maxIter, metric, persistanceLVL)
 		val kPrototypesModel = kPrototypes.run()
 		kPrototypesModel
 	}

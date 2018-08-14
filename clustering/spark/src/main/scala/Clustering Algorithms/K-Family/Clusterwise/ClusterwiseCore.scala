@@ -7,7 +7,7 @@ import _root_.scala.collection.{immutable, mutable}
 import util.control.Breaks._
 
 class ClusterwiseCore(
-	val dsXYTrain: immutable.Vector[(Int, (immutable.Vector[Double], immutable.Vector[Double]))],
+	val dsXYTrain: immutable.Seq[(Int, (immutable.Seq[Double], immutable.Seq[Double]))],
 	val h: Int,
 	val g: Int,
 	val nbMaxAttemps: Int,
@@ -89,7 +89,7 @@ class ClusterwiseCore(
 	}
 
 
-	def elseCaseWhenComputingError(errorsIndexes: immutable.Vector[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) =
+	def elseCaseWhenComputingError(errorsIndexes: immutable.Seq[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) =
 	{
 		var b = true
 		errorsIndexes.map{ case ((err1, err2), idx) =>
@@ -113,9 +113,9 @@ class ClusterwiseCore(
 	{
 		var continue = true
 		var cptAttemps = 0
-		var classOfEachData = immutable.Vector.empty[(Int, Int)]
-		var dsPerClassF = immutable.Vector.empty[DSPerClass]
-		var regPerClassFinal = immutable.Vector.empty[RegPerClass]
+		var classOfEachData = immutable.Seq.empty[(Int, Int)]
+		var dsPerClassF = immutable.Seq.empty[DSPerClass]
+		var regPerClassFinal = immutable.Seq.empty[RegPerClass]
 	  	val mapRegCrit = mutable.HashMap.empty[Int, Double]
 
 		do
@@ -165,7 +165,7 @@ class ClusterwiseCore(
 				  		}
 				  		catch
 				  		{
-				  			case emptyClass : java.lang.IndexOutOfBoundsException => immutable.Vector.empty[RegPerClass]
+				  			case emptyClass : java.lang.IndexOutOfBoundsException => immutable.Seq.empty[RegPerClass]
 				  		}
 					  	
 					  	if( regPerClass2.isEmpty )
@@ -252,11 +252,11 @@ class ClusterwiseCore(
 		println("microClusterNumber: " + microClusterNumber)
 
 		var continue = true
-		val microClusterNumberRange = (0 until microClusterNumber).toArray
+		val microClusterNumberRange = (0 until microClusterNumber).toVector
 		var cptAttemps = 0
-		var classOfEachData = immutable.Vector.empty[(Int, Int)]
-		var dsPerClassF = immutable.Vector.empty[ClassedDSperGrp]
-		var regPerClassFinal = immutable.Vector.empty[RegPerClass]
+		var classOfEachData = immutable.Seq.empty[(Int, Int)]
+		var dsPerClassF = immutable.Seq.empty[ClassedDSperGrp]
+		var regPerClassFinal = immutable.Seq.empty[RegPerClass]
 	  	val mapRegCrit = mutable.HashMap.empty[Int, Double]
 	  	do
 	  	{
@@ -264,16 +264,17 @@ class ClusterwiseCore(
 			{
 		  		cptAttemps += 1
 			  	// Initialisation par groupe
-			  	val perGroupClassInit = for( i <- microClusterNumberRange ) yield Random.nextInt(g)
+			  	val perGroupClassInit = microClusterNumberRange.map( x => Random.nextInt(g) )
 
-			  	val dsPerClassPerBucket = dsXYTrain.map{ case (id, (x, y)) => (allGroupedData(id), id, x, y) }
+			  	val dsPerClassPerBucket = dsXYTrain
+			  		//.toArray
+			  		.map{ case (id, (x, y)) => (allGroupedData(id), id, x, y) }
 					.groupBy(_._1)
 					.toArray
-					.map{ case (microClusterID, aggregate) => (perGroupClassInit(microClusterID), microClusterID, aggregate) }
+					.map{ case (microClusterID, aggregate) => (perGroupClassInit(microClusterID), microClusterID, aggregate.toVector) }
 					.groupBy{ case (clusterID, _, _) => clusterID }
 					.toVector
 					.sortBy{ case (clusterID, _) => clusterID }
-					//.map{ case (clusterID, dsPerBucket) => (clusterID, dsPerBucket.toVector) }
 
 				val bucketOrderPerClass = (for( (clusterID, buckets) <- dsPerClassPerBucket ) yield ((clusterID, buckets.map{ case (clusterID, grpId, grpIdIdXY) => grpId }))).toArray
 
@@ -327,7 +328,7 @@ class ClusterwiseCore(
 					  		}
 					  		catch
 					  		{
-					  			case emptyClass : java.lang.IndexOutOfBoundsException => immutable.Vector.empty[RegPerClass]
+					  			case emptyClass : java.lang.IndexOutOfBoundsException => immutable.Seq.empty[RegPerClass]
 					  		}
 					  	}
 
@@ -386,7 +387,7 @@ class ClusterwiseCore(
 			  	}
 			  	else
 			  	{
-			  		dsPerClassF = for( i <- rangeOverClasses ) yield (dsPerClassPerBucket.filter{ case (clusterID, _) => clusterID == i })
+			  		dsPerClassF = for( i <- rangeOverClasses ) yield dsPerClassPerBucket.filter{ case (clusterID, _) => clusterID == i }
 					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
 			  		classOfEachData = dsPerClassPerBucket.flatMap{ case (clusterID, dsPerBucket) => dsPerBucket.flatMap{ case (_, grpId, ds) => ds.map{ case (_, id, x, y) => (id, clusterID) } } }
 			  	}
@@ -423,7 +424,7 @@ class ClusterwiseCore(
 object ClusterwiseCore extends Serializable
 {
 	def plsPerDot(
-		dsXYTrain: immutable.Vector[(Int, (immutable.Vector[Double], immutable.Vector[Double]))],
+		dsXYTrain: immutable.Seq[(Int, (immutable.Seq[Double], immutable.Seq[Double]))],
 		h: Int,
 		g: Int,
 		nbMaxAttemps: Int = 30,
@@ -436,7 +437,7 @@ object ClusterwiseCore extends Serializable
 	}
 
 	def plsPerMicroClusters(
-		dsXYTrain: immutable.Vector[(Int, (immutable.Vector[Double], immutable.Vector[Double]))],
+		dsXYTrain: immutable.Seq[(Int, (immutable.Seq[Double], immutable.Seq[Double]))],
 		allGroupedData: immutable.HashMap[Int, Int],
 		h: Int,
 		g: Int,

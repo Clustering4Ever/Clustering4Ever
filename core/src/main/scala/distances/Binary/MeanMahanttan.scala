@@ -1,15 +1,16 @@
 package clustering4ever.math.distances.binary
 
-import _root_.clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
-import _root_.scala.math.pow
+import clustering4ever.math.distances.{BinaryDistanceVector, BinaryDistanceUtil}
+import scala.math.pow
+import scala.collection.immutable
 
 /**
  * @author Beck Gaël
  **/
-class MeanMahanttan extends BinaryDistance
+class MeanMahanttan extends BinaryDistanceVector
 {
 
-	override def d(vector1: Vector[Int], vector2: Vector[Int]): Double =
+	override def d(vector1: immutable.Vector[Int], vector2: immutable.Vector[Int]): Double =
 	{
 		val (a,b,c,d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)
 		(b + c).toDouble / (a + b + c + d)

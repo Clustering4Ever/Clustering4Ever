@@ -14,14 +14,14 @@ import _root_.clustering4ever.math.distances.scalar.Euclidean
 import _root_.clustering4ever.clustering.ClusteringModel
 
 class ClusterwiseModel(
-	val xyTrain: immutable.Vector[(Int, (immutable.Vector[Double], immutable.Vector[Double], Int))],
+	val xyTrain: immutable.Seq[(Int, (immutable.Seq[Double], immutable.Seq[Double], Int))],
 	val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.Vector[(Int, immutable.Vector[Double])])],
-	standardizationParameters: Option[(immutable.Vector[Double], immutable.Vector[Double], immutable.Vector[Double], immutable.Vector[Double])] = None,
+	standardizationParameters: Option[(immutable.Seq[Double], immutable.Seq[Double], immutable.Seq[Double], immutable.Seq[Double])] = None,
 	metric: ContinuousDistances = new Euclidean(true)
 ) extends ClusteringModel
 {
-	type Xvector = immutable.Vector[Double]
-	type Yvector = immutable.Vector[Double]
+	type Xvector = immutable.Seq[Double]
+	type Yvector = immutable.Seq[Double]
 	type IDXtest = Seq[(Long, Xvector)]
 	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
 
@@ -34,7 +34,7 @@ class ClusterwiseModel(
 		(immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double])
 	}
 
-	private[this] def knn(v: immutable.Vector[Double], neighbors: immutable.Vector[(immutable.Vector[Double], Int)], k:Int) =
+	private[this] def knn(v: immutable.Seq[Double], neighbors: immutable.Seq[(immutable.Seq[Double], Int)], k:Int) =
 	{
 		neighbors.map{ case (v2, clusterID) => (metric.d(v, v2), (v2, clusterID)) }
 			.sortBy{ case (dist, _) => dist }
@@ -42,7 +42,7 @@ class ClusterwiseModel(
 			.map{ case (_, (vector, clusterID)) => (vector, clusterID) }
 	}
 
-	private[this] def knnMajorityVote(xyTest: IDXtest, k: Int, g: Int): Seq[(Long, Int, immutable.Vector[Double])] =
+	private[this] def knnMajorityVote(xyTest: IDXtest, k: Int, g: Int): Seq[(Long, Int, immutable.Seq[Double])] =
 	{
 		xyTest.map{ case (idx, x) => 
 		{
@@ -56,7 +56,7 @@ class ClusterwiseModel(
 	}
 
 
-	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): Seq[(Int, Int, immutable.Vector[Double])] =
+	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): Seq[(Int, Int, immutable.Seq[Double])] =
 	{
 		xyTest.map{ case (idx, (x, y)) => 
 		{
@@ -141,7 +141,8 @@ class ClusterwiseModel(
 		toStandardize.map{ case (id, x) =>
 		(
 			id,
-			x.zipWithIndex.map{ case (value, idx) => (value - meanX(idx)) / sdX(idx) }
+			//x.zipWithIndex.map{ case (value, idx) => (value - meanX(idx)) / sdX(idx) }
+			x.zip(meanX).zip(sdX).map{ case ((value, mean), sd) => (value - mean) / sd }
 		)
 		}
 	}

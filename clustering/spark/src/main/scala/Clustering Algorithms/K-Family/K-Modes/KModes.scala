@@ -13,36 +13,42 @@ import _root_.clustering4ever.clustering.ClusteringAlgorithms
 import _root_.clustering4ever.util.SumArrays
 import _root_.clustering4ever.spark.clustering.accumulators.{CentroidsBinaryAccumulator, CardinalitiesAccumulator}
 import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
+import _root_.clustering4ever.scala.clusterizables.BinaryClusterizable
+import _root_.org.apache.spark.storage.StorageLevel
 
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : an immutable.Vector with and ID and the vector
+ * @param data : an immutable.Seq with and ID and the vector
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding BinaryDistance distance function
  **/
-class KModes(
+class KModes[ID: Numeric, Obj <: Serializable](
 	@transient val sc: SparkContext,
-	data: RDD[immutable.Vector[Int]],
+	data: RDD[BinaryClusterizable[ID, Obj]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: BinaryDistance
-) extends ClusteringAlgorithms[Long, immutable.Vector[Int]]
+	var metric: BinaryDistance[immutable.Seq[Int]],
+	val initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]],
+	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+) extends ClusteringAlgorithms[ID, immutable.Seq[Int]]
 {
-	type CentersMap = mutable.HashMap[Int, immutable.Vector[Int]]
+	val binaryDS = data.map(_.vector).persist(persistanceLVL)
 
-	def obtainNearestModID(v: immutable.Vector[Int], kModes: CentersMap): Int =
+	type CentersMap = mutable.HashMap[Int, immutable.Seq[Int]]
+
+	def obtainNearestModID(v: immutable.Seq[Int], kModesCenters: CentersMap): Int =
 	{
-		kModes.toArray.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
+		kModesCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
 	}
 
 	def run(): KModesModel =
 	{
-		val dim = data.first.size
-		val centers = mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, immutable.Vector.fill(dim)(Random.nextInt(2))) )):_*)
+		val dim = binaryDS.first.size
+		val centers = if( initializedCenters.isEmpty ) mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, immutable.Seq.fill(dim)(Random.nextInt(2))) )):_*) else initializedCenters
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0L) }
 		val centersUpdated = centers.clone
 		var cpt = 0
@@ -51,7 +57,7 @@ class KModes(
 		{
 			if( metric.isInstanceOf[Hamming] )
 			{
-				val info = data.map( v => (obtainNearestModID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics(v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
+				val info = binaryDS.map( v => (obtainNearestModID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics[Int](v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
 
 				info.foreach{ case (clusterID, mode, cardinality) =>
 				{
@@ -73,11 +79,19 @@ class KModes(
 	}
 }
 
-object KModes extends DataSetsTypes[Long, Int]
+object KModes
 {
-	def run(@(transient @param) sc: SparkContext, data: RDD[immutable.Vector[Int]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance): KModesModel =
+	def run[ID: Numeric, Obj <: Serializable](
+		@(transient @param) sc: SparkContext,
+		data: RDD[BinaryClusterizable[ID, Obj]],
+		k: Int,
+		epsilon: Double,
+		maxIter: Int,
+		metric: BinaryDistance[immutable.Seq[Int]],
+		initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]],
+		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KModesModel =
 	{
-		val kmodes = new KModes(sc, data, k, epsilon, maxIter, metric)
+		val kmodes = new KModes[ID, Obj](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kModesModel = kmodes.run()
 		kModesModel
 	}

@@ -1,20 +1,19 @@
 package clustering4ever.scala.indexes
 
-import _root_.scala.math.{pow, sqrt, max, min}
-import _root_.scala.collection.parallel.mutable.ParArray
-import _root_.scala.collection.immutable.{HashMap, Map}
-import _root_.clustering4ever.math.distances.scalar.Euclidean
-import _root_.clustering4ever.math.distances.ContinuousDistances
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
-import _root_.clustering4ever.util.SumArrays
+import scala.math.{pow, sqrt, max, min}
+import scala.collection.immutable
+import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.util.SumArrays
 
 /**
  * @author Beck Gaël
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */
-class InternalIndexes extends DataSetsTypes[Int, Vector[Double]]
+class InternalIndexes extends DataSetsTypes[Int, immutable.Seq[Double]]
 {
-  private def daviesBouldinIndexInside(data: Array[(Int, Vector)], clusterLabels: Array[Int], metric: ContinuousDistances) =
+  private def internalDaviesBouldinIndex(data: immutable.Seq[(Int, immutable.Seq[Double])], clusterLabels: Array[Int], metric: ContinuousDistances) =
   {
     if( clusterLabels.size == 1 )
     {
@@ -42,22 +41,38 @@ class InternalIndexes extends DataSetsTypes[Int, Vector[Double]]
     }
   }
 
+  private def internalBallHallIndex(clusterized: immutable.Seq[(ClusterID, immutable.Seq[Double])], metric: ContinuousDistances = new Euclidean(true)): Double =
+  {
+    val clusters = clusterized.groupBy(_._1).par.map{ case (clusterID, aggregate) =>
+    (
+      clusterID,
+      aggregate.map(_._2)
+    )}
+
+    val prototypes = clusters.map{ case (clusterID, aggregate) =>
+    (
+      clusterID,
+      SumArrays.obtainMean(aggregate)
+    )}
+    
+    clusters.map{ case (clusterID, aggregate) => aggregate.map( v => metric.d(v, prototypes(clusterID)) ).sum / aggregate.size }.sum / clusters.size
+  }
 
   /**
    * Silhouette Index
    * Complexity : O(n<sup>2</sup>)
    **/
-  def silhouette(clusterLabels: Array[Int], data: Array[(Int, Vector)], metric: ContinuousDistances) =
+  def internalSilhouette(clusterLabels: immutable.Seq[Int], data: immutable.Seq[(Int, immutable.Seq[Double])], metric: ContinuousDistances) =
   {  
     /*
      * Compute the  within-cluster mean distance a(i) for all the point in cluster
-     * Param: cluster: RDD[Vector]
+     * Param: cluster: RDD[immutable.Seq]
      * Return index of point and the corresponding a(i) Array[(Int, Double)]
      */
-    def aiList(cluster:Array[(Int, Vector)]) =
+    def aiList(cluster: immutable.Seq[(Int, immutable.Seq[Double])]) =
     {
-      val pointPairs = for( i <- cluster; j <- cluster if( i._1 != j._1 ) ) yield( (i,j) )
-      val allPointsDistances = for( pp <- pointPairs ) yield( ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2)) )
+      val pointPairs = for( i <- cluster; j <- cluster if( i._1 != j._1 ) ) yield (i,j)
+      val allPointsDistances = for( pp <- pointPairs ) yield ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2))
       val totalDistanceList = allPointsDistances.map(v => (v._1._1, v._2)).groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).sum) }
       val count = totalDistanceList.size
       val aiList = totalDistanceList.map{ case (k, v) => (k, (v / (count - 1))) }
@@ -74,7 +89,7 @@ class InternalIndexes extends DataSetsTypes[Int, Vector[Double]]
       val uniqData = data.zipWithIndex
       val (target, others) = uniqData.partition{ case ((clusterID, _), _) => clusterID == testedLabel }
       //val target_other = for(v<-uniqData) yield(if(v._1._1==label) (1,v) else (0,v))
-      val cart = for( i <- target; j <- others ) yield( (i, j) )
+      val cart = for( i <- target; j <- others ) yield (i, j)
 
       //get the sum distance between each point and other clusters
       val allDistances = cart.map{ case (((_, vector1), id1), ((clusterID2, vector2), _)) => ((id1, clusterID2), metric.d(vector1, vector2)) }.groupBy(_._1).map{ case (k,v)=> (k, v.map(_._2).sum) }.toArray
@@ -102,30 +117,35 @@ class InternalIndexes extends DataSetsTypes[Int, Vector[Double]]
 
 }
 
-object InternalIndexes extends DataSetsTypes[Int, Vector[Double]]
+object InternalIndexes extends DataSetsTypes[Int, immutable.Seq[Double]]
 {
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n)
    **/
-  def daviesBouldinIndex(data: Array[(ClusterID, Vector)], clusterLabels: Array[Int], metric: ContinuousDistances) =
+  def daviesBouldinIndex(clusterized: immutable.Seq[(ClusterID, immutable.Seq[Double])], clusterLabels: Array[Int], metric: ContinuousDistances): Double =
   {
-    (new InternalIndexes).daviesBouldinIndexInside(data, clusterLabels, metric)
+    (new InternalIndexes).internalDaviesBouldinIndex(clusterized, clusterLabels, metric)
   }
 
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n)
    **/
-  def daviesBouldinIndex(data: Array[(ClusterID, Vector)], metric: ContinuousDistances) =
+  def daviesBouldinIndex(clusterized: immutable.Seq[(ClusterID, immutable.Seq[Double])], metric: ContinuousDistances): Double =
   {
-    val clusterLabels = data.map(_._1).distinct.toArray
-    (new InternalIndexes).daviesBouldinIndexInside(data, clusterLabels, metric) 
+    val clusterLabels = clusterized.map(_._1).distinct.toArray
+    (new InternalIndexes).internalDaviesBouldinIndex(clusterized, clusterLabels, metric) 
   }
 
-  def silhouette(clusterLabels: Array[Int], data: Array[(Int, Vector)], metric: ContinuousDistances) =
+  def silhouetteIndex(clusterLabels: immutable.Seq[ClusterID], clusterized: immutable.Seq[(ClusterID, immutable.Seq[Double])], metric: ContinuousDistances): Double =
   {
-    (new InternalIndexes).silhouette(clusterLabels, data, metric)
+    (new InternalIndexes).internalSilhouette(clusterLabels, clusterized, metric)
+  }
+
+  def ballHallIndex(clusterized: immutable.Seq[(ClusterID, immutable.Seq[Double])], metric: ContinuousDistances = new Euclidean(true)) =
+  {
+    (new InternalIndexes).internalBallHallIndex(clusterized, metric)
   }
 
 }

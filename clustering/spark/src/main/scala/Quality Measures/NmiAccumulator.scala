@@ -17,7 +17,7 @@ case class NmiAccumulator(initialValue: Array[Array[Double]], x: Int, y: Int) ex
 
   def add(m1: NmiAccumulatorType): Unit =
   {
-    nmiAccumulator = m1.zip(nmiAccumulator).map{ case (v1, v2) => v1.zip(v2).map( x => x._1 + x._2 ) }
+    nmiAccumulator = m1.zip(nmiAccumulator).map{ case (v1, v2) => for( i <- v1.indices.toArray ) yield v1(i) + v2(i) }
   }
 
   def copy: AccumulatorV2[NmiAccumulatorType, NmiAccumulatorType] = NmiAccumulator(value, x, y)

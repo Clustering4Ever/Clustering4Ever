@@ -2,7 +2,7 @@ package clustering4ever.stats
 
 import _root_.scala.math.{sqrt, pow, min, max}
 import _root_.clustering4ever.util.SumArrays
-import _root_.scala.collection.mutable
+import _root_.scala.collection.{mutable, immutable}
 import _root_.clustering4ever.scala.kernels.Kernels
 import _root_.clustering4ever.math.distances.ContinuousDistances
 import _root_.clustering4ever.math.distances.scalar.Euclidean
@@ -10,26 +10,26 @@ import _root_.clustering4ever.clustering.ClusteringCommons
 
 object Stats extends ClusteringCommons
 {
-	type Mean = Vector[Double]
+	type Mean = immutable.Vector[Double]
 	type SD = Double
 	/**
 	 * Reduce a matrix into a vector where each component is the sum of its associate column 
 	 **/
-	def reduceColumns(vectors: Seq[Vector[Double]]) =
+	def reduceColumns(vectors: immutable.Seq[immutable.Vector[Double]]) =
 	{
-		vectors.reduce( (a, b) => for( i <- a.indices.toVector ) yield (a(i) + b(i)) )
+		vectors.reduce( (a, b) => for( i <- a.indices.toVector ) yield a(i) + b(i) )
 	}
 	/**
 	 * Compute the mean of multiple vectors
 	 **/
-	def mean(vectors: Seq[Vector[Double]]): Mean =
+	def mean(vectors: immutable.Seq[immutable.Vector[Double]]): Mean =
 	{
 		reduceColumns(vectors).map(_ / vectors.size)
 	}
 	/**
 	 * Compute the standard deviation between vectors and a mean
 	 **/
-	def sd(vectors: Seq[Vector[Double]], mean: Vector[Double]): SD =
+	def sd(vectors: immutable.Seq[immutable.Vector[Double]], mean: immutable.Vector[Double]): SD =
 	{
 		sqrt(
 			vectors.map( v =>
@@ -43,7 +43,7 @@ object Stats extends ClusteringCommons
 	/**
 	 * @return min and max for the ith component in reduce style
 	 **/
-	def obtainIthMinMax(idx: Int, vminMax1: (Vector[Double], Vector[Double]), vminMax2: (Vector[Double], Vector[Double])) =
+	def obtainIthMinMax(idx: Int, vminMax1: (immutable.Vector[Double], immutable.Vector[Double]), vminMax2: (immutable.Vector[Double], immutable.Vector[Double])) =
 	{
 		(
 			min(vminMax1._1(idx), vminMax2._1(idx)),
@@ -51,20 +51,20 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax(data: Seq[Vector[Double]]) =
+	def obtainMinAndMax(data: immutable.Seq[immutable.Seq[Double]]) =
 	{
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toVector
 
-		val (minValues, maxValues) = data.map( v => (v, v) ).reduce( (minMaxa, minMaxb) =>
+		val (minValues, maxValues) = data.map( v => (v.toVector, v.toVector) ).reduce( (minMaxa, minMaxb) =>
 		{
-			val minAndMax = for( i <- vectorRange ) yield (obtainIthMinMax(i, minMaxa, minMaxb))
+			val minAndMax = for( i <- vectorRange ) yield obtainIthMinMax(i, minMaxa, minMaxb)
 			minAndMax.unzip
 		})
 		(minValues, maxValues)
 	}
 
-	def obtainGammaByCluster(v: Vector[Double], gaussianLawFeaturesSortedByClusterID: Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: Vector[Double], metric: ContinuousDistances = new Euclidean(true)) =
+	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistances = new Euclidean(true)) =
 	{
 		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }
 

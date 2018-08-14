@@ -9,13 +9,13 @@ import breeze.linalg._
 
 trait CommonPLSTypes
 {
-	type IdWithX = ArrayBuffer[(Int, immutable.Vector[Double])]
-	type Y = ArrayBuffer[immutable.Vector[Double]]
+	type IdWithX = ArrayBuffer[(Int, immutable.Seq[Double])]
+	type Y = ArrayBuffer[immutable.Seq[Double]]
 }
 
 class PLS(
-	dsXi: ArrayBuffer[(Int, immutable.Vector[Double])],
-	dsY: ArrayBuffer[immutable.Vector[Double]],
+	dsXi: ArrayBuffer[(Int, immutable.Seq[Double])],
+	dsY: ArrayBuffer[immutable.Seq[Double]],
 	n: Int,
 	h: Int,
 	lw: Double,
@@ -31,8 +31,8 @@ class PLS(
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n).toArray
-		val meanY = dsY.reduce(SumArrays.sumArraysNumerics(_, _)).map(_ / n).toArray
+		val meanX = dsX.reduce(SumArrays.sumArraysNumerics[Double](_, _)).map(_ / n).toArray
+		val meanY = dsY.reduce(SumArrays.sumArraysNumerics[Double](_, _)).map(_ / n).toArray
 
 
 		val yK = dsY.map( _.zip(meanY).map{ case (y, meanY) => y - meanY } )

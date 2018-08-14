@@ -1,12 +1,7 @@
 package clustering4ever.scala.indexes
 
-import _root_.scala.math.{pow, sqrt, max, min}
-import _root_.scala.collection.parallel.mutable.ParArray
-import _root_.scala.collection.immutable.{HashMap, Map}
-import _root_.clustering4ever.math.distances.scalar.Euclidean
-import _root_.clustering4ever.math.distances.ContinuousDistances
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
-import _root_.clustering4ever.util.SumArrays
+import scala.collection.immutable
+import clustering4ever.math.distances.ContinuousDistances
 
 /**
  * @author Beck Gaël
@@ -20,12 +15,12 @@ object InternalIndexesDBCommons
   *  scatter1,scatter2: Double - the scatter value of cluster 1 and cluster 2
   *  center1,center2: Array[Double] - The centroid of cluster 1 and cluster 2
   **/
-  def good(scatter1: Double, scatter2: Double, center1: Vector[Double], center2: Vector[Double], metric: ContinuousDistances): Double = (scatter1 + scatter2) / metric.d(center1, center2)
+  def good(scatter1: Double, scatter2: Double, center1: immutable.Seq[Double], center2: immutable.Seq[Double], metric: ContinuousDistances): Double = (scatter1 + scatter2) / metric.d(center1, center2)
 
   /**
    * Scatter of point in cluster
    * Measure average distance to centroïd
    * @return Double - Scatter value
    **/
-  def scatter(cluster: Seq[Vector[Double]], centroid: Vector[Double], metric: ContinuousDistances): Double = (for(p <- cluster) yield metric.d(centroid, p)).sum / cluster.size
+  def scatter(cluster: Seq[immutable.Seq[Double]], centroid: immutable.Seq[Double], metric: ContinuousDistances): Double = cluster.map(metric.d(centroid, _)).sum / cluster.size
 }

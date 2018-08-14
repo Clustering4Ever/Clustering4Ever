@@ -7,9 +7,10 @@ import _root_.clustering4ever.util.SumArrays
 import _root_.scala.math.{min, max}
 import _root_.scala.collection.{immutable, mutable}
 import _root_.scala.util.Random
-import _root_.clustering4ever.math.distances.MixtDistance
+import _root_.clustering4ever.math.distances.{MixtDistance, MixtDistanceClusterizable}
 import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
 import _root_.clustering4ever.stats.Stats
+import _root_.clustering4ever.scala.clusterizables.ClusterizableM
 
 /**
  * @author Beck Gaël
@@ -20,16 +21,21 @@ import _root_.clustering4ever.stats.Stats
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
-class KPrototypes(
-	data: Seq[BinaryScalarVector],
+class KPrototypes[ID: Numeric, Obj](
+	data: Seq[ClusterizableM[ID, Obj]],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: MixtDistance
 ) extends ClusteringAlgorithms[Int, BinaryScalarVector]
 {
-	val dimScalar = data.head.scalar.size
-	val dimBinary = data.head.binary.size
+	val mixtDS = data.map{ clusterizable =>
+	{
+		val (binaryV, realV) = clusterizable.vector
+		new BinaryScalarVector(binaryV, realV)
+	}}
+	val dimBinary = mixtDS.head.scalar.size
+	val dimScalar = mixtDS.head.binary.size
 	/**
 	 * Simplest centroids initializations
 	 * We search range for each dimension and take a random value between each range for scalar data and take a random {0, 1} for binary data
@@ -37,13 +43,17 @@ class KPrototypes(
 	def initializationCenters(): mutable.HashMap[Int, BinaryScalarVector] =
 	{
 		val vectorRange = (0 until dimScalar).toVector
-		val numberClustersRange = (0 until k).toVector
+		val numberClustersRange = (0 until k).toSeq
 
-		val binaryModes = for( clusterID <- numberClustersRange ) yield ((clusterID, Vector.fill(dimBinary)(Random.nextInt(2))))
+		val binaryModes = for( clusterID <- numberClustersRange ) yield (clusterID, Vector.fill(dimBinary)(Random.nextInt(2)))
 
-		val (minv, maxv) = data.map( v => (v.scalar, v.scalar) ).reduce( (minMaxa, minMaxb) =>
+		val (minv, maxv) = mixtDS.map( v =>
 		{
-			val minAndMax = for( i <- vectorRange ) yield (Stats.obtainIthMinMax(i, minMaxa, minMaxb))
+			val vector = v.scalar.toVector
+			(vector, vector)
+		}).reduce( (minMaxa, minMaxb) =>
+		{
+			val minAndMax = for( i <- vectorRange ) yield Stats.obtainIthMinMax(i, minMaxa, minMaxb)
 			minAndMax.unzip
 		})
 
@@ -63,7 +73,7 @@ class KPrototypes(
 
 		def obtainNearestModID(v: BinaryScalarVector): ClusterID =
 		{
-			centers.map{ case(clusterID, mode) => (clusterID, metric.d(mode, v)) }.minBy(_._2)._1
+			centers.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
 		}
 		/**
 		 * Check if there are empty centers and remove them
@@ -83,7 +93,7 @@ class KPrototypes(
 		while( cpt < iterMax && ! allCentersHaveConverged )
 		{
 			// Allocation to nearest centroid
-			val clusterized = data.map( v => (v, obtainNearestModID(v)) )
+			val clusterized = mixtDS.map( v => (v, obtainNearestModID(v)) )
 
 			val kCentersBeforeUpdate = centers.clone
 
@@ -99,8 +109,8 @@ class KPrototypes(
 					centers(clusterID) =
 					{
 						new BinaryScalarVector(
-							SumArrays.sumArraysNumerics(centers(clusterID).binary, v.binary),
-							SumArrays.sumArraysNumerics(centers(clusterID).scalar, v.scalar)
+							SumArrays.sumArraysNumerics[Int](centers(clusterID).binary, v.binary),
+							SumArrays.sumArraysNumerics[Double](centers(clusterID).scalar, v.scalar)
 						)
 					}
 					centersCardinality(clusterID) += 1
@@ -131,7 +141,7 @@ object KPrototypes extends DataSetsTypes[Int, BinaryScalarVector]
 	/**
 	 * Run the K-Protypes
 	 **/
-	def run(data: Seq[Vector], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance): KPrototypesModel =
+	def run[ID: Numeric, Obj](data: Seq[ClusterizableM[ID, Obj]], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance): KPrototypesModel =
 	{
 		val kPrototypes = new KPrototypes(data, k, epsilon, iterMax, metric)
 		val kPrototypesModel = kPrototypes.run()

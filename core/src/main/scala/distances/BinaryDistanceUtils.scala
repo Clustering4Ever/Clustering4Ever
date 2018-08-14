@@ -1,5 +1,8 @@
 package clustering4ever.math.distances
 
+import scala.collection.immutable
+import clustering4ever.util.SumArrays
+
 /**
  * @author Beck Gaël
  **/
@@ -12,42 +15,46 @@ object BinaryDistanceUtil
 	 *   - c is incremented if i = 0, j = 1
 	 *   - d is incremented if i = 0, j = 0
 	 **/
-	def contingencyTable(vector1: Seq[Int], vector2: Seq[Int]) =
+	def contingencyTable(vector1: immutable.Vector[Int], vector2: immutable.Vector[Int]) =
 	{
 
-	  val oneByte = 1
-	  val zeroByte = 0
+		val oneByte = 1
+		val zeroByte = 0
 
-	  var i = 0
-	  var (a,b,c,d) = (0, 0, 0, 0)
-	  while( i < vector1.size )
-	  {
-	    if( vector1(i) == oneByte )
-	    {
-	    	if( vector2(i) == oneByte ) a += 1
-	    	else b += 1
-	    }
-	    else if( vector2(i) == zeroByte ) d += 1
-	    else c += 1
+		def incrementValues(n: Int, a: Int, b: Int, c: Int, d: Int): (Int, Int, Int, Int) =
+		{
+			if( vector1(n) == oneByte )
+			{
+			if( vector2(n) == oneByte ) (a + 1, b, c, d)
+			else (a, b + 1, c, d)
+			}
+			else if( vector2(n) == zeroByte ) (a, b, c, d + 1)
+			else (a, b, c + 1, d)
+		}
 
-	    i += 1
-	  }
-	  (a, b, c, d)
+		@annotation.tailrec
+		def go(n: Int, abcd: (Int, Int, Int, Int)): (Int, Int, Int, Int) =
+		{
+			if( n < vector1.size - 1 ) go(n + 1, incrementValues(n, abcd._1, abcd._2, abcd._3, abcd._4))
+			else incrementValues(n, abcd._1, abcd._2, abcd._3, abcd._4)
+		}
+
+		go(0, (0, 0, 0, 0))
 	}
 
 	/**
 	 * Count number of occurence for each binary features
 	 * @return Array[(numberOf0, numberOf1)]
 	 **/
-	def countOccFeat(data: Seq[Array[Int]]): Seq[(Int, Int)] =
+	def countOccFeat(data: immutable.Seq[immutable.Seq[Int]]): immutable.Seq[(Int, Int)] =
 	{
 		val nbTotData = data.size
-		val nbOne = data.map(_.map(_.toInt)).reduce( _.zip(_).map( x => x._1 + x._2) )
+		val nbOne = data.reduce(SumArrays.sumArraysNumerics[Int](_, _))
 		val nbZero = nbOne.map(nbTotData - _)
 		nbZero.zip(nbOne)
 	}
 
-	def genProb2Feat(nbOccFeatTab: Seq[(Int, Int)], nbTotData: Int): Seq[(Double, Double)] =
+	def genProb2Feat(nbOccFeatTab: immutable.Seq[(Int, Int)], nbTotData: Int): immutable.Seq[(Double, Double)] =
 	{
 		nbOccFeatTab.map{ case (zero, one) =>
 		{
