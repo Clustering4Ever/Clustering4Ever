@@ -1,7 +1,7 @@
 package clustering4ever.scala.clusterizables
 
-import _root_.clustering4ever.scala.vectorizables.{Vectorizable, VectorizableG, VectorizableM, RealVectorizable, BinaryVectorizable}
-import _root_.clustering4ever.util.LSH
+import clustering4ever.scala.vectorizables.{Vectorizable, VectorizableG, VectorizableM, RealVectorizable, BinaryVectorizable}
+import clustering4ever.util.LSH
 import scala.collection.immutable
 
 abstract class Clusterizable[ID: Numeric, Vector](val id: ID, val vectorizable: Vectorizable[Vector]) extends Serializable

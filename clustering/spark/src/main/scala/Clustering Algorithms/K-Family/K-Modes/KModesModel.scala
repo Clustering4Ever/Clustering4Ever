@@ -1,9 +1,9 @@
 package clustering4ever.spark.clustering.kmodes
 
-import _root_.scala.collection.{mutable, immutable}
-import _root_.clustering4ever.math.distances.BinaryDistance
-import _root_.clustering4ever.clustering.CommonRDDPredictClusteringModel
-import _root_.org.apache.spark.rdd.RDD
+import scala.collection.{mutable, immutable}
+import clustering4ever.math.distances.BinaryDistance
+import clustering4ever.clustering.CommonRDDPredictClusteringModel
+import org.apache.spark.rdd.RDD
 
 /**
  * @author Beck Gaël

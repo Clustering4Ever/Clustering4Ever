@@ -1,7 +1,7 @@
 package clustering4ever.scala.clustering
 
-import _root_.clustering4ever.clustering.ClusteringModel
-import _root_.clustering4ever.math.distances.Distance
+import clustering4ever.clustering.ClusteringModel
+import clustering4ever.math.distances.Distance
 
 /**
  * @author Beck Gaël

@@ -1,9 +1,8 @@
 package clustering4ever.scala.clustering.meanshift
 
 import scala.util.Random
-import scala.collection.parallel.ParSeq
 import scala.math.{min, max}
-import scala.collection.{immutable, mutable}
+import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
 import clustering4ever.clustering.datasetstype.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
@@ -29,19 +28,25 @@ class GradientAscent[ID: Numeric, Obj](
   kernelArgs: immutable.Vector[String]
 ) extends DataSetsTypes[ID, immutable.Seq[Double]]
 {
-  def gradientAscent(readyToGA: immutable.Seq[(ID, RealClusterizable[ID, Obj])], maxIterations: Int) =
+  def gradientAscent(readyToGA: GenSeq[(ID, RealClusterizable[ID, Obj])], maxIterations: Int) =
   {
     var ind = 0
     val haveNotConverged = false
     var everyPointsHaveConverged = false
-    var gradientAscentData: ParSeq[(ID, RealClusterizable[ID, Obj], immutable.Seq[Double], Boolean)] = readyToGA.par.map{ case (id, obj) => (id, obj, obj.vector, haveNotConverged) }
+    var gradientAscentData: GenSeq[(ID, RealClusterizable[ID, Obj], immutable.Seq[Double], Boolean)] = readyToGA.par.map{ case (id, obj) => (id, obj, obj.vector, haveNotConverged) }
     val kernelLocality = readyToGA.map{ case (_, obj) => obj.vector }
-    
+    lazy val kernelLocalitySeq = kernelType match
+    {
+      case KernelNature.EuclideanKNN => Some(kernelLocality.seq)
+      case KernelNature.KNN => Some(kernelLocality.seq)
+      case _ => None
+    }
+
     while( ind < maxIterations && ! everyPointsHaveConverged )
     {
       var cptConvergedPoints = 0
       
-      def kernelGradientAscent(toExplore: ParSeq[(ID, RealClusterizable[ID, Obj], immutable.Seq[Double], Boolean)]) =
+      def kernelGradientAscent(toExplore: GenSeq[(ID, RealClusterizable[ID, Obj], immutable.Seq[Double], Boolean)]) =
       {
         val convergingData = toExplore.map{ case (id, obj, mode, haveConverged) =>
         { 
@@ -54,8 +59,8 @@ class GradientAscent[ID: Numeric, Obj](
             kernelType match
             {
               case kernel if( kernel == Gaussian || kernel == Flat ) =>  Kernels.obtainModeThroughKernel(mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
-              case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocality, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean])
-              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocality, kernelArgs.head.toInt, metric)
+              case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean])
+              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric)
               case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
             }
           }
@@ -93,7 +98,7 @@ object GradientAscent extends DataSetsTypes[Int, immutable.Seq[Double]]
    * @param maxIterations : Number of iteration for modes search
    **/
    def run[ID: Numeric, Obj](
-    data: immutable.Seq[(ID, RealClusterizable[ID, Obj])],
+    data: GenSeq[(ID, RealClusterizable[ID, Obj])],
     metric: ContinuousDistances,
     epsilon: Double,
     maxIterations: Int,

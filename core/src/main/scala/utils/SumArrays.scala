@@ -2,7 +2,7 @@ package clustering4ever.util
 
 import _root_.scala.reflect.ClassTag
 import _root_.scala.math.pow
-import scala.collection.immutable
+import scala.collection.{immutable, GenSeq}
 
 /**
  * @author Beck Gaël
@@ -21,14 +21,14 @@ object SumArrays
 	/**
 	 * Reduce an Array[Array[T]] into an Array[T]
 	 */
-	def sumColumnArrays[T](cluster: immutable.Seq[immutable.Seq[T]])(implicit num: Numeric[T], ct: ClassTag[T]): immutable.Seq[T] =
+	def sumColumnArrays[T](cluster: GenSeq[immutable.Seq[T]])(implicit num: Numeric[T], ct: ClassTag[T]): immutable.Seq[T] =
 	{
 		cluster.reduce(sumArraysNumerics(_, _))
 	}
 	/**
 	 * Return the centroid of the given cluster
 	 */
-	def obtainMean(cluster: immutable.Seq[immutable.Seq[Double]]): immutable.Seq[Double] =
+	def obtainMean(cluster: GenSeq[immutable.Seq[Double]]): immutable.Seq[Double] =
 	{
 		sumColumnArrays[Double](cluster).map( _ / cluster.size )
 	}
@@ -52,7 +52,7 @@ object SumArrays
 	/**
 	 * Compute the mode of a cluster
 	 */
-	def obtainMode(cluster: immutable.Seq[immutable.Seq[Int]]): immutable.Seq[Int] =
+	def obtainMode(cluster: GenSeq[immutable.Seq[Int]]): immutable.Seq[Int] =
 	{
 		sumColumnArrays[Int](cluster).map( v => if( 2 * v >= cluster.size ) 1 else 0 )
 	}

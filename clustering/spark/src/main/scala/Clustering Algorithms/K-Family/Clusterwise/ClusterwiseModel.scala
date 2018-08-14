@@ -6,12 +6,12 @@ import math.{floor, pow}
 import org.apache.spark.SparkContext
 import breeze.linalg.{DenseMatrix, DenseVector}
 import org.apache.spark.broadcast.Broadcast
-import _root_.scala.collection.mutable.{ArrayBuffer, HashMap}
-import _root_.scala.collection.immutable
-import _root_.scala.util.Random
-import _root_.clustering4ever.math.distances.ContinuousDistances
-import _root_.clustering4ever.math.distances.scalar.Euclidean
-import _root_.clustering4ever.clustering.ClusteringModel
+import scala.collection.mutable.{ArrayBuffer, HashMap}
+import scala.collection.immutable
+import scala.util.Random
+import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.clustering.ClusteringModel
 
 class ClusterwiseModel(
 	val xyTrain: immutable.Seq[(Int, (immutable.Seq[Double], immutable.Seq[Double], Int))],

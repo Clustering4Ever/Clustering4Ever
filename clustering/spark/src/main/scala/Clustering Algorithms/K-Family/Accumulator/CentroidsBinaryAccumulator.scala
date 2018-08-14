@@ -2,7 +2,7 @@ package clustering4ever.spark.clustering.accumulators
 
 import org.apache.spark.util.AccumulatorV2
 import scala.collection.{mutable, immutable}
-import _root_.clustering4ever.util.SumArrays
+import clustering4ever.util.SumArrays
 
 /**
  * @author Beck Gaël

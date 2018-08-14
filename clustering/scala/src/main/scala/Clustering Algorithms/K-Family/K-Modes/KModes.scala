@@ -1,16 +1,16 @@
 package clustering4ever.scala.clustering.kmodes
 
-import _root_.scala.collection.{immutable, mutable}
-import _root_.scala.util.Random
-import _root_.clustering4ever.math.distances.BinaryDistance
-import _root_.clustering4ever.math.distances.binary.Hamming
-import _root_.clustering4ever.util.SumArrays
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
-import _root_.clustering4ever.clustering.ClusteringAlgorithms
-import _root_.clustering4ever.scala.clusterizables.BinaryClusterizable
+import scala.collection.{immutable, mutable, GenSeq}
+import scala.util.Random
+import clustering4ever.math.distances.BinaryDistance
+import clustering4ever.math.distances.binary.Hamming
+import clustering4ever.util.SumArrays
+import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.clustering.ClusteringAlgorithms
+import clustering4ever.scala.clusterizables.BinaryClusterizable
 
 class KModes[ID: Numeric, Obj](
-	data: Seq[BinaryClusterizable[ID, Obj]],
+	data: GenSeq[BinaryClusterizable[ID, Obj]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
@@ -30,18 +30,13 @@ class KModes[ID: Numeric, Obj](
 		/**
 		 * Return the nearest mode for a specific point
 		 **/
-		def obtainNearestCenterID(v: immutable.Seq[Int]): ClusterID =
-		{
-			centers.minBy{ case (clusterID, mod) => metric.d(mod, v) }._1
-		}
+		def obtainNearestCenterID(v: immutable.Seq[Int]): ClusterID = centers.minBy{ case (clusterID, mod) => metric.d(mod, v) }._1
 
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMedoid(arr: Seq[immutable.Seq[Int]]): immutable.Seq[Int] =
-		{
-			(for( v1 <- arr) yield ((v1, (for( v2 <- arr ) yield metric.d(v1, v2)).sum / arr.size))).minBy(_._2)._1
-		}
+		def obtainMedoid(gs: GenSeq[immutable.Seq[Int]]): immutable.Seq[Int] = gs.map( v1 => (v1, gs.map( v2 => metric.d(v1, v2) ).sum / gs.size) ).minBy(_._2)._1
+
 		/**
 		 * Check if there are empty centers and remove them
 		 **/
@@ -101,7 +96,7 @@ class KModes[ID: Numeric, Obj](
 object KModes extends DataSetsTypes[Int, immutable.Seq[Int]]
 {
 
-	def run[ID: Numeric, Obj](data: Seq[BinaryClusterizable[ID, Obj]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance[immutable.Seq[Int]]): KModesModel =
+	def run[ID: Numeric, Obj](data: GenSeq[BinaryClusterizable[ID, Obj]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance[immutable.Seq[Int]]): KModesModel =
 	{
 		val kmodes = new KModes[ID, Obj](data, k, epsilon, maxIter, metric)
 		val kModesModel = kmodes.run()

@@ -1,11 +1,11 @@
 package clustering4ever.scala.clustering.kprotoypes
 
-import _root_.clustering4ever.clustering.ClusteringModel
-import _root_.scala.collection.mutable
-import _root_.clustering4ever.math.distances.MixtDistance
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
-import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
-import _root_.clustering4ever.clustering.CommonPredictClusteringModel
+import scala.collection.mutable
+import clustering4ever.clustering.ClusteringModel
+import clustering4ever.math.distances.MixtDistance
+import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.scala.measurableclass.BinaryScalarVector
+import clustering4ever.clustering.CommonPredictClusteringModel
 
 /**
  * @author Beck Gaël

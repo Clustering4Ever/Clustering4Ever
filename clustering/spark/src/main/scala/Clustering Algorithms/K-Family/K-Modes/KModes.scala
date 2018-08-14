@@ -2,19 +2,19 @@ package clustering4ever.spark.clustering.kmodes
 
 import scala.collection.{immutable, mutable}
 import scala.util.Random
-import org.apache.spark.{SparkContext, HashPartitioner}
-import org.apache.spark.rdd.RDD
 import scala.annotation.meta.param
 import scala.reflect.ClassTag
 import scala.math.{min, max}
+import org.apache.spark.{SparkContext, HashPartitioner}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
 import clustering4ever.math.distances.BinaryDistance
-import _root_.clustering4ever.math.distances.binary.Hamming
-import _root_.clustering4ever.clustering.ClusteringAlgorithms
-import _root_.clustering4ever.util.SumArrays
-import _root_.clustering4ever.spark.clustering.accumulators.{CentroidsBinaryAccumulator, CardinalitiesAccumulator}
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
-import _root_.clustering4ever.scala.clusterizables.BinaryClusterizable
-import _root_.org.apache.spark.storage.StorageLevel
+import clustering4ever.math.distances.binary.Hamming
+import clustering4ever.clustering.ClusteringAlgorithms
+import clustering4ever.util.SumArrays
+import clustering4ever.spark.clustering.accumulators.{CentroidsBinaryAccumulator, CardinalitiesAccumulator}
+import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.scala.clusterizables.BinaryClusterizable
 
 /**
  * @author Beck Gaël
