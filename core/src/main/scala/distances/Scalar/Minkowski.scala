@@ -17,9 +17,8 @@ class Minkowski(p: Int) extends ContinuousDistances
 	  **/
 	override def d(dot1: immutable.Seq[Double], dot2: immutable.Seq[Double]): Double =
 	{
-		var predDistance = 0D
-		for( i <- dot1.indices ) predDistance += pow(dot1(i) - dot2(i), p)
-		pow(predDistance, 1D / p )
+		val preDistance = dot1.zip(dot2).map{ case (a, b) => pow(a - b, p) }.sum
+		pow(preDistance, 1D / p )
 	}
 }
 
