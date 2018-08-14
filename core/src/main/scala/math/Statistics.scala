@@ -1,12 +1,12 @@
 package clustering4ever.stats
 
-import _root_.scala.math.{sqrt, pow, min, max}
-import _root_.clustering4ever.util.SumArrays
-import _root_.scala.collection.{mutable, immutable}
-import _root_.clustering4ever.scala.kernels.Kernels
-import _root_.clustering4ever.math.distances.ContinuousDistances
-import _root_.clustering4ever.math.distances.scalar.Euclidean
-import _root_.clustering4ever.clustering.ClusteringCommons
+import scala.math.{sqrt, pow, min, max}
+import scala.collection.{mutable, immutable, GenSeq}
+import clustering4ever.util.SumArrays
+import clustering4ever.scala.kernels.Kernels
+import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.clustering.ClusteringCommons
 
 object Stats extends ClusteringCommons
 {
@@ -51,7 +51,7 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax(data: immutable.Seq[immutable.Seq[Double]]) =
+	def obtainMinAndMax(data: GenSeq[immutable.Seq[Double]]) =
 	{
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toVector

@@ -1,10 +1,10 @@
 package clustering4ever.spark.clustering.clusterwise
 
-import _root_.scala.math.{pow, sqrt => ssqrt}
-import _root_.scala.collection.mutable.ArrayBuffer
-import _root_.scala.collection.mutable.HashMap
-import _root_.scala.collection.immutable
-import _root_.clustering4ever.util.SumArrays
+import scala.math.{pow, sqrt => ssqrt}
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.HashMap
+import scala.collection.immutable
+import clustering4ever.util.SumArrays
 import breeze.linalg._
 
 trait CommonPLSTypes

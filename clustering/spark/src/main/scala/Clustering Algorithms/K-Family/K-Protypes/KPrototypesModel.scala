@@ -1,10 +1,10 @@
 package clustering4ever.spark.clustering.kprototypes
 
-import _root_.scala.collection.mutable
-import _root_.org.apache.spark.rdd.RDD
-import _root_.clustering4ever.clustering.CommonRDDPredictClusteringModel
-import _root_.clustering4ever.math.distances.MixtDistance
-import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
+import scala.collection.mutable
+import org.apache.spark.rdd.RDD
+import clustering4ever.clustering.CommonRDDPredictClusteringModel
+import clustering4ever.math.distances.MixtDistance
+import clustering4ever.scala.measurableclass.BinaryScalarVector
 
 
 /**

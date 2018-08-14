@@ -1,6 +1,6 @@
 package clustering4ever.spark.clustering.clusterwise
 
-import _root_.scala.collection.{mutable, immutable}
+import scala.collection.{mutable, immutable}
 import breeze.linalg.DenseMatrix
 
 trait ClusterwiseTypes

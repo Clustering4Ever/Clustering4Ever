@@ -1,16 +1,16 @@
 package clustering4ever.scala.clustering.kprotoypes
 
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
-import _root_.clustering4ever.clustering.ClusteringAlgorithms
-import _root_.clustering4ever.math.distances.mixt.HammingAndEuclidean
-import _root_.clustering4ever.util.SumArrays
-import _root_.scala.math.{min, max}
-import _root_.scala.collection.{immutable, mutable}
-import _root_.scala.util.Random
-import _root_.clustering4ever.math.distances.{MixtDistance, MixtDistanceClusterizable}
-import _root_.clustering4ever.scala.measurableclass.BinaryScalarVector
-import _root_.clustering4ever.stats.Stats
-import _root_.clustering4ever.scala.clusterizables.ClusterizableM
+import scala.math.{min, max}
+import scala.collection.{immutable, mutable, GenSeq}
+import scala.util.Random
+import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.clustering.ClusteringAlgorithms
+import clustering4ever.math.distances.mixt.HammingAndEuclidean
+import clustering4ever.util.SumArrays
+import clustering4ever.math.distances.{MixtDistance, MixtDistanceClusterizable}
+import clustering4ever.scala.measurableclass.BinaryScalarVector
+import clustering4ever.stats.Stats
+import clustering4ever.scala.clusterizables.ClusterizableM
 
 /**
  * @author Beck Gaël
@@ -22,7 +22,7 @@ import _root_.clustering4ever.scala.clusterizables.ClusterizableM
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
 class KPrototypes[ID: Numeric, Obj](
-	data: Seq[ClusterizableM[ID, Obj]],
+	data: GenSeq[ClusterizableM[ID, Obj]],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
@@ -71,10 +71,8 @@ class KPrototypes[ID: Numeric, Obj](
 		val centers = initializationCenters()
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestModID(v: BinaryScalarVector): ClusterID =
-		{
-			centers.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
-		}
+		def obtainNearestModID(v: BinaryScalarVector): ClusterID = centers.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
+
 		/**
 		 * Check if there are empty centers and remove them
 		 **/
@@ -141,7 +139,7 @@ object KPrototypes extends DataSetsTypes[Int, BinaryScalarVector]
 	/**
 	 * Run the K-Protypes
 	 **/
-	def run[ID: Numeric, Obj](data: Seq[ClusterizableM[ID, Obj]], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance): KPrototypesModel =
+	def run[ID: Numeric, Obj](data: GenSeq[ClusterizableM[ID, Obj]], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance): KPrototypesModel =
 	{
 		val kPrototypes = new KPrototypes(data, k, epsilon, iterMax, metric)
 		val kPrototypesModel = kPrototypes.run()

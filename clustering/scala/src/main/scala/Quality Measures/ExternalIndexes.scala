@@ -1,10 +1,9 @@
 package clustering4ever.scala.indexes
 
 import scala.math.{max, log, sqrt}
-import scala.collection.parallel.mutable.ParArray
-import scala.collection.immutable.{HashMap, Map}
-import clustering4ever.scala.indexes.NmiNormalizationNature._
+import scala.collection.GenSeq
 import clustering4ever.util.ClusteringIndexesCommons
+import clustering4ever.scala.indexes.NmiNormalizationNature._
 
 /**
  * @author Beck Gaël
@@ -12,7 +11,7 @@ import clustering4ever.util.ClusteringIndexesCommons
  */
 class ExternalIndexes
 {
-	private def mutualInformationInternal(x: Vector[Int], y: Vector[Int]) =
+	private def mutualInformationInternal(x: GenSeq[Int], y: GenSeq[Int]) =
 	{
 		require( x.size == y.size )
 		val n = x.size
@@ -23,13 +22,11 @@ class ExternalIndexes
 		val maxTwoIndices = (0 to maxY).toVector
 
 		val count = Array.fill(maxX + 1)(Array.fill(maxY +1)(0D))
-		for( i <- x.indices ) count(x(i))(y(i)) += 1D
+		x.seq.indices.foreach( i => count(x(i))(y(i)) += 1D )
 
 		val ai = ClusteringIndexesCommons.nmiObtainAi(new Array[Double](maxX + 1), maxOneIndices, maxTwoIndices, count)
 		val bj = ClusteringIndexesCommons.nmiObtainBj(new Array[Double](maxY + 1), maxTwoIndices, maxOneIndices, count)
-
 		val aiSum = ai.sum
-
 		val hu = ClusteringIndexesCommons.nmiIn1(ai, aiSum)
 		val hv = ClusteringIndexesCommons.nmiIn1(bj, aiSum)
 		val huStrichV = ClusteringIndexesCommons.nmiIn2(maxOneIndices, maxTwoIndices, count, aiSum, bj)
@@ -46,7 +43,7 @@ object ExternalIndexes
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 **/
-	def mutualInformation(x: Vector[Int], y:Vector[Int]) =
+	def mutualInformation(x: GenSeq[Int], y: GenSeq[Int]) =
 	{
 		(new ExternalIndexes).mutualInformationInternal(x, y)._1
 	}
@@ -56,7 +53,7 @@ object ExternalIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 **/
-	def nmi(x: Vector[Int], y:Vector[Int], normalization: Normalization = SQRT) =
+	def nmi(x: GenSeq[Int], y: GenSeq[Int], normalization: Normalization = SQRT) =
 	{
 		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(x, y)
 		val nmi = normalization match
@@ -70,9 +67,9 @@ object ExternalIndexes
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 **/
-	def prepareList(x: Vector[Int]) =
+	def prepareList(x: GenSeq[Int]) =
 	{
-		val indexedValuesMap = x.distinct.zipWithIndex.toMap
+		val indexedValuesMap = x.distinct.zipWithIndex.seq.toMap
 		(indexedValuesMap, x.map(indexedValuesMap))
 	}
 }

@@ -1,15 +1,15 @@
 package clustering4ever.spark.indexes
 
-import _root_.scala.math.max
-import _root_.scala.collection.immutable.{HashMap, Map}
-import _root_.scala.collection.{mutable, immutable}
-import _root_.clustering4ever.math.distances.scalar.Euclidean
-import _root_.clustering4ever.math.distances.ContinuousDistances
-import _root_.clustering4ever.clustering.datasetstype.DataSetsTypes
-import _root_.clustering4ever.util.SumArrays
-import _root_.clustering4ever.scala.indexes.InternalIndexesDBCommons
-import _root_.org.apache.spark.rdd.RDD
-import _root_.org.apache.spark.SparkContext
+import scala.math.max
+import scala.collection.immutable.{HashMap, Map}
+import scala.collection.{mutable, immutable}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.SparkContext
+import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.util.SumArrays
+import clustering4ever.scala.indexes.InternalIndexesDBCommons
 
 /**
  * @author Beck Gaël

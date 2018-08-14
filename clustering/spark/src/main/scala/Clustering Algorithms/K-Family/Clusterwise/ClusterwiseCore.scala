@@ -1,10 +1,10 @@
 package clustering4ever.spark.clustering.clusterwise
 
-import _root_.scala.util.Random
+import scala.util.Random
+import scala.util.control.Breaks._
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.{immutable, mutable}
 import breeze.linalg.DenseMatrix
-import _root_.scala.collection.mutable.ArrayBuffer
-import _root_.scala.collection.{immutable, mutable}
-import util.control.Breaks._
 
 class ClusterwiseCore(
 	val dsXYTrain: immutable.Seq[(Int, (immutable.Seq[Double], immutable.Seq[Double]))],

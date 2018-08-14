@@ -1,7 +1,7 @@
 package clustering4ever.scala.clustering.kmeans
 
 import scala.math.{min, max}
-import scala.collection.{immutable, mutable}
+import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
 import clustering4ever.clustering.datasetstype.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
@@ -21,7 +21,7 @@ import clustering4ever.scala.vectorizables.RealVectorizable
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
  **/
 class KMeans[ID: Numeric, Obj](
-	val data: immutable.Seq[RealClusterizable[ID, Obj]],
+	val data: GenSeq[RealClusterizable[ID, Obj]],
 	var k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
@@ -60,10 +60,8 @@ class KMeans[ID: Numeric, Obj](
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMedoid(arr: immutable.Seq[immutable.Seq[Double]]): immutable.Seq[Double] =
-		{
-			(for( v1 <- arr) yield (v1, (for( v2 <- arr ) yield metric.d(v1, v2)).sum / arr.size)).minBy(_._2)._1
-		}
+		def obtainMedoid(gs: GenSeq[immutable.Seq[Double]]): immutable.Seq[Double] = gs.map( v1 => (v1, gs.map( v2 => metric.d(v1, v2) ).sum / gs.size) ).minBy(_._2)._1
+
 		/**
 		 * Check if there are empty centers and remove them
 		 **/
@@ -103,7 +101,7 @@ class KMeans[ID: Numeric, Obj](
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
 				{
 					val cluster = aggregates.map{ case (vector, _) => vector }
-					val centroid = obtainMedoid(cluster)
+					val centroid = obtainMedoid(immutable.Seq(cluster.toArray:_*))
 					centers(clusterID) = centroid
 					centersCardinality(clusterID) += 1
 				}}
@@ -123,7 +121,7 @@ object KMeans extends DataSetsTypes[Int, immutable.Seq[Double]]
 	 * Run the K-Means
 	 **/
 	def run[ID: Numeric, Obj](
-		data: immutable.Seq[RealClusterizable[ID, Obj]],
+		data: GenSeq[RealClusterizable[ID, Obj]],
 		k: Int,
 		epsilon: Double,
 		iterMax: Int,

@@ -1,7 +1,7 @@
 package clustering4ever.util
 
-import _root_.clustering4ever.scala.vectorizables.{RealVector, BinaryVector}
-import _root_.clustering4ever.scala.clusterizables.{RealClusterizable, BinaryClusterizable}
+import clustering4ever.scala.vectorizables.{RealVector, BinaryVector}
+import clustering4ever.scala.clusterizables.{RealClusterizable, BinaryClusterizable}
 import scala.collection.immutable
 
 object GenerateDatasets
