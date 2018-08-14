@@ -14,7 +14,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 ## Include it in your project
 
 Add following lines in your build.sbt :
-* `"clustering4ever" % "clustering4ever_2.11" % "0.5.0"` to your `libraryDependencies`
+* `"clustering4ever" % "clustering4ever_2.11" % "0.5.1"` to your `libraryDependencies`
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
@@ -27,7 +27,6 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ## Incoming soon 
 * Improved Spark Mean Shift
 * 2 new scalable clustering algorithms
-* Clusterwise
 * [G-Stream](https://github.com/Spark-clustering-notebook/G-stream)
 
 ## [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
@@ -116,5 +115,16 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 #### Internal indexes
 * Davies Bouldin (scala & spark)
-* Ball-Hall (scala & Spark)
+* Ball-Hall (scala & spark)
 * Silhouette (scala)
+
+
+## Miscellaneous
+
+### Implicit conversion
+
+We decided to feed algorithms with Clusterizable type object to ensure to keep original nature of data and transform them into computable vector when needed. In order to stay simple we provide implicit conversion that can be called through following lines:
+* `import clustering4ever.util.ScalaImplicits._`
+* `import clustering4ever.util.SparkImplicits._`
+
+They allow you to pass directly to our `data` algorithms argument as either `GenSeq` or `RDD` of `immutable.Seq[Int]` or `immutable.Seq[Double]` that will be transformed into the appropriate input format.
