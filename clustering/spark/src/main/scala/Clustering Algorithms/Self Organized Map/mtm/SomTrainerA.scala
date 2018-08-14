@@ -8,7 +8,7 @@ import clustering4ever.spark.clustering.mtm.global.{AbstractPrototype, AbstractM
 import clustering4ever.spark.clustering.mtm.utils.NamedVector
 import scala.concurrent.duration.{FiniteDuration, Duration}
 import org.apache.spark.mllib.linalg.DenseVector
-
+import scala.collection.immutable
 /**
  * @author Sarazin Tugdual & Lebbah Mustapha & Beck Gaël
  **/
@@ -54,7 +54,7 @@ class SomTrainerA extends AbstractTrainer
     val mapSize = nbRow * nbCol
     val selectedDatas: Array[DenseVector] = if( initMap == 0 )
     {    
-      dataset.takeSample(withReplacement = false, mapSize, Random.nextInt)
+      dataset.takeSample(withReplacement = false, mapSize, Random.nextInt())
     }
     else
     {
@@ -62,7 +62,7 @@ class SomTrainerA extends AbstractTrainer
     }
 
     // todo : Check /nbCol et %nbCOl
-    val neuronMatrix = Array.tabulate(mapSize)(id => new SomNeuron(id, id/nbCol, id%nbCol, selectedDatas(id)))
+    val neuronMatrix = Array.tabulate(mapSize)( id => new SomNeuron(id, id / nbCol, id % nbCol, selectedDatas(id)))
     _somModel = Some(new SomModel(nbRow, nbCol, neuronMatrix))
   }
   //init model
@@ -77,13 +77,13 @@ class SomTrainerA extends AbstractTrainer
     {
       val bestNeuron = _somModel.get.findClosestPrototype(d).asInstanceOf[SomNeuron]
       //ML: à rentrer dans la condition
-      val mapBin: scala.collection.immutable.Vector[(Int, Int)] = if (d.size > this.sizeRealVars)
+      val mapBin: immutable.Vector[(Int, Int)] = if ( d.size > this.sizeRealVars )
       {
-        d.toArray.drop(sizeRealVars).toVector.asInstanceOf[scala.collection.immutable.Vector[Double]].map( x => if (x == 1) (1, 0) else (0, 1) )
+        d.toArray.drop(sizeRealVars).toVector.map( x => if ( x == 1 ) (1, 0) else (0, 1) )
       }
       else
       {
-        scala.collection.immutable.Vector.empty[(Int, Int)]
+        immutable.Vector.empty[(Int, Int)]
       }
 
       _somModel.get.prototypes.map( proto =>
@@ -92,14 +92,14 @@ class SomTrainerA extends AbstractTrainer
         val factor = neuron.factorDist(bestNeuron, t) // K(delta(.-.)/T)
            
         //binary part
-        val mapBinPondere: scala.collection.immutable.Vector[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
+        val mapBinPondere: immutable.Vector[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
         if( mapBin.size > 0 )
         {
           mapBin.map{ case (x, y) => (x * factor, y * factor) }
         }
         else
         {
-          scala.collection.immutable.Vector.empty[(Double, Double)]
+          immutable.Vector.empty[(Double, Double)]
         }
         //ML: dans le cas de non présence de réelle vecteur vide, pareil pour les varibales binaires
         new SomObsA(new DenseVector(d.toArray.take(sizeRealVars).map(_ * factor)), factor, mapBinPondere, neuron.id)
@@ -122,7 +122,7 @@ class SomTrainerA extends AbstractTrainer
     //val x: Array[Double] = concatObs.map(_somModel.update)
     concatObs.map(_somModel.get.update).sum
     
-  }//end trainingIteration
+  }
 
   //protected def processT(maxIt:Int, currentIt:Int) = maxIt.toFloat - currentIt
   protected def processT(maxIt: Int, currentIt: Int) =
@@ -158,7 +158,7 @@ class SomTrainerA extends AbstractTrainer
     }
   }
 
-  protected class SomObsA(var numerator: DenseVector, var denominator: Double, var mapBinPonderation: scala.collection.immutable.Vector[(Double, Double)], val neuronId: Int) extends Serializable
+  protected class SomObsA(var numerator: DenseVector, var denominator: Double, var mapBinPonderation: immutable.Vector[(Double, Double)], val neuronId: Int) extends Serializable
   {
     def +(obs: SomObsA): SomObsA =
     {
@@ -170,7 +170,7 @@ class SomTrainerA extends AbstractTrainer
       // TO DO
       // calcul de la somme des pondÃ©ration des 1 et des 0
       //ML:ajouter la condition (d.length > this.sizeRealVars)
-      val mapBinPonderation2: scala.collection.immutable.Vector[(Double, Double)] = if( mapBinPonderation.size > 0 )
+      val mapBinPonderation2: immutable.Vector[(Double, Double)] = if( mapBinPonderation.size > 0 )
       {
         for (i <-0 until mapBinPonderation.size)
         {
@@ -179,11 +179,11 @@ class SomTrainerA extends AbstractTrainer
           //mapBinPonderation2 == mapBinPonderation2 :+ (c1, c0)
         }
         //mapBinPonderation = mapBinPonderation2
-        scala.collection.immutable.Vector.empty[(Double, Double)]
+        immutable.Vector.empty[(Double, Double)]
       }
       else
       {
-        scala.collection.immutable.Vector.empty[(Double, Double)] 
+        immutable.Vector.empty[(Double, Double)] 
       } 
 
       this
@@ -199,13 +199,13 @@ class SomTrainerA extends AbstractTrainer
       // calcul de la mediane
       //ML:ajouter la condition (d.length > this.sizeRealVars)
       //var newPointsBin:Array[Double]=Array()
-      val newPointsBin: scala.collection.immutable.Vector[Double] = if( mapBinPonderation.size > 0 )
+      val newPointsBin: immutable.Vector[Double] = if( mapBinPonderation.size > 0 )
       {
         mapBinPonderation.map( e => if( e._1 >= e._2 ) 1D else 0D )
       }
       else
       {
-        scala.collection.immutable.Vector.empty[Double]
+        immutable.Vector.empty[Double]
       }
      
       // concatenation de la partie real et binaire
@@ -223,7 +223,7 @@ class SomTrainerA extends AbstractTrainer
   {
     val sumAffectedDatas = dataset.map( d => ((_somModel.get.findClosestPrototype(d).id, d.cls), 1) ).reduceByKey(_ + _)
 
-    val maxByCluster = sumAffectedDatas.map{ case ((id, cls), count) => (id, count) }.reduceByKey(max).map(_._2).collect
+    val maxByCluster = sumAffectedDatas.map{ case ((id, cls), count) => (id, count) }.reduceByKeyLocally(max).map(_._2)
 
     maxByCluster.sum.toDouble / dataset.count
   }

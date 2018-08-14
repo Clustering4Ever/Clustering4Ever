@@ -40,14 +40,14 @@ object Output extends Serializable
       var header = "# mapDim=2 mapSize={"+ nbRowSOM +"," + nbColSOM + "}"
       header += " pointDim=" + dim + " pointRealDim=" + dim + " mapMin={" + mapMin + "}"
     
-      val prototypes = model.prototypes.map(d => (d.id, d._point)).sortBy(_._1).map(_._2)
+      val prototypes = model.prototypes.map( d => (d.id, d.point)).sortBy(_._1).map(_._2)
       println("Write Prototypes...")
-      val protosString = prototypes.map(d => d.toArray.mkString(",")).mkString("\n")
+      val protosString = prototypes.map( d => d.toArray.mkString(",")).mkString("\n")
 
       // Utiliser fileWriter
       saveStr(path, header + "\n" + protosString, "maps")
 
-      val sumAffectedDatas = datas.map(d => (model.findClosestPrototype(d).id, 1)).reduceByKey{ case (sum1, sum2) => sum1 + sum2 }.collectAsMap 
+      val sumAffectedDatas = datas.map( d => (model.findClosestPrototype(d).id, 1)).reduceByKey{ case (sum1, sum2) => sum1 + sum2 }.collectAsMap 
     
       // fill in all the prototypes that have 0 observations
       val card = (0 to prototypes.length - 1).map( d =>
