@@ -10,18 +10,14 @@ import scala.collection.immutable
 class Cosine extends ContinuousDistances
 {
 
-	private def norm(dot1: immutable.Seq[Double]) =
+	private def norm(dot1: immutable.Seq[Double]): Double =
 	{
-		var preNorm = 0D
-		for( i <- dot1.indices ) preNorm += pow(dot1(i), 2)
-		sqrt(preNorm)
+		sqrt(dot1.map( v => pow(v, 2) ).sum)
 	}
 
-	private def dotProd(dot1: immutable.Seq[Double], dot2: immutable.Seq[Double]) =
+	private def dotProd(dot1: immutable.Seq[Double], dot2: immutable.Seq[Double]): Double =
 	{
-		var dotProd = 0D
-		for( i <- dot1.indices ) dotProd += dot1(i) * dot2(i)
-		dotProd
+		dot1.zip(dot2).map{ case (a, b) => a * b }.sum
 	}
 
 	/**
