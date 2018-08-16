@@ -19,7 +19,7 @@ import clustering4ever.scala.clusterizables.BinaryClusterizable
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : an immutable.Seq with and ID and the vector
+ * @param data : an Seq with and ID and the vector
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
@@ -31,24 +31,21 @@ class KModes[ID: Numeric, Obj <: Serializable](
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: BinaryDistance[immutable.Seq[Int]],
-	val initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]],
+	var metric: BinaryDistance[Seq[Int]],
+	val initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]],
 	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends ClusteringAlgorithms[ID, immutable.Seq[Int]]
+) extends ClusteringAlgorithms[ID, Seq[Int]]
 {
 	val binaryDS = data.map(_.vector).persist(persistanceLVL)
 
-	type CentersMap = mutable.HashMap[Int, immutable.Seq[Int]]
+	type CentersMap = mutable.HashMap[Int, Seq[Int]]
 
-	def obtainNearestModID(v: immutable.Seq[Int], kModesCenters: CentersMap): Int =
-	{
-		kModesCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
-	}
+	def obtainNearestModID(v: Seq[Int], kModesCenters: CentersMap): Int = kModesCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
 
 	def run(): KModesModel =
 	{
 		val dim = binaryDS.first.size
-		val centers = if( initializedCenters.isEmpty ) mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, immutable.Seq.fill(dim)(Random.nextInt(2))) )):_*) else initializedCenters
+		val centers = if( initializedCenters.isEmpty ) mutable.HashMap((for( clusterID <- 0 until k ) yield( (clusterID, Seq.fill(dim)(Random.nextInt(2))) )):_*) else initializedCenters
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0L) }
 		val centersUpdated = centers.clone
 		var cpt = 0
@@ -69,10 +66,7 @@ class KModes[ID: Numeric, Obj <: Serializable](
 				
 				centersUpdated.foreach{ case (clusterID, mode) => centers(clusterID) = mode }
 			}
-			else
-			{
-				println("Results will have no sense or cost O(n²) for the moment with another distance than Hamming, but we're working on it")
-			}
+			else println("Results will have no sense or cost O(n²) for the moment with another distance than Hamming, but we're working on it")
 			cpt += 1
 		}
 		new KModesModel(centers, metric)
@@ -87,8 +81,8 @@ object KModes
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: BinaryDistance[immutable.Seq[Int]],
-		initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]],
+		metric: BinaryDistance[Seq[Int]],
+		initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KModesModel =
 	{
 		val kmodes = new KModes[ID, Obj](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)

@@ -1,81 +1,56 @@
 package clustering4ever.spark.clustering.clusterwise
 
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
-import math.{floor, pow}
-import org.apache.spark.SparkContext
 import breeze.linalg.{DenseMatrix, DenseVector}
-import org.apache.spark.broadcast.Broadcast
-import scala.collection.mutable.{ArrayBuffer, HashMap}
 import scala.collection.immutable
-import scala.util.Random
+import scala.collection.parallel.ParSeq
 import clustering4ever.math.distances.ContinuousDistances
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringModel
 
 class ClusterwiseModel(
-	val xyTrain: immutable.Seq[(Int, (immutable.Seq[Double], immutable.Seq[Double], Int))],
+	val xyTrain: Seq[(Int, (Seq[Double], Seq[Double], Int))],
 	val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.Vector[(Int, immutable.Vector[Double])])],
-	standardizationParameters: Option[(immutable.Seq[Double], immutable.Seq[Double], immutable.Seq[Double], immutable.Seq[Double])] = None,
+	standardizationParameters: Option[(Seq[Double], Seq[Double], Seq[Double], Seq[Double])] = None,
 	metric: ContinuousDistances = new Euclidean(true)
 ) extends ClusteringModel
 {
-	type Xvector = immutable.Seq[Double]
-	type Yvector = immutable.Seq[Double]
+	type Xvector = Seq[Double]
+	type Yvector = Seq[Double]
 	type IDXtest = Seq[(Long, Xvector)]
-	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
+	type IDXYtest = ParSeq[(Int, (Xvector, Yvector))]
 
-	val (meanX, meanY, sdX, sdY) = if( standardizationParameters.isDefined )
-	{
-		standardizationParameters.get
-	}
-	else
-	{
-		(immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double])
-	}
+	val (meanX, meanY, sdX, sdY) = if( standardizationParameters.isDefined ) standardizationParameters.get
+		else (immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double])
 
-	private[this] def knn(v: immutable.Seq[Double], neighbors: immutable.Seq[(immutable.Seq[Double], Int)], k:Int) =
+	private[this] def knn(v: Seq[Double], neighbors: Seq[(Seq[Double], Int)], k:Int) = neighbors.sortBy{ case (v2, clusterID) => metric.d(v, v2) }.take(k)
+
+	private[this] def obtainNearestClass(x: Seq[Double], k: Int, g: Int, withY: Boolean) =
 	{
-		neighbors.map{ case (v2, clusterID) => (metric.d(v, v2), (v2, clusterID)) }
-			.sortBy{ case (dist, _) => dist }
-			.take(k)
-			.map{ case (_, (vector, clusterID)) => (vector, clusterID) }
+		val neighbours = if( withY ) xyTrain.map{ case (_, (x2, y2, label2)) => (x2 ++ y2, label2) } else xyTrain.map{ case (_, (x2, _, label2)) => (x2, label2) }
+		val majVote = knn(x, neighbours, k)
+		val cptVote = Array.fill(g)(0)
+		majVote.foreach{ case (_, clusterID) => cptVote(clusterID % g) += 1 }
+		val classElem = cptVote.indexOf(cptVote.max)
+		classElem
 	}
 
-	private[this] def knnMajorityVote(xyTest: IDXtest, k: Int, g: Int): Seq[(Long, Int, immutable.Seq[Double])] =
-	{
-		xyTest.map{ case (idx, x) => 
-		{
-			val neighbours = xyTrain.map{ case (_, (x2, _, clusterID)) => (x2, clusterID) }
-			val majVote = knn(x.toVector, neighbours, k)
-			val cptVote = Array.fill(g)(0)
-			majVote.foreach{ case (_, clusterID) => cptVote(clusterID) += 1 }
-			val classElem = cptVote.indexOf(cptVote.max)
-			(idx, classElem, x)
-		}}
-	}
+	private[this] def knnMajorityVote(xyTest: Iterator[(Long, Xvector)], k: Int, g: Int): Iterator[(Long, Int, Seq[Double])] = xyTest.map{ case (id, x) => (id, obtainNearestClass(x, k, g, false), x) }
+	
+	private[this] def knnMajorityVote2(xyTest: ParSeq[(Int, (Xvector, Yvector))], k: Int, g: Int): ParSeq[(Int, Int, Seq[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x, k, g, false), x) }
 
+	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): ParSeq[(Int, Int, Seq[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x ++ y, k, g, true), x) }
 
-	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): Seq[(Int, Int, immutable.Seq[Double])] =
-	{
-		xyTest.map{ case (idx, (x, y)) => 
-		{
-			val neighbours = xyTrain.map{ case (_, (x2, y2, label2)) => (x2, label2) }
-			val majVote = knn(x, neighbours, k)
-			val cptVote = Array.fill(g)(0)
-			majVote.foreach{ case (_, clusterID) => cptVote(clusterID % g) += 1 }
-			val classElem = cptVote.indexOf(cptVote.max)
-			(idx, classElem, x)
-		}}
-	}
+	private[this] def knnMajorityVoteWithY2(xyTest: Iterator[(Int, (Xvector, Yvector))], k: Int, g: Int): Iterator[(Int, Int, Seq[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x ++ y, k, g, true), x) }
 
 	def predictClusterViaKNNLocal(
-		xyTest: Seq[(Int, (Xvector, Yvector))],
+		xyTest: ParSeq[(Int, (Xvector, Yvector))],
 		k: Int,
-		g: Int
+		g: Int,
+		withY: Boolean = true
 	) =
 	{
-		val labelisedData = knnMajorityVoteWithY(xyTest, k, g)
+		val labelisedData = if( withY ) knnMajorityVoteWithY(xyTest, k, g) else knnMajorityVote2(xyTest, k, g)
 
 		val yPred = labelisedData.map{ case(id, clusterID, x) =>
 		{
@@ -93,9 +68,9 @@ class ClusterwiseModel(
 		g: Int
 	) =
 	{
-		val labelisedData = xyTest.mapPartitions( it => knnMajorityVoteWithY(it.toSeq, k, g).toIterator )
+		val labelisedData = xyTest.mapPartitions( it => knnMajorityVoteWithY2(it, k, g) )
 
-		val yPred = labelisedData.map{ case(id, clusterID, x) =>
+		val yPred = labelisedData.map{ case (id, clusterID, x) =>
 		{
 			val (intercept, xyCoef, _) = interceptXYcoefPredByClass(clusterID)
 			(id, (clusterID, (DenseVector(intercept).t + DenseVector(x.toArray).t * xyCoef).t))
@@ -108,9 +83,9 @@ class ClusterwiseModel(
 		toPredict: RDD[(Long, Xvector)],
 		k: Int,
 		g: Int
-	)(implicit d: DummyImplicit) =
+	) =
 	{
-		val labelisedData = toPredict.mapPartitions( it => knnMajorityVote(it.toSeq, k, g).toIterator )
+		val labelisedData = toPredict.mapPartitions( it => knnMajorityVote(it, k, g) )
 		val yPred = labelisedData.map{ case (id, clusterID, x) =>
 		{
 			(
@@ -120,15 +95,7 @@ class ClusterwiseModel(
 					{
 						val (intercept, xyCoef, _) = interceptXYcoefPredByClass(clusterID)
 						val standardizedOrNotPrediction = ((DenseVector(intercept).t + DenseVector(x.toArray).t * xyCoef).t).toArray
-						if( standardizationParameters.isDefined )
-						{
-							val unStandardizedPrediction = standardizedOrNotPrediction.zipWithIndex.map{ case (y, idx) => y * sdY(idx) + meanY(idx) }
-							unStandardizedPrediction
-						}
-						else
-						{
-							standardizedOrNotPrediction
-						}
+						if( standardizationParameters.isDefined ) standardizedOrNotPrediction.zipWithIndex.map{ case (y, idx) => y * sdY(idx) + meanY(idx) } else standardizedOrNotPrediction
 					}
 				)
 			)
@@ -136,15 +103,6 @@ class ClusterwiseModel(
 		yPred
 	}
 
-	def standardizeData(toStandardize: RDD[(Long, Xvector)]) =
-	{
-		toStandardize.map{ case (id, x) =>
-		(
-			id,
-			//x.zipWithIndex.map{ case (value, idx) => (value - meanX(idx)) / sdX(idx) }
-			x.zip(meanX).zip(sdX).map{ case ((value, mean), sd) => (value - mean) / sd }
-		)
-		}
-	}
+	def standardizeData(toStandardize: RDD[(Long, Xvector)]) = toStandardize.map{ case (id, x) => (id, x.zip(meanX).zip(sdX).map{ case ((value, mean), sd) => (value - mean) / sd }) }
 
 }

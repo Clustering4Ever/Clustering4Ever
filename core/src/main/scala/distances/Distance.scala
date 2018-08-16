@@ -13,19 +13,19 @@ trait Distance[T] extends Serializable
 	def d(obj1: T, obj2: T): Double
 }
 
-trait ContinuousDistances extends Distance[immutable.Seq[Double]]
+trait ContinuousDistances extends Distance[Seq[Double]]
 {
-	def d(vector1: immutable.Seq[Double], vector2: immutable.Seq[Double]): Double
+	def d(vector1: Seq[Double], vector2: Seq[Double]): Double
 }
 
-trait BinaryDistance[T <: immutable.Traversable[Int]] extends Distance[T]
+trait BinaryDistance[T <: Seq[Int]] extends Distance[T]
 {
 	def d(vector1: T, vector2: T): Double
 }
 
-trait BinaryDistanceSeq extends BinaryDistance[immutable.Seq[Int]]
+trait BinaryDistanceSeq extends BinaryDistance[Seq[Int]]
 {
-	def d(vector1: immutable.Seq[Int], vector2: immutable.Seq[Int]): Double
+	def d(vector1: Seq[Int], vector2: Seq[Int]): Double
 }
 
 trait BinaryDistanceVector extends BinaryDistance[immutable.Vector[Int]]

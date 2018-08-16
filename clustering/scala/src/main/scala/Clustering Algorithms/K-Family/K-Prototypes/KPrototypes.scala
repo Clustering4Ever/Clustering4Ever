@@ -27,7 +27,7 @@ class KPrototypes[ID: Numeric, Obj](
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: MixtDistance
-) extends ClusteringAlgorithms[Int, BinaryScalarVector]
+) extends ClusteringAlgorithms[ID, BinaryScalarVector]
 {
 	val mixtDS = data.map{ clusterizable =>
 	{
@@ -45,7 +45,7 @@ class KPrototypes[ID: Numeric, Obj](
 		val vectorRange = (0 until dimScalar).toVector
 		val numberClustersRange = (0 until k).toSeq
 
-		val binaryModes = for( clusterID <- numberClustersRange ) yield (clusterID, Vector.fill(dimBinary)(Random.nextInt(2)))
+		val binaryModes = numberClustersRange.map( clusterID => (clusterID, Vector.fill(dimBinary)(Random.nextInt(2))) )
 
 		val (minv, maxv) = mixtDS.map( v =>
 		{
@@ -134,7 +134,7 @@ class KPrototypes[ID: Numeric, Obj](
 	}
 }
 
-object KPrototypes extends DataSetsTypes[Int, BinaryScalarVector]
+object KPrototypes
 {
 	/**
 	 * Run the K-Protypes

@@ -16,10 +16,7 @@ case class ClusterizableG[ID: Numeric, Obj, @specialized(Int, Double) T](overrid
 {
 	@transient lazy val vectorSeq = vector.toSeq
 
-	override def canEqual(a: Any): Boolean =
-	{
-		a.isInstanceOf[ClusterizableG[ID, Obj, T]]
-	}
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[ClusterizableG[ID, Obj, T]]
 
 	override def equals(that: Any): Boolean =
 	{
@@ -39,24 +36,18 @@ case class ClusterizableG[ID: Numeric, Obj, @specialized(Int, Double) T](overrid
 		result
 	}
 
-	def copy() =
-	{
-		new ClusterizableG[ID, Obj, T](id, vectorizable)
-	}
+	def copy() = new ClusterizableG[ID, Obj, T](id, vectorizable)
 }
 
 /**
  * Generic clusterizable for both Mixt Vectors => (Vector[Int], Vector[Double]) 
  **/
-case class ClusterizableM[ID: Numeric, Obj](override val id: ID, override val vectorizable: VectorizableM[Obj]) extends Clusterizable[ID, (immutable.Seq[Int], immutable.Seq[Double])](id, vectorizable)
+case class ClusterizableM[ID: Numeric, Obj](override val id: ID, override val vectorizable: VectorizableM[Obj]) extends Clusterizable[ID, (Seq[Int], Seq[Double])](id, vectorizable)
 {
 
 	@transient lazy val vectorSeq = (vector._1.toSeq, vector._2.toSeq)
 
-	override def canEqual(a: Any): Boolean =
-	{
-		a.isInstanceOf[ClusterizableM[ID, Obj]]
-	}
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[ClusterizableM[ID, Obj]]
 
 	override def equals(that: Any): Boolean =
 	{
@@ -77,23 +68,18 @@ case class ClusterizableM[ID: Numeric, Obj](override val id: ID, override val ve
 		result
 	}
 
-	def copy() =
-	{
-		new ClusterizableM[ID, Obj](id, vectorizable)
-	}
+	def copy() = new ClusterizableM[ID, Obj](id, vectorizable)
 }
 
 /**
  * Clusterizable for Vector[Double] 
  **/
-case class RealClusterizable[ID: Numeric, Obj](override val id: ID, override val vectorizable: RealVectorizable[Obj]) extends Clusterizable[ID, immutable.Seq[Double]](id, vectorizable)
+case class RealClusterizable[ID: Numeric, Obj](override val id: ID, override val vectorizable: RealVectorizable[Obj], var v2: Option[Seq[Double]] = None) extends Clusterizable[ID, Seq[Double]](id, vectorizable)
 {
 	@transient lazy val vectorSeq = vector.toSeq
+	@transient lazy val vector2Seq = if( v2.isDefined ) v2.get.toSeq else Seq.empty[Double]
 
-	override def canEqual(a: Any): Boolean =
-	{
-		a.isInstanceOf[RealClusterizable[ID, Obj]]
-	}
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[RealClusterizable[ID, Obj]]
 
 	override def equals(that: Any): Boolean =
 	{
@@ -109,27 +95,22 @@ case class RealClusterizable[ID: Numeric, Obj](override val id: ID, override val
 		val prime = 31
 		var result = 1
 		result = prime * result + vectorSeq.hashCode
+		result = prime * result + vector2Seq.hashCode
 		result = prime * result + id.hashCode
 		result
 	}
 
-	def copy() =
-	{
-		new RealClusterizable[ID, Obj](id, vectorizable)
-	}
+	def copy() = new RealClusterizable[ID, Obj](id, vectorizable)
 }
 
 /**
  * Clusterizable for Vector[Int] 
  **/
-case class BinaryClusterizable[ID: Numeric, Obj](override val id: ID, override val vectorizable: BinaryVectorizable[Obj]) extends Clusterizable[ID, immutable.Seq[Int]](id, vectorizable)
+case class BinaryClusterizable[ID: Numeric, Obj](override val id: ID, override val vectorizable: BinaryVectorizable[Obj]) extends Clusterizable[ID, Seq[Int]](id, vectorizable)
 {
 	@transient lazy val vectorSeq = vector.toSeq
 
-	override def canEqual(a: Any): Boolean =
-	{
-		a.isInstanceOf[BinaryClusterizable[ID, Obj]]
-	}
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[BinaryClusterizable[ID, Obj]]
 
 	override def equals(that: Any): Boolean =
 	{
@@ -149,8 +130,5 @@ case class BinaryClusterizable[ID: Numeric, Obj](override val id: ID, override v
 		result
 	}
 
-	def copy() =
-	{
-		new BinaryClusterizable[ID, Obj](id, vectorizable)
-	}
+	def copy() = new BinaryClusterizable[ID, Obj](id, vectorizable)
 }

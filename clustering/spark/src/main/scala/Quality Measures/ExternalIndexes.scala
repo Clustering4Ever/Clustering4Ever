@@ -56,9 +56,7 @@ object ExternalIndexes
 	 * @return (Mutual Information, entropy x, entropy y)
 	 **/
 	def mutualInformation(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
-	{
 		(new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict)._1
-	}
 
 	/**
 	 * Compute the normalize mutual entropy

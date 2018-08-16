@@ -6,12 +6,12 @@ import scala.collection.immutable
 
 object GenerateDatasets
 {
-	def obtainSimpleRealClusterizable[ID: Numeric](id: ID, vector: immutable.Seq[Double]) =
+	def obtainSimpleRealClusterizable[ID: Numeric](id: ID, vector: Seq[Double]) =
 	{
 		new RealClusterizable(id, new RealVector(vector))
 	}
 
-	def obtainSimpleBinaryClusterizable[ID: Numeric](id: ID, vector: immutable.Seq[Int]) =
+	def obtainSimpleBinaryClusterizable[ID: Numeric](id: ID, vector: Seq[Int]) =
 	{
 		new BinaryClusterizable(id, new BinaryVector(vector))
 	}

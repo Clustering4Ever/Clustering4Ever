@@ -26,15 +26,18 @@ class GradientAscent[ID: Numeric, Obj](
   metric: ContinuousDistances,
   kernelType: KernelType,
   kernelArgs: immutable.Vector[String]
-) extends DataSetsTypes[ID, immutable.Seq[Double]]
+) extends DataSetsTypes[ID, Seq[Double]]
 {
-  def gradientAscent(readyToGA: GenSeq[(ID, RealClusterizable[ID, Obj])], maxIterations: Int) =
+  def gradientAscent(readyToGA: GenSeq[RealClusterizable[ID, Obj]], maxIterations: Int) =
   {
-    var ind = 0
     val haveNotConverged = false
-    var everyPointsHaveConverged = false
-    var gradientAscentData: GenSeq[(ID, RealClusterizable[ID, Obj], immutable.Seq[Double], Boolean)] = readyToGA.par.map{ case (id, obj) => (id, obj, obj.vector, haveNotConverged) }
-    val kernelLocality = readyToGA.map{ case (_, obj) => obj.vector }
+    val readyToGApar = readyToGA.par
+    val kernelLocality = readyToGApar.map(_.vector)
+    var gradientAscentData: GenSeq[(RealClusterizable[ID, Obj], Boolean)] = readyToGApar.map( obj =>
+    {
+      obj.v2 = Some(obj.vector)
+      (obj, haveNotConverged)
+    })
     lazy val kernelLocalitySeq = kernelType match
     {
       case KernelNature.EuclideanKNN => Some(kernelLocality.seq)
@@ -42,63 +45,77 @@ class GradientAscent[ID: Numeric, Obj](
       case _ => None
     }
 
-    while( ind < maxIterations && ! everyPointsHaveConverged )
+    def kernelGradientAscent(toExplore: GenSeq[(RealClusterizable[ID, Obj], Boolean)]) =
     {
       var cptConvergedPoints = 0
       
-      def kernelGradientAscent(toExplore: GenSeq[(ID, RealClusterizable[ID, Obj], immutable.Seq[Double], Boolean)]) =
-      {
-        val convergingData = toExplore.map{ case (id, obj, mode, haveConverged) =>
-        { 
-          val newMode = if( haveConverged )
+      val convergingData = toExplore.map{ case (obj, haveConverged) =>
+      { 
+        val mode = obj.v2.get
+        val newMode = if( haveConverged ) mode
+        else
+        {
+          kernelType match
           {
-            mode
+            case kernel if( kernel == KernelNature.Gaussian || kernel == KernelNature.Flat ) =>  Kernels.obtainModeThroughKernel(mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
+            case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean])
+            case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric)
+            case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
+            case _ =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, 40, metric)
           }
-          else
-          {
-            kernelType match
-            {
-              case kernel if( kernel == Gaussian || kernel == Flat ) =>  Kernels.obtainModeThroughKernel(mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
-              case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean])
-              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric)
-              case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
-            }
-          }
-          
-          val modeShift = metric.d(newMode, mode)
-          val hasConverged = if( modeShift <= epsilon )
-          {
-            cptConvergedPoints += 1
-            true
-          }
-          else 
-          {
-            false
-          }
+        }
+        
+        val modeShift = metric.d(newMode, mode)
+        val hasConverged = if( modeShift <= epsilon )
+        {
+          cptConvergedPoints += 1
+          true
+        }
+        else false
 
-          (id, obj, newMode, hasConverged)
-        }}
+        obj.v2 = Some(newMode)
+        (obj, hasConverged)
+      }}
 
-        convergingData
-      }
+      (convergingData, cptConvergedPoints)
+    }
 
-      gradientAscentData = kernelGradientAscent(gradientAscentData)
+    var ind = 0
+    var everyPointsHaveConverged = false
+    while( ind < maxIterations && ! everyPointsHaveConverged )
+    {
+      val (gradientAscentData0, cptConvergedPoints) = kernelGradientAscent(gradientAscentData)
+      gradientAscentData = gradientAscentData0
       everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
       ind += 1
     }
-      gradientAscentData
+    
+    /**
+     * The recursiv method seems wayway slower than imperative one (x10)
+     */
+    @deprecated
+    @annotation.tailrec
+    def go(i: Int, data: GenSeq[(RealClusterizable[ID, Obj], Boolean)]): GenSeq[(RealClusterizable[ID, Obj], Boolean)] =
+    {
+      val (gradientAscentData, cptConvergedPoints) = kernelGradientAscent(data)
+      val everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
+      if( i < maxIterations && ! everyPointsHaveConverged ) go(i + i, gradientAscentData)
+      else gradientAscentData
+    }
+
+    gradientAscentData.map(_._1)
   }
 }
 
-object GradientAscent extends DataSetsTypes[Int, immutable.Seq[Double]]
+object GradientAscent extends DataSetsTypes[Int, Seq[Double]]
 {
   /**
-   * @param data : an RDD[(String,immutable.Seq)] where String is the ID and immutable.Seq the rest of data
+   * @param data : an RDD[(String, Seq)] where String is the ID and Seq the rest of data
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
    **/
    def run[ID: Numeric, Obj](
-    data: GenSeq[(ID, RealClusterizable[ID, Obj])],
+    data: GenSeq[RealClusterizable[ID, Obj]],
     metric: ContinuousDistances,
     epsilon: Double,
     maxIterations: Int,

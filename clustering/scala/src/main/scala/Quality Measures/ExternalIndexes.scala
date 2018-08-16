@@ -42,17 +42,23 @@ object ExternalIndexes
 	/**
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
-	 **/
-	def mutualInformation(x: GenSeq[Int], y: GenSeq[Int]) =
-	{
+	 */
+	def mutualInformation(x: GenSeq[Int], y: GenSeq[Int]): Double =
 		(new ExternalIndexes).mutualInformationInternal(x, y)._1
+	/**
+	 * Compute the mutual information
+	 * @return (Mutual Information, entropy x, entropy y)
+	 */
+	def mutualInformation(xy: GenSeq[(Int, Int)]): Double =
+	{
+		val (x, y) = xy.unzip
+		mutualInformation(x, y)
 	}
-
 	/**
 	 * Compute the normalize mutual entropy
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
-	 **/
+	 */
 	def nmi(x: GenSeq[Int], y: GenSeq[Int], normalization: Normalization = SQRT) =
 	{
 		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(x, y)
@@ -63,13 +69,22 @@ object ExternalIndexes
 		}
 		nmi
 	}
-
+	/**
+	 * Compute the normalize mutual entropy
+	 * @param normalization : nature of normalization, either sqrt or max
+	 * @return Normalize Mutual Information
+	 */
+	def nmi(xy: GenSeq[(Int, Int)], normalization: Normalization): Double =
+	{
+		val (x, y) = xy.unzip
+		nmi(x, y, normalization)
+	}
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
-	 **/
+	 */
 	def prepareList(x: GenSeq[Int]) =
 	{
-		val indexedValuesMap = x.distinct.zipWithIndex.seq.toMap
+		val indexedValuesMap = x.distinct.zipWithIndex.toMap.seq
 		(indexedValuesMap, x.map(indexedValuesMap))
 	}
 }

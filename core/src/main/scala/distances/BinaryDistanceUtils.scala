@@ -46,7 +46,7 @@ object BinaryDistanceUtil
 	 * Count number of occurence for each binary features
 	 * @return Array[(numberOf0, numberOf1)]
 	 **/
-	def countOccFeat(data: immutable.Seq[immutable.Seq[Int]]): immutable.Seq[(Int, Int)] =
+	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] =
 	{
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumArrays.sumArraysNumerics[Int](_, _))
@@ -54,7 +54,7 @@ object BinaryDistanceUtil
 		nbZero.zip(nbOne)
 	}
 
-	def genProb2Feat(nbOccFeatTab: immutable.Seq[(Int, Int)], nbTotData: Int): immutable.Seq[(Double, Double)] =
+	def genProb2Feat(nbOccFeatTab: Seq[(Int, Int)], nbTotData: Int): Seq[(Double, Double)] =
 	{
 		nbOccFeatTab.map{ case (zero, one) =>
 		{

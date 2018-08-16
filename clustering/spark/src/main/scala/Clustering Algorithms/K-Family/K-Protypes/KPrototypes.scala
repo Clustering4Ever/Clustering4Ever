@@ -45,10 +45,7 @@ class KPrototypes[ID: Numeric, Obj](
 		new BinaryScalarVector(binaryV, realV)
 	}).persist(persistanceLVL)
 
-	def obtainNearestModID(v: BinaryScalarVector, centers: CentersMap): Int =
-	{
-		centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
-	}
+	def obtainNearestModID(v: BinaryScalarVector, centers: CentersMap): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
 
 	def run(): KPrototypesModel =
 	{
@@ -58,7 +55,8 @@ class KPrototypes[ID: Numeric, Obj](
 		def initializationCenters() =
 		{
 			val vectorRange = (0 until dimScalar).toVector
-			val binaryModes = for( clusterID <- (0 until k).toVector ) yield (clusterID, immutable.Vector.fill(dimBinary)(Random.nextInt(2)))
+			val kRange = (0 until k)
+			val binaryModes = kRange.map( clusterID => (clusterID, immutable.Vector.fill(dimBinary)(Random.nextInt(2))) )
 
 			val (minv, maxv) = data.map( v =>
 			{
@@ -71,7 +69,7 @@ class KPrototypes[ID: Numeric, Obj](
 			})
 
 			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-			val scalarCentroids = (0 until k).toVector.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
+			val scalarCentroids = kRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
 
 			mutable.HashMap(binaryModes.zip(scalarCentroids).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
 		}
