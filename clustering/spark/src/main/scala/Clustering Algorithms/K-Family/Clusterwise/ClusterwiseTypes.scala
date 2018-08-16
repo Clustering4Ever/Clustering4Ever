@@ -7,10 +7,10 @@ trait ClusterwiseTypes
 {
 	type ClassID = Int
 	type ID = Int
-	type Xvector = immutable.Seq[Double]
-	type Yvector = immutable.Seq[Double]
-	type IDXYtest = immutable.Seq[(Int, (Xvector, Yvector))]
-	type IDXtest = immutable.Seq[(Long, Xvector)]
+	type Xvector = Seq[Double]
+	type Yvector = Seq[Double]
+	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
+	type IDXtest = Seq[(Long, Xvector)]
 	type DSPerClass = immutable.Vector[(ID, (Xvector, Yvector, ClassID))]
 	type ClassedDS = immutable.Vector[(Int, DSPerClass)]
 	type IDXDS = immutable.Vector[mutable.ArrayBuffer[(Int, Xvector)]]

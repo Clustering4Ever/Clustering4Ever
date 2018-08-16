@@ -1,6 +1,6 @@
 package clustering4ever.scala.clustering
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.{mutable, GenSeq}
 
 object JenksNaturalBreaks
 {
@@ -13,13 +13,12 @@ object JenksNaturalBreaks
    * @return Indexes of breaks in sortedValues sequence
    *
    **/
-  def jenksBrks[T](sortedValues: Seq[T], nbCatPlusOne: Int)(implicit num: Numeric[T]) =
+  def jenksBrks[T](sortedValues: GenSeq[T], nbCatPlusOne: Int)(implicit num: Numeric[T]) =
   {
     val nbCat = nbCatPlusOne - 1
     val nbValues = sortedValues.size
     var value = 0D
     var v = 0D
-    var id = 0
     var i3 = 0
     var i4 = 0
 
@@ -59,25 +58,32 @@ object JenksNaturalBreaks
       mat2(l - 1)(0) = v
     }
           
-    val kclass = for( i <- (1 to nbCat).toArray ) yield( i.toDouble )
+    val kclass = (1 to nbCat).map(_.toDouble).toArray
 
     kclass(nbCat - 1) = nbValues
-    var k = nbValues
-    
-    for( j <- (2 to nbCat).reverse )
+
+    def update(j: Int, kkclass: (Int, Array[Double])) =
     {
-      id = (mat1(k - 1)(j - 1)).toInt - 1
+      val k = kkclass._1
+      val kclass = kkclass._2
+      val id = (mat1(k - 1)(j - 1)).toInt - 1
       kclass(j - 2) = id
-      k = id
+      (id, kclass)      
     }
 
-    val res = ArrayBuffer.empty[T]
+    @annotation.tailrec
+    def go(n: Int, kkclass: (Int, Array[Double])): (Int, Array[Double]) =
+    {
+      if( n > 2 ) go(n - 1, update(n, kkclass))
+      else update(n, kkclass)
+    }
+
+    val (_, kclass2) = go(nbCat, (nbValues, kclass))
+
+    val res = mutable.ArrayBuffer.empty[T]
     res += sortedValues.head
 
-    for( i <- 1 to nbCat )
-    {
-      res += sortedValues(kclass(i - 1).toInt - 1)
-    }
+    (1 to nbCat).foreach( i => res += sortedValues(kclass2(i - 1).toInt - 1) )
     
     res.toVector
   }

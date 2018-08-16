@@ -16,16 +16,12 @@ object Stats extends ClusteringCommons
 	 * Reduce a matrix into a vector where each component is the sum of its associate column 
 	 **/
 	def reduceColumns(vectors: immutable.Seq[immutable.Vector[Double]]) =
-	{
 		vectors.reduce( (a, b) => for( i <- a.indices.toVector ) yield a(i) + b(i) )
-	}
 	/**
 	 * Compute the mean of multiple vectors
 	 **/
 	def mean(vectors: immutable.Seq[immutable.Vector[Double]]): Mean =
-	{
 		reduceColumns(vectors).map(_ / vectors.size)
-	}
 	/**
 	 * Compute the standard deviation between vectors and a mean
 	 **/
@@ -51,14 +47,14 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax(data: GenSeq[immutable.Seq[Double]]) =
+	def obtainMinAndMax(data: GenSeq[Seq[Double]]) =
 	{
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toVector
 
 		val (minValues, maxValues) = data.map( v => (v.toVector, v.toVector) ).reduce( (minMaxa, minMaxb) =>
 		{
-			val minAndMax = for( i <- vectorRange ) yield obtainIthMinMax(i, minMaxa, minMaxb)
+			val minAndMax = vectorRange.map( i => obtainIthMinMax(i, minMaxa, minMaxb) )
 			minAndMax.unzip
 		})
 		(minValues, maxValues)

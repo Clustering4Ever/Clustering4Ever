@@ -8,9 +8,9 @@ import clustering4ever.util.SumArrays
  * @author Beck Gaël
  * Accumulator for the maximum value of every real Custom Data
  **/
-case class CentroidsScalarAccumulator(initialValue: mutable.HashMap[Int, immutable.Seq[Double]], k: Int, dim: Int) extends AccumulatorV2[mutable.HashMap[Int, immutable.Seq[Double]], mutable.HashMap[Int, immutable.Seq[Double]]]
+case class CentroidsScalarAccumulator(initialValue: mutable.HashMap[Int, Seq[Double]], k: Int, dim: Int) extends AccumulatorV2[mutable.HashMap[Int, Seq[Double]], mutable.HashMap[Int, Seq[Double]]]
 {
-	type CentroidsScalarAccumulatorType = mutable.HashMap[Int, immutable.Seq[Double]]
+	type CentroidsScalarAccumulatorType = mutable.HashMap[Int, Seq[Double]]
 
 	private var centroidsMap: CentroidsScalarAccumulatorType = initialValue
 
@@ -18,7 +18,7 @@ case class CentroidsScalarAccumulator(initialValue: mutable.HashMap[Int, immutab
 
 	def isZero = value.forall{ case (clusterID, centroid) => centroid.forall(_ == 0D) }
 
-	def reset: Unit = centroidsMap = mutable.HashMap((0 until k).map( k => (k, immutable.Seq.fill(dim)(0D))).toSeq:_*)
+	def reset: Unit = centroidsMap = mutable.HashMap((0 until k).map( k => (k, Seq.fill(dim)(0D))).toSeq:_*)
 	
 	def add(m1: CentroidsScalarAccumulatorType): Unit =
 	{
@@ -29,7 +29,7 @@ case class CentroidsScalarAccumulator(initialValue: mutable.HashMap[Int, immutab
 
 	def merge(otherAccum: AccumulatorV2[CentroidsScalarAccumulatorType, CentroidsScalarAccumulatorType]): Unit = add(otherAccum.value)
 
-	def addOne(clusterID: Int, centroid: immutable.Seq[Double]) =
+	def addOne(clusterID: Int, centroid: Seq[Double]) =
 	{
 		centroidsMap(clusterID) = SumArrays.sumArraysNumerics[Double](centroidsMap(clusterID), centroid)
 	}

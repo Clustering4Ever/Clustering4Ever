@@ -8,4 +8,4 @@ import clustering4ever.clustering.datasetstype.DataSetsTypes
 /**
  * @author Beck Gaël
  **/
-class KMeansModel(centers: mutable.HashMap[Int, immutable.Seq[Double]], metric: ContinuousDistances) extends CommonPredictClusteringModel[immutable.Seq[Double]](centers, metric)
+class KMeansModel(centers: mutable.HashMap[Int, Seq[Double]], metric: ContinuousDistances) extends CommonPredictClusteringModel[Seq[Double]](centers, metric)

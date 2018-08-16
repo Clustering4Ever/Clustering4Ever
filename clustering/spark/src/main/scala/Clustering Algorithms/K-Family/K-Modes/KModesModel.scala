@@ -8,4 +8,4 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-class KModesModel(centers: mutable.HashMap[Int, immutable.Seq[Int]], metric: BinaryDistance[immutable.Seq[Int]]) extends CommonRDDPredictClusteringModel(centers, metric)
+class KModesModel(centers: mutable.HashMap[Int, Seq[Int]], metric: BinaryDistance[Seq[Int]]) extends CommonRDDPredictClusteringModel(centers, metric)

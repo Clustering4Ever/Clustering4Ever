@@ -26,8 +26,8 @@ class KMeans[ID: Numeric, Obj](
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: ContinuousDistances = new Euclidean(true),
-	var initializedCenters: mutable.HashMap[Int, immutable.Seq[Double]] = mutable.HashMap.empty[Int, immutable.Seq[Double]]
-) extends ClusteringAlgorithms[Int, immutable.Seq[Double]]
+	var initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]]
+) extends ClusteringAlgorithms[ID, Seq[Double]]
 {
 	val realDS = data.map(_.vector)
 	val dim = realDS.head.size
@@ -39,7 +39,7 @@ class KMeans[ID: Numeric, Obj](
 	def initializationCenters() =
 	{
 		val (minv, maxv) = Stats.obtainMinAndMax(realDS)
-		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }.toSeq
+		val ranges = Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
 		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
 		centers
 	}
@@ -49,30 +49,27 @@ class KMeans[ID: Numeric, Obj](
 	 **/
 	def run(): KMeansModel =
 	{
-		val centers = if( initializedCenters.isEmpty ) initializationCenters() else initializedCenters
+		val centers: mutable.HashMap[Int, Seq[Double]] = if( initializedCenters.isEmpty ) initializationCenters() else initializedCenters
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
-		def obtainNearestCenterID(v: immutable.Seq[Double]): ClusterID =
-		{
-			centers.minBy{ case (clusterID, center) => metric.d(center, v) }._1
-		}
+		def obtainNearestCenterID(v: Seq[Double]): ClusterID = centers.minBy{ case (clusterID, center) => metric.d(center, v) }._1
 
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 		 **/
-		def obtainMedoid(gs: GenSeq[immutable.Seq[Double]]): immutable.Seq[Double] = gs.map( v1 => (v1, gs.map( v2 => metric.d(v1, v2) ).sum / gs.size) ).minBy(_._2)._1
+		def obtainMedoid(gs: GenSeq[Seq[Double]]): Seq[Double] = gs.map( v1 => (v1, gs.map( v2 => metric.d(v1, v2) ).sum / gs.size) ).minBy(_._2)._1
 
 		/**
 		 * Check if there are empty centers and remove them
 		 **/
-		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, immutable.Seq[Double]]) =
+		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, Seq[Double]]) =
 		{
 			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
 			centers --= emptyCenterIDs
 			kCentersBeforeUpdate --= emptyCenterIDs
 		}
 
-		val zeroCenter = immutable.Seq.fill(dim)(0D)
+		val zeroCenter = Seq.fill(dim)(0D)
 		var cpt = 0
 		var allCentersHaveConverged = false
 		while( cpt < iterMax && ! allCentersHaveConverged )
@@ -101,7 +98,7 @@ class KMeans[ID: Numeric, Obj](
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
 				{
 					val cluster = aggregates.map{ case (vector, _) => vector }
-					val centroid = obtainMedoid(immutable.Seq(cluster.toArray:_*))
+					val centroid = obtainMedoid(cluster)
 					centers(clusterID) = centroid
 					centersCardinality(clusterID) += 1
 				}}
@@ -115,7 +112,7 @@ class KMeans[ID: Numeric, Obj](
 	}
 }
 
-object KMeans extends DataSetsTypes[Int, immutable.Seq[Double]]
+object KMeans
 {
 	/**
 	 * Run the K-Means
@@ -126,7 +123,7 @@ object KMeans extends DataSetsTypes[Int, immutable.Seq[Double]]
 		epsilon: Double,
 		iterMax: Int,
 		metric: ContinuousDistances,
-		initializedCenters: mutable.HashMap[Int, immutable.Seq[Double]] = mutable.HashMap.empty[Int, immutable.Seq[Double]]
+		initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]]
 		): KMeansModel =
 	{
 		val kMeans = new KMeans[ID, Obj](data, k, epsilon, iterMax, metric, initializedCenters)
