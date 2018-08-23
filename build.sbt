@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-val sparkVersion = "2.2.0"
+val sparkVersion = "2.1.1"
 
 lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 	case PathList("org", "xmlpull", xs @ _*) => MergeStrategy.last
@@ -15,11 +15,11 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 	   	"org.apache.spark" %% "spark-core" % sparkVersion % "provided",
 		"org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
 		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided"
-//		"org.scalaz" %% "scalaz-core" % "7.2.18"
 	)
 lazy val scalaDeps = libraryDependencies ++= Seq(
-	  "org.scalanlp" %% "breeze" % "0.13.2",
-	  "org.scalanlp" %% "breeze-natives" % "0.13.2"
+	  //"org.scalanlp" %% "breeze" % "0.13.2",
+	  //"org.scalanlp" %% "breeze-natives" % "0.13.2",
+	  "org.apache.commons" % "commons-math3" % "3.6.1"
 	)
 
 lazy val commonCredentialsAndResolvers = Seq(
@@ -35,7 +35,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
 		bintrayRepository := "Clustering4Ever",
-	 	version := "0.5.2",
+	 	version := "0.6.0",
 		scalaVersion := "2.11.12",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
@@ -45,22 +45,18 @@ lazy val commonSettingsC4E = Seq(
 
 lazy val core = (project in file("core"))
 	.settings(commonSettingsC4E:_*)
-	.settings(
-		//scalaDeps,
-		mergeStrategyC4E
-	)
+	.settings(mergeStrategyC4E)
 
 lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
+	.settings(scalaDeps)
 	.dependsOn(core)
 
 lazy val clusteringSpark = (project in file("clustering/spark"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
-	.settings(
-		sparkDeps
-	)
+	.settings(sparkDeps)
 	.dependsOn(core, clusteringScala)
 
 lazy val documentation = (project in file("Documentation"))
@@ -71,9 +67,6 @@ lazy val documentation = (project in file("Documentation"))
 
 lazy val clustering4ever = (project in file("Clustering4Ever"))
 	.settings(commonSettingsC4E: _*)
-  	.settings(
-  		name := "Clustering4Ever"
-  	)
-	.aggregate(core, clusteringScala, clusteringSpark)
+  	.settings(name := "Clustering4Ever")
 	.dependsOn(core, clusteringScala, clusteringSpark)
-	//.enablePlugins(ScalaUnidocPlugin)
+	.aggregate(core, clusteringScala, clusteringSpark)

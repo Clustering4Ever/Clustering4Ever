@@ -1,102 +1,82 @@
 package clustering4ever.scala.clustering.kmodes
 
-import scala.collection.{immutable, mutable, GenSeq}
+import org.apache.commons.math3.distribution.EnumeratedDistribution
+import org.apache.commons.math3.util.Pair
+import scala.collection.JavaConverters._
+import scala.collection.{immutable, mutable, GenSeq, parallel}
+import scala.math.pow
+import scala.reflect.ClassTag
 import scala.util.Random
 import clustering4ever.math.distances.BinaryDistance
 import clustering4ever.math.distances.binary.Hamming
 import clustering4ever.util.SumArrays
-import clustering4ever.clustering.datasetstype.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.scala.clusterizables.BinaryClusterizable
+import clustering4ever.scala.clustering.KCommonsVectors
 
-class KModes[ID: Numeric, Obj](
-	data: GenSeq[BinaryClusterizable[ID, Obj]],
-	var k: Int,
+class KModes[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
+	data: GenSeq[BinaryClusterizable[ID, Obj, V]],
+	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: BinaryDistance[Seq[Int]]
-) extends ClusteringAlgorithms[ID, Seq[Int]]
+	metric: BinaryDistance[V] = new Hamming[V],
+	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+) extends KCommonsVectors[ID, Int, V, BinaryDistance[V], BinaryClusterizable[ID, Obj, V]](data, metric, k, initializedCenters)
 {
-	val realDS = data.map(_.vector)
-	val dim = realDS.head.size
-
-	def run(): KModesModel =
+	/**
+	 * Run the K-Means
+	 */
+	def run(): KModesModel[ID, V, Obj] =
 	{
-		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, Seq.fill(dim)(Random.nextInt(2))) ):_*)
-		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
-
-		/**
-		 * Return the nearest mode for a specific point
-		 **/
-		def obtainNearestCenterID(v: Seq[Int]): ClusterID = centers.minBy{ case (clusterID, mod) => metric.d(mod, v) }._1
-
-		/**
-		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
-		 **/
-		def obtainMedoid(gs: GenSeq[Seq[Int]]): Seq[Int] = gs.map( v1 => (v1, gs.map( v2 => metric.d(v1, v2) ).sum / gs.size) ).minBy(_._2)._1
-
-		/**
-		 * Check if there are empty centers and remove them
-		 **/
-		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, Seq[Int]]) =
-		{
-			// Check if there are empty centers and remove them
-			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
-			centers --= emptyCenterIDs
-			kCentersBeforeUpdate --= emptyCenterIDs
-		}
-
-		val zeroMod = Seq.fill(dim)(0)
 		var cpt = 0
-		var allModsHaveConverged = false
-		while( cpt < maxIter && ! allModsHaveConverged )
+		var allCentersHaveConverged = false
+		/**
+		 * Run the K-Modes with Hamming metric
+		 */
+		def runHamming(): KModesModel[ID, V, Obj] =
 		{
-			// Allocation to modes
-			val clusterized = realDS.map( v => (v, obtainNearestCenterID(v)) )
-
-			val kCentersBeforeUpdate = centers.clone
-
-			// Reinitialization of modes
-			centers.foreach{ case (clusterID, mod) => centers(clusterID) = zeroMod }
-			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
-
-			if( metric.isInstanceOf[Hamming] )
+			while( cpt < maxIter && ! allCentersHaveConverged )
 			{
-				// Updatating Modes
-				clusterized.foreach{ case (v, clusterID) =>
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
 				{
-					centers(clusterID) = SumArrays.sumArraysNumerics[Int](centers(clusterID), v)
-					centersCardinality(clusterID) += 1
+					centers(clusterID) = SumArrays.obtainMode(aggregate.map(_._1)).asInstanceOf[V]
+					centersCardinality(clusterID) += aggregate.size
 				}}
-				removeEmptyClusters(kCentersBeforeUpdate)
-				// Update center vector
-				centers.foreach{ case (clusterID, mod) => centers(clusterID) = mod.map( v => if( v * 2 >= centersCardinality(clusterID) ) 1 else 0 ) }
+				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
+				cpt += 1
 			}
-			else
-			{	
-				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
-				{
-					val cluster = aggregates.map{ case (vector, _) => vector }
-					val mode = obtainMedoid(cluster)
-					centers(clusterID) = mode
-					centersCardinality(clusterID) += 1
-				}}
-				removeEmptyClusters(kCentersBeforeUpdate)
-			}
-			allModsHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
-			cpt += 1
+			new KModesModel[ID, V, Obj](centers, metric)
 		}
-		new KModesModel(centers, metric)
-	}
+
+		def runCustom(): KModesModel[ID, V, Obj] =
+		{
+			while( cpt < maxIter && ! allCentersHaveConverged )
+			{
+
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				updateCentersAndCardinalitiesCustom(clusterized, centers, centersCardinality)
+				cpt += 1
+			}
+			new KModesModel[ID, V, Obj](centers, metric)
+		}
 	
+		if( metric.isInstanceOf[Hamming[V]] ) runHamming() else runCustom()
+	}
 }
 
 object KModes
 {
-
-	def run[ID: Numeric, Obj](data: GenSeq[BinaryClusterizable[ID, Obj]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance[Seq[Int]]): KModesModel =
+	def run[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
+		data: GenSeq[BinaryClusterizable[ID, Obj, V]],
+		k: Int,
+		epsilon: Double,
+		maxIter: Int,
+		metric: BinaryDistance[V] = new Hamming[V],
+		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+	): KModesModel[ID, V, Obj] =
 	{
-		val kmodes = new KModes[ID, Obj](data, k, epsilon, maxIter, metric)
+		val kmodes = new KModes[ID, Obj, V](data, k, epsilon, maxIter, metric, initializedCenters)
 		val kModesModel = kmodes.run()
 		kModesModel
 	}

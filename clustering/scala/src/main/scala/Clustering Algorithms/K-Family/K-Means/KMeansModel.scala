@@ -1,11 +1,13 @@
 package clustering4ever.scala.clustering.kmeans
 
-import scala.collection.{mutable, immutable}
+import scala.collection.{mutable, immutable, GenSeq}
 import clustering4ever.clustering.CommonPredictClusteringModel
-import clustering4ever.math.distances.ContinuousDistances
-import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.math.distances.{ContinuousDistance, Distance}
+import clustering4ever.scala.clusterizables.RealClusterizable
+import scala.reflect.ClassTag
+import clustering4ever.scala.clustering.KCommonsModel
 
 /**
  * @author Beck Gaël
- **/
-class KMeansModel(centers: mutable.HashMap[Int, Seq[Double]], metric: ContinuousDistances) extends CommonPredictClusteringModel[Seq[Double]](centers, metric)
+ */
+final class KMeansModel[ID: Numeric, Obj, V <: Seq[Double] : ClassTag, Rc <: RealClusterizable[ID, Obj, V], D <: ContinuousDistance[V]](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModel[ID, V, D, Rc](centers, metric)

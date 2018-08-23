@@ -1,13 +1,12 @@
 package clustering4ever.spark.indexes
 
 import scala.math.max
-import scala.collection.immutable.{HashMap, Map}
 import scala.collection.{mutable, immutable}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.ContinuousDistances
-import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.math.distances.ContinuousDistance
+import clustering4ever.clustering.ClusteringCommons
 import clustering4ever.util.SumArrays
 import clustering4ever.scala.indexes.InternalIndexesDBCommons
 
@@ -15,9 +14,9 @@ import clustering4ever.scala.indexes.InternalIndexesDBCommons
  * @author Beck Gaël
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */
-class InternalIndexes extends DataSetsTypes[Int, immutable.Seq[Double]]
+class InternalIndexes extends ClusteringCommons
 {
-  private def internalDaviesBouldinIndex(sc: SparkContext, data: RDD[(Int, Vector)], clusterLabels: Seq[Int], metric: ContinuousDistances = new Euclidean(true)) =
+  private def daviesBouldinIndex(sc: SparkContext, data: RDD[(Int, Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)) =
   {
     if( clusterLabels.size == 1 )
     {
@@ -26,15 +25,15 @@ class InternalIndexes extends DataSetsTypes[Int, immutable.Seq[Double]]
     }
     else
     {
-      val neutralElement = mutable.ArrayBuffer.empty[Vector]
-      def addToBuffer(buff: mutable.ArrayBuffer[Vector], elem: Vector) = buff += elem
-      def aggregateBuff(buff1: mutable.ArrayBuffer[Vector], buff2: mutable.ArrayBuffer[Vector]) = buff1 ++= buff2
+      val neutralElement = mutable.ArrayBuffer.empty[Seq[Double]]
+      def addToBuffer(buff: mutable.ArrayBuffer[Seq[Double]], elem: Seq[Double]) = buff += elem
+      def aggregateBuff(buff1: mutable.ArrayBuffer[Seq[Double]], buff2: mutable.ArrayBuffer[Seq[Double]]) = buff1 ++= buff2
       val neutralElement2 = mutable.ArrayBuffer.empty[Double]
       def addToBuffer2(buff: mutable.ArrayBuffer[Double], elem: Double) = buff += elem
       def aggregateBuff2(buff1: mutable.ArrayBuffer[Double], buff2: mutable.ArrayBuffer[Double]) = buff1 ++= buff2
 
       val clusters = data.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).collect
-      val centers = clusters.map{ case (k, v) => (k, SumArrays.obtainMean(immutable.Seq(v:_*))) }
+      val centers = clusters.map{ case (k, v) => (k, SumArrays.obtainMean(Seq(v:_*))) }
       val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, InternalIndexesDBCommons.scatter(v, centers(idCLust)._2, metric)) }
       val clustersWithCenterandScatters = (centers.map{ case (id, ar) => (id, (Some(ar), None)) } ++ scatters.map{ case (id, v) => (id, (None, Some(v))) })
         .par
@@ -55,11 +54,11 @@ class InternalIndexes extends DataSetsTypes[Int, immutable.Seq[Double]]
     }
   }
 
-  private def internalBallHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistances = new Euclidean(true)): Double =
+  private def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
   {
-    val neutralElement = mutable.ArrayBuffer.empty[immutable.Seq[Double]]
-    def addToBuffer(buff: mutable.ArrayBuffer[immutable.Seq[Double]], elem: immutable.Seq[Double]) = buff += elem
-    def aggregateBuff(buff1: mutable.ArrayBuffer[immutable.Seq[Double]], buff2: mutable.ArrayBuffer[immutable.Seq[Double]]) = buff1 ++= buff2
+    val neutralElement = mutable.ArrayBuffer.empty[Seq[Double]]
+    def addToBuffer(buff: mutable.ArrayBuffer[Seq[Double]], elem: Seq[Double]) = buff += elem
+    def aggregateBuff(buff1: mutable.ArrayBuffer[Seq[Double]], buff2: mutable.ArrayBuffer[Seq[Double]]) = buff1 ++= buff2
 
     val clusters = clusterized.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).cache
 
@@ -73,26 +72,26 @@ class InternalIndexes extends DataSetsTypes[Int, immutable.Seq[Double]]
   }
 }
 
-object InternalIndexes extends DataSetsTypes[Int, immutable.Seq[Double]]
+object InternalIndexes extends ClusteringCommons
 {
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    **/
-  def daviesBouldinIndexWithLabels(sc: SparkContext, clusterized: RDD[(ClusterID, Vector)], clusterLabels: Seq[Int], metric: ContinuousDistances = new Euclidean(true)): Double =
-    (new InternalIndexes).internalDaviesBouldinIndex(sc, clusterized, clusterLabels, metric)
+  def daviesBouldinIndexWithLabels(sc: SparkContext, clusterized: RDD[(ClusterID, Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
+    (new InternalIndexes).daviesBouldinIndex(sc, clusterized, clusterLabels, metric)
 
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    **/
-  def daviesBouldinIndex(sc: SparkContext, clusterized: RDD[(ClusterID, Vector)], metric: ContinuousDistances = new Euclidean(true)): Double =
+  def daviesBouldinIndex(sc: SparkContext, clusterized: RDD[(ClusterID, Seq[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
   {
     val clusterLabels = clusterized.map(_._1).distinct.collect
     daviesBouldinIndexWithLabels(sc, clusterized, clusterLabels, metric)
   }
 
-  def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistances = new Euclidean(true)): Double =
-    (new InternalIndexes).internalBallHallIndex(clusterized, metric)
+  def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
+    (new InternalIndexes).ballHallIndex(clusterized, metric)
 
 }

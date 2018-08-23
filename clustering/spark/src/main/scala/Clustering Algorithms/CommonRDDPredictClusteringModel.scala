@@ -7,17 +7,17 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-abstract class CommonRDDPredictClusteringModel[T](centers: mutable.HashMap[Int, T], metric: Distance[T]) extends CommonPredictClusteringModel(centers, metric)
+trait CommonRDDPredictClusteringModel[V, D <: Distance[V]] extends CommonPredictClusteringModel[V, D]
 {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input RDD with labels obtain via centerPredict method
 	 **/
-	def centerPredict(data: RDD[T]): RDD[(ClusterID, T)] = data.map( v => (centerPredict(v), v) )
+	def centerPredict(data: RDD[V]): RDD[(ClusterID, V)] = data.map( v => (centerPredict(v), v) )
 
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input RDD with labels obtain via knnPredict method
 	 **/
-	def knnPredict(data: RDD[T], k: Int, trainDS: immutable.Seq[(ClusterID, T)]): RDD[(ClusterID, T)] = data.map( v => (knnPredict(v, k, trainDS), v) )
+	def knnPredict(data: RDD[V], k: Int, trainDS: Seq[(ClusterID, V)]): RDD[(ClusterID, V)] = data.map( v => (knnPredict(v, k, trainDS), v) )
 }

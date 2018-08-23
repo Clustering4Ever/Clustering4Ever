@@ -1,5 +1,6 @@
 package clustering4ever.scala.vectorizables
 
+import clustering4ever.scala.measurableclass.BinaryScalarVector
 import scala.collection.immutable
 
 trait Vectorizable[Vector] extends Serializable
@@ -15,16 +16,15 @@ abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Optio
 		else vectorizableFct.get(obj)
 	}
 }
-class VectorizableG[@specialized(Int, Double) T, Obj](obj: Obj, vectorizableFct: Option[Obj => immutable.Vector[T]] = None) extends VectorizableObj[Obj, immutable.Vector[T]](obj, vectorizableFct)
 
-class VectorizableM[Obj](obj: Obj, vectorizableFct: Option[Obj => (Seq[Int], Seq[Double])] = None) extends VectorizableObj[Obj, (Seq[Int], Seq[Double])](obj, vectorizableFct)
+class MixtVectorizable[Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class MixtVector(obj: (immutable.Vector[Int], immutable.Vector[Double])) extends VectorizableM[(immutable.Vector[Int], immutable.Vector[Double])](obj)
+class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](obj: V) extends MixtVectorizable[V, Vb, Vs, V](obj)
 
-class RealVectorizable[Obj](obj: Obj, vectorizableFct: Option[Obj => Seq[Double]] = None) extends VectorizableObj[Obj, Seq[Double]](obj, vectorizableFct)
+class RealVectorizable[Obj, V <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class RealVector(vector: Seq[Double]) extends RealVectorizable[Seq[Double]](vector)
+class RealVector[V <: Seq[Double]](vector: V) extends RealVectorizable[V, V](vector)
 
-class BinaryVectorizable[Obj](obj: Obj, vectorizableFct: Option[Obj => Seq[Int]] = None) extends VectorizableObj[Obj, Seq[Int]](obj)
+class BinaryVectorizable[Obj, V <: Seq[Int]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class BinaryVector(vector: Seq[Int]) extends BinaryVectorizable[Seq[Int]](vector)
+class BinaryVector[V <: Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector)

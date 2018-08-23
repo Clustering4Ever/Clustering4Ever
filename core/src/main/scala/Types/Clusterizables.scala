@@ -1,134 +1,175 @@
 package clustering4ever.scala.clusterizables
 
-import clustering4ever.scala.vectorizables.{Vectorizable, VectorizableG, VectorizableM, RealVectorizable, BinaryVectorizable}
-import clustering4ever.util.LSH
+import clustering4ever.scala.vectorizables.{Vectorizable, MixtVectorizable, RealVectorizable, BinaryVectorizable}
+import clustering4ever.scala.measurableclass.BinaryScalarVector
 import scala.collection.immutable
 
-abstract class Clusterizable[ID: Numeric, Vector](val id: ID, val vectorizable: Vectorizable[Vector]) extends Serializable
+abstract class Clusterizable[ID: Numeric, Vector](final val id: ID, val vectorizable: Vectorizable[Vector]) extends Serializable
 {
-	lazy val vector: Vector = vectorizable.toVector
+	final lazy val vector: Vector = vectorizable.toVector
 }
 
-/**
- * Generic clusterizable for both Vectors of Int or Double 
- **/
-case class ClusterizableG[ID: Numeric, Obj, @specialized(Int, Double) T](override val id: ID, override val vectorizable: VectorizableG[T, Obj]) extends Clusterizable[ID, immutable.Vector[T]](id, vectorizable)
+abstract class ClusterizableExt[ID: Numeric, Vector](
+	id: ID, 
+	vectorizable: Vectorizable[Vector],
+	var v2: Vector,
+	var clusterID: Int = Int.MaxValue
+) extends Clusterizable[ID, Vector](id, vectorizable)
 {
-	@transient lazy val vectorSeq = vector.toSeq
+	def setV2(newV2: Vector): this.type
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[ClusterizableG[ID, Obj, T]]
+	def setClusterID(newCID: Int): this.type
+}
 
-	override def equals(that: Any): Boolean =
-	{
-		that match
-		{
-		  case that: ClusterizableG[ID, Obj, T] => that.canEqual(this) && that.hashCode == this.hashCode
-		  case _ => false
-		}
-	}
-  
+abstract class ClusterizableExtVectors[ID: Numeric, T: Numeric, Vector <: Seq[T]](
+	id: ID, 
+	vectorizable: Vectorizable[Vector],
+	v2: Vector,
+	clusterID: Int = Int.MaxValue
+) extends ClusterizableExt[ID, Vector](id, vectorizable, v2, clusterID)
+{
+	@transient lazy val v1Seq = vector.toSeq
+	@transient lazy val v2Seq = v2.toSeq
+
 	override def hashCode(): Int =
 	{
 		val prime = 31
 		var result = 1
-		result = prime * result + vectorSeq.hashCode
+		result = prime * result + v1Seq.hashCode
+		result = prime * result + v2Seq.hashCode
+		result = prime * result + clusterID.hashCode
 		result = prime * result + id.hashCode
 		result
 	}
+}
 
-	def copy() = new ClusterizableG[ID, Obj, T](id, vectorizable)
+abstract class ClusterizableExtMixt[ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Double], Vectors <: BinaryScalarVector[Vb, Vs]](
+	id: ID, 
+	vectorizable: Vectorizable[Vectors],
+	v2: Vectors,
+	clusterID: Int = Int.MaxValue
+) extends ClusterizableExt[ID, Vectors](id, vectorizable, v2, clusterID)
+{
+	@transient lazy val binarySeq = vector.binary
+	@transient lazy val scalarSeq = vector.scalar
+
+	override def hashCode(): Int =
+	{
+		val prime = 31
+		var result = 1
+		result = prime * result + binarySeq.hashCode
+		result = prime * result + scalarSeq.hashCode
+		result = prime * result + v2.hashCode
+		result = prime * result + clusterID.hashCode
+		result = prime * result + id.hashCode
+		result
+	}
 }
 
 /**
  * Generic clusterizable for both Mixt Vectors => (Vector[Int], Vector[Double]) 
  **/
-case class ClusterizableM[ID: Numeric, Obj](override val id: ID, override val vectorizable: VectorizableM[Obj]) extends Clusterizable[ID, (Seq[Int], Seq[Double])](id, vectorizable)
+case class MixtClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](
+	idTmp: ID,
+	vectorizableTmp: MixtVectorizable[Obj, Vb, Vs, V],
+	v2Tmp: V = null.asInstanceOf[V],
+	clusterIDTmp: Int = Int.MaxValue
+) extends ClusterizableExtMixt[ID, Vb, Vs, V](idTmp, vectorizableTmp, v2Tmp, clusterIDTmp)
 {
+	def setV2(newV2: V): this.type =
+	{
+		v2 = newV2
+		this
+	}
 
-	@transient lazy val vectorSeq = (vector._1.toSeq, vector._2.toSeq)
+	def setClusterID(newCID: Int): this.type =
+	{
+		clusterID = newCID
+		this
+	}
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[ClusterizableM[ID, Obj]]
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[MixtClusterizable[ID, Obj, Vb, Vs, V]]
 
 	override def equals(that: Any): Boolean =
 	{
 		that match
 		{
-		  case that: ClusterizableM[ID, Obj] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: MixtClusterizable[ID, Obj, Vb, Vs, V] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
-  
-	override def hashCode(): Int =
-	{
-		val prime = 31
-		var result = 1
-		result = prime * result + vectorSeq._1.hashCode
-		result = prime * result + vectorSeq._2.hashCode
-		result = prime * result + id.hashCode
-		result
-	}
 
-	def copy() = new ClusterizableM[ID, Obj](id, vectorizable)
+	def copy() = new MixtClusterizable[ID, Obj, Vb, Vs, V](id, vectorizable.asInstanceOf[MixtVectorizable[Obj, Vb, Vs, V]])
 }
 
 /**
  * Clusterizable for Vector[Double] 
  **/
-case class RealClusterizable[ID: Numeric, Obj](override val id: ID, override val vectorizable: RealVectorizable[Obj], var v2: Option[Seq[Double]] = None) extends Clusterizable[ID, Seq[Double]](id, vectorizable)
+case class RealClusterizable[ID: Numeric, Obj, V <: Seq[Double]](
+	idTmp: ID,
+	vectorizableTmp: RealVectorizable[Obj, V],
+	v2Tmp: V = Seq.empty[Double].asInstanceOf[V],
+	clusterIDTmp: Int = Int.MaxValue
+) extends ClusterizableExtVectors[ID, Double, V](idTmp, vectorizableTmp, v2Tmp, clusterIDTmp)
 {
-	@transient lazy val vectorSeq = vector.toSeq
-	@transient lazy val vector2Seq = if( v2.isDefined ) v2.get.toSeq else Seq.empty[Double]
+	def setV2(newV2: V): this.type =
+	{
+		v2 = newV2
+		this
+	}
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[RealClusterizable[ID, Obj]]
+	def setClusterID(newCID: Int): this.type =
+	{
+		clusterID = newCID
+		this
+	}
+
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[RealClusterizable[ID, Obj, V]]
 
 	override def equals(that: Any): Boolean =
 	{
 		that match
 		{
-		  case that: RealClusterizable[ID, Obj] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: RealClusterizable[ID, Obj, V] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
   
-	override def hashCode(): Int =
-	{
-		val prime = 31
-		var result = 1
-		result = prime * result + vectorSeq.hashCode
-		result = prime * result + vector2Seq.hashCode
-		result = prime * result + id.hashCode
-		result
-	}
-
-	def copy() = new RealClusterizable[ID, Obj](id, vectorizable)
+	def copy() = new RealClusterizable[ID, Obj, V](id, vectorizable.asInstanceOf[RealVectorizable[Obj, V]], v2, clusterID)
 }
 
 /**
  * Clusterizable for Vector[Int] 
  **/
-case class BinaryClusterizable[ID: Numeric, Obj](override val id: ID, override val vectorizable: BinaryVectorizable[Obj]) extends Clusterizable[ID, Seq[Int]](id, vectorizable)
+case class BinaryClusterizable[ID: Numeric, Obj, V <: Seq[Int]](
+	idTmp: ID,
+	vectorizableTmp: BinaryVectorizable[Obj, V],
+	v2Tmp: V = Seq.empty[Int].asInstanceOf[V],
+	clusterIDTmp: Int = Int.MaxValue
+) extends ClusterizableExtVectors[ID, Int, V](idTmp, vectorizableTmp, v2Tmp, clusterIDTmp)
 {
-	@transient lazy val vectorSeq = vector.toSeq
+	def setV2(newV2: V): this.type =
+	{
+		v2 = newV2
+		this
+	}
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[BinaryClusterizable[ID, Obj]]
+	def setClusterID(newCID: Int): this.type =
+	{
+		clusterID = newCID
+		this
+	}
+
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[BinaryClusterizable[ID, Obj, V]]
 
 	override def equals(that: Any): Boolean =
 	{
 		that match
 		{
-		  case that: BinaryClusterizable[ID, Obj] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: BinaryClusterizable[ID, Obj, V] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
-  
-	override def hashCode(): Int =
-	{
-		val prime = 31
-		var result = 1
-		result = prime * result + vectorSeq.hashCode
-		result = prime * result + id.hashCode
-		result
-	}
 
-	def copy() = new BinaryClusterizable[ID, Obj](id, vectorizable)
+	def copy() = new BinaryClusterizable[ID, Obj, V](id, vectorizable.asInstanceOf[BinaryVectorizable[Obj, V]], v2, clusterID)
 }

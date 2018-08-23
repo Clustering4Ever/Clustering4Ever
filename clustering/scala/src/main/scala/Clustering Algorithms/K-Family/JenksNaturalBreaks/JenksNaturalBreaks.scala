@@ -1,31 +1,34 @@
 package clustering4ever.scala.clustering
 
 import scala.collection.{mutable, GenSeq}
+import scala.collection.parallel.mutable.ParArray
 
+/**
+ * @author Beck Gaël
+ */
 object JenksNaturalBreaks
 {
   /**
-   * @author Beck Gaël
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
-   * Return breaks position in the sorted array
-   * @param sortedValues : a sorted array
-   * @param nbCatPlusOne : number of breaks user desire
+   * Return breaks position in the sorted GenSeq
+   * @param sortedValues : a sorted GenSeq
+   * @param desiredNumberCategories : number of breaks user desire
    * @return Indexes of breaks in sortedValues sequence
    *
-   **/
-  def jenksBrks[T](sortedValues: GenSeq[T], nbCatPlusOne: Int)(implicit num: Numeric[T]) =
+   */
+  def jenksBrks[T](sortedValues: GenSeq[T], desiredNumberCategories: Int)(implicit num: Numeric[T]) =
   {
-    val nbCat = nbCatPlusOne - 1
+    val nbCat = desiredNumberCategories - 1
     val nbValues = sortedValues.size
     var value = 0D
     var v = 0D
     var i3 = 0
     var i4 = 0
 
-    val matrixIter = (0 until nbValues).toArray
-    val matrixIter2 = (0 until nbCat).toArray
-    val mat1 = for( i <- matrixIter ) yield for( j <- matrixIter2 ) yield 1D
-    val mat2 = for( i <- matrixIter ) yield for( j <- matrixIter2 ) yield Double.MaxValue
+    val preMat1 = ParArray.fill(nbCat)(1D)
+    val preMat2 = ParArray.fill(nbCat)(Double.MaxValue)
+    val mat1 = ParArray.fill(nbValues)(preMat1)
+    val mat2 = ParArray.fill(nbValues)(preMat2)
     
     for( l <- 2 to nbValues)
     {
@@ -62,23 +65,22 @@ object JenksNaturalBreaks
 
     kclass(nbCat - 1) = nbValues
 
-    def update(j: Int, kkclass: (Int, Array[Double])) =
+    def update(j: Int, k: Int, kclass: Array[Double]) =
     {
-      val k = kkclass._1
-      val kclass = kkclass._2
       val id = (mat1(k - 1)(j - 1)).toInt - 1
       kclass(j - 2) = id
       (id, kclass)      
     }
 
     @annotation.tailrec
-    def go(n: Int, kkclass: (Int, Array[Double])): (Int, Array[Double]) =
+    def go(n: Int, k: Int, kclass: Array[Double]): (Int, Array[Double]) =
     {
-      if( n > 2 ) go(n - 1, update(n, kkclass))
-      else update(n, kkclass)
+      val (kUpdt, kclassUpdt) = update(n, k, kclass)
+      if( n > 2 ) go(n - 1, kUpdt, kclassUpdt)
+      else (kUpdt, kclassUpdt)
     }
 
-    val (_, kclass2) = go(nbCat, (nbValues, kclass))
+    val (_, kclass2) = go(nbCat, nbValues, kclass)
 
     val res = mutable.ArrayBuffer.empty[T]
     res += sortedValues.head

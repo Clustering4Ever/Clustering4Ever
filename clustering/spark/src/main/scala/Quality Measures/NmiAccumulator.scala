@@ -15,15 +15,13 @@ case class NmiAccumulator(initialValue: Array[Array[Double]], x: Int, y: Int) ex
 
   def reset: Unit = nmiAccumulator = Array.fill(x)(Array.fill(y)(0D))
 
-  def add(m1: NmiAccumulatorType): Unit =
-    nmiAccumulator = m1.zip(nmiAccumulator).map{ case (v1, v2) => for( i <- v1.indices.toArray ) yield v1(i) + v2(i) }
+  def add(m1: NmiAccumulatorType): Unit = nmiAccumulator = m1.zip(nmiAccumulator).map{ case (v1, v2) => for( i <- v1.indices.toArray ) yield v1(i) + v2(i) }
 
   def copy: AccumulatorV2[NmiAccumulatorType, NmiAccumulatorType] = NmiAccumulator(value, x, y)
 
   def merge(otherAccum: AccumulatorV2[NmiAccumulatorType, NmiAccumulatorType]): Unit = add(otherAccum.value)
  
-  def addOne(x: Int, y: Int): Unit =
-    nmiAccumulator(x)(y) += 1D
+  def addOne(x: Int, y: Int): Unit = nmiAccumulator(x)(y) += 1D
 
   def set(newInitialValue: NmiAccumulatorType) = nmiAccumulator = newInitialValue
 }

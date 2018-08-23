@@ -11,7 +11,8 @@ import org.apache.spark.broadcast.Broadcast
 import clustering4ever.scala.clustering.kmeans.KMeans
 import clustering4ever.util.SumArrays
 import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.util.GenerateDatasets
+import clustering4ever.util.GenerateClusterizable
+import clustering4ever.scala.clusterizables.RealClusterizable
 
 class Clusterwise(
 	@(transient @param) sc: SparkContext,
@@ -58,10 +59,8 @@ class Clusterwise(
 	  		val sdY = preSDY.map( v => sqrt(v / (n - 1)))
   			Some((meanX, meanY, sdX, sdY))
   		}
-  		else
-  		{
-  			None
-  		}
+  		else None
+
   		// Center Reduct
   		val centerReductRDD = if( standardized )
   		{
@@ -80,8 +79,8 @@ class Clusterwise(
 
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 )
 		{
-	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateDatasets.obtainSimpleRealClusterizable(id, x ++ y) }
-	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean(true))
+	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateClusterizable.obtainSimpleRealClusterizable[Int, Seq[Double]](id, x ++ y) }
+	  	  	val kmeansModel = KMeans.run[Int, Seq[Double], Seq[Double], RealClusterizable[Int, Seq[Double], Seq[Double]], Euclidean[Seq[Double]]](kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[Seq[Double]](squareRoot = true))
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
 	  	  	val microClusterNumbers = kmeansModel.centers.size
 	  	  	val clusterizedData = centerReductRDD.map{ case (id, (x, y)) => (id, unregularClusterIdsByStandardClusterIDs(kmeansModel.centerPredict(x ++ y))) }.seq
@@ -173,7 +172,8 @@ class Clusterwise(
 			/* 										Test the model on testing set 									*/
 			/********************************************************************************************************/
 			val trainedData = labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }
-			val clusterwiseModel = new ClusterwiseModel(trainedData, modelByCluster, standardizationParameters)
+			val metric = new Euclidean[Seq[Double]]
+			val clusterwiseModel = new ClusterwiseModel(trainedData, modelByCluster, standardizationParameters, metric)
 			clusterwiseModels += clusterwiseModel
 
 			val testY = splits(idxCV)

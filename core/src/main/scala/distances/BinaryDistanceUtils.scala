@@ -1,6 +1,6 @@
 package clustering4ever.math.distances
 
-import scala.collection.immutable
+import scala.collection.{immutable, GenSeq}
 import clustering4ever.util.SumArrays
 
 /**
@@ -25,28 +25,29 @@ object BinaryDistanceUtil
 		{
 			if( vector1(n) == oneByte )
 			{
-			if( vector2(n) == oneByte ) (a + 1, b, c, d)
-			else (a, b + 1, c, d)
+				if( vector2(n) == oneByte ) (a + 1, b, c, d)
+				else (a, b + 1, c, d)
 			}
 			else if( vector2(n) == zeroByte ) (a, b, c, d + 1)
 			else (a, b, c + 1, d)
 		}
 
 		@annotation.tailrec
-		def go(n: Int, abcd: (Int, Int, Int, Int)): (Int, Int, Int, Int) =
+		def go(n: Int, a: Int, b: Int, c: Int, d: Int): (Int, Int, Int, Int) =
 		{
-			if( n < vector1.size - 1 ) go(n + 1, incrementValues(n, abcd._1, abcd._2, abcd._3, abcd._4))
-			else incrementValues(n, abcd._1, abcd._2, abcd._3, abcd._4)
+			val (a2, b2, c2, d2) = incrementValues(n, a, b, c, d)
+			if( n < vector1.size - 1 ) go(n + 1, a2, b2, c2, d2)
+			else (a2, b2, c2, d2)
 		}
 
-		go(0, (0, 0, 0, 0))
+		go(0, 0, 0, 0, 0)
 	}
 
 	/**
 	 * Count number of occurence for each binary features
 	 * @return Array[(numberOf0, numberOf1)]
 	 **/
-	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] =
+	def countOccFeat(data: GenSeq[Seq[Int]]): Seq[(Int, Int)] =
 	{
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumArrays.sumArraysNumerics[Int](_, _))
@@ -54,7 +55,7 @@ object BinaryDistanceUtil
 		nbZero.zip(nbOne)
 	}
 
-	def genProb2Feat(nbOccFeatTab: Seq[(Int, Int)], nbTotData: Int): Seq[(Double, Double)] =
+	def genProb2Feat(nbOccFeatTab: GenSeq[(Int, Int)], nbTotData: Int): GenSeq[(Double, Double)] =
 	{
 		nbOccFeatTab.map{ case (zero, one) =>
 		{

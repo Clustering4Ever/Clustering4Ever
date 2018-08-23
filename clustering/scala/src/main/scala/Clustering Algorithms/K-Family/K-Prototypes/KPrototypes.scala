@@ -1,16 +1,19 @@
 package clustering4ever.scala.clustering.kprotoypes
 
-import scala.math.{min, max}
+import org.apache.commons.math3.distribution.EnumeratedDistribution
+import org.apache.commons.math3.util.Pair
+import scala.collection.JavaConverters._
+import scala.math.{min, max, pow}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
-import clustering4ever.clustering.datasetstype.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.util.SumArrays
 import clustering4ever.math.distances.{MixtDistance, MixtDistanceClusterizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.stats.Stats
-import clustering4ever.scala.clusterizables.ClusterizableM
+import clustering4ever.scala.clusterizables.MixtClusterizable
+import clustering4ever.scala.clustering.KCommonsMixt
 
 /**
  * @author Beck Gaël
@@ -19,118 +22,53 @@ import clustering4ever.scala.clusterizables.ClusterizableM
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
- * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
+ * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
  **/
-class KPrototypes[ID: Numeric, Obj](
-	data: GenSeq[ClusterizableM[ID, Obj]],
-	var k: Int,
+class KPrototypes[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](
+	data: GenSeq[MixtClusterizable[ID, Obj, Vb, Vs, V]],
+	k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
-	var metric: MixtDistance
-) extends ClusteringAlgorithms[ID, BinaryScalarVector]
+	metric: MixtDistance[Vb, Vs, V] = new HammingAndEuclidean[Vb, Vs, V],
+	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+) extends KCommonsMixt[ID, Vb, Vs, V, MixtDistance[Vb, Vs, V], MixtClusterizable[ID, Obj, Vb, Vs, V]](data, metric, k, initializedCenters)
 {
-	val mixtDS = data.map{ clusterizable =>
-	{
-		val (binaryV, realV) = clusterizable.vector
-		new BinaryScalarVector(binaryV, realV)
-	}}
-	val dimBinary = mixtDS.head.scalar.size
-	val dimScalar = mixtDS.head.binary.size
 	/**
-	 * Simplest centroids initializations
-	 * We search range for each dimension and take a random value between each range for scalar data and take a random {0, 1} for binary data
+	 * Run the K-Protypes
 	 **/
-	def initializationCenters(): mutable.HashMap[Int, BinaryScalarVector] =
+	def run(): KPrototypesModel[ID, Vb, Vs, Obj, V] =
 	{
-		val vectorRange = (0 until dimScalar).toVector
-		val numberClustersRange = (0 until k).toSeq
-
-		val binaryModes = numberClustersRange.map( clusterID => (clusterID, Vector.fill(dimBinary)(Random.nextInt(2))) )
-
-		val (minv, maxv) = mixtDS.map( v =>
-		{
-			val vector = v.scalar.toVector
-			(vector, vector)
-		}).reduce( (minMaxa, minMaxb) =>
-		{
-			val minAndMax = for( i <- vectorRange ) yield Stats.obtainIthMinMax(i, minMaxa, minMaxb)
-			minAndMax.unzip
-		})
-
-		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val scalarCenters = numberClustersRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
-		
-		mutable.HashMap(binaryModes.zip(scalarCenters).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
-	}
-
-	/**
-	 * Run the K-Means
-	 **/
-	def run(): KPrototypesModel =
-	{
-		val centers = initializationCenters()
-		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
-
-		def obtainNearestModID(v: BinaryScalarVector): ClusterID = centers.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
-
-		/**
-		 * Check if there are empty centers and remove them
-		 **/
-		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, BinaryScalarVector]) =
-		{
-			// Check if there are empty centers and remove them
-			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
-			centers --= emptyCenterIDs
-			kCentersBeforeUpdate --= emptyCenterIDs
-		}
-
-
-		val zeroMode = new BinaryScalarVector(Vector.fill(dimBinary)(0), Vector.fill(dimScalar)(0D))
 		var cpt = 0
 		var allCentersHaveConverged = false
-		while( cpt < iterMax && ! allCentersHaveConverged )
+
+		def runHammingAndEuclidean(): KPrototypesModel[ID, Vb, Vs, Obj, V] =
 		{
-			// Allocation to nearest centroid
-			val clusterized = mixtDS.map( v => (v, obtainNearestModID(v)) )
-
-			val kCentersBeforeUpdate = centers.clone
-
-			// Reinitialization of centers
-			centers.foreach{ case (clusterID, mode) => centers(clusterID) = zeroMode }
-			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
-
-			if( metric.isInstanceOf[HammingAndEuclidean] )
+			while( cpt < iterMax && ! allCentersHaveConverged )
 			{
-				// Updatating Modes
-				clusterized.foreach{ case (v, clusterID) =>
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
 				{
-					centers(clusterID) =
-					{
-						new BinaryScalarVector(
-							SumArrays.sumArraysNumerics[Int](centers(clusterID).binary, v.binary),
-							SumArrays.sumArraysNumerics[Double](centers(clusterID).scalar, v.scalar)
-						)
-					}
-					centersCardinality(clusterID) += 1
+					centers(clusterID) = new BinaryScalarVector[Vb, Vs](SumArrays.obtainModeGen[Vb](aggregate.map(_._1.binary)), SumArrays.obtainMeanGen[Vs](aggregate.map(_._1.scalar))).asInstanceOf[V]
+					centersCardinality(clusterID) += aggregate.size
 				}}
-				// Update center vector
-				centers.foreach{ case (clusterID, mode) => centers(clusterID) =
-				{
-					new BinaryScalarVector(
-						mode.binary.map( v => if( v * 2 > centersCardinality(clusterID) ) 1 else 0 ),
-						mode.scalar.map(_ / centersCardinality(clusterID))
-					)
-				}}
-				removeEmptyClusters(kCentersBeforeUpdate)
+				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
+				cpt += 1
 			}
-			else
-			{
-				println("We have a bit of time before thinking of mixt data with custom distances")
-			}
-			allCentersHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
-			cpt += 1
+			new KPrototypesModel[ID, Vb, Vs, Obj, V](centers, metric)
 		}
-		new KPrototypesModel(centers, metric)
+		def runCustom(): KPrototypesModel[ID, Vb, Vs, Obj, V] =
+		{
+			while( cpt < iterMax && ! allCentersHaveConverged )
+			{
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				updateCentersAndCardinalitiesCustom(clusterized, centers, centersCardinality)
+				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
+				cpt += 1
+			}
+			new KPrototypesModel[ID, Vb, Vs, Obj, V](centers, metric)
+		}
+	
+		if( metric.isInstanceOf[HammingAndEuclidean[Vb, Vs, V]] ) runHammingAndEuclidean() else runCustom()
 	}
 }
 
@@ -139,9 +77,10 @@ object KPrototypes
 	/**
 	 * Run the K-Protypes
 	 **/
-	def run[ID: Numeric, Obj](data: GenSeq[ClusterizableM[ID, Obj]], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance): KPrototypesModel =
+	def run[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](data: GenSeq[MixtClusterizable[ID, Obj, Vb, Vs, V]], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance[Vb, Vs, V], initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+): KPrototypesModel[ID, Vb, Vs, Obj, V] =
 	{
-		val kPrototypes = new KPrototypes(data, k, epsilon, iterMax, metric)
+		val kPrototypes = new KPrototypes[ID, Obj, Vb, Vs, V](data, k, epsilon, iterMax, metric)
 		val kPrototypesModel = kPrototypes.run()
 		kPrototypesModel
 	}

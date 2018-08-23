@@ -12,9 +12,8 @@ import clustering4ever.math.distances.BinaryDistance
 import clustering4ever.math.distances.binary.Hamming
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.util.SumArrays
-import clustering4ever.spark.clustering.accumulators.{CentroidsBinaryAccumulator, CardinalitiesAccumulator}
-import clustering4ever.clustering.datasetstype.DataSetsTypes
 import clustering4ever.scala.clusterizables.BinaryClusterizable
+import clustering4ever.spark.clustering.KCommonsSpark
 
 /**
  * @author Beck Gaël
@@ -25,22 +24,22 @@ import clustering4ever.scala.clusterizables.BinaryClusterizable
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding BinaryDistance distance function
  **/
-class KModes[ID: Numeric, Obj <: Serializable](
+class KModes[ID: Numeric, Obj](
 	@transient val sc: SparkContext,
-	data: RDD[BinaryClusterizable[ID, Obj]],
-	var k: Int,
+	data: RDD[BinaryClusterizable[ID, Obj, Seq[Int]]],
+	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: BinaryDistance[Seq[Int]],
-	val initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]],
-	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends ClusteringAlgorithms[ID, Seq[Int]]
+	metric: BinaryDistance[Seq[Int]],
+	initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]],
+	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+) extends KCommonsSpark[ID, Int, Seq[Int], BinaryDistance[Seq[Int]], BinaryClusterizable[ID, Obj, Seq[Int]]](data, metric, k, initializedCenters, persistanceLVL)
 {
-	val binaryDS = data.map(_.vector).persist(persistanceLVL)
-
 	type CentersMap = mutable.HashMap[Int, Seq[Int]]
 
-	def obtainNearestModID(v: Seq[Int], kModesCenters: CentersMap): Int = kModesCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
+	private[this] val binaryDS = data.map(_.vector.toSeq).persist(persistanceLVL)
+
+	private[this] def obtainNearestModeID(v: Seq[Int], kModesCenters: CentersMap): Int = kModesCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
 
 	def run(): KModesModel =
 	{
@@ -52,9 +51,9 @@ class KModes[ID: Numeric, Obj <: Serializable](
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			if( metric.isInstanceOf[Hamming] )
+			if( metric.isInstanceOf[Hamming[Seq[Int]]] )
 			{
-				val info = binaryDS.map( v => (obtainNearestModID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics[Int](v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
+				val info = binaryDS.map( v => (obtainNearestModeID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics[Int](v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
 
 				info.foreach{ case (clusterID, mode, cardinality) =>
 				{
@@ -75,9 +74,9 @@ class KModes[ID: Numeric, Obj <: Serializable](
 
 object KModes
 {
-	def run[ID: Numeric, Obj <: Serializable](
+	def run[ID: Numeric, Obj](
 		@(transient @param) sc: SparkContext,
-		data: RDD[BinaryClusterizable[ID, Obj]],
+		data: RDD[BinaryClusterizable[ID, Obj, Seq[Int]]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,

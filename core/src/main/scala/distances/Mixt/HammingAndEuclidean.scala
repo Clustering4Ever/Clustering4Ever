@@ -4,20 +4,20 @@ import scala.math.{pow, sqrt}
 import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.math.distances.MixtDistanceClusterizable
-import clustering4ever.scala.clusterizables.ClusterizableM
+import clustering4ever.scala.clusterizables.MixtClusterizable
+import scala.collection.immutable
 
 /**
  * @author Beck Gaël
  **/
-class HammingAndEuclidean(α: Double = 0D) extends MixtDistance
+trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable
 {
-	/**
-	  * The famous hamming distance implemented in its fast mono thread scala version
-	  */
-	override def d(vector1: BinaryScalarVector, vector2: BinaryScalarVector): Double = 
+	protected val α: Double
+
+	protected def hammingAndEuclidean(vector1: V, vector2: V): Double =
 	{
 		val db = vector1.binary.zip(vector2.binary).map{ case (a, b) => a ^ b }.sum		
-		val ds = vector1.scalar.zip(vector2.scalar).map{ case (a, b) => pow(a - b, 2) }.sum
+		val ds = sqrt(vector1.scalar.zip(vector2.scalar).map{ case (a, b) => pow(a - b, 2) }.sum)
 		
 		if( α == 0 )
 		{
@@ -26,25 +26,21 @@ class HammingAndEuclidean(α: Double = 0D) extends MixtDistance
 		}
 		else db + α * ds
 	}
+}
+
+class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V]
+{
+	/**
+	 *	
+	 */
+	override def d(vector1: V, vector2: V): Double = hammingAndEuclidean(vector1, vector2)
 	
 }
 
-class HammingAndEuclideanClusterizable[ID: Numeric, Obj](α: Double = 0D) extends MixtDistanceClusterizable[ID, Obj]
+class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V]
 {
 	/**
-	  * The famous hamming distance implemented in its fast mono thread scala version
-	  */
-	override def d(vector1: ClusterizableM[ID, Obj], vector2: ClusterizableM[ID, Obj]): Double = 
-	{		
-		val db = vector1.vector._1.zip(vector2.vector._1).map{ case (a, b) => a ^ b }.sum		
-		val ds = vector1.vector._2.zip(vector2.vector._2).map{ case (a, b) => pow(a - b, 2) }.sum
-
-		if( α == 0 )
-		{
-			val nbDim = vector1.vector._1.size + vector1.vector._2.size
-			db * (vector1.vector._1.size.toDouble / nbDim) + ds * (vector1.vector._2.size.toDouble / nbDim) 
-		}
-		else db + α * ds
-	}
-	
+	 *	
+	 */
+	override def d(vector1: MixtClusterizable[ID, Obj, Vb, Vs, V], vector2: MixtClusterizable[ID, Obj, Vb, Vs, V]): Double = hammingAndEuclidean(vector1.vector, vector2.vector)
 }

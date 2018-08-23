@@ -1,16 +1,20 @@
 package clustering4ever.scala.clustering.kmeans
 
-import scala.math.{min, max}
+import org.apache.commons.math3.distribution.EnumeratedDistribution
+import org.apache.commons.math3.util.Pair
+import scala.collection.JavaConverters._
+import scala.math.{min, max, pow}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
-import clustering4ever.clustering.datasetstype.DataSetsTypes
-import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.math.distances.ContinuousDistances
-import clustering4ever.math.distances.scalar.Euclidean
+import scala.reflect.ClassTag
+import clustering4ever.math.distances.{ContinuousDistance, Distance}
+import clustering4ever.math.distances.scalar.{Euclidean, FastEuclidean}
 import clustering4ever.util.SumArrays
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable
+import clustering4ever.scala.clustering.KCommonsVectors
+
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
@@ -18,115 +22,76 @@ import clustering4ever.scala.vectorizables.RealVectorizable
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
- * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
- **/
-class KMeans[ID: Numeric, Obj](
-	val data: GenSeq[RealClusterizable[ID, Obj]],
-	var k: Int,
+ * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
+ */
+class KMeans[ID: Numeric, Obj, V <: Seq[Double] : ClassTag, Rc <: RealClusterizable[ID, Obj, V], D <: ContinuousDistance[V]](
+	data: GenSeq[Rc],
+	k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
-	var metric: ContinuousDistances = new Euclidean(true),
-	var initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]]
-) extends ClusteringAlgorithms[ID, Seq[Double]]
+	metric: D = new FastEuclidean(squareRoot = true),
+	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+) extends KCommonsVectors[ID, Double, V, D, Rc](data, metric, k, initializedCenters)
 {
-	val realDS = data.map(_.vector)
-	val dim = realDS.head.size
-
-	/**
-	 * Simplest centers initializations
-	 * We search range for each dimension and take a random value between each range 
-	 **/
-	def initializationCenters() =
-	{
-		val (minv, maxv) = Stats.obtainMinAndMax(realDS)
-		val ranges = Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
-		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
-		centers
-	}
-
 	/**
 	 * Run the K-Means
-	 **/
-	def run(): KMeansModel =
+	 */
+	def run(): KMeansModel[ID, Obj, V, Rc, D] =
 	{
-		val centers: mutable.HashMap[Int, Seq[Double]] = if( initializedCenters.isEmpty ) initializationCenters() else initializedCenters
-		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
-
-		def obtainNearestCenterID(v: Seq[Double]): ClusterID = centers.minBy{ case (clusterID, center) => metric.d(center, v) }._1
-
-		/**
-		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
-		 **/
-		def obtainMedoid(gs: GenSeq[Seq[Double]]): Seq[Double] = gs.map( v1 => (v1, gs.map( v2 => metric.d(v1, v2) ).sum / gs.size) ).minBy(_._2)._1
-
-		/**
-		 * Check if there are empty centers and remove them
-		 **/
-		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, Seq[Double]]) =
-		{
-			val emptyCenterIDs = centersCardinality.filter(_._2 == 0).map(_._1)
-			centers --= emptyCenterIDs
-			kCentersBeforeUpdate --= emptyCenterIDs
-		}
-
-		val zeroCenter = Seq.fill(dim)(0D)
 		var cpt = 0
 		var allCentersHaveConverged = false
-		while( cpt < iterMax && ! allCentersHaveConverged )
+		/**
+		 * Run the K-Means with Euclidean metric
+		 */
+		def runEuclidean(): KMeansModel[ID, Obj, V, Rc, D] =
 		{
-			// Allocation to nearest centroid
-			val clusterized = realDS.map( v => (v, obtainNearestCenterID(v)) )
-			val kCentersBeforeUpdate = centers.clone
-			// Reinitialization of centers
-			centers.foreach{ case (clusterID, center) => centers(clusterID) = zeroCenter }
-			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
-
-			if( metric.isInstanceOf[Euclidean] )
+			while( cpt < iterMax && ! allCentersHaveConverged )
 			{
-				// Updatating Center
-				clusterized.foreach{ case (v, clusterID) =>
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
 				{
-					centers(clusterID) = SumArrays.sumArraysNumerics[Double](centers(clusterID), v)
-					centersCardinality(clusterID) += 1
+					centers(clusterID) = SumArrays.obtainMean(aggregate.map(_._1)).asInstanceOf[V]
+					centersCardinality(clusterID) += aggregate.size
 				}}
-				removeEmptyClusters(kCentersBeforeUpdate)
-				// Update center vector
-				centers.foreach{ case (clusterID, center) => centers(clusterID) = center.map(_ / centersCardinality(clusterID)) }
+				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
+				cpt += 1
 			}
-			else
-			{
-				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregates) =>
-				{
-					val cluster = aggregates.map{ case (vector, _) => vector }
-					val centroid = obtainMedoid(cluster)
-					centers(clusterID) = centroid
-					centersCardinality(clusterID) += 1
-				}}
-				removeEmptyClusters(kCentersBeforeUpdate)
-			}
-
-			allCentersHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
-			cpt += 1
+			new KMeansModel[ID, Obj, V, Rc, D](centers, metric)
 		}
-		new KMeansModel(centers, metric)
+		/**
+		 * Run the K-Means with Custom metric
+		 */
+		def runCustom(): KMeansModel[ID, Obj, V, Rc, D] =
+		{
+			while( cpt < iterMax && ! allCentersHaveConverged )
+			{
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				updateCentersAndCardinalitiesCustom(clusterized, centers, centersCardinality)
+				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
+				cpt += 1
+			}
+			new KMeansModel[ID, Obj, V, Rc, D](centers, metric)
+		}
+
+		if( metric.isInstanceOf[Euclidean[V]] ) runEuclidean() else runCustom()
 	}
 }
 
 object KMeans
 {
 	/**
-	 * Run the K-Means
-	 **/
-	def run[ID: Numeric, Obj](
-		data: GenSeq[RealClusterizable[ID, Obj]],
+	 * Run the K-Means with Euclidean distance
+	 */
+	def run[ID: Numeric, Obj, V <: Seq[Double] : ClassTag, Rc <: RealClusterizable[ID, Obj, V], D <: ContinuousDistance[V]](
+		data: GenSeq[Rc],
 		k: Int,
 		epsilon: Double,
 		iterMax: Int,
-		metric: ContinuousDistances,
-		initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]]
-		): KMeansModel =
+		metric: D = new FastEuclidean(squareRoot = true)
+		): KMeansModel[ID, Obj, V, Rc, D] =
 	{
-		val kMeans = new KMeans[ID, Obj](data, k, epsilon, iterMax, metric, initializedCenters)
+		val initializedCenters = mutable.HashMap.empty[Int, V]
+		val kMeans = new KMeans[ID, Obj, V, Rc, D](data, k, epsilon, iterMax, metric, initializedCenters)
 		val kmeansModel = kMeans.run()
 		kmeansModel
 	}

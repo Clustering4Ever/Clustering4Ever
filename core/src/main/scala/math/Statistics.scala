@@ -4,7 +4,7 @@ import scala.math.{sqrt, pow, min, max}
 import scala.collection.{mutable, immutable, GenSeq}
 import clustering4ever.util.SumArrays
 import clustering4ever.scala.kernels.Kernels
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringCommons
 
@@ -12,26 +12,17 @@ object Stats extends ClusteringCommons
 {
 	type Mean = immutable.Vector[Double]
 	type SD = Double
-	/**
-	 * Reduce a matrix into a vector where each component is the sum of its associate column 
-	 **/
-	def reduceColumns(vectors: immutable.Seq[immutable.Vector[Double]]) =
-		vectors.reduce( (a, b) => for( i <- a.indices.toVector ) yield a(i) + b(i) )
-	/**
-	 * Compute the mean of multiple vectors
-	 **/
-	def mean(vectors: immutable.Seq[immutable.Vector[Double]]): Mean =
-		reduceColumns(vectors).map(_ / vectors.size)
+
 	/**
 	 * Compute the standard deviation between vectors and a mean
 	 **/
-	def sd(vectors: immutable.Seq[immutable.Vector[Double]], mean: immutable.Vector[Double]): SD =
+	def sd(vectors: Seq[immutable.Vector[Double]], mean: immutable.Vector[Double]): SD =
 	{
 		sqrt(
 			vectors.map( v =>
 			{
 				var sum = 0D
-				for( i <- v.indices ) sum += pow(v(i) - mean(i), 2)
+				v.indices.foreach( i => sum += pow(v(i) - mean(i), 2) )
 				sum
 			}).sum / (vectors.size - 1)
 		)
@@ -47,7 +38,7 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax(data: GenSeq[Seq[Double]]) =
+	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]) =
 	{
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toVector
@@ -60,7 +51,7 @@ object Stats extends ClusteringCommons
 		(minValues, maxValues)
 	}
 
-	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistances = new Euclidean(true)) =
+	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true)) =
 	{
 		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }
 

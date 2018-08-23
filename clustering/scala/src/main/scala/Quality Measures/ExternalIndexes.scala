@@ -11,7 +11,7 @@ import clustering4ever.scala.indexes.NmiNormalizationNature._
  */
 class ExternalIndexes
 {
-	private def mutualInformationInternal(x: GenSeq[Int], y: GenSeq[Int]) =
+	def mutualInformationInternal(x: GenSeq[Int], y: GenSeq[Int]) =
 	{
 		require( x.size == y.size )
 		val n = x.size
@@ -82,7 +82,7 @@ object ExternalIndexes
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 */
-	def prepareList(x: GenSeq[Int]) =
+	def prepareLabels(x: GenSeq[Int]) =
 	{
 		val indexedValuesMap = x.distinct.zipWithIndex.toMap.seq
 		(indexedValuesMap, x.map(indexedValuesMap))

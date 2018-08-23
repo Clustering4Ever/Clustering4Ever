@@ -2,7 +2,7 @@ package clustering4ever.math.distances
 
 import scala.collection.immutable
 import clustering4ever.scala.measurableclass.BinaryScalarVector
-import clustering4ever.scala.clusterizables.ClusterizableM
+import clustering4ever.scala.clusterizables.MixtClusterizable
 
 /**
  * @author Beck Gaël
@@ -13,32 +13,21 @@ trait Distance[T] extends Serializable
 	def d(obj1: T, obj2: T): Double
 }
 
-trait ContinuousDistances extends Distance[Seq[Double]]
+trait ClusterizableDistance[T, V, D <: Distance[V]] extends Distance[T]
 {
-	def d(vector1: Seq[Double], vector2: Seq[Double]): Double
+	def obtainClassicalDistance(): D
 }
 
-trait BinaryDistance[T <: Seq[Int]] extends Distance[T]
-{
-	def d(vector1: T, vector2: T): Double
-}
+trait RealClusterizableDistance[T, V <: Seq[Double]] extends ClusterizableDistance[T, V, ContinuousDistance[V]]
 
-trait BinaryDistanceSeq extends BinaryDistance[Seq[Int]]
-{
-	def d(vector1: Seq[Int], vector2: Seq[Int]): Double
-}
+trait BinaryClusterizableDistance[T, V <: Seq[Int]] extends ClusterizableDistance[T, V, BinaryDistance[V]]
 
-trait BinaryDistanceVector extends BinaryDistance[immutable.Vector[Int]]
-{
-	def d(vector1: immutable.Vector[Int], vector2: immutable.Vector[Int]): Double
-}
+trait MixtClusterizableDistance[T, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends ClusterizableDistance[T, V, MixtDistance[Vb, Vs, V]]
 
-trait MixtDistance extends Distance[BinaryScalarVector]
-{
-	def d(vector1: BinaryScalarVector, vector2: BinaryScalarVector): Double
-}
+trait ContinuousDistance[V <: Seq[Double]] extends Distance[V]
 
-trait MixtDistanceClusterizable[ID, Obj] extends Distance[ClusterizableM[ID, Obj]]
-{
-	def d(vector1: ClusterizableM[ID, Obj], vector2: ClusterizableM[ID, Obj]): Double
-}
+trait BinaryDistance[V <: Seq[Int]] extends Distance[V]
+
+trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Distance[V]
+
+trait MixtDistanceClusterizable[ID, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Distance[MixtClusterizable[ID, Obj, Vb, Vs, V]]
