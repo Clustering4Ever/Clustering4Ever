@@ -10,4 +10,4 @@ import clustering4ever.clustering.CommonPredictClusteringModel
 /**
  * @author Beck Gaël
  **/
-class KPrototypesModel(centers: mutable.HashMap[Int, BinaryScalarVector], metric: MixtDistance) extends CommonPredictClusteringModel[BinaryScalarVector](centers, metric)
+class KPrototypesModel(val centers: mutable.HashMap[Int, BinaryScalarVector], val metric: MixtDistance) extends CommonPredictClusteringModel[BinaryScalarVector]

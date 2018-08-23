@@ -4,7 +4,7 @@ import org.apache.spark.rdd.RDD
 import breeze.linalg.{DenseMatrix, DenseVector}
 import scala.collection.immutable
 import scala.collection.parallel.ParSeq
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringModel
 
@@ -12,7 +12,7 @@ class ClusterwiseModel(
 	val xyTrain: Seq[(Int, (Seq[Double], Seq[Double], Int))],
 	val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.Vector[(Int, immutable.Vector[Double])])],
 	standardizationParameters: Option[(Seq[Double], Seq[Double], Seq[Double], Seq[Double])] = None,
-	metric: ContinuousDistances = new Euclidean(true)
+	metric: ContinuousDistance = new Euclidean(true)
 ) extends ClusteringModel
 {
 	type Xvector = Seq[Double]

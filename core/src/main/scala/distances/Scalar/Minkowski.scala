@@ -1,6 +1,6 @@
 package clustering4ever.math.distances.scalar
 
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import scala.math.pow
 import scala.util.Try
 import scala.collection.immutable
@@ -8,7 +8,7 @@ import scala.collection.immutable
 /**
  * @author Beck Gaël
  **/
-class Minkowski(p: Int) extends ContinuousDistances
+class Minkowski(p: Int) extends ContinuousDistance
 {
 	/**
 	  * The famous Minkowski distance implemented

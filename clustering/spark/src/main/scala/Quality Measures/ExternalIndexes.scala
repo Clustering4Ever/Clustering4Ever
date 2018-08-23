@@ -16,7 +16,7 @@ import clustering4ever.util.ClusteringIndexesCommons
  */
 class ExternalIndexes
 {
-	private def mutualInformationInternal(@(transient @param) sc: SparkContext, trueAndPredict: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) =
+	def mutualInformationInternal(@(transient @param) sc: SparkContext, trueAndPredict: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) =
 	{
 		trueAndPredict.persist(persistanceLVL)
 

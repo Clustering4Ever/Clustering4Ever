@@ -4,7 +4,7 @@ import scala.math.{sqrt, pow, min, max}
 import scala.collection.{mutable, immutable, GenSeq}
 import clustering4ever.util.SumArrays
 import clustering4ever.scala.kernels.Kernels
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringCommons
 
@@ -47,7 +47,7 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax(data: GenSeq[Seq[Double]]) =
+	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]) =
 	{
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toVector
@@ -60,7 +60,7 @@ object Stats extends ClusteringCommons
 		(minValues, maxValues)
 	}
 
-	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistances = new Euclidean(true)) =
+	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistance = new Euclidean(true)) =
 	{
 		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }
 

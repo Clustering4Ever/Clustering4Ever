@@ -1,6 +1,10 @@
 package clustering4ever.scala.clustering.kmodes
 
-import scala.collection.{immutable, mutable, GenSeq}
+import org.apache.commons.math3.distribution.EnumeratedDistribution
+import org.apache.commons.math3.util.Pair
+import scala.collection.JavaConverters._
+import scala.collection.{immutable, mutable, GenSeq, parallel}
+import scala.math.pow
 import scala.util.Random
 import clustering4ever.math.distances.BinaryDistance
 import clustering4ever.math.distances.binary.Hamming
@@ -8,36 +12,45 @@ import clustering4ever.util.SumArrays
 import clustering4ever.clustering.datasetstype.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.scala.clusterizables.BinaryClusterizable
+import clustering4ever.scala.clustering.KppInitialization
 
 class KModes[ID: Numeric, Obj](
 	data: GenSeq[BinaryClusterizable[ID, Obj]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: BinaryDistance[Seq[Int]]
-) extends ClusteringAlgorithms[ID, Seq[Int]]
+	var metric: BinaryDistance[Seq[Int]],
+	var initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]]
+) extends ClusteringAlgorithms[ID]
 {
-	val realDS = data.map(_.vector)
-	val dim = realDS.head.size
+	private[this] val binaryDS = data.map(_.vector.toSeq).par
+	private[this] val dim = binaryDS.head.size
 
+	/**
+	 * Simplest centers initialization which generate random binary vectors 
+	 */
+	def naiveInitialization() = mutable.HashMap((0 until k).map( clusterID => (clusterID, Seq.fill(dim)(Random.nextInt(2))) ):_*) 
+	
 	def run(): KModesModel =
 	{
-		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, Seq.fill(dim)(Random.nextInt(2))) ):_*)
+
+
+		val centers = if( initializedCenters.isEmpty ) KppInitialization.kmppInitialization[Int, Seq[Int], parallel.ParSeq[Seq[Int]]](binaryDS, k, metric) else initializedCenters
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		/**
 		 * Return the nearest mode for a specific point
-		 **/
-		def obtainNearestCenterID(v: Seq[Int]): ClusterID = centers.minBy{ case (clusterID, mod) => metric.d(mod, v) }._1
+		 */
+		def obtainNearestCenterID(v: Seq[Int]): ClusterID = centers.minBy{ case (clusterID, mode) => metric.d(mode, v) }._1
 
 		/**
 		 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
-		 **/
-		def obtainMedoid(gs: GenSeq[Seq[Int]]): Seq[Int] = gs.map( v1 => (v1, gs.map( v2 => metric.d(v1, v2) ).sum / gs.size) ).minBy(_._2)._1
+		 */
+		def obtainMedoid(gs: GenSeq[Seq[Int]]): Seq[Int] = gs.minBy( v1 => gs.map( v2 => metric.d(v1, v2) ).sum )
 
 		/**
 		 * Check if there are empty centers and remove them
-		 **/
+		 */
 		def removeEmptyClusters(kCentersBeforeUpdate: mutable.HashMap[Int, Seq[Int]]) =
 		{
 			// Check if there are empty centers and remove them
@@ -52,25 +65,23 @@ class KModes[ID: Numeric, Obj](
 		while( cpt < maxIter && ! allModsHaveConverged )
 		{
 			// Allocation to modes
-			val clusterized = realDS.map( v => (v, obtainNearestCenterID(v)) )
+			val clusterized = binaryDS.map( v => (v, obtainNearestCenterID(v)) )
 
 			val kCentersBeforeUpdate = centers.clone
 
 			// Reinitialization of modes
-			centers.foreach{ case (clusterID, mod) => centers(clusterID) = zeroMod }
+			centers.foreach{ case (clusterID, mode) => centers(clusterID) = zeroMod }
 			centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
 
 			if( metric.isInstanceOf[Hamming] )
 			{
-				// Updatating Modes
-				clusterized.foreach{ case (v, clusterID) =>
+				// Update Modes and Cardinalities
+				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
 				{
-					centers(clusterID) = SumArrays.sumArraysNumerics[Int](centers(clusterID), v)
-					centersCardinality(clusterID) += 1
+					centers(clusterID) = SumArrays.obtainMode(aggregate.map(_._1))
+					centersCardinality(clusterID) += aggregate.size
 				}}
 				removeEmptyClusters(kCentersBeforeUpdate)
-				// Update center vector
-				centers.foreach{ case (clusterID, mod) => centers(clusterID) = mod.map( v => if( v * 2 >= centersCardinality(clusterID) ) 1 else 0 ) }
 			}
 			else
 			{	
@@ -94,9 +105,16 @@ class KModes[ID: Numeric, Obj](
 object KModes
 {
 
-	def run[ID: Numeric, Obj](data: GenSeq[BinaryClusterizable[ID, Obj]], k: Int, epsilon: Double, maxIter: Int, metric: BinaryDistance[Seq[Int]]): KModesModel =
+	def run[ID: Numeric, Obj](
+		data: GenSeq[BinaryClusterizable[ID, Obj]],
+		k: Int,
+		epsilon: Double,
+		maxIter: Int,
+		metric: BinaryDistance[Seq[Int]],
+		initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]]
+	): KModesModel =
 	{
-		val kmodes = new KModes[ID, Obj](data, k, epsilon, maxIter, metric)
+		val kmodes = new KModes[ID, Obj](data, k, epsilon, maxIter, metric, initializedCenters)
 		val kModesModel = kmodes.run()
 		kModesModel
 	}

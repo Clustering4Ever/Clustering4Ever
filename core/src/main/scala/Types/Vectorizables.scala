@@ -1,7 +1,5 @@
 package clustering4ever.scala.vectorizables
 
-import scala.collection.immutable
-
 trait Vectorizable[Vector] extends Serializable
 {
 	def toVector(): Vector
@@ -15,15 +13,15 @@ abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Optio
 		else vectorizableFct.get(obj)
 	}
 }
-class VectorizableG[@specialized(Int, Double) T, Obj](obj: Obj, vectorizableFct: Option[Obj => immutable.Vector[T]] = None) extends VectorizableObj[Obj, immutable.Vector[T]](obj, vectorizableFct)
+class VectorizableG[@specialized(Int, Double) T, Obj](obj: Obj, vectorizableFct: Option[Obj => Seq[T]] = None) extends VectorizableObj[Obj, Seq[T]](obj, vectorizableFct)
 
 class VectorizableM[Obj](obj: Obj, vectorizableFct: Option[Obj => (Seq[Int], Seq[Double])] = None) extends VectorizableObj[Obj, (Seq[Int], Seq[Double])](obj, vectorizableFct)
 
-class MixtVector(obj: (immutable.Vector[Int], immutable.Vector[Double])) extends VectorizableM[(immutable.Vector[Int], immutable.Vector[Double])](obj)
+class MixtVector(obj: (Seq[Int], Seq[Double])) extends VectorizableM[(Seq[Int], Seq[Double])](obj)
 
-class RealVectorizable[Obj](obj: Obj, vectorizableFct: Option[Obj => Seq[Double]] = None) extends VectorizableObj[Obj, Seq[Double]](obj, vectorizableFct)
+class RealVectorizable[Obj, S <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => S] = None) extends VectorizableObj[Obj, S](obj, vectorizableFct)
 
-class RealVector(vector: Seq[Double]) extends RealVectorizable[Seq[Double]](vector)
+class RealVector[S <: Seq[Double]](vector: S) extends RealVectorizable[S, S](vector)
 
 class BinaryVectorizable[Obj](obj: Obj, vectorizableFct: Option[Obj => Seq[Int]] = None) extends VectorizableObj[Obj, Seq[Int]](obj)
 

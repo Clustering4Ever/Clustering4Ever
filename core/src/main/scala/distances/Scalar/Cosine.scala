@@ -1,13 +1,13 @@
 package clustering4ever.math.distances.scalar
 
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import scala.math.{pow, sqrt}
 import scala.collection.immutable
 
 /**
  * @author Beck Gaël
  **/
-class Cosine extends ContinuousDistances
+class Cosine extends ContinuousDistance
 {
 
 	private def norm(dot1: Seq[Double]): Double =

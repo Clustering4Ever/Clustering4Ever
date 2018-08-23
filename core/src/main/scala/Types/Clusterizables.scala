@@ -1,8 +1,6 @@
 package clustering4ever.scala.clusterizables
 
 import clustering4ever.scala.vectorizables.{Vectorizable, VectorizableG, VectorizableM, RealVectorizable, BinaryVectorizable}
-import clustering4ever.util.LSH
-import scala.collection.immutable
 
 abstract class Clusterizable[ID: Numeric, Vector](val id: ID, val vectorizable: Vectorizable[Vector]) extends Serializable
 {
@@ -12,7 +10,7 @@ abstract class Clusterizable[ID: Numeric, Vector](val id: ID, val vectorizable: 
 /**
  * Generic clusterizable for both Vectors of Int or Double 
  **/
-case class ClusterizableG[ID: Numeric, Obj, @specialized(Int, Double) T](override val id: ID, override val vectorizable: VectorizableG[T, Obj]) extends Clusterizable[ID, immutable.Vector[T]](id, vectorizable)
+case class ClusterizableG[ID: Numeric, Obj, @specialized(Int, Double) T](override val id: ID, override val vectorizable: VectorizableG[T, Obj]) extends Clusterizable[ID, Seq[T]](id, vectorizable)
 {
 	@transient lazy val vectorSeq = vector.toSeq
 
@@ -74,18 +72,30 @@ case class ClusterizableM[ID: Numeric, Obj](override val id: ID, override val ve
 /**
  * Clusterizable for Vector[Double] 
  **/
-case class RealClusterizable[ID: Numeric, Obj](override val id: ID, override val vectorizable: RealVectorizable[Obj], var v2: Option[Seq[Double]] = None) extends Clusterizable[ID, Seq[Double]](id, vectorizable)
+case class RealClusterizable[ID: Numeric, Obj, S <: Seq[Double]](override val id: ID, override val vectorizable: RealVectorizable[Obj, S], var v2: S = Seq.empty[Double], var clusterID: Int = Int.MaxValue) extends Clusterizable[ID, S](id, vectorizable)
 {
 	@transient lazy val vectorSeq = vector.toSeq
-	@transient lazy val vector2Seq = if( v2.isDefined ) v2.get.toSeq else Seq.empty[Double]
+	@transient lazy val vector2Seq = v2.toSeq
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[RealClusterizable[ID, Obj]]
+	def setV2(newV2: S) =
+	{
+		v2 = newV2
+		this
+	}
+
+	def setClusterID(newCID: Int) =
+	{
+		clusterID = newCID
+		this
+	}
+
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[RealClusterizable[ID, Obj, S]]
 
 	override def equals(that: Any): Boolean =
 	{
 		that match
 		{
-		  case that: RealClusterizable[ID, Obj] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: RealClusterizable[ID, Obj, S] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
@@ -96,11 +106,12 @@ case class RealClusterizable[ID: Numeric, Obj](override val id: ID, override val
 		var result = 1
 		result = prime * result + vectorSeq.hashCode
 		result = prime * result + vector2Seq.hashCode
+		result = prime * result + clusterID.hashCode
 		result = prime * result + id.hashCode
 		result
 	}
 
-	def copy() = new RealClusterizable[ID, Obj](id, vectorizable)
+	def copy() = new RealClusterizable[ID, Obj, S](id, vectorizable, v2, clusterID)
 }
 
 /**

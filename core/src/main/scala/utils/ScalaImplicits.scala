@@ -5,13 +5,13 @@ import scala.collection.{immutable, GenSeq}
 
 object ScalaImplicits
 {
-	implicit def seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable[ID: Numeric](seq: GenSeq[(Seq[Double], ID)]): GenSeq[RealClusterizable[ID, Seq[Double]]] =
+	implicit def seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable[ID: Numeric](seq: GenSeq[(Seq[Double], ID)]): GenSeq[RealClusterizable[ID, Seq[Double], Seq[Double]]] =
 		seq.map{ case (vector, id) => GenerateDatasets.obtainSimpleRealClusterizable(id, vector) }
 
 	implicit def seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable[ID: Numeric](seq: GenSeq[(Seq[Int], ID)]): GenSeq[BinaryClusterizable[ID, Seq[Int]]] =
 		seq.map{ case (vector, id) => GenerateDatasets.obtainSimpleBinaryClusterizable(id, vector) }
 
-	implicit def realVectorSequenceToRealClusterizable(seq: GenSeq[Seq[Double]]): GenSeq[RealClusterizable[Int, Seq[Double]]] =
+	implicit def realVectorSequenceToRealClusterizable(seq: GenSeq[Seq[Double]]): GenSeq[RealClusterizable[Int, Seq[Double], Seq[Double]]] =
 		seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable(seq.zipWithIndex)
 
 	implicit def binaryVectorSequenceToBinaryClusterizable(seq: GenSeq[Seq[Int]]): GenSeq[BinaryClusterizable[Int, Seq[Int]]] =

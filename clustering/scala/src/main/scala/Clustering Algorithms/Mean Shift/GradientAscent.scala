@@ -6,7 +6,7 @@ import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
 import clustering4ever.clustering.datasetstype.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.SumArrays
 import clustering4ever.scala.kernels.Kernels
@@ -20,24 +20,20 @@ import clustering4ever.scala.vectorizables.RealVectorizable
  * Mean Shift gradient ascent
  * @param kernelType defines the nature of kernel usud in the gradient ascent
  */
-class GradientAscent[ID: Numeric, Obj](
+class GradientAscent[ID: Numeric, Obj, S <: Seq[Double]](
   var epsilon: Double,
   var maxIterations: Int,
-  metric: ContinuousDistances,
+  metric: ContinuousDistance,
   kernelType: KernelType,
   kernelArgs: immutable.Vector[String]
-) extends DataSetsTypes[ID, Seq[Double]]
+) extends DataSetsTypes[ID]
 {
-  def gradientAscent(readyToGA: GenSeq[RealClusterizable[ID, Obj]], maxIterations: Int) =
+  def gradientAscent(readyToGA: GenSeq[RealClusterizable[ID, Obj, S]], maxIterations: Int) =
   {
     val haveNotConverged = false
     val readyToGApar = readyToGA.par
     val kernelLocality = readyToGApar.map(_.vector)
-    var gradientAscentData: GenSeq[(RealClusterizable[ID, Obj], Boolean)] = readyToGApar.map( obj =>
-    {
-      obj.v2 = Some(obj.vector)
-      (obj, haveNotConverged)
-    })
+    var gradientAscentData: GenSeq[(RealClusterizable[ID, Obj, S], Boolean)] = readyToGApar.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
     lazy val kernelLocalitySeq = kernelType match
     {
       case KernelNature.EuclideanKNN => Some(kernelLocality.seq)
@@ -45,13 +41,13 @@ class GradientAscent[ID: Numeric, Obj](
       case _ => None
     }
 
-    def kernelGradientAscent(toExplore: GenSeq[(RealClusterizable[ID, Obj], Boolean)]) =
+    def kernelGradientAscent(toExplore: GenSeq[(RealClusterizable[ID, Obj, S], Boolean)]) =
     {
       var cptConvergedPoints = 0
       
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
       { 
-        val mode = obj.v2.get
+        val mode = obj.v2
         val newMode = if( haveConverged ) mode
         else
         {
@@ -73,8 +69,7 @@ class GradientAscent[ID: Numeric, Obj](
         }
         else false
 
-        obj.v2 = Some(newMode)
-        (obj, hasConverged)
+        (obj.setV2(newMode.asInstanceOf[S]), hasConverged)
       }}
 
       (convergingData, cptConvergedPoints)
@@ -95,7 +90,7 @@ class GradientAscent[ID: Numeric, Obj](
      */
     @deprecated
     @annotation.tailrec
-    def go(i: Int, data: GenSeq[(RealClusterizable[ID, Obj], Boolean)]): GenSeq[(RealClusterizable[ID, Obj], Boolean)] =
+    def go(i: Int, data: GenSeq[(RealClusterizable[ID, Obj, S], Boolean)]): GenSeq[(RealClusterizable[ID, Obj, S], Boolean)] =
     {
       val (gradientAscentData, cptConvergedPoints) = kernelGradientAscent(data)
       val everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
@@ -107,23 +102,23 @@ class GradientAscent[ID: Numeric, Obj](
   }
 }
 
-object GradientAscent extends DataSetsTypes[Int, Seq[Double]]
+object GradientAscent extends DataSetsTypes[Int]
 {
   /**
    * @param data : an RDD[(String, Seq)] where String is the ID and Seq the rest of data
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
    **/
-   def run[ID: Numeric, Obj](
-    data: GenSeq[RealClusterizable[ID, Obj]],
-    metric: ContinuousDistances,
+   def run[ID: Numeric, Obj, S <: Seq[Double]](
+    data: GenSeq[RealClusterizable[ID, Obj, S]],
+    metric: ContinuousDistance,
     epsilon: Double,
     maxIterations: Int,
     kernelType: KernelType,
     kernelArgs: immutable.Vector[String]
     ) =
   {
-    val meanShift = new GradientAscent[ID, Obj](epsilon, maxIterations, metric, kernelType, kernelArgs)
+    val meanShift = new GradientAscent[ID, Obj, S](epsilon, maxIterations, metric, kernelType, kernelArgs)
     meanShift.gradientAscent(data, maxIterations)
   }
 }

@@ -8,12 +8,22 @@ import clustering4ever.scala.clusterizables.ClusterizableM
  * @author Beck Gaël
  * Most general notion of Distance, taking two object of type T and returning a Double
  **/
-trait Distance[T] extends Serializable
+trait Distance[-T] extends Serializable
 {
 	def d(obj1: T, obj2: T): Double
 }
 
-trait ContinuousDistances extends Distance[Seq[Double]]
+trait ClusterizableDistance[T, U] extends Distance[T]
+{
+	def obtainClassicalDistance(): Distance[Seq[U]]
+}
+
+trait RealClusterizableDistance[T] extends ClusterizableDistance[T, Double]
+{
+	def obtainClassicalDistance(): ContinuousDistance
+}
+
+trait ContinuousDistance extends Distance[Seq[Double]]
 {
 	def d(vector1: Seq[Double], vector2: Seq[Double]): Double
 }
@@ -21,16 +31,6 @@ trait ContinuousDistances extends Distance[Seq[Double]]
 trait BinaryDistance[T <: Seq[Int]] extends Distance[T]
 {
 	def d(vector1: T, vector2: T): Double
-}
-
-trait BinaryDistanceSeq extends BinaryDistance[Seq[Int]]
-{
-	def d(vector1: Seq[Int], vector2: Seq[Int]): Double
-}
-
-trait BinaryDistanceVector extends BinaryDistance[immutable.Vector[Int]]
-{
-	def d(vector1: immutable.Vector[Int], vector2: immutable.Vector[Int]): Double
 }
 
 trait MixtDistance extends Distance[BinaryScalarVector]

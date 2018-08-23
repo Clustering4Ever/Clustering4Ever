@@ -15,25 +15,25 @@ class ClusterwiseCore(
 {
 	val rangeOverClasses = (0 until g).toSeq
 
-	def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) =
+	private[this] def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) =
 	{
 	  	inputX(clusterID).remove( inputX(clusterID).size - 1 )	
 	  	inputY(clusterID).remove( inputY(clusterID).size - 1 )
 	}
 
-	def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: immutable.Vector[Int]) =
+	private[this] def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: immutable.Vector[Int]) =
 	{
 		if( currClass == 0 ) elemNb
 		else elemNb - classlimits( currClass - 1 ) - 1
 	}
 
-	def removeFirstElemXY(clusterID: Int, xDS: IDXDS, yDS: YDS) =
+	private[this] def removeFirstElemXY(clusterID: Int, xDS: IDXDS, yDS: YDS) =
 	{
 		xDS(clusterID).remove(0)
 		yDS(clusterID).remove(0)
 	}
 
-	def prepareMovingPoint(classedDS: ClassedDS, xDS: IDXDS, yDS: YDS, g: Int, elemNb: Int, currClass: Int, classlimits: immutable.Vector[Int]) =
+	private[this] def prepareMovingPoint(classedDS: ClassedDS, xDS: IDXDS, yDS: YDS, g: Int, elemNb: Int, currClass: Int, classlimits: immutable.Vector[Int]) =
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, classlimits)
 		val (elemToReplaceID, (elemToReplaceX, elemToReplaceY, _)) = classedDS(currClass)._2(posInClass)
@@ -48,7 +48,7 @@ class ClusterwiseCore(
 		})
 	}
 
-	def prepareMovingPointByGroup(
+	private[this] def prepareMovingPointByGroup(
 		classedDS: ClassedDSperGrp,
 		xDS: IDXDS,
 		yDS: YDS,
@@ -73,7 +73,7 @@ class ClusterwiseCore(
 	}
 
 
-	def elseCaseWhenComputingError(errorsIndexes: Seq[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) =
+	private[this] def elseCaseWhenComputingError(errorsIndexes: Seq[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) =
 	{
 		var b = true
 		errorsIndexes.map{ case ((err1, err2), idx) =>

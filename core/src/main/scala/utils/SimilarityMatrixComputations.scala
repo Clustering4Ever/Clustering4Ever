@@ -2,7 +2,7 @@ package clustering4ever.util
 
 import scala.collection.{mutable, immutable, GenSeq}
 import clustering4ever.math.distances.Distance
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 
 object SimilarityMatrix

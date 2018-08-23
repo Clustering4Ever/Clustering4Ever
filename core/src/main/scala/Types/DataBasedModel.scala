@@ -2,15 +2,18 @@ package clustering4ever.scala.clustering
 
 import clustering4ever.clustering.ClusteringModel
 import clustering4ever.math.distances.Distance
-import scala.collection.GenSeq
+import scala.collection.{GenSeq, mutable}
 
 /**
  * @author Beck Gaël
  **/
-class DataBasedModel[Obj, ID](val data: Seq[(Int, (ID, Obj))], metric: Distance[Obj]) extends ClusteringModel
+class DataBasedModel[Obj, ID](val data: mutable.HashMap[Int, mutable.HashSet[(ID, Obj)]], metric: Distance[Obj]) extends ClusteringModel
 {
+
+	lazy val dataAsSeq = data.toSeq.flatMap{ case (clusterID, values) => values.map{ case (id, vector) => (clusterID, (id, vector)) } }
+
 	def knnPredict(obj: Obj, k: Int): Int =
-		data.sortBy{ case (_, (_, obj2)) => metric.d(obj, obj2) }.take(k).map(_._1).groupBy(identity).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.maxBy(_._2)._1
+		dataAsSeq.sortBy{ case (_, (_, obj2)) => metric.d(obj, obj2) }.take(k).map(_._1).groupBy(identity).maxBy{ case (clusterID, aggregate) => aggregate.size }._1
 
 	def knnPredict(seq: GenSeq[Obj], k: Int): GenSeq[(Int, Obj)] = seq.map( obj => (knnPredict(obj, k), obj) )
 }

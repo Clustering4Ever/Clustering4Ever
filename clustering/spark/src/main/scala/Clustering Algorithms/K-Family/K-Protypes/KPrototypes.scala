@@ -35,17 +35,17 @@ class KPrototypes[ID: Numeric, Obj](
 	var maxIter: Int,
 	var metric: MixtDistance,
 	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends ClusteringAlgorithms[Long, BinaryScalarVector]
+) extends ClusteringAlgorithms[Long]
 {
 	type CentersMap = mutable.HashMap[Int, BinaryScalarVector]
 
-	val data = dataIn.map( clusterizable =>
+	private[this] val data = dataIn.map( clusterizable =>
 	{
 		val (binaryV, realV) = clusterizable.vector
 		new BinaryScalarVector(binaryV, realV)
 	}).persist(persistanceLVL)
 
-	def obtainNearestModID(v: BinaryScalarVector, centers: CentersMap): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
+	private[this] def obtainNearestModID(v: BinaryScalarVector, centers: CentersMap): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
 
 	def run(): KPrototypesModel =
 	{
@@ -62,11 +62,7 @@ class KPrototypes[ID: Numeric, Obj](
 			{
 				val vector = v.scalar.toVector
 				(vector, vector)
-			}).reduce( (minMaxa, minMaxb) =>
-			{
-				val minAndMax = for( i <- vectorRange ) yield Stats.obtainIthMinMax(i, minMaxa, minMaxb)
-				minAndMax.unzip
-			})
+			}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 
 			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
 			val scalarCentroids = kRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
@@ -119,10 +115,8 @@ class KPrototypes[ID: Numeric, Obj](
 				
 				centersUpdated.foreach{ case (clusterID, mod) => centers(clusterID) = mod }	
 			}
-			else
-			{
-				println("Results will have no sense or cost O(n²) for the moment with another distance than Euclidean, but we're working on it")
-			}
+			else println("Results will have no sense or cost O(n²) for the moment with another distance than Euclidean, but we're working on it")
+
 			cpt += 1
 		}
 		new KPrototypesModel(centers, metric)
@@ -130,7 +124,7 @@ class KPrototypes[ID: Numeric, Obj](
 }
 
 
-object KPrototypes extends DataSetsTypes[Long, BinaryScalarVector]
+object KPrototypes extends DataSetsTypes[Long]
 {
 	def run[ID: Numeric, Obj](@(transient @param) sc: SparkContext, data: RDD[ClusterizableM[ID, Obj]], k: Int, epsilon: Double, maxIter: Int, metric: MixtDistance, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KPrototypesModel =
 	{

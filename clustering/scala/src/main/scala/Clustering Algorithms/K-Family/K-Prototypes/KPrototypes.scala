@@ -1,6 +1,9 @@
 package clustering4ever.scala.clustering.kprotoypes
 
-import scala.math.{min, max}
+import org.apache.commons.math3.distribution.EnumeratedDistribution
+import org.apache.commons.math3.util.Pair
+import scala.collection.JavaConverters._
+import scala.math.{min, max, pow}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
 import clustering4ever.clustering.datasetstype.DataSetsTypes
@@ -19,7 +22,7 @@ import clustering4ever.scala.clusterizables.ClusterizableM
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
- * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistances distance function
+ * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
  **/
 class KPrototypes[ID: Numeric, Obj](
 	data: GenSeq[ClusterizableM[ID, Obj]],
@@ -27,20 +30,20 @@ class KPrototypes[ID: Numeric, Obj](
 	var epsilon: Double,
 	var iterMax: Int,
 	var metric: MixtDistance
-) extends ClusteringAlgorithms[ID, BinaryScalarVector]
+) extends ClusteringAlgorithms[ID]
 {
-	val mixtDS = data.map{ clusterizable =>
+	private[this] val mixtDS = data.map{ clusterizable =>
 	{
 		val (binaryV, realV) = clusterizable.vector
 		new BinaryScalarVector(binaryV, realV)
 	}}
-	val dimBinary = mixtDS.head.scalar.size
-	val dimScalar = mixtDS.head.binary.size
+	private[this] val dimBinary = mixtDS.head.scalar.size
+	private[this] val dimScalar = mixtDS.head.binary.size
 	/**
 	 * Simplest centroids initializations
 	 * We search range for each dimension and take a random value between each range for scalar data and take a random {0, 1} for binary data
 	 **/
-	def initializationCenters(): mutable.HashMap[Int, BinaryScalarVector] =
+	def initialization(): mutable.HashMap[Int, BinaryScalarVector] =
 	{
 		val vectorRange = (0 until dimScalar).toVector
 		val numberClustersRange = (0 until k).toSeq
@@ -51,24 +54,41 @@ class KPrototypes[ID: Numeric, Obj](
 		{
 			val vector = v.scalar.toVector
 			(vector, vector)
-		}).reduce( (minMaxa, minMaxb) =>
-		{
-			val minAndMax = for( i <- vectorRange ) yield Stats.obtainIthMinMax(i, minMaxa, minMaxb)
-			minAndMax.unzip
-		})
+		}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 
 		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
 		val scalarCenters = numberClustersRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
 		
 		mutable.HashMap(binaryModes.zip(scalarCenters).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
 	}
-
+	/**
+	 * Kmeans++ initialization
+	 * <h2>References</h2>
+	 * <ol>
+	 * <li> Tapas Kanungo, David M. Mount, Nathan S. Netanyahu, Christine D. Piatko, Ruth Silverman, and Angela Y. Wu. An Efficient k-Means Clustering Algorithm: Analysis and Implementation. IEEE TRANS. PAMI, 2002.</li>
+	 * <li> D. Arthur and S. Vassilvitskii. "K-means++: the advantages of careful seeding". ACM-SIAM symposium on Discrete algorithms, 1027-1035, 2007.</li>
+	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
+	 * </ol>
+	 */
+	def kmppInitialization() =
+	{
+		val firstCenter = mixtDS(Random.nextInt(mixtDS.size))
+		var choosenCenter = firstCenter
+		val centersKminus1: immutable.IndexedSeq[BinaryScalarVector] = for( i <- 1 until k ) yield {
+			val prob = mixtDS.map( v => new Pair(v, double2Double(pow(metric.d(v, choosenCenter), 2))) ).toList.asJava
+			val wDistribution = new EnumeratedDistribution(prob)
+			choosenCenter = wDistribution.sample
+			choosenCenter
+		}
+		val center: mutable.HashMap[Int, BinaryScalarVector] = mutable.HashMap((centersKminus1 :+ firstCenter).zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
+		center
+	}
 	/**
 	 * Run the K-Means
 	 **/
 	def run(): KPrototypesModel =
 	{
-		val centers = initializationCenters()
+		val centers = initialization()
 		val centersCardinality = centers.map{ case (clusterID, _) => (clusterID, 0) }
 
 		def obtainNearestModID(v: BinaryScalarVector): ClusterID = centers.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
@@ -123,10 +143,8 @@ class KPrototypes[ID: Numeric, Obj](
 				}}
 				removeEmptyClusters(kCentersBeforeUpdate)
 			}
-			else
-			{
-				println("We have a bit of time before thinking of mixt data with custom distances")
-			}
+			else println("We have a bit of time before thinking of mixt data with custom distances")
+
 			allCentersHaveConverged = kCentersBeforeUpdate.forall{ case (clusterID, previousMod) => metric.d(previousMod, centers(clusterID)) <= epsilon }
 			cpt += 1
 		}

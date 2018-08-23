@@ -2,49 +2,44 @@ package clustering4ever.math.distances.scalar
 
 import scala.math.{pow, sqrt}
 import scala.collection.immutable
-import clustering4ever.math.distances.{Distance, ContinuousDistances}
+import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable
+
 /**
  * @author Beck Gaël
  **/
-class Euclidean(root: Boolean) extends ContinuousDistances
+trait EuclideanMeta extends Serializable
 {
-	private def euclideanIntern(dot1: Seq[Double], dot2: Seq[Double]) = dot1.zip(dot2).map{ case (a, b) => pow(a - b, 2) }.sum
+	protected val squareRoot: Boolean
 
-	/**
-	  * The famous euclidean distance implemented in its fast mono thread scala version without SQRT part
-	  * @return The Euclidean distance between dot1 and dot2
-	  **/
-	override def d(dot1: Seq[Double], dot2: Seq[Double]): Double =
+	protected def euclidean(dot1: Seq[Double], dot2: Seq[Double]) =
 	{
-		if( root ) sqrt(euclideanIntern(dot1, dot2))
-		else euclideanIntern(dot1, dot2)
-	}
-
-	lazy val toStringRoot = if( root ) "with " else "without "
-
-	override def toString = "Euclidean " + toStringRoot + "root applied"
-
-}
-
-class EuclideanClusterizable[ID: Numeric, Obj](squareRoot: Boolean = true) extends Distance[RealClusterizable[ID, Obj]]
-{
-
-	private def euclideanIntern(dot1: RealClusterizable[ID, Obj], dot2: RealClusterizable[ID, Obj]) = dot1.vector.zip(dot2.vector).map{ case (a, b) => pow(a - b, 2) }.sum
-
-	/**
-	  * The famous euclidean distance implemented in its fast mono thread scala version without SQRT part
-	  * @return The Euclidean distance between dot1 and dot2
-	  **/
-	override def d(dot1: RealClusterizable[ID, Obj], dot2: RealClusterizable[ID, Obj]): Double =
-	{
-		if( squareRoot ) sqrt(euclideanIntern(dot1, dot2))
-		else euclideanIntern(dot1, dot2)
+		val rawEuclidean = dot1.zip(dot2).map{ case (a, b) => pow(a - b, 2) }.sum
+		if( squareRoot ) sqrt(rawEuclidean) else rawEuclidean
 	}
 
 	lazy val toStringRoot = if( squareRoot ) "with " else "without "
 
-	override def toString() = "Euclidean " + toStringRoot + "square root applied"
+	override def toString = "Euclidean " + toStringRoot + "root applied"
+}
 
+class Euclidean(final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance
+{
+	/**
+	  * The famous euclidean distance implemented in its fast mono thread scala version without SQRT part
+	  * @return The Euclidean distance between dot1 and dot2
+	  **/
+	def d(dot1: Seq[Double], dot2: Seq[Double]): Double = euclidean(dot1, dot2)
+}
+
+class EuclideanClusterizable[ID: Numeric, Obj, S <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, S]]
+{
+	/**
+	  * The famous euclidean distance implemented in its fast mono thread scala version without SQRT part
+	  * @return The Euclidean distance between dot1 and dot2
+	  **/
+	def d(dot1: RealClusterizable[ID, Obj, S], dot2: RealClusterizable[ID, Obj, S]): Double = euclidean(dot1.vector, dot2.vector)
+
+	def obtainClassicalDistance(): Euclidean = new Euclidean(squareRoot)
 }

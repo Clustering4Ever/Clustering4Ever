@@ -2,7 +2,7 @@ package clustering4ever.scala.kernels
 
 import scala.collection.{immutable, GenSeq}
 import scala.math.{exp, tanh, pow}
-import clustering4ever.math.distances.ContinuousDistances
+import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.math.distances.Distance
 import clustering4ever.util.SumArrays
@@ -15,20 +15,20 @@ import clustering4ever.util.SimilarityMatrix
  **/
 object Kernels
 {
-	def flatKernel(v1: Seq[Double], v2: Seq[Double], bandwidth: Double, metric: ContinuousDistances) =
+	def flatKernel(v1: Seq[Double], v2: Seq[Double], bandwidth: Double, metric: ContinuousDistance) =
 	{
 		val λ = 1D
 		if( metric.d(v1, v2) / pow(bandwidth, 2) <= λ ) 1D else 0D 
 	}
 
-	def flatKernel(v1: Seq[Double], v2: Seq[Double], bandwidth: Double, metric: ContinuousDistances, λ: Double = 1D) = if( metric.d(v1, v2) / pow(bandwidth, 2) <= λ ) 1D else 0D 
+	def flatKernel(v1: Seq[Double], v2: Seq[Double], bandwidth: Double, metric: ContinuousDistance, λ: Double = 1D) = if( metric.d(v1, v2) / pow(bandwidth, 2) <= λ ) 1D else 0D 
 
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-λ|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - λ is the bandwitch
 	 *  - |x<sub>1</sub>-x<sub>2</sub>| is the distance between x<sub>1</sub> and x<sub>2</sub>
 	 **/
-	def gaussianKernel(v1: Seq[Double], v2: Seq[Double], bandwidth: Double, metric: ContinuousDistances) = exp( - bandwidth * pow(metric.d(v1, v2), 2) )
+	def gaussianKernel(v1: Seq[Double], v2: Seq[Double], bandwidth: Double, metric: ContinuousDistance) = exp( - bandwidth * pow(metric.d(v1, v2), 2) )
 
 	def sigmoidKernel(v1: Seq[Double], v2: Seq[Double], a: Double = 1D, b: Double = 0D) =
 	{
@@ -42,9 +42,9 @@ object Kernels
 	 * @param bandwidth of the kernel approach
 	 * @param metric is the dissimilarity measure used for kernels computation
 	 **/
-	def obtainModeThroughKernel(v: Seq[Double], env: GenSeq[Seq[Double]], bandwidth: Double, kernelType: KernelType, metric: ContinuousDistances) =
+	def obtainModeThroughKernel(v: Seq[Double], env: GenSeq[Seq[Double]], bandwidth: Double, kernelType: KernelType, metric: ContinuousDistance) =
 	{
-		val kernel: (Seq[Double], Seq[Double], Double, ContinuousDistances) => Double = kernelType match
+		val kernel: (Seq[Double], Seq[Double], Double, ContinuousDistance) => Double = kernelType match
 		{
 			case KernelNature.Gaussian => gaussianKernel
 			case KernelNature.Flat => flatKernel

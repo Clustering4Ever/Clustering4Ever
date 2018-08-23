@@ -8,4 +8,4 @@ import clustering4ever.clustering.datasetstype.DataSetsTypes
 /**
  * @author Beck Gaël
  **/
-class KModesModel(centers: mutable.HashMap[Int, Seq[Int]], metric: BinaryDistance[Seq[Int]]) extends CommonPredictClusteringModel[Seq[Int]](centers, metric)
+class KModesModel(val centers: mutable.HashMap[Int, Seq[Int]], val metric: BinaryDistance[Seq[Int]]) extends CommonPredictClusteringModel[Seq[Int]]

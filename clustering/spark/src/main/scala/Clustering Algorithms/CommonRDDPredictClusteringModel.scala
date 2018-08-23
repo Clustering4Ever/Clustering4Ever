@@ -7,8 +7,10 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-abstract class CommonRDDPredictClusteringModel[T](centers: mutable.HashMap[Int, T], metric: Distance[T]) extends CommonPredictClusteringModel(centers, metric)
+trait CommonRDDPredictClusteringModel[T] extends CommonPredictClusteringModel[T]
 {
+	val centers: mutable.HashMap[Int, T]
+	val metric: Distance[T]
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input RDD with labels obtain via centerPredict method

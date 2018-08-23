@@ -34,13 +34,13 @@ class KModes[ID: Numeric, Obj <: Serializable](
 	var metric: BinaryDistance[Seq[Int]],
 	val initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]],
 	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends ClusteringAlgorithms[ID, Seq[Int]]
+) extends ClusteringAlgorithms[ID]
 {
-	val binaryDS = data.map(_.vector).persist(persistanceLVL)
-
 	type CentersMap = mutable.HashMap[Int, Seq[Int]]
 
-	def obtainNearestModID(v: Seq[Int], kModesCenters: CentersMap): Int = kModesCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
+	private[this] val binaryDS = data.map(_.vector).persist(persistanceLVL)
+
+	private[this] def obtainNearestModeID(v: Seq[Int], kModesCenters: CentersMap): Int = kModesCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
 
 	def run(): KModesModel =
 	{
@@ -54,7 +54,7 @@ class KModes[ID: Numeric, Obj <: Serializable](
 		{
 			if( metric.isInstanceOf[Hamming] )
 			{
-				val info = binaryDS.map( v => (obtainNearestModID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics[Int](v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
+				val info = binaryDS.map( v => (obtainNearestModeID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumerics[Int](v1, v2)) }.map{ case (clusterID, (cardinality, preMode)) => (clusterID, preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ), cardinality) }.collect
 
 				info.foreach{ case (clusterID, mode, cardinality) =>
 				{

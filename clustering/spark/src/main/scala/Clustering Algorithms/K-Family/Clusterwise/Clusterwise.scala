@@ -58,10 +58,8 @@ class Clusterwise(
 	  		val sdY = preSDY.map( v => sqrt(v / (n - 1)))
   			Some((meanX, meanY, sdX, sdY))
   		}
-  		else
-  		{
-  			None
-  		}
+  		else None
+
   		// Center Reduct
   		val centerReductRDD = if( standardized )
   		{
@@ -81,6 +79,7 @@ class Clusterwise(
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 )
 		{
 	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateDatasets.obtainSimpleRealClusterizable(id, x ++ y) }
+	  	  	//val kmeansModel = KMeans.runEuclidean(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean(true))
 	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean(true))
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
 	  	  	val microClusterNumbers = kmeansModel.centers.size

@@ -16,21 +16,15 @@ case class CardinalitiesAccumulator(initialValue: mutable.HashMap[Int, Long], k:
 
 	def isZero = value.forall{ case (clusterID, cardinality) => cardinality == 0 }
 
-	def reset: Unit = cardinalitiesMap = mutable.HashMap((0 until k).map( v => (v, 0L)).toSeq:_*)
+	def reset: Unit = cardinalitiesMap = mutable.HashMap((0 until k).map( v => (v, 0L)).seq:_*)
 	
-	def add(m1: CardinalitiesAccumulatorType): Unit =
-	{
-		m1.foreach{ case (clusterID, newCardinality) => cardinalitiesMap(clusterID) = cardinalitiesMap(clusterID) + newCardinality }
-	}
+	def add(m1: CardinalitiesAccumulatorType): Unit = m1.foreach{ case (clusterID, newCardinality) => cardinalitiesMap(clusterID) = cardinalitiesMap(clusterID) + newCardinality }
 
 	def copy: AccumulatorV2[CardinalitiesAccumulatorType, CardinalitiesAccumulatorType] = CardinalitiesAccumulator(value, k)
 
 	def merge(otherAccum: AccumulatorV2[CardinalitiesAccumulatorType, CardinalitiesAccumulatorType]): Unit = add(otherAccum.value)
 
-	def addOne(clusterID: Int, cardinality: Long) =
-	{
-		cardinalitiesMap(clusterID) = cardinalitiesMap(clusterID) + cardinality
-	}
+	def addOne(clusterID: Int, cardinality: Long) = cardinalitiesMap(clusterID) = cardinalitiesMap(clusterID) + cardinality
 
 	def set(newInitialValue: CardinalitiesAccumulatorType) = cardinalitiesMap = newInitialValue
 }

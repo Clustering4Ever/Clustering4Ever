@@ -20,19 +20,13 @@ case class CentroidsBinaryAccumulator(initialValue: mutable.HashMap[Int, Seq[Int
 
 	def reset: Unit = centroidsMap = mutable.HashMap((0 until k).map( k => (k, Seq.fill(dim)(0))).toSeq:_*)
 	
-	def add(m1: CentroidsBinaryAccumulatorType): Unit =
-	{
-		m1.foreach{ case (clusterID, centroid) => centroidsMap(clusterID) = SumArrays.sumArraysNumerics[Int](centroidsMap(clusterID), centroid) }
-	}
+	def add(m1: CentroidsBinaryAccumulatorType): Unit = m1.foreach{ case (clusterID, centroid) => centroidsMap(clusterID) = SumArrays.sumArraysNumerics[Int](centroidsMap(clusterID), centroid) }
 
 	def copy: AccumulatorV2[CentroidsBinaryAccumulatorType, CentroidsBinaryAccumulatorType] = CentroidsBinaryAccumulator(value, k, dim)
 
 	def merge(otherAccum: AccumulatorV2[CentroidsBinaryAccumulatorType, CentroidsBinaryAccumulatorType]): Unit = add(otherAccum.value)
 
-	def addOne(clusterID: Int, centroid: Seq[Int]) =
-	{
-		centroidsMap(clusterID) = SumArrays.sumArraysNumerics[Int](centroidsMap(clusterID), centroid)
-	}
+	def addOne(clusterID: Int, centroid: Seq[Int]) = centroidsMap(clusterID) = SumArrays.sumArraysNumerics[Int](centroidsMap(clusterID), centroid)
 
 	def set(newInitialValue: CentroidsBinaryAccumulatorType) = centroidsMap = newInitialValue
 }
