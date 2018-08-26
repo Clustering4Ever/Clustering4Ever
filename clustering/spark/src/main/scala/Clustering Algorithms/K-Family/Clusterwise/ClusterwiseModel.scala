@@ -12,7 +12,7 @@ class ClusterwiseModel(
 	val xyTrain: Seq[(Int, (Seq[Double], Seq[Double], Int))],
 	val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.Vector[(Int, immutable.Vector[Double])])],
 	standardizationParameters: Option[(Seq[Double], Seq[Double], Seq[Double], Seq[Double])] = None,
-	metric: ContinuousDistance = new Euclidean(true)
+	metric: ContinuousDistance[Seq[Double]] = new Euclidean(true)
 ) extends ClusteringModel
 {
 	type Xvector = Seq[Double]

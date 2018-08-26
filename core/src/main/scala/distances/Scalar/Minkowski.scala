@@ -8,7 +8,7 @@ import scala.collection.immutable
 /**
  * @author Beck Gaël
  **/
-class Minkowski(p: Int) extends ContinuousDistance
+class Minkowski(p: Int) extends ContinuousDistance[Seq[Double]]
 {
 	/**
 	  * The famous Minkowski distance implemented

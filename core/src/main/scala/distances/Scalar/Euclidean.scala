@@ -13,7 +13,7 @@ trait EuclideanMeta extends Serializable
 {
 	protected val squareRoot: Boolean
 
-	protected def euclidean(dot1: Seq[Double], dot2: Seq[Double]) =
+	protected def euclidean(dot1: Seq[Double], dot2: Seq[Double]): Double =
 	{
 		val rawEuclidean = dot1.zip(dot2).map{ case (a, b) => pow(a - b, 2) }.sum
 		if( squareRoot ) sqrt(rawEuclidean) else rawEuclidean
@@ -24,22 +24,26 @@ trait EuclideanMeta extends Serializable
 	override def toString = "Euclidean " + toStringRoot + "root applied"
 }
 
-class Euclidean(final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance
+class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V]
 {
 	/**
-	  * The famous euclidean distance implemented in its fast mono thread scala version without SQRT part
+	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
 	  **/
-	def d(dot1: Seq[Double], dot2: Seq[Double]): Double = euclidean(dot1, dot2)
+	def d(dot1: V, dot2: V): Double = euclidean(dot1, dot2)
 }
 
-class EuclideanClusterizable[ID: Numeric, Obj, S <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, S]]
+class ClassicEuclidean extends Euclidean[Seq[Double]](squareRoot = true)
+
+class EuclideanClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V]
 {
 	/**
-	  * The famous euclidean distance implemented in its fast mono thread scala version without SQRT part
+	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
 	  **/
-	def d(dot1: RealClusterizable[ID, Obj, S], dot2: RealClusterizable[ID, Obj, S]): Double = euclidean(dot1.vector, dot2.vector)
+	def d(dot1: RealClusterizable[ID, Obj, V], dot2: RealClusterizable[ID, Obj, V]): Double = euclidean(dot1.vector, dot2.vector)
 
-	def obtainClassicalDistance(): Euclidean = new Euclidean(squareRoot)
+	def obtainClassicalDistance(): Euclidean[V] = new Euclidean[V](squareRoot)
 }
+
+class ClassicEuclideanClusterizable[ID: Numeric, Obj] extends EuclideanClusterizable[ID, Obj, Seq[Double]](squareRoot = true)

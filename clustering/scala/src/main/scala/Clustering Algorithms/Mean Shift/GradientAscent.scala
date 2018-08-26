@@ -4,7 +4,7 @@ import scala.util.Random
 import scala.math.{min, max}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
-import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
@@ -23,7 +23,7 @@ import clustering4ever.scala.vectorizables.RealVectorizable
 class GradientAscent[ID: Numeric, Obj, S <: Seq[Double]](
   var epsilon: Double,
   var maxIterations: Int,
-  metric: ContinuousDistance,
+  metric: ContinuousDistance[S],
   kernelType: KernelType,
   kernelArgs: immutable.Vector[String]
 ) extends DataSetsTypes[ID]
@@ -49,17 +49,17 @@ class GradientAscent[ID: Numeric, Obj, S <: Seq[Double]](
       { 
         val mode = obj.v2
         val newMode = if( haveConverged ) mode
-        else
-        {
-          kernelType match
+          else
           {
-            case kernel if( kernel == KernelNature.Gaussian || kernel == KernelNature.Flat ) =>  Kernels.obtainModeThroughKernel(mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
-            case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean])
-            case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric)
-            case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
-            case _ =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, 40, metric)
+            kernelType match
+            {
+              case kernel if( kernel == KernelNature.Gaussian || kernel == KernelNature.Flat ) =>  Kernels.obtainModeThroughKernel[S](mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
+              case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean[S]])
+              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric)
+              case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
+              case _ =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, 40, metric)
+            }
           }
-        }
         
         val modeShift = metric.d(newMode, mode)
         val hasConverged = if( modeShift <= epsilon )
@@ -111,7 +111,7 @@ object GradientAscent extends DataSetsTypes[Int]
    **/
    def run[ID: Numeric, Obj, S <: Seq[Double]](
     data: GenSeq[RealClusterizable[ID, Obj, S]],
-    metric: ContinuousDistance,
+    metric: ContinuousDistance[S],
     epsilon: Double,
     maxIterations: Int,
     kernelType: KernelType,

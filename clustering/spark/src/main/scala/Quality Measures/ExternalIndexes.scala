@@ -54,16 +54,14 @@ object ExternalIndexes
 	 * Compute the mutual information
 	 * It is advise to cache trueAndPredict before passing it to this method.
 	 * @return (Mutual Information, entropy x, entropy y)
-	 **/
-	def mutualInformation(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) =
-		(new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict)._1
-
+	 */
+	def mutualInformation(sc: SparkContext, trueAndPredict: RDD[(Int, Int)]) = (new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict)._1
 	/**
 	 * Compute the normalize mutual entropy
 	 * It is advise to cache trueAndPredict before passing it to this method.
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
-	 **/
+	 */
 	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) =
 	{
 		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict, persistanceLVL)
@@ -74,11 +72,10 @@ object ExternalIndexes
 		}
 		nmi
 	}
-
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
-	 **/
-	def prepareList(x: Array[Int]) =
+	 */
+	def prepareLabels(x: Array[Int]) =
 	{
 		val indexedValuesMap = x.distinct.zipWithIndex.toMap
 		(indexedValuesMap, x.map(indexedValuesMap))

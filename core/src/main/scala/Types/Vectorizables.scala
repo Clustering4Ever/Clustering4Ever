@@ -1,5 +1,7 @@
 package clustering4ever.scala.vectorizables
 
+import clustering4ever.scala.measurableclass.BinaryScalarVector
+
 trait Vectorizable[Vector] extends Serializable
 {
 	def toVector(): Vector
@@ -13,16 +15,15 @@ abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Optio
 		else vectorizableFct.get(obj)
 	}
 }
-class VectorizableG[@specialized(Int, Double) T, Obj](obj: Obj, vectorizableFct: Option[Obj => Seq[T]] = None) extends VectorizableObj[Obj, Seq[T]](obj, vectorizableFct)
 
-class VectorizableM[Obj](obj: Obj, vectorizableFct: Option[Obj => (Seq[Int], Seq[Double])] = None) extends VectorizableObj[Obj, (Seq[Int], Seq[Double])](obj, vectorizableFct)
+class VectorizableM[Obj, Vb <: Seq[Int], Vs <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => BinaryScalarVector[Vb, Vs]] = None) extends VectorizableObj[Obj, BinaryScalarVector[Vb, Vs]](obj, vectorizableFct)
 
-class MixtVector(obj: (Seq[Int], Seq[Double])) extends VectorizableM[(Seq[Int], Seq[Double])](obj)
+class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](obj: BinaryScalarVector[Vb, Vs]) extends VectorizableM[BinaryScalarVector[Vb, Vs], Vb, Vs](obj)
 
-class RealVectorizable[Obj, S <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => S] = None) extends VectorizableObj[Obj, S](obj, vectorizableFct)
+class RealVectorizable[Obj, V <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class RealVector[S <: Seq[Double]](vector: S) extends RealVectorizable[S, S](vector)
+class RealVector[V <: Seq[Double]](vector: V) extends RealVectorizable[V, V](vector)
 
-class BinaryVectorizable[Obj](obj: Obj, vectorizableFct: Option[Obj => Seq[Int]] = None) extends VectorizableObj[Obj, Seq[Int]](obj)
+class BinaryVectorizable[Obj, V <: Seq[Int]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class BinaryVector(vector: Seq[Int]) extends BinaryVectorizable[Seq[Int]](vector)
+class BinaryVector[V <: Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector)

@@ -13,10 +13,11 @@ import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.util.SumArrays
 import clustering4ever.spark.clustering.accumulators.{CentroidsScalarAccumulator, CardinalitiesAccumulator}
-import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable
+import clustering4ever.spark.clustering.KCommonsSpark
 
 /**
  * @author Beck Gaël
@@ -27,30 +28,22 @@ import clustering4ever.scala.vectorizables.RealVectorizable
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
  **/
-class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag](
+class KMeans[ID: Numeric, Obj](
 	@transient val sc: SparkContext,
-	data: RDD[RealClusterizable[ID, Obj, S]],
-	var k: Int,
+	data: RDD[RealClusterizable[ID, Obj, Seq[Double]]],
+	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: ContinuousDistance,
-	var initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]],
-	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends ClusteringAlgorithms[Long]
+	metric: Euclidean[Seq[Double]],
+	initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]],
+	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+) extends KCommonsSpark[ID, Double, Seq[Double], Euclidean[Seq[Double]], RealClusterizable[ID, Obj, Seq[Double]]](data, metric, k, initializedCenters, persistanceLVL)
 {
-	type CentersMap = mutable.HashMap[Int, Seq[Double]]
-
-	private[this] val realDS = data.map(_.vector).persist(persistanceLVL)
-
-	private[this] def obtainNearestModeID(v: Seq[Double], kMeansCenters: CentersMap): Int = kMeansCenters.minBy{ case(clusterID, mode) => metric.d(mode, v) }._1
-
 	def run(): KMeansModel =
-	{
-		val dim = realDS.first.size
-		
+	{		
 		def initializationCenters() =
 		{
-			def obtainMinAndMax(data: RDD[S]) =
+			def obtainMinAndMax(data: RDD[Seq[Double]]) =
 			{
 				val vectorRange = (0 until dim).toVector
 
@@ -62,7 +55,7 @@ class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag](
 				(minValues, maxValues)
 			}
 
-			val (minv, maxv) = obtainMinAndMax(realDS)
+			val (minv, maxv) = obtainMinAndMax(vectorizedDataset)
 
 			val ranges = Seq(minv.zip(maxv):_*).map{ case (min, max) => (max - min, min) }
 			val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
@@ -76,21 +69,17 @@ class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag](
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			if( metric.isInstanceOf[Euclidean] )
+			val info = vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumericsGen[Double, Seq[Double]](v1, v2)) }
+				.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality), cardinality) }.collect
+
+			info.foreach{ case (clusterID, mean, cardinality) =>
 			{
-				val info = realDS.map( v => (obtainNearestModeID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumericsGen[Double, S](v1, v2)) }
-					.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality), cardinality) }.collect
+				centersUpdated(clusterID) = mean
+				clustersCardinality(clusterID) = cardinality
+			}}
 
-				info.foreach{ case (clusterID, mean, cardinality) =>
-				{
-					centersUpdated(clusterID) = mean
-					clustersCardinality(clusterID) = cardinality
-				}}
-
-				allModHaveConverged = centersUpdated.forall{ case (clusterID, uptMod) => metric.d(centers(clusterID), uptMod) <= epsilon }
-				centersUpdated.foreach{ case (clusterID, mode) => centers(clusterID) = mode }	
-			}
-			else println("Results will have no sense or cost O(n²) for the moment with another distance than Euclidean, but we're working on it")
+			allModHaveConverged = centersUpdated.forall{ case (clusterID, uptMod) => metric.d(centers(clusterID), uptMod) <= epsilon }
+			centersUpdated.foreach{ case (clusterID, mode) => centers(clusterID) = mode }	
 			cpt += 1
 		}
 		new KMeansModel(centers, metric)
@@ -100,18 +89,18 @@ class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag](
 
 object KMeans extends DataSetsTypes[Long]
 {
-	def run[ID: Numeric, Obj, S <: Seq[Double] : ClassTag](
+	def run[ID: Numeric, Obj](
 		@(transient @param) sc: SparkContext,
-		data: RDD[RealClusterizable[ID, Obj, S]],
+		data: RDD[RealClusterizable[ID, Obj, Seq[Double]]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: ContinuousDistance,
+		metric: Euclidean[Seq[Double]],
 		initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 	): KMeansModel =
 	{
-		val kmeans = new KMeans[ID, Obj, S](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+		val kmeans = new KMeans[ID, Obj](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kmeansModel = kmeans.run()
 		kmeansModel
 	}

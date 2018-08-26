@@ -8,37 +8,37 @@ import clustering4ever.scala.clusterizables.ClusterizableM
  * @author Beck Gaël
  * Most general notion of Distance, taking two object of type T and returning a Double
  **/
-trait Distance[-T] extends Serializable
+trait Distance[T] extends Serializable
 {
 	def d(obj1: T, obj2: T): Double
 }
 
-trait ClusterizableDistance[T, U] extends Distance[T]
+trait ClusterizableDistance[T, V] extends Distance[T]
 {
-	def obtainClassicalDistance(): Distance[Seq[U]]
+	def obtainClassicalDistance(): Distance[V]
 }
 
-trait RealClusterizableDistance[T] extends ClusterizableDistance[T, Double]
+trait RealClusterizableDistance[T, V <: Seq[Double]] extends ClusterizableDistance[T, V]
 {
-	def obtainClassicalDistance(): ContinuousDistance
+	def obtainClassicalDistance(): ContinuousDistance[V]
 }
 
-trait ContinuousDistance extends Distance[Seq[Double]]
+trait ContinuousDistance[V <: Seq[Double]] extends Distance[V]
 {
-	def d(vector1: Seq[Double], vector2: Seq[Double]): Double
+	def d(vector1: V, vector2: V): Double
 }
 
-trait BinaryDistance[T <: Seq[Int]] extends Distance[T]
+trait BinaryDistance[V <: Seq[Int]] extends Distance[V]
 {
-	def d(vector1: T, vector2: T): Double
+	def d(vector1: V, vector2: V): Double
 }
 
-trait MixtDistance extends Distance[BinaryScalarVector]
+trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[BinaryScalarVector[Vb, Vs]]
 {
-	def d(vector1: BinaryScalarVector, vector2: BinaryScalarVector): Double
+	def d(vector1: BinaryScalarVector[Vb, Vs], vector2: BinaryScalarVector[Vb, Vs]): Double
 }
 
-trait MixtDistanceClusterizable[ID, Obj] extends Distance[ClusterizableM[ID, Obj]]
+trait MixtDistanceClusterizable[ID, Obj, Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[ClusterizableM[ID, Obj, Vb, Vs]]
 {
-	def d(vector1: ClusterizableM[ID, Obj], vector2: ClusterizableM[ID, Obj]): Double
+	def d(vector1: ClusterizableM[ID, Obj, Vb, Vs], vector2: ClusterizableM[ID, Obj, Vb, Vs]): Double
 }

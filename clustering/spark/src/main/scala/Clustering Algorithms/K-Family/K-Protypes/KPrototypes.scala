@@ -11,7 +11,7 @@ import org.apache.spark.storage.StorageLevel
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.util.SumArrays
 import clustering4ever.spark.clustering.accumulators.{CentroidsScalarAccumulator, CardinalitiesAccumulator}
-import clustering4ever.clustering.datasetstype.DataSetsTypes
+import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
@@ -27,27 +27,23 @@ import clustering4ever.scala.clusterizables.ClusterizableM
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding MixtDistance distance function
  **/
-class KPrototypes[ID: Numeric, Obj](
+class KPrototypes[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](
 	@transient val sc: SparkContext,
-	dataIn: RDD[ClusterizableM[ID, Obj]],
+	dataIn: RDD[ClusterizableM[ID, Obj, Vb, Vs]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	var metric: MixtDistance,
+	var metric: MixtDistance[Vb, Vs],
 	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 ) extends ClusteringAlgorithms[Long]
 {
-	type CentersMap = mutable.HashMap[Int, BinaryScalarVector]
+	type CentersMap = mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]]
 
-	private[this] val data = dataIn.map( clusterizable =>
-	{
-		val (binaryV, realV) = clusterizable.vector
-		new BinaryScalarVector(binaryV, realV)
-	}).persist(persistanceLVL)
+	private[this] val data = dataIn.map(_.vector).persist(persistanceLVL)
 
-	private[this] def obtainNearestModID(v: BinaryScalarVector, centers: CentersMap): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
+	private[this] def obtainNearestModID(v: BinaryScalarVector[Vb, Vs], centers: CentersMap): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
 
-	def run(): KPrototypesModel =
+	def run(): KPrototypesModel[Vb, Vs] =
 	{
 		val dimScalar = data.first.scalar.size
 		val dimBinary = data.first.binary.size
@@ -67,7 +63,7 @@ class KPrototypes[ID: Numeric, Obj](
 			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
 			val scalarCentroids = kRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
 
-			mutable.HashMap(binaryModes.zip(scalarCentroids).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector(binaryVector, scalarVector)) }:_*)
+			mutable.HashMap(binaryModes.zip(scalarCentroids).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)) }:_*)
 		}
 		
 		val centers = initializationCenters()
@@ -77,7 +73,7 @@ class KPrototypes[ID: Numeric, Obj](
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			if( metric.isInstanceOf[HammingAndEuclidean] )
+			if( metric.isInstanceOf[HammingAndEuclidean[Vb, Vs]] )
 			{
 				val info = data.map( v => (obtainNearestModID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) =>
 				{
@@ -86,7 +82,7 @@ class KPrototypes[ID: Numeric, Obj](
 						{
 							val binaryVector = SumArrays.sumArraysNumerics[Int](v1.binary, v2.binary)
 							val scalarVector = SumArrays.sumArraysNumerics[Double](v1.scalar, v2.scalar)
-							new BinaryScalarVector(binaryVector, scalarVector)
+							new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)
 						}
 					)
 				}}.map{ case (clusterID, (cardinality, preMean)) =>
@@ -98,7 +94,7 @@ class KPrototypes[ID: Numeric, Obj](
 							val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 )
 							// Mean for Euclidean Distance
 							val scalarVector = preMean.scalar.map(_ / cardinality)
-							new BinaryScalarVector(binaryVector, scalarVector)
+							new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)
 						},
 						cardinality
 					)
@@ -119,14 +115,14 @@ class KPrototypes[ID: Numeric, Obj](
 
 			cpt += 1
 		}
-		new KPrototypesModel(centers, metric)
+		new KPrototypesModel[Vb, Vs](centers, metric)
 	}
 }
 
 
 object KPrototypes extends DataSetsTypes[Long]
 {
-	def run[ID: Numeric, Obj](@(transient @param) sc: SparkContext, data: RDD[ClusterizableM[ID, Obj]], k: Int, epsilon: Double, maxIter: Int, metric: MixtDistance, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KPrototypesModel =
+	def run[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](@(transient @param) sc: SparkContext, data: RDD[ClusterizableM[ID, Obj, Vb, Vs]], k: Int, epsilon: Double, maxIter: Int, metric: MixtDistance[Vb, Vs], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KPrototypesModel[Vb, Vs] =
 	{
 		val kPrototypes = new KPrototypes(sc, data, k, epsilon, maxIter, metric, persistanceLVL)
 		val kPrototypesModel = kPrototypes.run()

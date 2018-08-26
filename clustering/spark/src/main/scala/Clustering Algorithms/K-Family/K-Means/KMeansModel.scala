@@ -8,4 +8,4 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-class KMeansModel(val centers: mutable.HashMap[Int, Seq[Double]], val metric: ContinuousDistance) extends CommonRDDPredictClusteringModel[Seq[Double]]
+class KMeansModel(val centers: mutable.HashMap[Int, Seq[Double]], val metric: ContinuousDistance[Seq[Double]]) extends CommonRDDPredictClusteringModel[Seq[Double], ContinuousDistance[Seq[Double]]]

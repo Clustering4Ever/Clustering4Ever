@@ -10,4 +10,4 @@ import clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  * @author Beck Gaël
  **/
-class KPrototypesModel(val centers: mutable.HashMap[Int, BinaryScalarVector], val metric: MixtDistance) extends CommonRDDPredictClusteringModel[BinaryScalarVector]
+class KPrototypesModel[Vb <: Seq[Int], Vs <: Seq[Double]](val centers: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]], val metric: MixtDistance[Vb, Vs]) extends CommonRDDPredictClusteringModel[BinaryScalarVector[Vb, Vs], MixtDistance[Vb, Vs]]

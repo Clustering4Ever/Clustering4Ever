@@ -7,7 +7,7 @@ import scala.collection.immutable
 /**
  * @author Beck Gaël
  **/
-class Cosine extends ContinuousDistance
+class Cosine extends ContinuousDistance[Seq[Double]]
 {
 
 	private def norm(dot1: Seq[Double]): Double =

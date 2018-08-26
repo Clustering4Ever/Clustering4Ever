@@ -1,11 +1,29 @@
 package clustering4ever.scala.clustering.kmodes
 
-import scala.collection.{mutable, immutable}
 import clustering4ever.clustering.CommonPredictClusteringModel
-import clustering4ever.math.distances.BinaryDistance
-import clustering4ever.clustering.datasetstype.DataSetsTypes
-
+import scala.collection.{mutable, immutable, GenSeq}
+import clustering4ever.math.distances.{BinaryDistance, Distance}
+import clustering4ever.scala.clusterizables.BinaryClusterizable
+import scala.reflect.ClassTag
+import clustering4ever.scala.clustering.KCommonsModel
 /**
  * @author Beck Gaël
  **/
-class KModesModel(val centers: mutable.HashMap[Int, Seq[Int]], val metric: BinaryDistance[Seq[Int]]) extends CommonPredictClusteringModel[Seq[Int]]
+sealed abstract class KModesModel[
+	ID: Numeric,
+	V <: Seq[Int] : ClassTag,
+	Obj
+](
+	centers: mutable.HashMap[Int, V],
+	metric: BinaryDistance[V]
+) extends KCommonsModel[
+	ID,
+	Int,
+	V,
+	BinaryDistance[V],
+	BinaryClusterizable[ID, Obj, V]
+](centers, metric)
+
+final class KModesModelSeq[ID: Numeric, Obj](centers: mutable.HashMap[Int, Seq[Int]], metric: BinaryDistance[Seq[Int]]) extends KModesModel[ID, Seq[Int], Obj](centers, metric)
+
+final class KModesModelCustom[ID: Numeric, V <: Seq[Int] : ClassTag, Obj](centers: mutable.HashMap[Int, V], metric: BinaryDistance[V]) extends KModesModel[ID, V, Obj](centers, metric)

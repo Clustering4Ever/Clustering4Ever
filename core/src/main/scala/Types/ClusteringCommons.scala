@@ -1,10 +1,13 @@
 package clustering4ever.clustering
 
-import clustering4ever.clustering.datasetstype.DataSetsTypes
-
 trait ClusteringCommons
 {
 	type ClusterID = Int
+}
+
+trait DataSetsTypes[IDNature] extends ClusteringCommons
+{
+	type ID = IDNature
 }
 
 trait ClusteringModel extends ClusteringCommons with Serializable

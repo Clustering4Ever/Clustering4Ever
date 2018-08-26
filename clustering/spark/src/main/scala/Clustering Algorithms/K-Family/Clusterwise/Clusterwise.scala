@@ -11,7 +11,7 @@ import org.apache.spark.broadcast.Broadcast
 import clustering4ever.scala.clustering.kmeans.KMeans
 import clustering4ever.util.SumArrays
 import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.util.GenerateDatasets
+import clustering4ever.util.GenerateClusterizable
 
 class Clusterwise(
 	@(transient @param) sc: SparkContext,
@@ -78,7 +78,7 @@ class Clusterwise(
 
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 )
 		{
-	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateDatasets.obtainSimpleRealClusterizable(id, x ++ y) }
+	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateClusterizable.obtainSimpleRealClusterizable(id, x ++ y) }
 	  	  	//val kmeansModel = KMeans.runEuclidean(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean(true))
 	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean(true))
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
