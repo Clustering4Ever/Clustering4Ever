@@ -83,9 +83,7 @@ class InternalIndexes extends ClusteringCommons
     {
       val uniqData = data.par.zipWithIndex
       val (target, others) = uniqData.partition{ case ((clusterID, _), _) => clusterID == testedLabel }
-      //val target_other = for(v<-uniqData) yield(if(v._1._1==label) (1,v) else (0,v))
       val cart = for( i <- target; j <- others ) yield (i, j)
-
       //get the sum distance between each point and other clusters
       val allDistances = cart.map{ case (((_, vector1), id1), ((clusterID2, vector2), _)) => ((id1, clusterID2), metric.d(vector1, vector2)) }.groupBy(_._1).map{ case (k,v)=> (k, v.map(_._2).sum) }
       // numbers of point of others clusters

@@ -10,7 +10,6 @@ import scala.collection.{immutable, GenSeq}
  */
 object SumArrays
 {
-
 	/**
 	 * Sum two vector of Numeric into one
 	 */
@@ -19,8 +18,8 @@ object SumArrays
 	/**
 	 * Sum two vector of Numeric into one
 	 */
-	def sumArraysNumericsGen[T: ClassTag, S <: Seq[T]](a: S, b: S)(implicit num: Numeric[T]): S =
-		a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[S]
+	def sumArraysNumericsGen[T: ClassTag, V <: Seq[T]](a: V, b: V)(implicit num: Numeric[T]): V =
+		a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[V]
 	/**
 	 * Reduce an Array[Array[T]] into an Array[T]
 	 */
@@ -29,8 +28,8 @@ object SumArrays
 	/**
 	 * Reduce an Array[Array[T]] into an Array[T]
 	 */
-	def sumColumnArraysGen[T: ClassTag, S <: Seq[T]](cluster: GenSeq[S])(implicit num: Numeric[T]): S =
-		cluster.reduce(sumArraysNumericsGen[T, S](_, _))
+	def sumColumnArraysGen[T: ClassTag, V <: Seq[T]](cluster: GenSeq[V])(implicit num: Numeric[T]): V =
+		cluster.reduce(sumArraysNumericsGen[T, V](_, _))
 	/**
 	 * Reduce Array of multiple vectors
 	 */
@@ -50,8 +49,8 @@ object SumArrays
 	/**
 	 * Return the centroid of the given cluster
 	 */
-	def obtainMeanGen[S <: Seq[Double]](cluster: GenSeq[S]): S =
-		sumColumnArraysGen[Double, S](cluster).map( _ / cluster.size ).asInstanceOf[S]
+	def obtainMeanGen[V <: Seq[Double]](cluster: GenSeq[V]): V =
+		sumColumnArraysGen[Double, V](cluster).map( _ / cluster.size ).asInstanceOf[V]
 	/**
 	 * Compute the mode of a cluster
 	 */

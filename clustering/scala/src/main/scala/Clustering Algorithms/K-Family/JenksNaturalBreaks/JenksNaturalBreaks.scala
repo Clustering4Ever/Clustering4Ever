@@ -1,6 +1,7 @@
 package clustering4ever.scala.clustering
 
 import scala.collection.{mutable, GenSeq}
+import scala.collection.parallel.mutable.ParArray
 
 /**
  * @author Beck Gaël
@@ -24,10 +25,10 @@ object JenksNaturalBreaks
     var i3 = 0
     var i4 = 0
 
-    val matrixIter = (0 until nbValues).toArray.par
-    val matrixIter2 = (0 until nbCat).toArray.par
-    val mat1 = for( i <- matrixIter ) yield for( j <- matrixIter2 ) yield 1D
-    val mat2 = for( i <- matrixIter ) yield for( j <- matrixIter2 ) yield Double.MaxValue
+    val preMat1 = ParArray.fill(nbCat)(1D)
+    val preMat2 = ParArray.fill(nbCat)(Double.MaxValue)
+    val mat1 = ParArray.fill(nbValues)(preMat1)
+    val mat2 = ParArray.fill(nbValues)(preMat2)
     
     for( l <- 2 to nbValues)
     {

@@ -5,14 +5,14 @@ import breeze.linalg.{DenseMatrix, DenseVector}
 import scala.collection.immutable
 import scala.collection.parallel.ParSeq
 import clustering4ever.math.distances.ContinuousDistance
-import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.scalar.ClassicEuclidean
 import clustering4ever.clustering.ClusteringModel
 
 class ClusterwiseModel(
 	val xyTrain: Seq[(Int, (Seq[Double], Seq[Double], Int))],
 	val interceptXYcoefPredByClass: scala.collection.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.Vector[(Int, immutable.Vector[Double])])],
 	standardizationParameters: Option[(Seq[Double], Seq[Double], Seq[Double], Seq[Double])] = None,
-	metric: ContinuousDistance[Seq[Double]] = new Euclidean(true)
+	metric: ContinuousDistance[Seq[Double]] = new ClassicEuclidean
 ) extends ClusteringModel
 {
 	type Xvector = Seq[Double]
@@ -20,8 +20,7 @@ class ClusterwiseModel(
 	type IDXtest = Seq[(Long, Xvector)]
 	type IDXYtest = ParSeq[(Int, (Xvector, Yvector))]
 
-	val (meanX, meanY, sdX, sdY) = if( standardizationParameters.isDefined ) standardizationParameters.get
-		else (immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double])
+	val (meanX, meanY, sdX, sdY) = if( standardizationParameters.isDefined ) standardizationParameters.get else (immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double], immutable.Vector.empty[Double])
 
 	private[this] def knn(v: Seq[Double], neighbors: Seq[(Seq[Double], Int)], k:Int) = neighbors.sortBy{ case (v2, clusterID) => metric.d(v, v2) }.take(k)
 
@@ -37,9 +36,9 @@ class ClusterwiseModel(
 
 	private[this] def knnMajorityVote(xyTest: Iterator[(Long, Xvector)], k: Int, g: Int): Iterator[(Long, Int, Seq[Double])] = xyTest.map{ case (id, x) => (id, obtainNearestClass(x, k, g, false), x) }
 	
-	private[this] def knnMajorityVote2(xyTest: ParSeq[(Int, (Xvector, Yvector))], k: Int, g: Int): ParSeq[(Int, Int, Seq[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x, k, g, false), x) }
-
 	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): ParSeq[(Int, Int, Seq[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x ++ y, k, g, true), x) }
+
+	private[this] def knnMajorityVote2(xyTest: ParSeq[(Int, (Xvector, Yvector))], k: Int, g: Int): ParSeq[(Int, Int, Seq[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x, k, g, false), x) }
 
 	private[this] def knnMajorityVoteWithY2(xyTest: Iterator[(Int, (Xvector, Yvector))], k: Int, g: Int): Iterator[(Int, Int, Seq[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x ++ y, k, g, true), x) }
 

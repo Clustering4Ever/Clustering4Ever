@@ -21,11 +21,7 @@ class ClusterwiseCore(
 	  	inputY(clusterID).remove( inputY(clusterID).size - 1 )
 	}
 
-	private[this] def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: immutable.Vector[Int]) =
-	{
-		if( currClass == 0 ) elemNb
-		else elemNb - classlimits( currClass - 1 ) - 1
-	}
+	private[this] def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: immutable.Vector[Int]) = if( currClass == 0 ) elemNb else elemNb - classlimits( currClass - 1 ) - 1
 
 	private[this] def removeFirstElemXY(clusterID: Int, xDS: IDXDS, yDS: YDS) =
 	{
@@ -115,8 +111,8 @@ class ClusterwiseCore(
 				val dsPerClass = classedDSv.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toVector.sortBy{ case (clusterID, _) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
 			  	val inputY = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID)) => y }:_*) }
-			  	val preClassLimits = (0 until inputY.size).toVector.map( i => inputY(i).size )
-			  	val classlimits = (0 until preClassLimits.size).toVector.map( i => (0 to i).map( j => preClassLimits(j) ).sum - 1 )
+			  	val preClassLimits = (0 until inputY.size).toVector.map(inputY(_).size)
+			  	val classlimits = (0 until preClassLimits.size).toVector.map( i => (0 to i).map(preClassLimits(_)).sum - 1 )
 			  	var currentDotIdx = 0
 			  	var currentClass = 0
 			  	var nbIte = 0
@@ -148,13 +144,7 @@ class ClusterwiseCore(
 					  	val boolTab = Array.fill(g)(true)
 					  	val errorsIdx = error1.zip(error2).zipWithIndex
 					  	boolTab(currentDotClass) = false
-					  	val errors = rangeOverClasses.map( i =>
-					  	{
-					  		(
-						  		if( i == currentDotClass ) errorsIdx.map{ case ((err1, err2), idx) => err1 }
-						  		else elseCaseWhenComputingError(errorsIdx, boolTab, currentDotClass)
-					  		).sum
-					  	})
+					  	val errors = rangeOverClasses.map( i => (if( i == currentDotClass ) errorsIdx.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIdx, boolTab, currentDotClass)).sum )
 					  	val minError = errors.min
 					  	val classToMovePointInto = errors.indexOf(minError)
 					  	val (pointID, (pointX, pointY, _)) = classedDS(currentDotIdx)
@@ -245,8 +235,7 @@ class ClusterwiseCore(
 				val preSize = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => dsPerBucket.map{ case (clusterID, grpId, ds) => ds.size } }
 				val orderedBucketSize = preSize.flatten
 				val classSize = preSize.map(_.size )
-				val classSize2 = preSize.map(_.sum)
-				val classlimits = (for( i <- (0 until classSize.size).toVector ) yield ((for( j <- 0 to i ) yield( classSize(j) )).sum)).map(_ - 1)
+				val classlimits = (0 until classSize.size).toVector.map( i => (0 to i).map(classSize(_)).sum - 1 )
 
 			  	val inputX = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => mutable.ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => (id, x) } }:_*) }
 			  	val inputY = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => mutable.ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => y } }:_*) }
@@ -291,11 +280,7 @@ class ClusterwiseCore(
 					  	val errorsIdx = error1.zip(error2).zipWithIndex
 
 					  	boolTab(currentclusterID) = false
-					  	val errors = for( i <- rangeOverClasses ) yield
-					  	({
-					  		if( i == currentclusterID ) errorsIdx.map{ case ((err1, err2), idx) => err1 }
-					  		else elseCaseWhenComputingError(errorsIdx, boolTab, currentclusterID)
-					  	}).sum
+					  	val errors = rangeOverClasses.map( i => (if( i == currentclusterID ) errorsIdx.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIdx, boolTab, currentclusterID)).sum )
 					  	val minError = errors.min
 					  	val classToMoveGroupInto = errors.indexOf(minError)
 					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, classlimits)
