@@ -15,13 +15,13 @@ import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.scala.clustering.KCommonsVectors
 
 class KModes[ID: Numeric, Obj](
-	data: GenSeq[BinaryClusterizable[ID, Obj, Seq[Int]]],
+	data: GenSeq[BinaryClusterizable[ID, Obj, immutable.Seq[Int]]],
 	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
 	metric: Hamming = new Hamming,
-	initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]]
-) extends KCommonsVectors[ID, Int, Seq[Int], BinaryDistance[Seq[Int]], BinaryClusterizable[ID, Obj, Seq[Int]]](data, metric, k, initializedCenters)
+	initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]]
+) extends KCommonsVectors[ID, Int, immutable.Seq[Int], BinaryDistance[immutable.Seq[Int]], BinaryClusterizable[ID, Obj, immutable.Seq[Int]]](data, metric, k, initializedCenters)
 {		
 	def run(): KModesModelSeq[ID, Obj] =
 	{
@@ -49,11 +49,11 @@ class KModes[ID: Numeric, Obj](
 object KModes
 {
 	def run[ID: Numeric, Obj](
-		data: GenSeq[BinaryClusterizable[ID, Obj, Seq[Int]]],
+		data: GenSeq[BinaryClusterizable[ID, Obj, immutable.Seq[Int]]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		initializedCenters: mutable.HashMap[Int, Seq[Int]] = mutable.HashMap.empty[Int, Seq[Int]]
+		initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]]
 	): KModesModelSeq[ID, Obj] =
 	{
 		val hammingMetric = new Hamming
@@ -63,7 +63,7 @@ object KModes
 	}
 }
 
-class KModesCustom[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
+class KModesCustom[ID: Numeric, Obj, V <: immutable.Seq[Int] : ClassTag](
 	data: GenSeq[BinaryClusterizable[ID, Obj, V]],
 	k: Int,
 	var epsilon: Double,
@@ -92,7 +92,7 @@ class KModesCustom[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
 
 object KModesCustom
 {
-	def run[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
+	def run[ID: Numeric, Obj, V <: immutable.Seq[Int] : ClassTag](
 		data: GenSeq[BinaryClusterizable[ID, Obj, V]],
 		k: Int,
 		epsilon: Double,

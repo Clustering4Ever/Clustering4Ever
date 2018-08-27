@@ -127,4 +127,4 @@ We decided to feed algorithms with Clusterizable type object to ensure to keep o
 * `import clustering4ever.util.ScalaImplicits._`
 * `import clustering4ever.util.SparkImplicits._`
 
-They allow you to pass directly to our `data` algorithms argument as either `GenSeq` or `RDD` of `Seq[Int]` or `Seq[Double]` that will be transformed into the appropriate input format.
+They allow you to pass directly to our `data` algorithms argument as either `GenSeq` or `RDD` of `immutable.Seq[Int]` or `immutable.Seq[Double]` that will be transformed into the appropriate input format.

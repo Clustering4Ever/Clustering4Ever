@@ -12,7 +12,6 @@ import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.util.SumArrays
-import clustering4ever.spark.clustering.accumulators.{CentroidsScalarAccumulator, CardinalitiesAccumulator}
 import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
@@ -30,20 +29,20 @@ import clustering4ever.spark.clustering.KCommonsSpark
  **/
 class KMeans[ID: Numeric, Obj](
 	@transient val sc: SparkContext,
-	data: RDD[RealClusterizable[ID, Obj, Seq[Double]]],
+	data: RDD[RealClusterizable[ID, Obj, immutable.Seq[Double]]],
 	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	metric: Euclidean[Seq[Double]],
-	initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]],
+	metric: Euclidean[immutable.Seq[Double]],
+	initializedCenters: mutable.HashMap[Int, immutable.Seq[Double]] = mutable.HashMap.empty[Int, immutable.Seq[Double]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSpark[ID, Double, Seq[Double], Euclidean[Seq[Double]], RealClusterizable[ID, Obj, Seq[Double]]](data, metric, k, initializedCenters, persistanceLVL)
+) extends KCommonsSpark[ID, Double, immutable.Seq[Double], Euclidean[immutable.Seq[Double]], RealClusterizable[ID, Obj, immutable.Seq[Double]]](data, metric, k, initializedCenters, persistanceLVL)
 {
 	def run(): KMeansModel =
 	{		
 		def initializationCenters() =
 		{
-			def obtainMinAndMax(data: RDD[Seq[Double]]) =
+			def obtainMinAndMax(data: RDD[immutable.Seq[Double]]) =
 			{
 				val vectorRange = (0 until dim).toVector
 
@@ -57,7 +56,7 @@ class KMeans[ID: Numeric, Obj](
 
 			val (minv, maxv) = obtainMinAndMax(vectorizedDataset)
 
-			val ranges = Seq(minv.zip(maxv):_*).map{ case (min, max) => (max - min, min) }
+			val ranges = immutable.Seq(minv.zip(maxv):_*).map{ case (min, max) => (max - min, min) }
 			val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
 			centers
 		}
@@ -69,7 +68,7 @@ class KMeans[ID: Numeric, Obj](
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged )
 		{
-			val info = vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumericsGen[Double, Seq[Double]](v1, v2)) }
+			val info = vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) ).reduceByKey{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumericsGen[Double, immutable.Seq[Double]](v1, v2)) }
 				.map{ case (clusterID, (cardinality, preMean)) => (clusterID, preMean.map(_ / cardinality), cardinality) }.collect
 
 			info.foreach{ case (clusterID, mean, cardinality) =>
@@ -91,12 +90,12 @@ object KMeans extends DataSetsTypes[Long]
 {
 	def run[ID: Numeric, Obj](
 		@(transient @param) sc: SparkContext,
-		data: RDD[RealClusterizable[ID, Obj, Seq[Double]]],
+		data: RDD[RealClusterizable[ID, Obj, immutable.Seq[Double]]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: Euclidean[Seq[Double]],
-		initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]],
+		metric: Euclidean[immutable.Seq[Double]],
+		initializedCenters: mutable.HashMap[Int, immutable.Seq[Double]] = mutable.HashMap.empty[Int, immutable.Seq[Double]],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 	): KMeansModel =
 	{

@@ -12,6 +12,7 @@ object Stats extends ClusteringCommons
 {
 	type Mean = immutable.Vector[Double]
 	type SD = Double
+/*
 	/**
 	 * Reduce a matrix into a vector where each component is the sum of its associate column 
 	 **/
@@ -22,6 +23,7 @@ object Stats extends ClusteringCommons
 	 **/
 	def mean(vectors: immutable.Seq[immutable.Vector[Double]]): Mean =
 		reduceColumns(vectors).map(_ / vectors.size)
+*/
 	/**
 	 * Compute the standard deviation between vectors and a mean
 	 **/
@@ -47,7 +49,7 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]) =
+	def obtainMinAndMax[S <: immutable.Seq[Double]](data: GenSeq[S]) =
 	{
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toVector
@@ -60,7 +62,7 @@ object Stats extends ClusteringCommons
 		(minValues, maxValues)
 	}
 
-	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true)) =
+	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistance[immutable.Seq[Double]] = new Euclidean[immutable.Seq[Double]](true)) =
 	{
 		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }
 

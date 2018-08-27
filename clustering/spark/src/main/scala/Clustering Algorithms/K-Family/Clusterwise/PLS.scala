@@ -7,13 +7,13 @@ import breeze.linalg._
 
 trait CommonPLSTypes
 {
-	type IdWithX = GenSeq[(Int, Seq[Double])]
-	type Y = GenSeq[Seq[Double]]
+	type IdWithX = GenSeq[(Int, immutable.Seq[Double])]
+	type Y = GenSeq[immutable.Seq[Double]]
 }
 
 class PLS(
-	dsXi: GenSeq[(Int, Seq[Double])],
-	dsY: GenSeq[Seq[Double]],
+	dsXi: GenSeq[(Int, immutable.Seq[Double])],
+	dsY: GenSeq[immutable.Seq[Double]],
 	n: Int,
 	h: Int,
 	lw: Double,

@@ -25,13 +25,13 @@ import clustering4ever.scala.clustering.KCommonsVectors
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
  */
 class KMeans[ID: Numeric, Obj](
-	data: GenSeq[RealClusterizable[ID, Obj, Seq[Double]]],
+	data: GenSeq[RealClusterizable[ID, Obj, immutable.Seq[Double]]],
 	k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
-	metric: Euclidean[Seq[Double]] = new ClassicEuclidean,
-	initializedCenters: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap.empty[Int, Seq[Double]]
-) extends KCommonsVectors[ID, Double, Seq[Double], Euclidean[Seq[Double]], RealClusterizable[ID, Obj, Seq[Double]]](data, metric, k, initializedCenters)
+	metric: Euclidean[immutable.Seq[Double]] = new ClassicEuclidean,
+	initializedCenters: mutable.HashMap[Int, immutable.Seq[Double]] = mutable.HashMap.empty[Int, immutable.Seq[Double]]
+) extends KCommonsVectors[ID, Double, immutable.Seq[Double], Euclidean[immutable.Seq[Double]], RealClusterizable[ID, Obj, immutable.Seq[Double]]](data, metric, k, initializedCenters)
 {
 	/**
 	 * Run the K-Means with Euclidean metric
@@ -64,21 +64,21 @@ object KMeans
 	 * Run the K-Means with Euclidean distance
 	 */
 	def run[ID: Numeric, Obj](
-		data: GenSeq[RealClusterizable[ID, Obj, Seq[Double]]],
+		data: GenSeq[RealClusterizable[ID, Obj, immutable.Seq[Double]]],
 		k: Int,
 		epsilon: Double,
 		iterMax: Int,
-		metric: Euclidean[Seq[Double]]
+		metric: Euclidean[immutable.Seq[Double]]
 		): KMeansModelSeq[ID, Obj] =
 	{
-		val initializedCenters = mutable.HashMap.empty[Int, Seq[Double]]
+		val initializedCenters = mutable.HashMap.empty[Int, immutable.Seq[Double]]
 		val kMeans = new KMeans[ID, Obj](data, k, epsilon, iterMax, metric, initializedCenters)
 		val kmeansModel = kMeans.run()
 		kmeansModel
 	}
 }
 
-class KMeansCustom[ID: Numeric, Obj, S <: Seq[Double] : ClassTag](
+class KMeansCustom[ID: Numeric, Obj, S <: immutable.Seq[Double] : ClassTag](
 	data: GenSeq[RealClusterizable[ID, Obj, S]],
 	k: Int,
 	var epsilon: Double,
@@ -112,7 +112,7 @@ object KMeansCustom
 	/**
 	 * Run the K-Means with a custom distance
 	 */
-	def run[ID: Numeric, Obj, S <: Seq[Double] : ClassTag](
+	def run[ID: Numeric, Obj, S <: immutable.Seq[Double] : ClassTag](
 		data: GenSeq[RealClusterizable[ID, Obj, S]],
 		k: Int,
 		epsilon: Double,

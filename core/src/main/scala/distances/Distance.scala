@@ -2,7 +2,7 @@ package clustering4ever.math.distances
 
 import scala.collection.immutable
 import clustering4ever.scala.measurableclass.BinaryScalarVector
-import clustering4ever.scala.clusterizables.ClusterizableM
+import clustering4ever.scala.clusterizables.MixtClusterizable
 
 /**
  * @author Beck Gaël
@@ -18,27 +18,27 @@ trait ClusterizableDistance[T, V] extends Distance[T]
 	def obtainClassicalDistance(): Distance[V]
 }
 
-trait RealClusterizableDistance[T, V <: Seq[Double]] extends ClusterizableDistance[T, V]
+trait RealClusterizableDistance[T, V <: immutable.Seq[Double]] extends ClusterizableDistance[T, V]
 {
 	def obtainClassicalDistance(): ContinuousDistance[V]
 }
 
-trait ContinuousDistance[V <: Seq[Double]] extends Distance[V]
+trait ContinuousDistance[V <: immutable.Seq[Double]] extends Distance[V]
 {
 	def d(vector1: V, vector2: V): Double
 }
 
-trait BinaryDistance[V <: Seq[Int]] extends Distance[V]
+trait BinaryDistance[V <: immutable.Seq[Int]] extends Distance[V]
 {
 	def d(vector1: V, vector2: V): Double
 }
 
-trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[BinaryScalarVector[Vb, Vs]]
+trait MixtDistance[Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]] extends Distance[BinaryScalarVector[Vb, Vs]]
 {
 	def d(vector1: BinaryScalarVector[Vb, Vs], vector2: BinaryScalarVector[Vb, Vs]): Double
 }
 
-trait MixtDistanceClusterizable[ID, Obj, Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[ClusterizableM[ID, Obj, Vb, Vs]]
+trait MixtDistanceClusterizable[ID, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]] extends Distance[MixtClusterizable[ID, Obj, Vb, Vs]]
 {
-	def d(vector1: ClusterizableM[ID, Obj, Vb, Vs], vector2: ClusterizableM[ID, Obj, Vb, Vs]): Double
+	def d(vector1: MixtClusterizable[ID, Obj, Vb, Vs], vector2: MixtClusterizable[ID, Obj, Vb, Vs]): Double
 }

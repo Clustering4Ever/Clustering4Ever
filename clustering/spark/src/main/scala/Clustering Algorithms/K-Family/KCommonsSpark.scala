@@ -15,7 +15,7 @@ import clustering4ever.scala.clustering.KCommons
 abstract class KCommonsSpark[
 	ID: Numeric,
 	N: Numeric,
-	V <: Seq[N] : ClassTag,
+	V <: immutable.Seq[N] : ClassTag,
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]
 	](

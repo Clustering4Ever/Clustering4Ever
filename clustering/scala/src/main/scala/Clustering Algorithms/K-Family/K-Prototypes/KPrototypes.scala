@@ -12,7 +12,7 @@ import clustering4ever.util.SumArrays
 import clustering4ever.math.distances.{MixtDistance, MixtDistanceClusterizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.stats.Stats
-import clustering4ever.scala.clusterizables.ClusterizableM
+import clustering4ever.scala.clusterizables.MixtClusterizable
 import clustering4ever.scala.clustering.KCommonsMixt
 
 /**
@@ -24,14 +24,14 @@ import clustering4ever.scala.clustering.KCommonsMixt
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
  **/
-class KPrototypes[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](
-	data: GenSeq[ClusterizableM[ID, Obj, Vb, Vs]],
+class KPrototypes[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](
+	data: GenSeq[MixtClusterizable[ID, Obj, Vb, Vs]],
 	k: Int,
 	var epsilon: Double,
 	var iterMax: Int,
 	metric: MixtDistance[Vb, Vs],
 	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
-) extends KCommonsMixt[ID, Vb, Vs, BinaryScalarVector[Vb, Vs], MixtDistance[Vb, Vs], ClusterizableM[ID, Obj, Vb, Vs]](data, metric, k, initializedCenters)
+) extends KCommonsMixt[ID, Vb, Vs, BinaryScalarVector[Vb, Vs], MixtDistance[Vb, Vs], MixtClusterizable[ID, Obj, Vb, Vs]](data, metric, k, initializedCenters)
 {
 	/**
 	 * Run the K-Means
@@ -70,7 +70,7 @@ object KPrototypes
 	/**
 	 * Run the K-Protypes
 	 **/
-	def run[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](data: GenSeq[ClusterizableM[ID, Obj, Vb, Vs]], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance[Vb, Vs], initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
+	def run[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](data: GenSeq[MixtClusterizable[ID, Obj, Vb, Vs]], k: Int, epsilon: Double, iterMax: Int, metric: MixtDistance[Vb, Vs], initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
 ): KPrototypesModel[Vb, Vs] =
 	{
 		val kPrototypes = new KPrototypes[ID, Obj, Vb, Vs](data, k, epsilon, iterMax, metric)

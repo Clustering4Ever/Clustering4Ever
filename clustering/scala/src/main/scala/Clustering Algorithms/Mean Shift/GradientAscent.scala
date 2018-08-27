@@ -20,28 +20,29 @@ import clustering4ever.scala.vectorizables.RealVectorizable
  * Mean Shift gradient ascent
  * @param kernelType defines the nature of kernel usud in the gradient ascent
  */
-class GradientAscent[ID: Numeric, Obj, S <: Seq[Double]](
+class GradientAscent[ID: Numeric, Obj, V <: immutable.Seq[Double]](
   var epsilon: Double,
   var maxIterations: Int,
-  metric: ContinuousDistance[S],
+  metric: ContinuousDistance[V],
   kernelType: KernelType,
   kernelArgs: immutable.Vector[String]
 ) extends DataSetsTypes[ID]
 {
-  def gradientAscent(readyToGA: GenSeq[RealClusterizable[ID, Obj, S]], maxIterations: Int) =
+  def gradientAscent(readyToGA: GenSeq[RealClusterizable[ID, Obj, V]], maxIterations: Int) =
   {
     val haveNotConverged = false
     val readyToGApar = readyToGA.par
     val kernelLocality = readyToGApar.map(_.vector)
-    var gradientAscentData: GenSeq[(RealClusterizable[ID, Obj, S], Boolean)] = readyToGApar.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
-    lazy val kernelLocalitySeq = kernelType match
+
+    var gradientAscentData: GenSeq[(RealClusterizable[ID, Obj, V], Boolean)] = readyToGApar.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    lazy val kernelLocalitySeq: Option[Seq[V]] = kernelType match
     {
       case KernelNature.EuclideanKNN => Some(kernelLocality.seq)
       case KernelNature.KNN => Some(kernelLocality.seq)
       case _ => None
     }
 
-    def kernelGradientAscent(toExplore: GenSeq[(RealClusterizable[ID, Obj, S], Boolean)]) =
+    def kernelGradientAscent(toExplore: GenSeq[(RealClusterizable[ID, Obj, V], Boolean)]) =
     {
       var cptConvergedPoints = 0
       
@@ -53,8 +54,8 @@ class GradientAscent[ID: Numeric, Obj, S <: Seq[Double]](
           {
             kernelType match
             {
-              case kernel if( kernel == KernelNature.Gaussian || kernel == KernelNature.Flat ) =>  Kernels.obtainModeThroughKernel[S](mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
-              case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean[S]])
+              case kernel if( kernel == KernelNature.Gaussian || kernel == KernelNature.Flat ) =>  Kernels.obtainModeThroughKernel[V](mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
+              case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean[V]])
               case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric)
               case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
               case _ =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, 40, metric)
@@ -69,7 +70,7 @@ class GradientAscent[ID: Numeric, Obj, S <: Seq[Double]](
         }
         else false
 
-        (obj.setV2(newMode.asInstanceOf[S]), hasConverged)
+        (obj.setV2(newMode.asInstanceOf[V]), hasConverged)
       }}
 
       (convergingData, cptConvergedPoints)
@@ -90,7 +91,7 @@ class GradientAscent[ID: Numeric, Obj, S <: Seq[Double]](
      */
     @deprecated
     @annotation.tailrec
-    def go(i: Int, data: GenSeq[(RealClusterizable[ID, Obj, S], Boolean)]): GenSeq[(RealClusterizable[ID, Obj, S], Boolean)] =
+    def go(i: Int, data: GenSeq[(RealClusterizable[ID, Obj, V], Boolean)]): GenSeq[(RealClusterizable[ID, Obj, V], Boolean)] =
     {
       val (gradientAscentData, cptConvergedPoints) = kernelGradientAscent(data)
       val everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
@@ -109,16 +110,16 @@ object GradientAscent extends DataSetsTypes[Int]
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
    **/
-   def run[ID: Numeric, Obj, S <: Seq[Double]](
-    data: GenSeq[RealClusterizable[ID, Obj, S]],
-    metric: ContinuousDistance[S],
+   def run[ID: Numeric, Obj, V <: immutable.Seq[Double]](
+    data: GenSeq[RealClusterizable[ID, Obj, V]],
+    metric: ContinuousDistance[V],
     epsilon: Double,
     maxIterations: Int,
     kernelType: KernelType,
     kernelArgs: immutable.Vector[String]
     ) =
   {
-    val meanShift = new GradientAscent[ID, Obj, S](epsilon, maxIterations, metric, kernelType, kernelArgs)
+    val meanShift = new GradientAscent[ID, Obj, V](epsilon, maxIterations, metric, kernelType, kernelArgs)
     meanShift.gradientAscent(data, maxIterations)
   }
 }

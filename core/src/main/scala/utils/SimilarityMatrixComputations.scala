@@ -15,7 +15,7 @@ object SimilarityMatrix
 
 	def similarityMatrixElkan[ID: Numeric](data: mutable.HashMap[ID, immutable.Vector[Double]]) : mutable.HashMap[ID, Array[(ID, immutable.Vector[Double], Double)]] =
 	{
-		val metric = new Euclidean[Seq[Double]](true)
+		val metric = new Euclidean[immutable.Seq[Double]](true)
 		for( (id1, v1) <- data) yield id1 -> (for( (id2, v2) <- data.toArray if( id1 != id2 ) ) yield (id2, v2, metric.d(v1, v2) / 2D)).sortBy(_._3)
 		//data.map{ case (id1, v1) => id1 -> (data.map{ case (id2, v2) => if( id1 != id2 ) ) yield (id2, v2, metric.d(v1, v2) / 2D)).sortBy(_._3)
 

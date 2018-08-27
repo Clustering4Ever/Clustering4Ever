@@ -55,17 +55,17 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](var metric: D) extends
 	 * Simplest centers initialization
 	 * We search range for each dimension and take a random value between each range 
 	 */
-	protected def naiveInitializationReal[S <: Seq[Double], GS <: GenSeq[S]](realDS: GS, k: Int) =
+	protected def naiveInitializationReal[S <: immutable.Seq[Double], GS <: GenSeq[S]](realDS: GS, k: Int) =
 	{
 		val (minv, maxv) = Stats.obtainMinAndMax(realDS)
-		val ranges = Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
-		val centers: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+		val ranges = immutable.Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
+		val centers: mutable.HashMap[Int, immutable.Seq[Double]] = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
 		centers
 	}
 	/**
 	 * Simplest centers initialization which generate random binary vectors 
 	 */
-	protected def naiveInitializationBinary(dim: Int, k: Int) = mutable.HashMap((0 until k).map( clusterID => (clusterID, Seq.fill(dim)(Random.nextInt(2))) ):_*) 
+	protected def naiveInitializationBinary(dim: Int, k: Int) = mutable.HashMap((0 until k).map( clusterID => (clusterID, immutable.Seq.fill(dim)(Random.nextInt(2))) ):_*) 
 	/**
 	 * Kmeans++ initialization
 	 * <h2>References</h2>
@@ -127,7 +127,7 @@ abstract class KCommonsScala[
 abstract class KCommonsVectors[
 	ID: Numeric,
 	N: Numeric,
-	V <: Seq[N],
+	V <: immutable.Seq[N],
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]
 	](
@@ -142,8 +142,8 @@ abstract class KCommonsVectors[
 
 abstract class KCommonsMixt[
 	ID: Numeric,
-	Vb <: Seq[Int],
-	Vs <: Seq[Double],
+	Vb <: immutable.Seq[Int],
+	Vs <: immutable.Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs],
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]
@@ -184,7 +184,7 @@ abstract class KCommonsMixt[
 abstract class KCommonsModel[
 	ID: Numeric,
 	T: Numeric,
-	V <: Seq[T] : ClassTag,
+	V <: immutable.Seq[T] : ClassTag,
 	D <: Distance[V],
 	Cz <: ClusterizableExt[ID, T, V]
 	](

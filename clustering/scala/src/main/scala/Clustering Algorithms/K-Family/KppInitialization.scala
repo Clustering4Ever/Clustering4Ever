@@ -15,11 +15,11 @@ object KppInitialization
 	 * Simplest centers initialization
 	 * We search range for each dimension and take a random value between each range 
 	 */
-	def naiveInitialization[S <: Seq[Double], GS <: GenSeq[S]](realDS: GS, k: Int) =
+	def naiveInitialization[S <: immutable.Seq[Double], GS <: GenSeq[S]](realDS: GS, k: Int) =
 	{
 		val (minv, maxv) = Stats.obtainMinAndMax(realDS)
-		val ranges = Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
-		val centers: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+		val ranges = immutable.Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
+		val centers: mutable.HashMap[Int, immutable.Seq[Double]] = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
 		centers
 	}
 	/**
@@ -31,7 +31,7 @@ object KppInitialization
 	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
 	 * </ol>
 	 */
-	def kmppInitialization[T: Numeric, S <: Seq[T], GS <: GenSeq[S]](realDS: GS, k: Int, metric: Distance[S]): mutable.HashMap[Int, S] =
+	def kmppInitialization[T: Numeric, S <: immutable.Seq[T], GS <: GenSeq[S]](realDS: GS, k: Int, metric: Distance[S]): mutable.HashMap[Int, S] =
 	{
 		def obtainNearestCenter(v: S, centers: mutable.ArrayBuffer[S]): S = centers.minBy(metric.d(_, v))
 		

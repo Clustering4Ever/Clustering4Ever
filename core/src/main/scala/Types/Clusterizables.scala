@@ -1,22 +1,23 @@
 package clustering4ever.scala.clusterizables
 
-import clustering4ever.scala.vectorizables.{Vectorizable, VectorizableM, RealVectorizable, BinaryVectorizable}
+import clustering4ever.scala.vectorizables.{Vectorizable, MixtVectorizable, RealVectorizable, BinaryVectorizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
+import scala.collection.immutable
 
 abstract class Clusterizable[ID: Numeric, Vector](val id: ID, val vectorizable: Vectorizable[Vector]) extends Serializable
 {
 	lazy val vector: Vector = vectorizable.toVector
 }
 
-abstract class ClusterizableExt[ID: Numeric, T: Numeric, Vector <: Seq[T]](
+abstract class ClusterizableExt[ID: Numeric, T: Numeric, Vector <: immutable.Seq[T]](
 	id: ID, 
 	vectorizable: Vectorizable[Vector],
 	var v2: Vector,
 	var clusterID: Int = Int.MaxValue
 ) extends Clusterizable[ID, Vector](id, vectorizable)
 {
-	@transient lazy val vectorSeq = vector.toSeq
-	@transient lazy val vector2Seq = v2.toSeq
+	// @transient lazy val vectorSeq = vector.toSeq
+	// @transient lazy val vector2Seq = v2.toSeq
 
 	def setV2(newV2: Vector): this.type
 
@@ -26,8 +27,10 @@ abstract class ClusterizableExt[ID: Numeric, T: Numeric, Vector <: Seq[T]](
 	{
 		val prime = 31
 		var result = 1
-		result = prime * result + vectorSeq.hashCode
-		result = prime * result + vector2Seq.hashCode
+		// result = prime * result + vectorSeq.hashCode
+		// result = prime * result + vector2Seq.hashCode
+		result = prime * result + vector.hashCode
+		result = prime * result + v2.hashCode
 		result = prime * result + clusterID.hashCode
 		result = prime * result + id.hashCode
 		result
@@ -37,18 +40,18 @@ abstract class ClusterizableExt[ID: Numeric, T: Numeric, Vector <: Seq[T]](
 /**
  * Generic clusterizable for both Mixt Vectors => (Vector[Int], Vector[Double]) 
  **/
-case class ClusterizableM[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](override val id: ID, override val vectorizable: VectorizableM[Obj, Vb, Vs]) extends Clusterizable[ID, BinaryScalarVector[Vb, Vs]](id, vectorizable)
+case class MixtClusterizable[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](override val id: ID, override val vectorizable: MixtVectorizable[Obj, Vb, Vs]) extends Clusterizable[ID, BinaryScalarVector[Vb, Vs]](id, vectorizable)
 {
 
 	@transient lazy val vectorSeq = (vector.binary.toSeq, vector.scalar.toSeq)
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[ClusterizableM[ID, Obj, Vb, Vs]]
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[MixtClusterizable[ID, Obj, Vb, Vs]]
 
 	override def equals(that: Any): Boolean =
 	{
 		that match
 		{
-		  case that: ClusterizableM[ID, Obj, Vb, Vs] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: MixtClusterizable[ID, Obj, Vb, Vs] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
@@ -63,16 +66,16 @@ case class ClusterizableM[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](o
 		result
 	}
 
-	def copy() = new ClusterizableM[ID, Obj, Vb, Vs](id, vectorizable)
+	def copy() = new MixtClusterizable[ID, Obj, Vb, Vs](id, vectorizable)
 }
 
 /**
  * Clusterizable for Vector[Double] 
  **/
-case class RealClusterizable[ID: Numeric, Obj, V <: Seq[Double]](
+case class RealClusterizable[ID: Numeric, Obj, V <: immutable.Seq[Double]](
 	override val id: ID,
 	override val vectorizable: RealVectorizable[Obj, V],
-	v2Tmp: V = Seq.empty[Double],
+	v2Tmp: V = immutable.Seq.empty[Double].asInstanceOf[V],
 	clusterIDTmp: Int = Int.MaxValue
 ) extends ClusterizableExt[ID, Double, V](id, vectorizable, v2Tmp, clusterIDTmp)
 {
@@ -105,10 +108,10 @@ case class RealClusterizable[ID: Numeric, Obj, V <: Seq[Double]](
 /**
  * Clusterizable for Vector[Int] 
  **/
-case class BinaryClusterizable[ID: Numeric, Obj, V <: Seq[Int]](
+case class BinaryClusterizable[ID: Numeric, Obj, V <: immutable.Seq[Int]](
 	override val id: ID,
 	override val vectorizable: BinaryVectorizable[Obj, V],
-	v2Tmp: V = Seq.empty[Int],
+	v2Tmp: V = immutable.Seq.empty[Int].asInstanceOf[V],
 	clusterIDTmp: Int = Int.MaxValue
 ) extends ClusterizableExt[ID, Int, V](id, vectorizable, v2Tmp, clusterIDTmp)
 {

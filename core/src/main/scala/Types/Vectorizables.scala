@@ -1,6 +1,7 @@
 package clustering4ever.scala.vectorizables
 
 import clustering4ever.scala.measurableclass.BinaryScalarVector
+import scala.collection.immutable
 
 trait Vectorizable[Vector] extends Serializable
 {
@@ -16,14 +17,14 @@ abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Optio
 	}
 }
 
-class VectorizableM[Obj, Vb <: Seq[Int], Vs <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => BinaryScalarVector[Vb, Vs]] = None) extends VectorizableObj[Obj, BinaryScalarVector[Vb, Vs]](obj, vectorizableFct)
+class MixtVectorizable[Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => BinaryScalarVector[Vb, Vs]] = None) extends VectorizableObj[Obj, BinaryScalarVector[Vb, Vs]](obj, vectorizableFct)
 
-class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](obj: BinaryScalarVector[Vb, Vs]) extends VectorizableM[BinaryScalarVector[Vb, Vs], Vb, Vs](obj)
+class MixtVector[Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](obj: BinaryScalarVector[Vb, Vs]) extends MixtVectorizable[BinaryScalarVector[Vb, Vs], Vb, Vs](obj)
 
-class RealVectorizable[Obj, V <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
+class RealVectorizable[Obj, V <: immutable.Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class RealVector[V <: Seq[Double]](vector: V) extends RealVectorizable[V, V](vector)
+class RealVector[V <: immutable.Seq[Double]](vector: V) extends RealVectorizable[V, V](vector)
 
-class BinaryVectorizable[Obj, V <: Seq[Int]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
+class BinaryVectorizable[Obj, V <: immutable.Seq[Int]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class BinaryVector[V <: Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector)
+class BinaryVector[V <: immutable.Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector)

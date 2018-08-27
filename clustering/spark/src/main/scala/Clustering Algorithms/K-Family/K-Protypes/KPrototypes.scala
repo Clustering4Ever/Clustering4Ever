@@ -10,13 +10,12 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.util.SumArrays
-import clustering4ever.spark.clustering.accumulators.{CentroidsScalarAccumulator, CardinalitiesAccumulator}
 import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.stats.Stats
-import clustering4ever.scala.clusterizables.ClusterizableM
+import clustering4ever.scala.clusterizables.MixtClusterizable
 
 /**
  * @author Beck Gaël
@@ -27,9 +26,9 @@ import clustering4ever.scala.clusterizables.ClusterizableM
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding MixtDistance distance function
  **/
-class KPrototypes[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](
+class KPrototypes[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](
 	@transient val sc: SparkContext,
-	dataIn: RDD[ClusterizableM[ID, Obj, Vb, Vs]],
+	dataIn: RDD[MixtClusterizable[ID, Obj, Vb, Vs]],
 	var k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
@@ -122,7 +121,7 @@ class KPrototypes[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](
 
 object KPrototypes extends DataSetsTypes[Long]
 {
-	def run[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]](@(transient @param) sc: SparkContext, data: RDD[ClusterizableM[ID, Obj, Vb, Vs]], k: Int, epsilon: Double, maxIter: Int, metric: MixtDistance[Vb, Vs], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KPrototypesModel[Vb, Vs] =
+	def run[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](@(transient @param) sc: SparkContext, data: RDD[MixtClusterizable[ID, Obj, Vb, Vs]], k: Int, epsilon: Double, maxIter: Int, metric: MixtDistance[Vb, Vs], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KPrototypesModel[Vb, Vs] =
 	{
 		val kPrototypes = new KPrototypes(sc, data, k, epsilon, maxIter, metric, persistanceLVL)
 		val kPrototypesModel = kPrototypes.run()

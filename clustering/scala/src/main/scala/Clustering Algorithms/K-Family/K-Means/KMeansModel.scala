@@ -11,7 +11,7 @@ import clustering4ever.scala.clustering.KCommonsModel
  */
 sealed abstract class KMeansModel[
 	ID: Numeric,
-	V <: Seq[Double] : ClassTag,
+	V <: immutable.Seq[Double] : ClassTag,
 	Obj
 ](
 	centers: mutable.HashMap[Int, V],
@@ -24,6 +24,6 @@ sealed abstract class KMeansModel[
 	RealClusterizable[ID, Obj, V]
 ](centers, metric)
 
-final class KMeansModelSeq[ID: Numeric, Obj](centers: mutable.HashMap[Int, Seq[Double]], metric: ContinuousDistance[Seq[Double]]) extends KMeansModel[ID, Seq[Double], Obj](centers, metric)
+final class KMeansModelSeq[ID: Numeric, Obj](centers: mutable.HashMap[Int, immutable.Seq[Double]], metric: ContinuousDistance[immutable.Seq[Double]]) extends KMeansModel[ID, immutable.Seq[Double], Obj](centers, metric)
 
-final class KMeansModelCustom[ID: Numeric, V <: Seq[Double] : ClassTag, Obj](centers: mutable.HashMap[Int, V], metric: ContinuousDistance[V]) extends KMeansModel[ID, V, Obj](centers, metric)
+final class KMeansModelCustom[ID: Numeric, V <: immutable.Seq[Double] : ClassTag, Obj](centers: mutable.HashMap[Int, V], metric: ContinuousDistance[V]) extends KMeansModel[ID, V, Obj](centers, metric)

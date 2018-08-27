@@ -47,7 +47,7 @@ object BinaryDistanceUtil
 	 * Count number of occurence for each binary features
 	 * @return Array[(numberOf0, numberOf1)]
 	 **/
-	def countOccFeat(data: GenSeq[Seq[Int]]): Seq[(Int, Int)] =
+	def countOccFeat(data: GenSeq[immutable.Seq[Int]]): Seq[(Int, Int)] =
 	{
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumArrays.sumArraysNumerics[Int](_, _))

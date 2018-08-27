@@ -13,7 +13,7 @@ trait EuclideanMeta extends Serializable
 {
 	protected val squareRoot: Boolean
 
-	protected def euclidean(dot1: Seq[Double], dot2: Seq[Double]): Double =
+	protected def euclidean(dot1: immutable.Seq[Double], dot2: immutable.Seq[Double]): Double =
 	{
 		val rawEuclidean = dot1.zip(dot2).map{ case (a, b) => pow(a - b, 2) }.sum
 		if( squareRoot ) sqrt(rawEuclidean) else rawEuclidean
@@ -24,7 +24,7 @@ trait EuclideanMeta extends Serializable
 	override def toString = "Euclidean " + toStringRoot + "root applied"
 }
 
-class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V]
+class Euclidean[V <: immutable.Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V]
 {
 	/**
 	  * The Euclidean distance with or without squareRoot
@@ -33,9 +33,9 @@ class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends 
 	def d(dot1: V, dot2: V): Double = euclidean(dot1, dot2)
 }
 
-class ClassicEuclidean extends Euclidean[Seq[Double]](squareRoot = true)
+class ClassicEuclidean extends Euclidean[immutable.Seq[Double]](squareRoot = true)
 
-class EuclideanClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V]
+class EuclideanClusterizable[ID: Numeric, Obj, V <: immutable.Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V]
 {
 	/**
 	  * The Euclidean distance with or without squareRoot
@@ -46,4 +46,4 @@ class EuclideanClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val squar
 	def obtainClassicalDistance(): Euclidean[V] = new Euclidean[V](squareRoot)
 }
 
-class ClassicEuclideanClusterizable[ID: Numeric, Obj] extends EuclideanClusterizable[ID, Obj, Seq[Double]](squareRoot = true)
+class ClassicEuclideanClusterizable[ID: Numeric, Obj] extends EuclideanClusterizable[ID, Obj, immutable.Seq[Double]](squareRoot = true)
