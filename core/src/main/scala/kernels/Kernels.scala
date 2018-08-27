@@ -27,15 +27,21 @@ object Kernels
 
 	def sigmoidKernel[V <: Seq[Double]](v1: V, v2: V, a: Double = 1D, b: Double = 0D) =
 	{
-		val dotProd = v1.zip(v2).map{ case (a, b) => a * b }.sum
+		var dotProd = 0D
+		v1.zip(v2).foreach{ case (a, b) => dotProd += a * b }
 		tanh(a * dotProd + b)
 	}
+
+	private def reducePreModeAndKernelValue[V <: Seq[Double]](gs: GenSeq[(V, Double)]) = gs.reduce( (a, b) => (SumArrays.sumArraysNumericsGen[Double, V](a._1, b._1), a._2 + b._2) )		
 	/**
 	 * Compute the local mode of a point v knowing its environement env, the bandwidth, kernelType and metric
 	 * @param kernelType can be either "gaussian" or "flat", if "flat" λ = 1
 	 * @param bandwidth of the kernel approach
 	 * @param metric is the dissimilarity measure used for kernels computation
 	 **/
+
+	private def computeModeAndCastIt[V <: Seq[Double]](preMode: V, kernelValue: Double) = preMode.map(_ / kernelValue).asInstanceOf[V]
+
 	def obtainModeThroughKernel[V <: Seq[Double]](v: V, env: GenSeq[V], bandwidth: Double, kernelType: KernelType, metric: ContinuousDistance[V]): V =
 	{
 		val kernel: (V, V, Double, ContinuousDistance[V]) => Double = kernelType match
@@ -44,26 +50,26 @@ object Kernels
 			case KernelNature.Flat => flatKernel[V]
 		}
 
-		val (preMode, kernelValue) = env.map{ vi =>
-		{
-		  val kernelVal = kernel(v, vi, bandwidth, metric)
-		  (vi.map(_ * kernelVal).asInstanceOf[V], kernelVal)
-		}}.reduce( (a, b) => (SumArrays.sumArraysNumericsGen[Double, V](a._1, b._1), a._2 + b._2) )
-
-		val mode = preMode.map(_ / kernelValue)
-		mode.asInstanceOf[V]
+		val (preMode, kernelValue) = reducePreModeAndKernelValue[V](
+			env.map{ vi =>
+			{
+			  val kernelVal = kernel(v, vi, bandwidth, metric)
+			  (vi.map(_ * kernelVal).asInstanceOf[V], kernelVal)
+			}}
+		)
+		computeModeAndCastIt[V](preMode, kernelValue)
 	}
 
 	def obtainModeThroughSigmoid[V <: Seq[Double]](v: V, env: GenSeq[V], a: Double, b: Double): V =
 	{
-		val (preMode, kernelValue) = env.map{ vi =>
-		{
-		  val kernelVal = sigmoidKernel(v, vi, a, b)
-		  (vi.map(_ * kernelVal).asInstanceOf[V], kernelVal)
-		}}.reduce( (a, b) => (SumArrays.sumArraysNumericsGen[Double, V](a._1, b._1), a._2 + b._2) )
-
-		val mode = preMode.map(_ / kernelValue)
-		mode.asInstanceOf[V]
+		val (preMode, kernelValue) = reducePreModeAndKernelValue[V](
+			env.map{ vi =>
+			{
+			  val kernelVal = sigmoidKernel(v, vi, a, b)
+			  (vi.map(_ * kernelVal).asInstanceOf[V], kernelVal)
+			}}
+		)
+		computeModeAndCastIt[V](preMode, kernelValue)
 	}
 
 	private def obtainKnn[Obj](v: Obj, env: Seq[Obj], k: Int, metric: Distance[Obj]) = env.sortBy( v2 => metric.d(v, v2) ).take(k)

@@ -13,7 +13,7 @@ import clustering4ever.scala.clusterizables.{ClusterizableExt, Clusterizable}
 import clustering4ever.clustering.{ClusteringAlgorithms, CommonPredictClusteringModel}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 
-abstract class KCommons[ID: Numeric, V, D <: Distance[V]](var metric: D) extends ClusteringAlgorithms[ID]
+abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends ClusteringAlgorithms[ID]
 {
 	/**
 	 * Check if there are empty centers and remove them
@@ -116,8 +116,8 @@ abstract class KCommonsScala[
 	](
 	data: GenSeq[Cz],
 	metric: D,
-	var k: Int,
-	var initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+	k: Int,
+	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 ) extends KCommons[ID, V, D](metric)
 {
 	val vectorizedDataset: parallel.ParSeq[V] = data.par.map(_.vector)
@@ -177,14 +177,14 @@ abstract class KCommonsMixt[
 	 **/
 	def naiveInitializationMixt(): mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] =
 	{
-		val vectorRange = (0 until dimScalar).toVector
+		val vectorRange = (0 until dimScalar).toBuffer
 		val numberClustersRange = (0 until k).toSeq
 
 		val binaryModes = numberClustersRange.map( clusterID => (clusterID, Seq.fill(dimBinary)(Random.nextInt(2)).asInstanceOf[Vb]) )
 
 		val (minv, maxv) = vectorizedDataset.map( v =>
 		{
-			val vector = v.scalar.toVector
+			val vector = v.scalar.toBuffer
 			(vector, vector)
 		}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 

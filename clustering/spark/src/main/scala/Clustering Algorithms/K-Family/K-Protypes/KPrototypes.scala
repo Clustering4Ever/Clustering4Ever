@@ -47,13 +47,13 @@ class KPrototypes[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: Bina
 		
 		def initializationCenters() =
 		{
-			val vectorRange = (0 until dimScalar).toVector
+			val vectorRange = (0 until dimScalar).toBuffer
 			val kRange = (0 until k)
 			val binaryModes = kRange.map( clusterID => (clusterID, Seq.fill(dimBinary)(Random.nextInt(2)).asInstanceOf[Vb]) )
 
 			val (minv, maxv) = data.map( v =>
 			{
-				val vector = v.scalar.toVector
+				val vector = v.scalar.toBuffer
 				(vector, vector)
 			}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 

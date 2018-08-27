@@ -27,8 +27,8 @@ import clustering4ever.scala.clustering.KCommonsMixt
 class KPrototypes[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](
 	data: GenSeq[MixtClusterizable[ID, Obj, Vb, Vs, V]],
 	k: Int,
-	var epsilon: Double,
-	var iterMax: Int,
+	epsilon: Double,
+	iterMax: Int,
 	metric: MixtDistance[Vb, Vs, V] = new HammingAndEuclidean[Vb, Vs, V],
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 ) extends KCommonsMixt[ID, Vb, Vs, V, MixtDistance[Vb, Vs, V], MixtClusterizable[ID, Obj, Vb, Vs, V]](data, metric, k, initializedCenters)

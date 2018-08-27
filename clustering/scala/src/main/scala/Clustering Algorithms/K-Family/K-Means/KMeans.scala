@@ -27,8 +27,8 @@ import clustering4ever.scala.clustering.KCommonsVectors
 class KMeans[ID: Numeric, Obj, V <: Seq[Double] : ClassTag, Rc <: RealClusterizable[ID, Obj, V], D <: ContinuousDistance[V]](
 	data: GenSeq[Rc],
 	k: Int,
-	var epsilon: Double,
-	var iterMax: Int,
+	epsilon: Double,
+	iterMax: Int,
 	metric: D = new FastEuclidean(squareRoot = true),
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 ) extends KCommonsVectors[ID, Double, V, D, Rc](data, metric, k, initializedCenters)

@@ -16,21 +16,18 @@ object Stats extends ClusteringCommons
 	/**
 	 * Compute the standard deviation between vectors and a mean
 	 **/
-	def sd(vectors: Seq[immutable.Vector[Double]], mean: immutable.Vector[Double]): SD =
+	def sd(vectors: GenSeq[mutable.Buffer[Double]], mean: mutable.Buffer[Double]): SD =
 	{
-		sqrt(
-			vectors.map( v =>
-			{
-				var sum = 0D
-				v.indices.foreach( i => sum += pow(v(i) - mean(i), 2) )
-				sum
-			}).sum / (vectors.size - 1)
-		)
+		sqrt({
+			var sum = 0D
+			vectors.foreach( v => v.indices.foreach( i => sum += pow(v(i) - mean(i), 2) ) ) 
+			sum	/ (vectors.size - 1)
+		})
 	}
 	/**
 	 * @return min and max for the ith component in reduce style
 	 **/
-	def obtainIthMinMax(idx: Int, vminMax1: (immutable.Vector[Double], immutable.Vector[Double]), vminMax2: (immutable.Vector[Double], immutable.Vector[Double])) =
+	def obtainIthMinMax(idx: Int, vminMax1: (mutable.Buffer[Double], mutable.Buffer[Double]), vminMax2: (mutable.Buffer[Double], mutable.Buffer[Double])) =
 	{
 		(
 			min(vminMax1._1(idx), vminMax2._1(idx)),
@@ -38,12 +35,12 @@ object Stats extends ClusteringCommons
 		)
 	}
 
-	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]) =
+	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]): (mutable.Buffer[Double], mutable.Buffer[Double]) =
 	{
 		val dim = data.head.size
-		val vectorRange = (0 until dim).toVector
+		val vectorRange = (0 until dim).toBuffer
 
-		val (minValues, maxValues) = data.map( v => (v.toVector, v.toVector) ).reduce( (minMaxa, minMaxb) =>
+		val (minValues, maxValues) = data.map( v => (v.toBuffer, v.toBuffer) ).reduce( (minMaxa, minMaxb) =>
 		{
 			val minAndMax = vectorRange.map( i => obtainIthMinMax(i, minMaxa, minMaxb) )
 			minAndMax.unzip

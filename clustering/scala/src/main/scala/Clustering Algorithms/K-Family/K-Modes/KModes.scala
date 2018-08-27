@@ -17,8 +17,8 @@ import clustering4ever.scala.clustering.KCommonsVectors
 class KModes[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
 	data: GenSeq[BinaryClusterizable[ID, Obj, V]],
 	k: Int,
-	var epsilon: Double,
-	var maxIter: Int,
+	epsilon: Double,
+	maxIter: Int,
 	metric: BinaryDistance[V] = new Hamming[V],
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 ) extends KCommonsVectors[ID, Int, V, BinaryDistance[V], BinaryClusterizable[ID, Obj, V]](data, metric, k, initializedCenters)

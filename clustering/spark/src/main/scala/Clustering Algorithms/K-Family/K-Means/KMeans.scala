@@ -44,11 +44,11 @@ class KMeans[ID: Numeric, Obj, V <: Seq[Double] : ClassTag, Cz <: RealClusteriza
 		{
 			def obtainMinAndMax(data: RDD[V]) =
 			{
-				val vectorRange = (0 until dim).toVector
+				val vectorRange = (0 until dim).toBuffer
 
 				val (minValues, maxValues) = data.map( v =>
 				{
-					val vector = v.toVector
+					val vector = v.toBuffer
 					(vector, vector)
 				}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 				(minValues, maxValues)
