@@ -17,14 +17,14 @@ abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Optio
 	}
 }
 
-class MixtVectorizable[Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => BinaryScalarVector[Vb, Vs]] = None) extends VectorizableObj[Obj, BinaryScalarVector[Vb, Vs]](obj, vectorizableFct)
+class MixtVectorizable[Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class MixtVector[Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](obj: BinaryScalarVector[Vb, Vs]) extends MixtVectorizable[BinaryScalarVector[Vb, Vs], Vb, Vs](obj)
+class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](obj: V) extends MixtVectorizable[V, Vb, Vs, V](obj)
 
-class RealVectorizable[Obj, V <: immutable.Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
+class RealVectorizable[Obj, V <: Seq[Double]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class RealVector[V <: immutable.Seq[Double]](vector: V) extends RealVectorizable[V, V](vector)
+class RealVector[V <: Seq[Double]](vector: V) extends RealVectorizable[V, V](vector)
 
-class BinaryVectorizable[Obj, V <: immutable.Seq[Int]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
+class BinaryVectorizable[Obj, V <: Seq[Int]](obj: Obj, vectorizableFct: Option[Obj => V] = None) extends VectorizableObj[Obj, V](obj, vectorizableFct)
 
-class BinaryVector[V <: immutable.Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector)
+class BinaryVector[V <: Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector)

@@ -10,11 +10,11 @@ import scala.collection.immutable
 /**
  * @author Beck Gaël
  **/
-trait HammingAndEuclideanMeta[Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]] extends Serializable
+trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable
 {
 	protected val α: Double
 
-	protected def hammingAndEuclidean(vector1: BinaryScalarVector[Vb, Vs], vector2: BinaryScalarVector[Vb, Vs]): Double =
+	protected def hammingAndEuclidean(vector1: V, vector2: V): Double =
 	{
 		val db = vector1.binary.zip(vector2.binary).map{ case (a, b) => a ^ b }.sum		
 		val ds = sqrt(vector1.scalar.zip(vector2.scalar).map{ case (a, b) => pow(a - b, 2) }.sum)
@@ -28,19 +28,19 @@ trait HammingAndEuclideanMeta[Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Doub
 	}
 }
 
-class HammingAndEuclidean[Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs]
+class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V]
 {
 	/**
 	 *	
 	 */
-	override def d(vector1: BinaryScalarVector[Vb, Vs], vector2: BinaryScalarVector[Vb, Vs]): Double = hammingAndEuclidean(vector1, vector2)
+	override def d(vector1: V, vector2: V): Double = hammingAndEuclidean(vector1, vector2)
 	
 }
 
-class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Seq[Double]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistanceClusterizable[ID, Obj, Vb, Vs]
+class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V]
 {
 	/**
 	 *	
 	 */
-	override def d(vector1: MixtClusterizable[ID, Obj, Vb, Vs], vector2: MixtClusterizable[ID, Obj, Vb, Vs]): Double = hammingAndEuclidean(vector1.vector, vector2.vector)
+	override def d(vector1: MixtClusterizable[ID, Obj, Vb, Vs, V], vector2: MixtClusterizable[ID, Obj, Vb, Vs, V]): Double = hammingAndEuclidean(vector1.vector, vector2.vector)
 }

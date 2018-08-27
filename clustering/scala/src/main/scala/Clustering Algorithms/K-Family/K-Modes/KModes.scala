@@ -14,94 +14,69 @@ import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.scala.clustering.KCommonsVectors
 
-class KModes[ID: Numeric, Obj](
-	data: GenSeq[BinaryClusterizable[ID, Obj, immutable.Seq[Int]]],
-	k: Int,
-	var epsilon: Double,
-	var maxIter: Int,
-	metric: Hamming = new Hamming,
-	initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]]
-) extends KCommonsVectors[ID, Int, immutable.Seq[Int], BinaryDistance[immutable.Seq[Int]], BinaryClusterizable[ID, Obj, immutable.Seq[Int]]](data, metric, k, initializedCenters)
-{		
-	def run(): KModesModelSeq[ID, Obj] =
-	{
-		var cpt = 0
-		var allCentersHaveConverged = false
-		while( cpt < maxIter && ! allCentersHaveConverged )
-		{
-			val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCenters(vectorizedDataset, centers)
-			resetCentersCardinality(centersCardinality)
-			// Update Modes and Cardinalities
-			clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
-			{
-				centers(clusterID) = SumArrays.obtainMode(aggregate.map(_._1))
-				centersCardinality(clusterID) += aggregate.size
-			}}
-			removeEmptyClusters(centers, kCentersBeforeUpdate, centersCardinality)
-			allCentersHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon)
-			cpt += 1
-		}
-		new KModesModelSeq[ID, Obj](centers, metric)
-	}
-	
-}
-
-object KModes
-{
-	def run[ID: Numeric, Obj](
-		data: GenSeq[BinaryClusterizable[ID, Obj, immutable.Seq[Int]]],
-		k: Int,
-		epsilon: Double,
-		maxIter: Int,
-		initializedCenters: mutable.HashMap[Int, immutable.Seq[Int]] = mutable.HashMap.empty[Int, immutable.Seq[Int]]
-	): KModesModelSeq[ID, Obj] =
-	{
-		val hammingMetric = new Hamming
-		val kmodes = new KModes[ID, Obj](data, k, epsilon, maxIter, hammingMetric, initializedCenters)
-		val kModesModel = kmodes.run()
-		kModesModel
-	}
-}
-
-class KModesCustom[ID: Numeric, Obj, V <: immutable.Seq[Int] : ClassTag](
+class KModes[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
 	data: GenSeq[BinaryClusterizable[ID, Obj, V]],
 	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	metric: BinaryDistance[V],
+	metric: BinaryDistance[V] = new Hamming[V],
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 ) extends KCommonsVectors[ID, Int, V, BinaryDistance[V], BinaryClusterizable[ID, Obj, V]](data, metric, k, initializedCenters)
-{	
-	def run(): KModesModelCustom[ID, V, Obj] =
+{
+	/**
+	 * Run the K-Means
+	 */
+	def run(): KModesModel[ID, V, Obj] =
 	{
 		var cpt = 0
 		var allCentersHaveConverged = false
-		while( cpt < maxIter && ! allCentersHaveConverged )
+		/**
+		 * Run the K-Modes with Hamming metric
+		 */
+		def runHamming(): KModesModel[ID, V, Obj] =
 		{
-			val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCenters(vectorizedDataset, centers)
-			resetCentersCardinality(centersCardinality)
-			updateCentersAndCardinalitiesCustom(clusterized, centers, centersCardinality)
-			removeEmptyClusters(centers, kCentersBeforeUpdate, centersCardinality)
-			allCentersHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon)
-			cpt += 1
+			while( cpt < maxIter && ! allCentersHaveConverged )
+			{
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
+				{
+					centers(clusterID) = SumArrays.obtainMode(aggregate.map(_._1)).asInstanceOf[V]
+					centersCardinality(clusterID) += aggregate.size
+				}}
+				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
+				cpt += 1
+			}
+			new KModesModel[ID, V, Obj](centers, metric)
 		}
-		new KModesModelCustom[ID, V, Obj](centers, metric)
-	}
+
+		def runCustom(): KModesModel[ID, V, Obj] =
+		{
+			while( cpt < maxIter && ! allCentersHaveConverged )
+			{
+
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				updateCentersAndCardinalitiesCustom(clusterized, centers, centersCardinality)
+				cpt += 1
+			}
+			new KModesModel[ID, V, Obj](centers, metric)
+		}
 	
+		if( metric.isInstanceOf[Hamming[V]] ) runHamming() else runCustom()
+	}
 }
 
-object KModesCustom
+object KModes
 {
-	def run[ID: Numeric, Obj, V <: immutable.Seq[Int] : ClassTag](
+	def run[ID: Numeric, Obj, V <: Seq[Int] : ClassTag](
 		data: GenSeq[BinaryClusterizable[ID, Obj, V]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: BinaryDistance[V],
+		metric: BinaryDistance[V] = new Hamming[V],
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	): KModesModelCustom[ID, V, Obj] =
+	): KModesModel[ID, V, Obj] =
 	{
-		val kmodes = new KModesCustom[ID, Obj, V](data, k, epsilon, maxIter, metric, initializedCenters)
+		val kmodes = new KModes[ID, Obj, V](data, k, epsilon, maxIter, metric, initializedCenters)
 		val kModesModel = kmodes.run()
 		kModesModel
 	}

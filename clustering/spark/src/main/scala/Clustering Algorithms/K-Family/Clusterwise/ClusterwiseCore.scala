@@ -6,7 +6,7 @@ import scala.collection.{immutable, mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
 
 class ClusterwiseCore(
-	val dsXYTrain: GenSeq[(Int, (immutable.Seq[Double], immutable.Seq[Double]))],
+	val dsXYTrain: GenSeq[(Int, (Seq[Double], Seq[Double]))],
 	val h: Int,
 	val g: Int,
 	val nbMaxAttemps: Int,
@@ -93,9 +93,9 @@ class ClusterwiseCore(
 	{
 		var continue = true
 		var cptAttemps = 0
-		var classOfEachData = immutable.Seq.empty[(Int, Int)]
-		var dsPerClassF = immutable.Seq.empty[DSPerClass]
-		var regPerClassFinal = immutable.Seq.empty[RegPerClass]
+		var classOfEachData = Seq.empty[(Int, Int)]
+		var dsPerClassF = Seq.empty[DSPerClass]
+		var regPerClassFinal = Seq.empty[RegPerClass]
 	  	val mapRegCrit = mutable.HashMap.empty[Int, Double]
 
 		do
@@ -104,8 +104,8 @@ class ClusterwiseCore(
 			{
 				cptAttemps += 1
 			  	// Set randomly a class to each data point
-			  	val classedDS: Array[(Int, (immutable.Seq[Double], immutable.Seq[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
-			  	//val classedDS: ParArray[(Int, (immutable.Seq[Double], immutable.Seq[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.par
+			  	val classedDS: Array[(Int, (Seq[Double], Seq[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
+			  	//val classedDS: ParArray[(Int, (Seq[Double], Seq[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.par
 			  	val classedDSv = classedDS.toVector
 			  	val valuesToBrowse = classedDSv.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
 				val dsPerClass = classedDSv.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toVector.sortBy{ case (clusterID, _) => clusterID }
@@ -193,10 +193,10 @@ class ClusterwiseCore(
 
 		if( continue && cptAttemps == nbMaxAttemps ) throw new Exception("There was too many unsuccesufull attemps due to empty classes, try to diminish number of class ")
 
-	  	val resReg: immutable.Seq[Double] = regPerClassFinal.map(_._1)
-	  	val coXYcoef: immutable.Seq[immutable.Vector[Double]] = regPerClassFinal.map(_._2.toArray.toVector)
-	  	val coIntercept: immutable.Seq[Array[Double]] = regPerClassFinal.map(_._3)
-	  	val pred: immutable.Seq[immutable.Vector[(Int, immutable.Vector[Double])]] = regPerClassFinal.map(_._4)
+	  	val resReg: Seq[Double] = regPerClassFinal.map(_._1)
+	  	val coXYcoef: Seq[immutable.Vector[Double]] = regPerClassFinal.map(_._2.toArray.toVector)
+	  	val coIntercept: Seq[Array[Double]] = regPerClassFinal.map(_._3)
+	  	val pred: Seq[immutable.Vector[(Int, immutable.Vector[Double])]] = regPerClassFinal.map(_._4)
 	  	(dsPerClassF, pred, coIntercept, coXYcoef, resReg, mapRegCrit, classOfEachData)
 
 	}
@@ -341,7 +341,7 @@ class ClusterwiseCore(
 object ClusterwiseCore extends Serializable
 {
 	def plsPerDot(
-		dsXYTrain: GenSeq[(Int, (immutable.Seq[Double], immutable.Seq[Double]))],
+		dsXYTrain: GenSeq[(Int, (Seq[Double], Seq[Double]))],
 		h: Int,
 		g: Int,
 		nbMaxAttemps: Int = 30,
@@ -354,7 +354,7 @@ object ClusterwiseCore extends Serializable
 	}
 
 	def plsPerMicroClusters(
-		dsXYTrain: GenSeq[(Int, (immutable.Seq[Double], immutable.Seq[Double]))],
+		dsXYTrain: GenSeq[(Int, (Seq[Double], Seq[Double]))],
 		allGroupedData: immutable.HashMap[Int, Int],
 		h: Int,
 		g: Int,
