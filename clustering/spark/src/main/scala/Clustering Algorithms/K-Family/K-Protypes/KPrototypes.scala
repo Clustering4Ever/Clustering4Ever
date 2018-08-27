@@ -51,7 +51,7 @@ class KPrototypes[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Se
 		{
 			val vectorRange = (0 until dimScalar).toVector
 			val kRange = (0 until k)
-			val binaryModes = kRange.map( clusterID => (clusterID, immutable.Vector.fill(dimBinary)(Random.nextInt(2))) )
+			val binaryModes = kRange.map( clusterID => (clusterID, immutable.Seq.fill(dimBinary)(Random.nextInt(2)).asInstanceOf[Vb]) )
 
 			val (minv, maxv) = data.map( v =>
 			{
@@ -59,8 +59,8 @@ class KPrototypes[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Se
 				(vector, vector)
 			}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 
-			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-			val scalarCentroids = kRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
+			val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }.toSeq
+			val scalarCentroids = kRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }.asInstanceOf[Vs]) )
 
 			mutable.HashMap(binaryModes.zip(scalarCentroids).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)) }:_*)
 		}
@@ -79,8 +79,8 @@ class KPrototypes[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Se
 					(
 						sum1 + sum2,
 						{
-							val binaryVector = SumArrays.sumArraysNumerics[Int](v1.binary, v2.binary)
-							val scalarVector = SumArrays.sumArraysNumerics[Double](v1.scalar, v2.scalar)
+							val binaryVector = SumArrays.sumArraysNumericsGen[Int, Vb](v1.binary, v2.binary)
+							val scalarVector = SumArrays.sumArraysNumericsGen[Double, Vs](v1.scalar, v2.scalar)
 							new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)
 						}
 					)
@@ -90,9 +90,9 @@ class KPrototypes[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Se
 						clusterID,
 						{
 							// Majority Vote for Hamming Distance
-							val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 )
+							val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 ).asInstanceOf[Vb]
 							// Mean for Euclidean Distance
-							val scalarVector = preMean.scalar.map(_ / cardinality)
+							val scalarVector = preMean.scalar.map(_ / cardinality).asInstanceOf[Vs]
 							new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)
 						},
 						cardinality

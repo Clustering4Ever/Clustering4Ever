@@ -56,4 +56,9 @@ object SumArrays
 	 */
 	def obtainMode(cluster: GenSeq[immutable.Seq[Int]]): immutable.Seq[Int] =
 		sumColumnArrays[Int](cluster).map( v => if( 2 * v >= cluster.size ) 1 else 0 )
+	/**
+	 * Return the centroid of the given cluster
+	 */
+	def obtainModeGen[V <: immutable.Seq[Int]](cluster: GenSeq[V]): V =
+		sumColumnArraysGen[Int, V](cluster).map( v => if( 2 * v >= cluster.size ) 1 else 0 ).asInstanceOf[V]
 }

@@ -51,7 +51,7 @@ class KPrototypes[ID: Numeric, Obj, Vb <: immutable.Seq[Int], Vs <: immutable.Se
 
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
 				{
-					centers(clusterID) = new BinaryScalarVector[Vb, Vs](SumArrays.obtainMode(aggregate.map(_._1.binary)), SumArrays.obtainMean(aggregate.map(_._1.scalar)))
+					centers(clusterID) = new BinaryScalarVector[Vb, Vs](SumArrays.obtainModeGen[Vb](aggregate.map(_._1.binary)), SumArrays.obtainMeanGen[Vs](aggregate.map(_._1.scalar)))
 					centersCardinality(clusterID) += aggregate.size
 				}}
 			}

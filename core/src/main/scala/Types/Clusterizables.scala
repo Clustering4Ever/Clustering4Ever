@@ -16,9 +16,6 @@ abstract class ClusterizableExt[ID: Numeric, T: Numeric, Vector <: immutable.Seq
 	var clusterID: Int = Int.MaxValue
 ) extends Clusterizable[ID, Vector](id, vectorizable)
 {
-	// @transient lazy val vectorSeq = vector.toSeq
-	// @transient lazy val vector2Seq = v2.toSeq
-
 	def setV2(newV2: Vector): this.type
 
 	def setClusterID(newCID: Int): this.type
@@ -27,8 +24,6 @@ abstract class ClusterizableExt[ID: Numeric, T: Numeric, Vector <: immutable.Seq
 	{
 		val prime = 31
 		var result = 1
-		// result = prime * result + vectorSeq.hashCode
-		// result = prime * result + vector2Seq.hashCode
 		result = prime * result + vector.hashCode
 		result = prime * result + v2.hashCode
 		result = prime * result + clusterID.hashCode

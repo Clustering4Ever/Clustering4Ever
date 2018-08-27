@@ -5,7 +5,7 @@ import scala.collection.immutable.{HashMap, Map}
 import scala.collection.{mutable, immutable}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
-import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.scalar.ClassicEuclidean
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.clustering.ClusteringCommons
 import clustering4ever.util.SumArrays
@@ -17,7 +17,7 @@ import clustering4ever.scala.indexes.InternalIndexesDBCommons
  */
 class InternalIndexes extends ClusteringCommons
 {
-  private def daviesBouldinIndex(sc: SparkContext, data: RDD[(Int, immutable.Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[immutable.Seq[Double]] = new Euclidean[immutable.Seq[Double]](true)) =
+  private def daviesBouldinIndex(sc: SparkContext, data: RDD[(Int, immutable.Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[immutable.Seq[Double]] = new ClassicEuclidean) =
   {
     if( clusterLabels.size == 1 )
     {
@@ -55,7 +55,7 @@ class InternalIndexes extends ClusteringCommons
     }
   }
 
-  private def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[immutable.Seq[Double]] = new Euclidean[immutable.Seq[Double]](true)): Double =
+  private def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[immutable.Seq[Double]] = new ClassicEuclidean): Double =
   {
     val neutralElement = mutable.ArrayBuffer.empty[immutable.Seq[Double]]
     def addToBuffer(buff: mutable.ArrayBuffer[immutable.Seq[Double]], elem: immutable.Seq[Double]) = buff += elem
@@ -79,20 +79,20 @@ object InternalIndexes extends ClusteringCommons
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    **/
-  def daviesBouldinIndexWithLabels(sc: SparkContext, clusterized: RDD[(ClusterID, immutable.Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[immutable.Seq[Double]] = new Euclidean[immutable.Seq[Double]](true)): Double =
+  def daviesBouldinIndexWithLabels(sc: SparkContext, clusterized: RDD[(ClusterID, immutable.Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[immutable.Seq[Double]] = new ClassicEuclidean): Double =
     (new InternalIndexes).daviesBouldinIndex(sc, clusterized, clusterLabels, metric)
 
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    **/
-  def daviesBouldinIndex(sc: SparkContext, clusterized: RDD[(ClusterID, immutable.Seq[Double])], metric: ContinuousDistance[immutable.Seq[Double]] = new Euclidean[immutable.Seq[Double]](true)): Double =
+  def daviesBouldinIndex(sc: SparkContext, clusterized: RDD[(ClusterID, immutable.Seq[Double])], metric: ContinuousDistance[immutable.Seq[Double]] = new ClassicEuclidean): Double =
   {
     val clusterLabels = clusterized.map(_._1).distinct.collect
     daviesBouldinIndexWithLabels(sc, clusterized, clusterLabels, metric)
   }
 
-  def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[immutable.Seq[Double]] = new Euclidean[immutable.Seq[Double]](true)): Double =
+  def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[immutable.Seq[Double]] = new ClassicEuclidean): Double =
     (new InternalIndexes).ballHallIndex(clusterized, metric)
 
 }

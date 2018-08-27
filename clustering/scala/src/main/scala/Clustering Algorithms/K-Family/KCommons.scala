@@ -166,7 +166,7 @@ abstract class KCommonsMixt[
 		val vectorRange = (0 until dimScalar).toVector
 		val numberClustersRange = (0 until k).toSeq
 
-		val binaryModes = numberClustersRange.map( clusterID => (clusterID, Vector.fill(dimBinary)(Random.nextInt(2))) )
+		val binaryModes = numberClustersRange.map( clusterID => (clusterID, immutable.Seq.fill(dimBinary)(Random.nextInt(2)).asInstanceOf[Vb]) )
 
 		val (minv, maxv) = vectorizedDataset.map( v =>
 		{
@@ -174,8 +174,8 @@ abstract class KCommonsMixt[
 			(vector, vector)
 		}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 
-		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }
-		val scalarCenters = numberClustersRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) )
+		val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }.toSeq
+		val scalarCenters = numberClustersRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }.asInstanceOf[Vs]) )
 		
 		mutable.HashMap(binaryModes.zip(scalarCenters).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)) }:_*)
 	}
