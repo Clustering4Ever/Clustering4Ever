@@ -18,8 +18,8 @@ class ExternalIndexes
 		val maxX = x.max
 		val maxY = y.max
 
-		val maxOneIndices = (0 to maxX).toVector
-		val maxTwoIndices = (0 to maxY).toVector
+		val maxOneIndices = (0 to maxX).toArray
+		val maxTwoIndices = (0 to maxY).toArray
 
 		val count = Array.fill(maxX + 1)(Array.fill(maxY +1)(0D))
 		x.seq.indices.foreach( i => count(x(i))(y(i)) += 1D )

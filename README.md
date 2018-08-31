@@ -14,7 +14,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 ## Include it in your project
 
 Add following lines in your build.sbt :
-* `"clustering4ever" % "clustering4ever_2.11" % "0.5.2"` to your `libraryDependencies`
+* `"clustering4ever" % "clustering4ever_2.11" % "0.6.0"` to your `libraryDependencies`
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
@@ -27,7 +27,6 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 ## Incoming soon 
 * Improved Spark Mean Shift
 * 2 new scalable clustering algorithms
-* [G-Stream](https://github.com/Spark-clustering-notebook/G-stream)
 
 ## [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
 
@@ -96,7 +95,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 #### Mixed data
 * _K_-Protoypes
   * Complexity **_O(k.n.t)_**
-  * **Warning*** -> works only with Hamming and Euclidean distance at the moment
+  * **Warning*** -> with another distance than Hamming, similarity matrix in _O(n<sup>2</sup>)_ of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than HammingEuclidean
 
 ### Preprocessing algorithms
 * Gradient ascent
@@ -127,4 +126,4 @@ We decided to feed algorithms with Clusterizable type object to ensure to keep o
 * `import clustering4ever.util.ScalaImplicits._`
 * `import clustering4ever.util.SparkImplicits._`
 
-They allow you to pass directly to our `data` algorithms argument as either `GenSeq` or `RDD` of `immutable.Seq[Int]` or `immutable.Seq[Double]` that will be transformed into the appropriate input format.
+They allow you to pass directly to our `data` algorithms argument as either `GenSeq` or `RDD` of `Seq[Int]` or `Seq[Double]` that will be transformed into the appropriate input format.

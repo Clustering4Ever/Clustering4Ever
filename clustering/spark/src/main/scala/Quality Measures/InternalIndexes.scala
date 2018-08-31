@@ -1,7 +1,7 @@
 package clustering4ever.spark.indexes
 
 import scala.math.max
-import scala.collection.{mutable, immutable}
+import scala.collection.{mutable, immutable, GenSeq}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import clustering4ever.math.distances.scalar.Euclidean
@@ -16,7 +16,7 @@ import clustering4ever.scala.indexes.InternalIndexesDBCommons
  */
 class InternalIndexes extends ClusteringCommons
 {
-  private def daviesBouldinIndex(sc: SparkContext, data: RDD[(Int, Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)) =
+  private def daviesBouldinIndex(sc: SparkContext, data: RDD[(Int, GenSeq[Double])], clusterLabels: GenSeq[Int], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean[GenSeq[Double]](squareRoot = true)) =
   {
     if( clusterLabels.size == 1 )
     {
@@ -25,15 +25,15 @@ class InternalIndexes extends ClusteringCommons
     }
     else
     {
-      val neutralElement = mutable.ArrayBuffer.empty[Seq[Double]]
-      def addToBuffer(buff: mutable.ArrayBuffer[Seq[Double]], elem: Seq[Double]) = buff += elem
-      def aggregateBuff(buff1: mutable.ArrayBuffer[Seq[Double]], buff2: mutable.ArrayBuffer[Seq[Double]]) = buff1 ++= buff2
+      val neutralElement = mutable.ArrayBuffer.empty[GenSeq[Double]]
+      def addToBuffer(buff: mutable.ArrayBuffer[GenSeq[Double]], elem: GenSeq[Double]) = buff += elem
+      def aggregateBuff(buff1: mutable.ArrayBuffer[GenSeq[Double]], buff2: mutable.ArrayBuffer[GenSeq[Double]]) = buff1 ++= buff2
       val neutralElement2 = mutable.ArrayBuffer.empty[Double]
       def addToBuffer2(buff: mutable.ArrayBuffer[Double], elem: Double) = buff += elem
       def aggregateBuff2(buff1: mutable.ArrayBuffer[Double], buff2: mutable.ArrayBuffer[Double]) = buff1 ++= buff2
 
       val clusters = data.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).collect
-      val centers = clusters.map{ case (k, v) => (k, SumArrays.obtainMean(Seq(v:_*))) }
+      val centers = clusters.map{ case (k, v) => (k, SumArrays.obtainMean(GenSeq(v:_*))) }
       val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, InternalIndexesDBCommons.scatter(v, centers(idCLust)._2, metric)) }
       val clustersWithCenterandScatters = (centers.map{ case (id, ar) => (id, (Some(ar), None)) } ++ scatters.map{ case (id, v) => (id, (None, Some(v))) })
         .par
@@ -54,11 +54,11 @@ class InternalIndexes extends ClusteringCommons
     }
   }
 
-  private def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
+  private def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean[GenSeq[Double]](squareRoot = true)): Double =
   {
-    val neutralElement = mutable.ArrayBuffer.empty[Seq[Double]]
-    def addToBuffer(buff: mutable.ArrayBuffer[Seq[Double]], elem: Seq[Double]) = buff += elem
-    def aggregateBuff(buff1: mutable.ArrayBuffer[Seq[Double]], buff2: mutable.ArrayBuffer[Seq[Double]]) = buff1 ++= buff2
+    val neutralElement = mutable.ArrayBuffer.empty[GenSeq[Double]]
+    def addToBuffer(buff: mutable.ArrayBuffer[GenSeq[Double]], elem: GenSeq[Double]) = buff += elem
+    def aggregateBuff(buff1: mutable.ArrayBuffer[GenSeq[Double]], buff2: mutable.ArrayBuffer[GenSeq[Double]]) = buff1 ++= buff2
 
     val clusters = clusterized.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).cache
 
@@ -78,20 +78,20 @@ object InternalIndexes extends ClusteringCommons
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    **/
-  def daviesBouldinIndexWithLabels(sc: SparkContext, clusterized: RDD[(ClusterID, Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
+  def daviesBouldinIndexWithLabels(sc: SparkContext, clusterized: RDD[(ClusterID, GenSeq[Double])], clusterLabels: GenSeq[Int], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean[GenSeq[Double]](squareRoot = true)): Double =
     (new InternalIndexes).daviesBouldinIndex(sc, clusterized, clusterLabels, metric)
 
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    **/
-  def daviesBouldinIndex(sc: SparkContext, clusterized: RDD[(ClusterID, Seq[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
+  def daviesBouldinIndex(sc: SparkContext, clusterized: RDD[(ClusterID, GenSeq[Double])], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean[GenSeq[Double]](squareRoot = true)): Double =
   {
     val clusterLabels = clusterized.map(_._1).distinct.collect
     daviesBouldinIndexWithLabels(sc, clusterized, clusterLabels, metric)
   }
 
-  def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](squareRoot = true)): Double =
+  def ballHallIndex(clusterized: RDD[(ClusterID, immutable.Vector[Double])], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean[GenSeq[Double]](squareRoot = true)): Double =
     (new InternalIndexes).ballHallIndex(clusterized, metric)
 
 }

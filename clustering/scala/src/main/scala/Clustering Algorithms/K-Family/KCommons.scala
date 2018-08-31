@@ -30,7 +30,7 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends Clu
 	/**
 	 * Reinitialization of cardinalities
 	 */
-	protected def resetCentersCardinality(centersCardinality: mutable.HashMap[Int, Int]) = centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
+	private def resetCentersCardinality(centersCardinality: mutable.HashMap[Int, Int]) = centersCardinality.foreach{ case (clusterID, _) => centersCardinality(clusterID) = 0 }
 	/**
 	 *
 	 */
@@ -38,7 +38,7 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends Clu
 	/**
 	 *
 	 */
-	protected def clusterizedAndSaveCenters(vectorizedDataset: parallel.ParSeq[V], centers: mutable.HashMap[Int, V]): (parallel.ParSeq[(V, Int)], mutable.HashMap[Int, V]) =
+	private def clusterizedAndSaveCenters(vectorizedDataset: GenSeq[V], centers: mutable.HashMap[Int, V]): (GenSeq[(V, Int)], mutable.HashMap[Int, V]) =
 	{
 		// Allocation to nearest centroid
 		val clusterized = vectorizedDataset.map( v => (v, obtainNearestCenterID(v, centers)) )
@@ -47,7 +47,7 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends Clu
 		(clusterized, kCentersBeforeUpdate)
 	}
 	
-	protected def clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset: parallel.ParSeq[V], centers: mutable.HashMap[Int, V], centersCardinality: mutable.HashMap[Int, Int]): (parallel.ParSeq[(V, Int)], mutable.HashMap[Int, V]) =
+	protected def clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset: GenSeq[V], centers: mutable.HashMap[Int, V], centersCardinality: mutable.HashMap[Int, Int]): (GenSeq[(V, Int)], mutable.HashMap[Int, V]) =
 	{
 		resetCentersCardinality(centersCardinality)
 		clusterizedAndSaveCenters(vectorizedDataset, centers)
@@ -56,7 +56,7 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends Clu
 	 * Check if centers move enough
 	 * @return true if every centers move less than epsilon
 	 */
-	private def areCentersMovingEnough(kCentersBeforeUpdate: mutable.HashMap[Int, V], centers: mutable.HashMap[Int, V], epsilon: Double) = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
+	protected def areCentersMovingEnough(kCentersBeforeUpdate: mutable.HashMap[Int, V], centers: mutable.HashMap[Int, V], epsilon: Double) = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
 
 	protected def removeEmptyClustersAndCheckIfallCentersHaveConverged(centers: mutable.HashMap[Int, V], kCentersBeforeUpdate: mutable.HashMap[Int, V], centersCardinality: mutable.HashMap[Int, Int], epsilon: Double): Boolean =
 	{
@@ -64,20 +64,17 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends Clu
 		areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon)
 	}
 	/**
-	 * Simplest centers initialization
-	 * We search range for each dimension and take a random value between each range 
+	 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
 	 */
-	protected def naiveInitializationReal[S <: Seq[Double], GS <: GenSeq[S]](vectorizedDataset: GS, k: Int) =
+	protected def obtainMedoid(gs: GenSeq[V]): V =
 	{
-		val (minv, maxv) = Stats.obtainMinAndMax(vectorizedDataset)
-		val ranges = Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
-		val centers: mutable.HashMap[Int, Seq[Double]] = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
-		centers
+		gs.minBy( v1 =>
+		{
+			var sum = 0D
+			gs.foreach( v2 => sum += metric.d(v1, v2) )
+			sum
+		})
 	}
-	/**
-	 * Simplest centers initialization which generate random binary vectors 
-	 */
-	protected def naiveInitializationBinary(dim: Int, k: Int) = mutable.HashMap((0 until k).map( clusterID => (clusterID, Seq.fill(dim)(Random.nextInt(2))) ):_*) 
 	/**
 	 * Kmeans++ initialization
 	 * <h2>References</h2>
@@ -102,10 +99,6 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends Clu
 		val centers = mutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
 		centers
 	}
-	/**
-	 * Compute the similarity matrix and extract point which is the closest from all other point according to its dissimilarity measure
-	 */
-	protected def obtainMedoid(gs: GenSeq[V]): V = gs.minBy( v1 => gs.map( v2 => metric.d(v1, v2) ).sum )
 }
 
 abstract class KCommonsScala[
@@ -120,14 +113,12 @@ abstract class KCommonsScala[
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 ) extends KCommons[ID, V, D](metric)
 {
-	val vectorizedDataset: parallel.ParSeq[V] = data.par.map(_.vector)
-	val centers: mutable.HashMap[Int, V] = if( initializedCenters.isEmpty ) kmppInitialization[parallel.ParSeq[V]](vectorizedDataset, k) else initializedCenters
+	val vectorizedDataset: GenSeq[V] = data.map(_.vector)
+	val centers: mutable.HashMap[Int, V] = if( initializedCenters.isEmpty ) kmppInitialization(vectorizedDataset, k) else initializedCenters
 	val centersCardinality: mutable.HashMap[Int, Int] = centers.map{ case (clusterID, _) => (clusterID, 0) }
-
 	/**
 	 * Update Center and Cardinalities
 	 */
-	// protected def updateCentersAndCardinalitiesCustom(clusterized: parallel.ParSeq[(V, Int)], centers: mutable.HashMap[Int, V], centersCardinality: mutable.HashMap[Int, Int]) =
 	protected def updateCentersAndCardinalitiesCustom(clusterized: GenSeq[(V, Int)], centers: mutable.HashMap[Int, V], centersCardinality: mutable.HashMap[Int, Int]) =
 	{		
 		clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
@@ -136,12 +127,25 @@ abstract class KCommonsScala[
 			centersCardinality(clusterID) += aggregate.size
 		}}
 	}
+	
+	protected def runKAlgorithmWithCustomMetric(maxIterations: Int, epsilon: Double) =
+	{
+		var cpt = 0
+		var allCentersHaveConverged = false
+		while( cpt < maxIterations && ! allCentersHaveConverged )
+		{
+			val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+			updateCentersAndCardinalitiesCustom(clusterized, centers, centersCardinality)
+			allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
+			cpt += 1
+		}
+	}
 }
 
 abstract class KCommonsVectors[
 	ID: Numeric,
 	N: Numeric,
-	V <: Seq[N],
+	V <: GenSeq[N],
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]
 	](
@@ -152,12 +156,27 @@ abstract class KCommonsVectors[
 ) extends KCommonsScala[ID, V, D, Cz](data, metric, k, initializedCenters)
 {
 	protected val dim = vectorizedDataset.head.size
+	/**
+	 * Simplest centers initialization
+	 * We search range for each dimension and take a random value between each range 
+	 */
+	protected def naiveInitializationReal[S <: GenSeq[Double], GS <: GenSeq[S]](vectorizedDataset: GS, k: Int) =
+	{
+		val (minv, maxv) = Stats.obtainMinAndMax(vectorizedDataset)
+		val ranges = GenSeq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
+		val centers: mutable.HashMap[Int, GenSeq[Double]] = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
+		centers
+	}
+	/**
+	 * Simplest centers initialization which generate random binary vectors 
+	 */
+	protected def naiveInitializationBinary(dim: Int, k: Int) = mutable.HashMap((0 until k).map( clusterID => (clusterID, GenSeq.fill(dim)(Random.nextInt(2))) ):_*) 
 }
 
 abstract class KCommonsMixt[
 	ID: Numeric,
-	Vb <: Seq[Int],
-	Vs <: Seq[Double],
+	Vb <: GenSeq[Int],
+	Vs <: GenSeq[Double],
 	V <: BinaryScalarVector[Vb, Vs],
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]
@@ -180,7 +199,7 @@ abstract class KCommonsMixt[
 		val vectorRange = (0 until dimScalar).toBuffer
 		val numberClustersRange = (0 until k).toSeq
 
-		val binaryModes = numberClustersRange.map( clusterID => (clusterID, Seq.fill(dimBinary)(Random.nextInt(2)).asInstanceOf[Vb]) )
+		val binaryModes = numberClustersRange.map( clusterID => (clusterID, GenSeq.fill(dimBinary)(Random.nextInt(2)).asInstanceOf[Vb]) )
 
 		val (minv, maxv) = vectorizedDataset.map( v =>
 		{

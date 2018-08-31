@@ -9,4 +9,10 @@ import clustering4ever.scala.clustering.KCommonsModel
 /**
  * @author Beck Gaël
  **/
-final class KModesModel[ID: Numeric, V <: Seq[Int] : ClassTag, Obj](centers: mutable.HashMap[Int, V], metric: BinaryDistance[V]) extends KCommonsModel[ID, V, BinaryDistance[V], BinaryClusterizable[ID, Obj, V]](centers, metric)
+final class KModesModel[
+	ID: Numeric,
+	Obj,
+	V <: Seq[Int] : ClassTag,
+	Cz <: BinaryClusterizable[ID, Obj, V],
+	D <: BinaryDistance[V]
+](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModel[ID, V, D, Cz](centers, metric)

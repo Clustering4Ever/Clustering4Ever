@@ -1,7 +1,7 @@
 package clustering4ever.math.distances.binary
 
 import clustering4ever.math.distances.BinaryDistance
-import scala.collection.mutable
+import scala.collection.{mutable, GenSeq}
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.math.distances.BinaryClusterizableDistance
 
@@ -10,15 +10,20 @@ import clustering4ever.math.distances.BinaryClusterizableDistance
  **/
 trait HammingMeta extends Serializable {
 
-	protected def hamming[V <: Seq[Int]](dot1: V, dot2: V): Double =
+	protected def hamming[V <: GenSeq[Int]](dot1: V, dot2: V): Double =
 	{
-		var sum = 0D
-		dot1.zip(dot2).foreach{ case (a, b) => sum += a ^ b }
-		sum.toDouble
+		var d = 0D
+		var i = 0
+		while( i < dot1.size )
+		{
+			d += dot1(i) ^ dot2(i)
+			i += 1
+		}
+		d
 	}
 }
 
-class Hamming[V <: Seq[Int]] extends HammingMeta with BinaryDistance[V]
+class Hamming[V <: GenSeq[Int]] extends HammingMeta with BinaryDistance[V]
 {
 	/**
 	  * The Hamming distance with or without squareRoot
@@ -37,7 +42,7 @@ class FastHamming extends Hamming[mutable.Buffer[Int]]
 	}
 }
 
-class HammingClusterizable[ID: Numeric, Obj, V <: Seq[Int]] extends HammingMeta with BinaryClusterizableDistance[BinaryClusterizable[ID, Obj, V], V]
+class HammingClusterizable[ID: Numeric, Obj, V <: GenSeq[Int]] extends HammingMeta with BinaryClusterizableDistance[BinaryClusterizable[ID, Obj, V], V]
 {
 	/**
 	  * The Hamming distance with or without squareRoot
