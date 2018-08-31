@@ -24,8 +24,8 @@ class ExternalIndexes
 		val maxX = trueAndPredict.max()(Ordering[Int].on(_._1))._1
 		val maxY = trueAndPredict.max()(Ordering[Int].on(_._2))._2
 
-		val maxOneIndices = (0 to maxX).toVector
-		val maxTwoIndices = (0 to maxY).toVector
+		val maxOneIndices = (0 to maxX).toArray
+		val maxTwoIndices = (0 to maxY).toArray
 
 		val accNmi = new NmiAccumulator(Array.fill(maxX + 1)(Array.fill(maxY + 1)(0D)), maxX + 1, maxY + 1)
 		sc.register(accNmi, "NmiAccumulator")

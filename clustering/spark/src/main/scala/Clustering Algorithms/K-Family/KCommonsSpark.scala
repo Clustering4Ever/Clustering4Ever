@@ -1,5 +1,8 @@
 package clustering4ever.spark.clustering
 
+import org.apache.commons.math3.distribution.EnumeratedDistribution
+import org.apache.commons.math3.util.Pair
+import scala.collection.JavaConverters._
 import scala.math.pow
 import scala.collection.{immutable, mutable, GenSeq, parallel}
 import scala.util.Random
@@ -11,23 +14,131 @@ import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.{ClusterizableExt, Clusterizable}
 import clustering4ever.scala.clustering.KCommons
 import clustering4ever.clustering.CommonRDDPredictClusteringModel
+import clustering4ever.util.SumArrays
+import clustering4ever.scala.measurableclass.BinaryScalarVector
 
 abstract class KCommonsSpark[
 	ID: Numeric,
-	N: Numeric,
-	V <: Seq[N] : ClassTag,
+	V : ClassTag,
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]
 	](
 	data: RDD[Cz],
 	metric: D,
-	var k: Int,
-	var initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
-	var persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+	k: Int,
+	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
+	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 ) extends KCommons[ID, V, D](metric)
 {
 	val vectorizedDataset: RDD[V] = data.map(_.vector).persist(persistanceLVL)
+	val centers: mutable.HashMap[Int, V] = if( initializedCenters.isEmpty ) kmppInitialization(vectorizedDataset.collect.toSeq, k) else initializedCenters
+	val kCentersBeforeUpdate: mutable.HashMap[Int, V] = centers.clone
+	val clustersCardinality: mutable.HashMap[Int, Long] = centers.map{ case (clusterID, _) => (clusterID, 0L) }
+	
+	private def updateCentersAndCardinalities(centersInfo: Iterable[(Int, V, Long)]) =
+	{
+		centersInfo.foreach{ case (clusterID, center, cardinality) =>
+		{
+			kCentersBeforeUpdate(clusterID) = center.asInstanceOf[V]
+			clustersCardinality(clusterID) = cardinality
+		}}
+	}
+
+
+	protected def checkIfConvergenceAndUpdateCenters(centersInfo: Iterable[(Int, V, Long)], epsilon: Double) =
+	{
+		updateCentersAndCardinalities(centersInfo)
+		val allModHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon)
+		kCentersBeforeUpdate.foreach{ case (clusterID, mode) => centers(clusterID) = mode }	
+		allModHaveConverged
+	}
+	// private def initializationCentersR[V2 <: GenSeq[Double]](vectorizedDataset: RDD[V2]) =
+	// {
+	// 	val vectorRange = (0 until dim).toBuffer
+
+	// 	val (minv, maxv) = vectorizedDataset.map( v =>
+	// 		{
+	// 			val vector = v.toBuffer
+	// 			(vector, vector)
+	// 		}
+	// 	).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
+
+	// 	val ranges = GenSeq(minv.zip(maxv):_*).map{ case (min, max) => (max - min, min) }
+	// 	val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }.asInstanceOf[V]) ):_*)
+	// 	centers
+	// }
+}
+
+abstract class KCommonsSparkVectors[
+	ID: Numeric,
+	N: Numeric : ClassTag,
+	V <: GenSeq[N] : ClassTag,
+	Cz <: Clusterizable[ID, V],
+	D <: Distance[V]
+	](
+	data: RDD[Cz],
+	metric: D,
+	k: Int,
+	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
+	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+) extends KCommonsSpark[ID, V, D, Cz](data, metric, k, initializedCenters, persistanceLVL)
+{
 	val dim = vectorizedDataset.first.size
+
+	protected def obtainvalCentersInfo = vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) ).reduceByKeyLocally{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumArrays.sumArraysNumericsGen[N, V](v1, v2)) }
+
+}
+
+abstract class KCommonsSparkMixt[
+	ID: Numeric,
+	Vb <: GenSeq[Int],
+	Vs <: GenSeq[Double],
+	V <: BinaryScalarVector[Vb, Vs] : ClassTag,
+	Cz <: Clusterizable[ID, V],
+	D <: Distance[V]
+	](
+	data: RDD[Cz],
+	metric: D,
+	k: Int,
+	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
+	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+) extends KCommonsSpark[ID, V, D, Cz](data, metric, k, initializedCenters, persistanceLVL)
+{
+	protected val dimBinary = vectorizedDataset.first.binary.size
+	protected val dimScalar = vectorizedDataset.first.scalar.size
+
+	protected def obtainvalCentersInfo =
+	{
+		vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) ).reduceByKeyLocally{ case ((sum1, v1), (sum2, v2)) =>
+			{
+				(
+					sum1 + sum2,
+					{
+						val binaryVector = SumArrays.sumArraysNumericsGen[Int, Vb](v1.binary, v2.binary)
+						val scalarVector = SumArrays.sumArraysNumericsGen[Double, Vs](v1.scalar, v2.scalar)
+						(new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V]
+					}
+				)
+			}
+		}
+	}
+	// def naiveInitializationCenters() =
+	// {
+	// 	val vectorRange = (0 until dimScalar).toBuffer
+	// 	val kRange = (0 until k)
+	// 	val binaryModes = kRange.map( clusterID => (clusterID, Seq.fill(dimBinary)(Random.nextInt(2)).asInstanceOf[Vb]) )
+
+	// 	val (minv, maxv) = data.map( v =>
+	// 	{
+	// 		val vector = v.scalar.toBuffer
+	// 		(vector, vector)
+	// 	}).reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
+
+	// 	val ranges = minv.zip(maxv).map{ case (min, max) => (max - min, min) }.toSeq
+	// 	val scalarCentroids = kRange.map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }.asInstanceOf[Vs]) )
+
+	// 	mutable.HashMap(binaryModes.zip(scalarCentroids).map{ case ((clusterID, binaryVector), (_, scalarVector)) => (clusterID, (new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V]) }:_*)
+	// }
 }
 
 abstract class KCommonsModelSpark[

@@ -1,7 +1,7 @@
 package clustering4ever.math.distances.scalar
 
 import scala.math.{pow, sqrt}
-import scala.collection.{immutable, mutable}
+import scala.collection.{GenSeq, parallel, mutable}
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 import clustering4ever.scala.clusterizables.RealClusterizable
 
@@ -12,11 +12,19 @@ trait EuclideanMeta extends Serializable
 {
 	protected val squareRoot: Boolean
 
-	protected def euclidean[V <: Seq[Double]](dot1: V, dot2: V): Double =
+	/**
+	 * Less elegant than recursion style but more efficient
+	 */
+	protected def euclidean[V <: GenSeq[Double]](dot1: V, dot2: V): Double =
 	{
-		var sum = 0D
-		dot1.zip(dot2).foreach{ case (a, b) => sum += pow(a - b, 2) }
-		if( squareRoot ) sqrt(sum) else sum
+		var d = 0D
+		var i = 0
+		while( i < dot1.size )
+		{
+			d += pow(dot1(i) - dot2(i), 2)
+			i += 1
+		}
+		d
 	}
 
 	lazy val toStringRoot = if( squareRoot ) "with " else "without "
@@ -24,7 +32,7 @@ trait EuclideanMeta extends Serializable
 	override def toString = "Euclidean " + toStringRoot + "root applied"
 }
 
-class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V]
+class Euclidean[V <: GenSeq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V]
 {
 	/**
 	  * The Euclidean distance with or without squareRoot
@@ -33,15 +41,12 @@ class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends 
 	def d(dot1: V, dot2: V): Double = euclidean[V](dot1, dot2)
 }
 
-class FastEuclidean(squareRoot: Boolean = true) extends Euclidean[mutable.Buffer[Double]](squareRoot)
-{
-	override def d(dot1: mutable.Buffer[Double], dot2: mutable.Buffer[Double]): Double =
-	{
-		var sum = 0D
-		dot1.indices.foreach( i => sum += pow(dot1(i) - dot2(i), 2) )
-		if( squareRoot ) sqrt(sum) else sum
-	}
-}
+class FastEuclideanLowD(squareRoot: Boolean = true) extends Euclidean[mutable.Buffer[Double]](squareRoot)
+
+/**
+ * For very very high dimension > 1000000
+ */
+class FastEuclideanHighD(squareRoot: Boolean = true) extends Euclidean[parallel.mutable.ParArray[Double]](squareRoot)
 
 class EuclideanClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V]
 {

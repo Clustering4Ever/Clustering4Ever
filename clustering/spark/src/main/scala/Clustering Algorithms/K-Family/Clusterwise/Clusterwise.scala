@@ -44,7 +44,7 @@ class Clusterwise(
 		val kmeansKValue = (n / sizeBloc).toInt
 		val clusterwiseModels = mutable.ArrayBuffer.empty[ClusterwiseModel]
 
-		def reduceXY(a: (Seq[Double], Seq[Double]), b: (Seq[Double], Seq[Double])): (Seq[Double], Seq[Double]) = (SumArrays.sumArraysNumerics[Double](a._1, b._1), SumArrays.sumArraysNumerics[Double](a._2, b._2))
+		def reduceXY(a: (Seq[Double], Seq[Double]), b: (Seq[Double], Seq[Double])): (Seq[Double], Seq[Double]) = (SumArrays.sumArraysNumerics[Double](a._1, b._1).seq, SumArrays.sumArraysNumerics[Double](a._2, b._2).seq)
 
   		val standardizationParameters = if( standardized )
   		{
@@ -188,18 +188,18 @@ class Clusterwise(
 
 		 	val (meanX, meanY, sdX, sdY) = standardizationParameters.get
 
-		 	val meanTrain = trainY.reduce(SumArrays.sumArraysNumerics[Double](_, _)).map(_ / trainY.size)
+		 	val meanTrain = trainY.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / trainY.size)
 
-		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics[Double](_, _)).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
+		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
 		 	
-		 	val meanTest = testY.map(_._2._2).reduce(SumArrays.sumArraysNumerics[Double](_, _)).map(_ / testSize)
+		 	val meanTest = testY.map(_._2._2).reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / testSize)
 		 	
-		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics[Double](_, _)).map( x => sqrt(x / (testSize - 1)))
+		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map( x => sqrt(x / (testSize - 1)))
 
 		 	// Standardized RMSE of train data
 			val sqRmseTrainIn = if( q == 1 ) trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => pow(trueY.head - yPred.head, 2)}.sum / trainY.size / sdYtrain.head
 				else trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ) }
-			    	.reduce(SumArrays.sumArraysNumerics[Double](_, _))
+			    	.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq)
 			    	.map( _ / trainY.size )
 			    	.zip(sdYtrain)
 			    	.map{ case (rmseTrain, sdy) => rmseTrain / sdy }
@@ -209,7 +209,7 @@ class Clusterwise(
 		 	// Standardized RMSE of test data
 			val sqRmseTestIn = if( q == 1 ) testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => pow(y.head - yPred(0), 2) }.sum / testSize / sdYtest.head
 				else testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) } }
-					.reduce(SumArrays.sumArraysNumerics[Double](_, _))
+					.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq)
 					.zip(sdYtest)
 					.map{ case (rmseTest, sdTest) => rmseTest / sdTest }
 					.sum / q

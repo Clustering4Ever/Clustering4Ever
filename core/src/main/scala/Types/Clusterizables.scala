@@ -2,7 +2,7 @@ package clustering4ever.scala.clusterizables
 
 import clustering4ever.scala.vectorizables.{Vectorizable, MixtVectorizable, RealVectorizable, BinaryVectorizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
-import scala.collection.immutable
+import scala.collection.GenSeq
 
 abstract class Clusterizable[ID: Numeric, Vector](final val id: ID, val vectorizable: Vectorizable[Vector]) extends Serializable
 {
@@ -21,7 +21,7 @@ abstract class ClusterizableExt[ID: Numeric, Vector](
 	def setClusterID(newCID: Int): this.type
 }
 
-abstract class ClusterizableExtVectors[ID: Numeric, T: Numeric, Vector <: Seq[T]](
+abstract class ClusterizableExtVectors[ID: Numeric, T: Numeric, Vector <: GenSeq[T]](
 	id: ID, 
 	vectorizable: Vectorizable[Vector],
 	v2: Vector,
@@ -43,7 +43,7 @@ abstract class ClusterizableExtVectors[ID: Numeric, T: Numeric, Vector <: Seq[T]
 	}
 }
 
-abstract class ClusterizableExtMixt[ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Double], Vectors <: BinaryScalarVector[Vb, Vs]](
+abstract class ClusterizableExtMixt[ID: Numeric, Vb <: GenSeq[Int], Vs <: GenSeq[Double], Vectors <: BinaryScalarVector[Vb, Vs]](
 	id: ID, 
 	vectorizable: Vectorizable[Vectors],
 	v2: Vectors,
@@ -69,7 +69,7 @@ abstract class ClusterizableExtMixt[ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Doubl
 /**
  * Generic clusterizable for both Mixt Vectors => (Vector[Int], Vector[Double]) 
  **/
-case class MixtClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](
+case class MixtClusterizable[ID: Numeric, Obj, Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]](
 	idTmp: ID,
 	vectorizableTmp: MixtVectorizable[Obj, Vb, Vs, V],
 	v2Tmp: V = null.asInstanceOf[V],
@@ -105,7 +105,7 @@ case class MixtClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double]
 /**
  * Clusterizable for Vector[Double] 
  **/
-case class RealClusterizable[ID: Numeric, Obj, V <: Seq[Double]](
+case class RealClusterizable[ID: Numeric, Obj, V <: GenSeq[Double]](
 	idTmp: ID,
 	vectorizableTmp: RealVectorizable[Obj, V],
 	v2Tmp: V = Seq.empty[Double].asInstanceOf[V],
@@ -141,7 +141,7 @@ case class RealClusterizable[ID: Numeric, Obj, V <: Seq[Double]](
 /**
  * Clusterizable for Vector[Int] 
  **/
-case class BinaryClusterizable[ID: Numeric, Obj, V <: Seq[Int]](
+case class BinaryClusterizable[ID: Numeric, Obj, V <: GenSeq[Int]](
 	idTmp: ID,
 	vectorizableTmp: BinaryVectorizable[Obj, V],
 	v2Tmp: V = Seq.empty[Int].asInstanceOf[V],

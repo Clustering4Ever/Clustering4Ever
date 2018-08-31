@@ -13,7 +13,7 @@ import clustering4ever.util.SumArrays
  */
 class InternalIndexes extends ClusteringCommons
 {
-  def daviesBouldinIndex(data: GenSeq[(ClusterID, Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[Seq[Double]]) =
+  def daviesBouldinIndex(data: GenSeq[(ClusterID, GenSeq[Double])], clusterLabels: GenSeq[Int], metric: ContinuousDistance[GenSeq[Double]]) =
   {
     if( clusterLabels.size == 1 )
     {
@@ -44,7 +44,7 @@ class InternalIndexes extends ClusteringCommons
     }
   }
 
-  def ballHallIndex(clusterized: GenSeq[(ClusterID, Seq[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean(true)): Double =
+  def ballHallIndex(clusterized: GenSeq[(ClusterID, GenSeq[Double])], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean(true)): Double =
   {
     val clusters = clusterized.par.groupBy(_._1).map{ case (clusterID, aggregate) => (clusterID, aggregate.map(_._2)) }
 
@@ -57,14 +57,14 @@ class InternalIndexes extends ClusteringCommons
    * Silhouette Index
    * Complexity : O(n<sup>2</sup>)
    **/
-  def silhouette(clusterLabels: Seq[Int], data: GenSeq[(Int, Seq[Double])], metric: ContinuousDistance[Seq[Double]]) =
+  def silhouette(clusterLabels: GenSeq[Int], data: GenSeq[(Int, GenSeq[Double])], metric: ContinuousDistance[GenSeq[Double]]) =
   {  
     /*
      * Compute the  within-cluster mean distance a(i) for all the point in cluster
-     * Param: cluster: RDD[Seq]
+     * Param: cluster: RDD[GenSeq]
      * Return index of point and the corresponding a(i) Array[(Int, Double)]
      */
-    def aiList(cluster: GenSeq[(Int, Seq[Double])]): GenMap[Int, Double] =
+    def aiList(cluster: GenSeq[(Int, GenSeq[Double])]): GenMap[Int, Double] =
     {
       val pointPairs = for( i <- cluster; j <- cluster if( i._1 != j._1 ) ) yield (i,j)
       val allPointsDistances = pointPairs.map( pp => ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2)) )
@@ -120,7 +120,7 @@ object InternalIndexes extends ClusteringCommons
    *   * n number of data points
    *   * c number of clusters
    */
-  def daviesBouldinIndex(clusterized: GenSeq[(ClusterID, Seq[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[Seq[Double]]): Double =
+  def daviesBouldinIndex(clusterized: GenSeq[(ClusterID, GenSeq[Double])], clusterLabels: GenSeq[Int], metric: ContinuousDistance[GenSeq[Double]]): Double =
     (new InternalIndexes).daviesBouldinIndex(clusterized, clusterLabels, metric)
   /**
    * Davies bouldin index
@@ -128,16 +128,16 @@ object InternalIndexes extends ClusteringCommons
    *   * n number of data points
    *   * c number of clusters
    */
-  def daviesBouldinIndex(clusterized: GenSeq[(ClusterID, Seq[Double])], metric: ContinuousDistance[Seq[Double]]): Double =
+  def daviesBouldinIndex(clusterized: GenSeq[(ClusterID, GenSeq[Double])], metric: ContinuousDistance[GenSeq[Double]]): Double =
   {
-    val clusterLabels = Seq(clusterized.map(_._1).distinct.seq:_*)
+    val clusterLabels = GenSeq(clusterized.map(_._1).distinct.seq:_*)
     (new InternalIndexes).daviesBouldinIndex(clusterized, clusterLabels, metric) 
   }
 
-  def silhouetteIndex(clusterLabels: Seq[ClusterID], clusterized: Seq[(ClusterID, Seq[Double])], metric: ContinuousDistance[Seq[Double]]): Double =
+  def silhouetteIndex(clusterLabels: GenSeq[ClusterID], clusterized: GenSeq[(ClusterID, GenSeq[Double])], metric: ContinuousDistance[GenSeq[Double]]): Double =
     (new InternalIndexes).silhouette(clusterLabels, clusterized, metric)
 
-  def ballHallIndex(clusterized: GenSeq[(ClusterID, Seq[Double])], metric: ContinuousDistance[Seq[Double]] = new Euclidean(true)) =
+  def ballHallIndex(clusterized: GenSeq[(ClusterID, GenSeq[Double])], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean(true)) =
     (new InternalIndexes).ballHallIndex(clusterized, metric)
 
 }

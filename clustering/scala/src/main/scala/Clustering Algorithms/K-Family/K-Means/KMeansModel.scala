@@ -10,4 +10,10 @@ import clustering4ever.scala.clustering.KCommonsModel
 /**
  * @author Beck Gaël
  */
-final class KMeansModel[ID: Numeric, Obj, V <: Seq[Double] : ClassTag, Rc <: RealClusterizable[ID, Obj, V], D <: ContinuousDistance[V]](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModel[ID, V, D, Rc](centers, metric)
+final class KMeansModel[
+	ID: Numeric,
+	Obj,
+	V <: GenSeq[Double] : ClassTag,
+	Cz <: RealClusterizable[ID, Obj, V],
+	D <: ContinuousDistance[V]
+](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModel[ID, V, D, Cz](centers, metric)

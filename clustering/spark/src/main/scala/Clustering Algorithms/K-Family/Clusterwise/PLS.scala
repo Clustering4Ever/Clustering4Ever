@@ -29,8 +29,8 @@ class PLS(
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce(SumArrays.sumArraysNumerics[Double](_, _)).map(_ / n)
-		val meanY = dsY.reduce(SumArrays.sumArraysNumerics[Double](_, _)).map(_ / n)
+		val meanX = dsX.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / n)
+		val meanY = dsY.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / n)
 		val meanYa = meanY.toArray
 
 

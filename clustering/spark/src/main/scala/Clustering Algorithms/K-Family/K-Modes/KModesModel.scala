@@ -1,11 +1,18 @@
 package clustering4ever.spark.clustering.kmodes
 
-import scala.collection.{mutable, immutable}
+import scala.collection.{mutable, GenSeq}
+import clustering4ever.spark.clustering.KCommonsModelSpark
+import scala.reflect.ClassTag
+import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.math.distances.BinaryDistance
-import clustering4ever.clustering.CommonRDDPredictClusteringModel
-import org.apache.spark.rdd.RDD
 
 /**
  * @author Beck Gaël
  **/
-class KModesModel(val centers: mutable.HashMap[Int, Seq[Int]], val metric: BinaryDistance[Seq[Int]]) extends CommonRDDPredictClusteringModel[Seq[Int], BinaryDistance[Seq[Int]]]
+class KModesModel[
+	ID: Numeric,
+	Obj,
+	V <: GenSeq[Int],
+	Cz <: BinaryClusterizable[ID, Obj, V] : ClassTag,
+	D <: BinaryDistance[V]
+](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModelSpark[ID, V, D, Cz](centers, metric)

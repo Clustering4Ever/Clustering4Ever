@@ -5,42 +5,54 @@ import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.math.distances.MixtDistanceClusterizable
 import clustering4ever.scala.clusterizables.MixtClusterizable
-import scala.collection.immutable
+import scala.collection.GenSeq
 
 /**
  * @author Beck Gaël
  **/
-trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable
+trait HammingAndEuclideanMeta[Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable
 {
 	protected val α: Double
 
-	protected def hammingAndEuclidean(vector1: V, vector2: V): Double =
+	protected def hammingAndEuclidean(dot1: V, dot2: V): Double =
 	{
-		val db = vector1.binary.zip(vector2.binary).map{ case (a, b) => a ^ b }.sum		
-		val ds = sqrt(vector1.scalar.zip(vector2.scalar).map{ case (a, b) => pow(a - b, 2) }.sum)
-		
+		var db = 0D
+		var ds = 0D
+		var i = 0
+		while( i < dot1.scalar.size )
+		{
+			ds += pow(dot1.scalar(i) - dot2.scalar(i), 2)
+			i += 1
+		}
+		ds = sqrt(ds)
+		while( i < dot1.binary.size )
+		{
+			db += dot1.binary(i) ^ dot2.binary(i)
+			i += 1
+		}
+
 		if( α == 0 )
 		{
-			val nbDim = vector1.binary.size + vector1.scalar.size
-			db * (vector1.binary.size.toDouble / nbDim) + ds * (vector1.scalar.size.toDouble / nbDim) 
+			val nbDim = dot1.binary.size + dot1.scalar.size
+			db * (dot1.binary.size.toDouble / nbDim) + ds * (dot1.scalar.size.toDouble / nbDim) 
 		}
 		else db + α * ds
 	}
 }
 
-class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V]
+class HammingAndEuclidean[Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V]
 {
 	/**
 	 *	
 	 */
-	override def d(vector1: V, vector2: V): Double = hammingAndEuclidean(vector1, vector2)
+	override def d(dot1: V, dot2: V): Double = hammingAndEuclidean(dot1, dot2)
 	
 }
 
-class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V]
+class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V]
 {
 	/**
 	 *	
 	 */
-	override def d(vector1: MixtClusterizable[ID, Obj, Vb, Vs, V], vector2: MixtClusterizable[ID, Obj, Vb, Vs, V]): Double = hammingAndEuclidean(vector1.vector, vector2.vector)
+	override def d(dot1: MixtClusterizable[ID, Obj, Vb, Vs, V], dot2: MixtClusterizable[ID, Obj, Vb, Vs, V]): Double = hammingAndEuclidean(dot1.vector, dot2.vector)
 }
