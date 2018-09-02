@@ -2,13 +2,13 @@ package clustering4ever.scala.clustering.meanshift
 
 import scala.util.Random
 import scala.math.{min, max}
-import scala.collection.{immutable, mutable, GenSeq}
+import scala.collection.{immutable, mutable}
 import scala.util.Random
 import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.util.SumArrays
+import clustering4ever.util.SumVectors
 import clustering4ever.scala.kernels.Kernels
 import clustering4ever.scala.kernels.KernelNature._
 import clustering4ever.scala.kernels.KernelNature
@@ -20,7 +20,7 @@ import clustering4ever.scala.vectorizables.RealVectorizable
  * Mean Shift gradient ascent
  * @param kernelType defines the nature of kernel usud in the gradient ascent
  */
-class GradientAscent[ID: Numeric, Obj, V <: Seq[Double]](
+class GradientAscent[ID: Numeric, Obj, V <: Seq[Double], Cz <: RealClusterizable[ID, Obj, V]](
   epsilon: Double,
   maxIterations: Int,
   metric: ContinuousDistance[V],
@@ -28,13 +28,12 @@ class GradientAscent[ID: Numeric, Obj, V <: Seq[Double]](
   kernelArgs: immutable.Vector[String]
 ) extends DataSetsTypes[ID]
 {
-  def gradientAscent(readyToGA: GenSeq[RealClusterizable[ID, Obj, V]]) =
+  def gradientAscent(readyToGA: Seq[Cz]) =
   {
     val haveNotConverged = false
-    val readyToGApar = readyToGA.par
-    val kernelLocality = readyToGApar.map(_.vector)
+    val kernelLocality = readyToGA.map(_.vector)
 
-    var gradientAscentData: GenSeq[(RealClusterizable[ID, Obj, V], Boolean)] = readyToGApar.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    var gradientAscentData: Seq[(Cz, Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
     // val gradientAscentDataVal = gradientAscentData
 
     lazy val kernelLocalitySeq: Option[Seq[V]] = kernelType match
@@ -44,7 +43,7 @@ class GradientAscent[ID: Numeric, Obj, V <: Seq[Double]](
       case _ => None
     }
 
-    def kernelGradientAscent(toExplore: GenSeq[(RealClusterizable[ID, Obj, V], Boolean)]) =
+    def kernelGradientAscent(toExplore: Seq[(Cz, Boolean)]) =
     {
       var cptConvergedPoints = 0
       
@@ -95,7 +94,7 @@ class GradientAscent[ID: Numeric, Obj, V <: Seq[Double]](
      */
     @deprecated
     @annotation.tailrec
-    def go(i: Int, data: GenSeq[(RealClusterizable[ID, Obj, V], Boolean)]): GenSeq[(RealClusterizable[ID, Obj, V], Boolean)] =
+    def go(i: Int, data: Seq[(Cz, Boolean)]): Seq[(RealClusterizable[ID, Obj, V], Boolean)] =
     {
       val (gradientAscentData, cptConvergedPoints) = kernelGradientAscent(data)
       val everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
@@ -120,8 +119,8 @@ object GradientAscent extends DataSetsTypes[Int]
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
    **/
-   def run[ID: Numeric, Obj, V <: Seq[Double]](
-    data: GenSeq[RealClusterizable[ID, Obj, V]],
+   def run[ID: Numeric, Obj, V <: Seq[Double], Cz <: RealClusterizable[ID, Obj, V]](
+    data: Seq[Cz],
     metric: ContinuousDistance[V],
     epsilon: Double,
     maxIterations: Int,
@@ -129,7 +128,7 @@ object GradientAscent extends DataSetsTypes[Int]
     kernelArgs: immutable.Vector[String]
     ) =
   {
-    val meanShift = new GradientAscent[ID, Obj, V](epsilon, maxIterations, metric, kernelType, kernelArgs)
+    val meanShift = new GradientAscent[ID, Obj, V, Cz](epsilon, maxIterations, metric, kernelType, kernelArgs)
     meanShift.gradientAscent(data)
   }
 }

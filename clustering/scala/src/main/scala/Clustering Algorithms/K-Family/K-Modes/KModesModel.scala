@@ -1,7 +1,7 @@
 package clustering4ever.scala.clustering.kmodes
 
 import clustering4ever.clustering.CommonPredictClusteringModel
-import scala.collection.{mutable, immutable, GenSeq}
+import scala.collection.mutable
 import clustering4ever.math.distances.{BinaryDistance, Distance}
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import scala.reflect.ClassTag

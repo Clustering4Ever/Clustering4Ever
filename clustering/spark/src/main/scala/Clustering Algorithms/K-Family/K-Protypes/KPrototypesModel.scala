@@ -1,6 +1,6 @@
 package clustering4ever.spark.clustering.kprototypes
 
-import scala.collection.{mutable, GenSeq}
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import org.apache.spark.rdd.RDD
 import clustering4ever.clustering.CommonRDDPredictClusteringModel
@@ -15,8 +15,8 @@ import clustering4ever.spark.clustering.KCommonsModelSpark
 class KPrototypesModel[
 	ID: Numeric,
 	Obj,
-	Vb <: GenSeq[Int],
-	Vs <: GenSeq[Double],
+	Vb <: Seq[Int],
+	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs],
 	Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V] : ClassTag,
 	D <: MixtDistance[Vb, Vs, V]

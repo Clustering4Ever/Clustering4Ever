@@ -1,19 +1,19 @@
 package clustering4ever.spark.clustering.clusterwise
 
 import scala.math.{pow, sqrt => ssqrt}
-import scala.collection.{mutable, immutable, GenSeq}
-import clustering4ever.util.SumArrays
+import scala.collection.{mutable, immutable}
+import clustering4ever.util.SumVectors
 import breeze.linalg._
 
 trait CommonPLSTypes
 {
-	type IdWithX = GenSeq[(Int, Seq[Double])]
-	type Y = GenSeq[Seq[Double]]
+	type IdWithX = Seq[(Int, Seq[Double])]
+	type Y = Seq[Seq[Double]]
 }
 
 class PLS(
-	dsXi: GenSeq[(Int, Seq[Double])],
-	dsY: GenSeq[Seq[Double]],
+	dsXi: Seq[(Int, Seq[Double])],
+	dsY: Seq[Seq[Double]],
 	n: Int,
 	h: Int,
 	lw: Double,
@@ -29,8 +29,8 @@ class PLS(
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / n)
-		val meanY = dsY.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / n)
+		val meanX = dsX.reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map(_ / n)
+		val meanY = dsY.reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map(_ / n)
 		val meanYa = meanY.toArray
 
 

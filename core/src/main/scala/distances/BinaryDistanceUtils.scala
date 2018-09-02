@@ -1,7 +1,7 @@
 package clustering4ever.math.distances
 
-import scala.collection.{immutable, GenSeq}
-import clustering4ever.util.SumArrays
+import scala.collection.immutable
+import clustering4ever.util.SumVectors
 
 /**
  * @author Beck Gaël
@@ -47,15 +47,15 @@ object BinaryDistanceUtil
 	 * Count number of occurence for each binary features
 	 * @return Array[(numberOf0, numberOf1)]
 	 **/
-	def countOccFeat(data: GenSeq[GenSeq[Int]]): GenSeq[(Int, Int)] =
+	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] =
 	{
 		val nbTotData = data.size
-		val nbOne = data.reduce(SumArrays.sumArraysNumerics[Int](_, _))
+		val nbOne = data.reduce(SumVectors.sumVectors[Int, Seq[Int]](_, _))
 		val nbZero = nbOne.map(nbTotData - _)
 		nbZero.zip(nbOne)
 	}
 
-	def genProb2Feat(nbOccFeatTab: GenSeq[(Int, Int)], nbTotData: Int): GenSeq[(Double, Double)] =
+	def genProb2Feat(nbOccFeatTab: Seq[(Int, Int)], nbTotData: Int): Seq[(Double, Double)] =
 	{
 		nbOccFeatTab.map{ case (zero, one) =>
 		{

@@ -1,7 +1,7 @@
 package clustering4ever.spark.clustering.clusterwise
 
 import scala.util.Random
-import scala.collection.{mutable, immutable, GenSeq}
+import scala.collection.{mutable, immutable, Seq}
 import scala.math.{pow, sqrt}
 import scala.annotation.meta.param
 import org.apache.spark.{SparkContext, SparkConf, HashPartitioner}
@@ -9,14 +9,14 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.clustering._
 import org.apache.spark.broadcast.Broadcast
 import clustering4ever.scala.clustering.kmeans.KMeans
-import clustering4ever.util.SumArrays
+import clustering4ever.util.SumVectors
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.GenerateClusterizable
 import clustering4ever.scala.clusterizables.RealClusterizable
 
 class Clusterwise(
 	@(transient @param) sc: SparkContext,
-	val dataXY: GenSeq[(Int, (Seq[Double], Seq[Double]))],
+	val dataXY: Seq[(Int, (Seq[Double], Seq[Double]))],
 	var g: Int,
 	var h: Int,
 	var nbCV: Int,
@@ -44,7 +44,7 @@ class Clusterwise(
 		val kmeansKValue = (n / sizeBloc).toInt
 		val clusterwiseModels = mutable.ArrayBuffer.empty[ClusterwiseModel]
 
-		def reduceXY(a: (Seq[Double], Seq[Double]), b: (Seq[Double], Seq[Double])): (Seq[Double], Seq[Double]) = (SumArrays.sumArraysNumerics[Double](a._1, b._1).seq, SumArrays.sumArraysNumerics[Double](a._2, b._2).seq)
+		def reduceXY(a: (Seq[Double], Seq[Double]), b: (Seq[Double], Seq[Double])): (Seq[Double], Seq[Double]) = (SumVectors.sumVectors[Double, Seq[Double]](a._1, b._1).seq, SumVectors.sumVectors[Double, Seq[Double]](a._2, b._2).seq)
 
   		val standardizationParameters = if( standardized )
   		{
@@ -188,18 +188,18 @@ class Clusterwise(
 
 		 	val (meanX, meanY, sdX, sdY) = standardizationParameters.get
 
-		 	val meanTrain = trainY.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / trainY.size)
+		 	val meanTrain = trainY.reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map(_ / trainY.size)
 
-		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
+		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }).reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
 		 	
-		 	val meanTest = testY.map(_._2._2).reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map(_ / testSize)
+		 	val meanTest = testY.map(_._2._2).reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map(_ / testSize)
 		 	
-		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }).reduce(SumArrays.sumArraysNumerics[Double](_, _).seq).map( x => sqrt(x / (testSize - 1)))
+		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }).reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map( x => sqrt(x / (testSize - 1)))
 
 		 	// Standardized RMSE of train data
 			val sqRmseTrainIn = if( q == 1 ) trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => pow(trueY.head - yPred.head, 2)}.sum / trainY.size / sdYtrain.head
 				else trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ) }
-			    	.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq)
+			    	.reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq)
 			    	.map( _ / trainY.size )
 			    	.zip(sdYtrain)
 			    	.map{ case (rmseTrain, sdy) => rmseTrain / sdy }
@@ -209,7 +209,7 @@ class Clusterwise(
 		 	// Standardized RMSE of test data
 			val sqRmseTestIn = if( q == 1 ) testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => pow(y.head - yPred(0), 2) }.sum / testSize / sdYtest.head
 				else testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) } }
-					.reduce(SumArrays.sumArraysNumerics[Double](_, _).seq)
+					.reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq)
 					.zip(sdYtest)
 					.map{ case (rmseTest, sdTest) => rmseTest / sdTest }
 					.sum / q
@@ -231,7 +231,7 @@ object Clusterwise extends ClusterwiseTypes with Serializable
 	 */
 	def run(
 		@(transient @param) sc: SparkContext,
-		dataXY: GenSeq[(ID, (Xvector, Yvector))],
+		dataXY: Seq[(ID, (Xvector, Yvector))],
 		g: Int,
 		h: Int,
 		nbCV: Int,

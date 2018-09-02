@@ -4,7 +4,7 @@ import org.apache.commons.math3.distribution.EnumeratedDistribution
 import org.apache.commons.math3.util.Pair
 import scala.collection.JavaConverters._
 import scala.math.pow
-import scala.collection.{immutable, mutable, GenSeq}
+import scala.collection.{immutable, mutable}
 import scala.util.Random
 import clustering4ever.math.distances.Distance
 import clustering4ever.stats.Stats
@@ -15,7 +15,7 @@ object KppInitialization
 	 * Simplest centers initialization
 	 * We search range for each dimension and take a random value between each range 
 	 */
-	def naiveInitialization[S <: immutable.Seq[Double], GS <: GenSeq[S]](realDS: GS, k: Int) =
+	def naiveInitialization[S <: immutable.Seq[Double], GS <: Seq[S]](realDS: GS, k: Int) =
 	{
 		val (minv, maxv) = Stats.obtainMinAndMax(realDS)
 		val ranges = immutable.Seq(minv.zip(maxv).map{ case (min, max) => (max - min, min) }:_*)
@@ -31,7 +31,7 @@ object KppInitialization
 	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
 	 * </ol>
 	 */
-	def kmppInitialization[T: Numeric, S <: immutable.Seq[T], GS <: GenSeq[S]](realDS: GS, k: Int, metric: Distance[S]): mutable.HashMap[Int, S] =
+	def kmppInitialization[T: Numeric, S <: immutable.Seq[T], GS <: Seq[S]](realDS: GS, k: Int, metric: Distance[S]): mutable.HashMap[Int, S] =
 	{
 		def obtainNearestCenter(v: S, centers: mutable.ArrayBuffer[S]): S = centers.minBy(metric.d(_, v))
 		

@@ -25,13 +25,13 @@ object Output extends Serializable
     fw.close    
   }
 
-  def write(outputDir: String, datas: RDD[DenseVector], model: AbstractModel, nbRowSOM:Int, nbColSOM: Int): String =
+  def write(outputDir: String, datas: RDD[Seq[Double]], model: AbstractModel, nbRowSOM:Int, nbColSOM: Int): String =
   {
       val now = Calendar.getInstance().getTime()
       val format = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")
       val time = format.format(now)
-      val dim = datas.take(1)(0).toArray.length
-      val datasWithIndex = datas.zipWithIndex.map(t => (t._2, t._1))
+      val dim = datas.first.size
+      val datasWithIndex = datas.zipWithIndex.map(_.swap)
 
       val path: String = outputDir + "/EXP-" + time + "/"
       s"mkdir -p ${path}".!
@@ -50,17 +50,7 @@ object Output extends Serializable
       val sumAffectedDatas = datas.map( d => (model.findClosestPrototype(d).id, 1)).reduceByKey{ case (sum1, sum2) => sum1 + sum2 }.collectAsMap 
     
       // fill in all the prototypes that have 0 observations
-      val card = (0 to prototypes.length - 1).map( d =>
-      {
-        if (sumAffectedDatas.contains(d))
-        {
-          sumAffectedDatas(d) + ""
-        }
-        else
-        {
-          "0"
-        }
-      })
+      val card = (0 until prototypes.length).map( d => if (sumAffectedDatas.contains(d)) sumAffectedDatas(d) + "" else "0" )
     
       println("Write Cardinalities...")
       var cardHeader = "# mapDim=2 mapSize={"+ nbRowSOM +"," + nbColSOM + "}" 

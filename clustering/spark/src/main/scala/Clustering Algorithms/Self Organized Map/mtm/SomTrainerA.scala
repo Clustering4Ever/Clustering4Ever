@@ -9,10 +9,12 @@ import clustering4ever.spark.clustering.mtm.utils.NamedVector
 import scala.concurrent.duration.{FiniteDuration, Duration}
 import org.apache.spark.mllib.linalg.DenseVector
 import scala.collection.immutable
+import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.ContinuousDistance
 /**
  * @author Sarazin Tugdual & Lebbah Mustapha & Beck Gaël
  **/
-class SomTrainerA extends AbstractTrainer
+class SomTrainerA(metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true)) extends AbstractTrainer
 {
   val DEFAULT_SOM_ROW = 10
   val DEFAULT_SOM_COL = 10
@@ -31,10 +33,10 @@ class SomTrainerA extends AbstractTrainer
   var sizeRealVars: Int = SIZE_REAL_VARS
  
 
-  protected var _somModel: Option[SomModel] = None
-  protected def getModel: AbstractModel = _somModel.get
+  protected var theSOMModel: Option[SomModel] = None
+  protected def getModel: AbstractModel = theSOMModel.get
 
-  protected def initModel(dataset: RDD[DenseVector], modelOptions: Option[Map[String, String]]) =
+  protected def initModel(dataset: RDD[Seq[Double]], modelOptions: Option[Map[String, String]]) =
   {
     var nbRow = DEFAULT_SOM_ROW
     var nbCol = DEFAULT_SOM_COL
@@ -52,125 +54,82 @@ class SomTrainerA extends AbstractTrainer
 
 
     val mapSize = nbRow * nbCol
-    val selectedDatas: Array[DenseVector] = if( initMap == 0 )
-    {    
-      dataset.takeSample(withReplacement = false, mapSize, Random.nextInt())
-    }
-    else
-    {
-      scala.io.Source.fromFile(initMapFile).getLines().drop(1).toArray.map( line => new DenseVector(line.split(sep).map(_.toDouble)))
-    }
+    val selectedDatas: Array[Seq[Double]] = if( initMap == 0 ) dataset.takeSample(withReplacement = false, mapSize, Random.nextInt())
+      else scala.io.Source.fromFile(initMapFile).getLines().drop(1).toArray.map( line => line.split(sep).map(_.toDouble).toSeq )
 
     // todo : Check /nbCol et %nbCOl
     val neuronMatrix = Array.tabulate(mapSize)( id => new SomNeuron(id, id / nbCol, id % nbCol, selectedDatas(id)))
-    _somModel = Some(new SomModel(nbRow, nbCol, neuronMatrix))
+    theSOMModel = Some(new SomModel(nbRow, nbCol, neuronMatrix))
   }
   //init model
 
-  protected def trainingIteration(dataset: RDD[DenseVector], currentIteration: Int, maxIteration: Int): Double =
+  protected def trainingIteration(dataset: RDD[Seq[Double]], currentIteration: Int, maxIteration: Int): Double =
   {
-    
     val t = processT(maxIteration, currentIteration)
 
     // create som observations
     val mapping = dataset.map( d =>
     {
-      val bestNeuron = _somModel.get.findClosestPrototype(d).asInstanceOf[SomNeuron]
+      val bestNeuron = theSOMModel.get.findClosestPrototype(d).asInstanceOf[SomNeuron]
       //ML: à rentrer dans la condition
-      val mapBin: immutable.Vector[(Int, Int)] = if ( d.size > this.sizeRealVars )
-      {
-        d.toArray.drop(sizeRealVars).toVector.map( x => if ( x == 1 ) (1, 0) else (0, 1) )
-      }
-      else
-      {
-        immutable.Vector.empty[(Int, Int)]
-      }
+      val mapBin: Seq[(Int, Int)] = if ( d.size > this.sizeRealVars ) d.drop(sizeRealVars).map( x => if ( x == 1 ) (1, 0) else (0, 1) ) else Seq.empty[(Int, Int)]
 
-      _somModel.get.prototypes.map( proto =>
+      theSOMModel.get.prototypes.map( proto =>
       { 
         val neuron = proto.asInstanceOf[SomNeuron]
         val factor = neuron.factorDist(bestNeuron, t) // K(delta(.-.)/T)
            
         //binary part
-        val mapBinPondere: immutable.Vector[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
-        if( mapBin.size > 0 )
-        {
-          mapBin.map{ case (x, y) => (x * factor, y * factor) }
-        }
-        else
-        {
-          immutable.Vector.empty[(Double, Double)]
-        }
+        val mapBinPondere: Seq[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
+        if( mapBin.size > 0 ) mapBin.map{ case (x, y) => (x * factor, y * factor) } else Seq.empty[(Double, Double)]
         //ML: dans le cas de non présence de réelle vecteur vide, pareil pour les varibales binaires
-        new SomObsA(new DenseVector(d.toArray.take(sizeRealVars).map(_ * factor)), factor, mapBinPondere, neuron.id)
+        new SomObsA(d.take(sizeRealVars).map(_ * factor), factor, mapBinPondere, neuron.id)
         // ligne originale
         //new SomObsA(Vector(d.toArray.take(sizeRealVars)) * factor, factor, mapBinPondere, neuron.id)
       })
     }) //end mapping
 
     // Concat observations
-    val concatObs = mapping.reduce{ (obs1, obs2) =>
-    {
-      for ( i <- obs1.indices )
-      {
-        obs1(i) += obs2(i)
-      }
-      obs1
-    }}
+    val concatObs = mapping.reduce{ (obs1, obs2) => obs1.indices.map( i => obs1(i) + obs2(i) ).toArray }
 
     // Update model and process convergence distance
-    //val x: Array[Double] = concatObs.map(_somModel.update)
-    concatObs.map(_somModel.get.update).sum
+    //val x: Array[Double] = concatObs.map(theSOMModel.update)
+    concatObs.map(theSOMModel.get.update).sum
     
   }
 
   //protected def processT(maxIt:Int, currentIt:Int) = maxIt.toFloat - currentIt
-  protected def processT(maxIt: Int, currentIt: Int) =
-  {
-    this.tmax * math.pow(this.tmin / this.tmax, currentIt / (maxIt.toFloat - 1))
-  }
+  protected def processT(maxIt: Int, currentIt: Int) = this.tmax * math.pow(this.tmin / this.tmax, currentIt / (maxIt.toFloat - 1))
 
   protected class SomModel(val nbRow: Int, val nbCol: Int, neurons: Array[SomNeuron]) extends AbstractModel(neurons.asInstanceOf[Array[AbstractPrototype]])
   {
     // Update the data point of the neuron
     // and return the distance between the new and the old point
-    def update(obs: SomObsA) =
-    {
-      neurons(obs.neuronId).update(obs.compute)
-    }
+    def update(obs: SomObsA) = neurons(obs.neuronId).update(obs.compute)
 
-    override def toString(): String =
-    {
-      neurons.mkString("\n")
-    }
+    override def toString(): String = neurons.mkString("\n")
   }
 
-  protected class SomNeuron(id: Int, val row: Int, val col: Int, point: DenseVector) extends AbstractPrototype(id, point)
+  protected class SomNeuron(id: Int, val row: Int, val col: Int, point: Seq[Double]) extends AbstractPrototype(id, point, metric)
   {
-    def factorDist(neuron: SomNeuron, t: Double): Double =
-    {
-      exp(-(abs(neuron.row - row) + abs(neuron.col - col)) / t)
-    }
+    def factorDist(neuron: SomNeuron, t: Double): Double = exp( - (abs(neuron.row - row) + abs(neuron.col - col)) / t )
 
-    override def toString(): String =
-    {
-      "(" + row + ", " + col + ") -> " + point
-    }
+    override def toString(): String = "(" + row + ", " + col + ") -> " + point
   }
 
-  protected class SomObsA(var numerator: DenseVector, var denominator: Double, var mapBinPonderation: immutable.Vector[(Double, Double)], val neuronId: Int) extends Serializable
+  protected class SomObsA(var numerator: Seq[Double], var denominator: Double, var mapBinPonderation: Seq[(Double, Double)], val neuronId: Int) extends Serializable
   {
     def +(obs: SomObsA): SomObsA =
     {
       //ML:que lorsqu'on a des données réelles
-      numerator = new DenseVector( obs.numerator.toArray.zip(numerator.toArray).map( x => x._1 + x._2 ) )
+      numerator = obs.numerator.zip(numerator).map( x => x._1 + x._2 )
       denominator += obs.denominator
         
 
       // TO DO
       // calcul de la somme des pondÃ©ration des 1 et des 0
       //ML:ajouter la condition (d.length > this.sizeRealVars)
-      val mapBinPonderation2: immutable.Vector[(Double, Double)] = if( mapBinPonderation.size > 0 )
+      val mapBinPonderation2: Seq[(Double, Double)] = if( mapBinPonderation.size > 0 )
       {
         for (i <-0 until mapBinPonderation.size)
         {
@@ -179,12 +138,9 @@ class SomTrainerA extends AbstractTrainer
           //mapBinPonderation2 == mapBinPonderation2 :+ (c1, c0)
         }
         //mapBinPonderation = mapBinPonderation2
-        immutable.Vector.empty[(Double, Double)]
+        Seq.empty[(Double, Double)]
       }
-      else
-      {
-        immutable.Vector.empty[(Double, Double)] 
-      } 
+      else Seq.empty[(Double, Double)] 
 
       this
     }
@@ -194,42 +150,28 @@ class SomTrainerA extends AbstractTrainer
     {
       // Linge originale
       //val newPointsReal = numerator / denominator
-      val newPointsReal = new DenseVector( numerator.toArray.map(_ / denominator) )
+      val newPointsReal = numerator.map(_ / denominator)
       
       // calcul de la mediane
       //ML:ajouter la condition (d.length > this.sizeRealVars)
       //var newPointsBin:Array[Double]=Array()
-      val newPointsBin: immutable.Vector[Double] = if( mapBinPonderation.size > 0 )
-      {
-        mapBinPonderation.map( e => if( e._1 >= e._2 ) 1D else 0D )
-      }
-      else
-      {
-        immutable.Vector.empty[Double]
-      }
+      val newPointsBin: Seq[Double] = if( mapBinPonderation.size > 0 ) mapBinPonderation.map( e => if( e._1 >= e._2 ) 1D else 0D ) else Seq.empty[Double]
      
       // concatenation de la partie real et binaire
-      new DenseVector(newPointsReal.toArray ++ newPointsBin) 
-       
+      newPointsReal.toArray ++ newPointsBin
     }
 
-    override def toString =
-    {
-      numerator.toString + " : " + denominator.toString
-    }
+    override def toString = numerator.toString + " : " + denominator.toString
   }
 
   def purity(dataset: RDD[NamedVector]): Double =
   {
-    val sumAffectedDatas = dataset.map( d => ((_somModel.get.findClosestPrototype(d).id, d.cls), 1) ).reduceByKey(_ + _)
+    val sumAffectedDatas = dataset.map( d => ((theSOMModel.get.findClosestPrototype(d.elements).id, d.cls), 1) ).reduceByKey(_ + _)
 
     val maxByCluster = sumAffectedDatas.map{ case ((id, cls), count) => (id, count) }.reduceByKeyLocally(max).map(_._2)
 
     maxByCluster.sum.toDouble / dataset.count
   }
 
-  def affectations(dataset: RDD[NamedVector]): RDD[(Int, Int)] =
-  {
-    dataset.map( d => (d.cls, _somModel.get.findClosestPrototype(d).id) )
-  }
+  def affectations(dataset: RDD[NamedVector]): RDD[(Int, Int)] = dataset.map( d => (d.cls, theSOMModel.get.findClosestPrototype(d.elements).id) )
 }

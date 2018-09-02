@@ -1,6 +1,6 @@
 package clustering4ever.spark.clustering.kmodes
 
-import scala.collection.{immutable, mutable, GenSeq}
+import scala.collection.{immutable, mutable}
 import scala.util.Random
 import scala.annotation.meta.param
 import scala.reflect.ClassTag
@@ -11,7 +11,7 @@ import org.apache.spark.storage.StorageLevel
 import clustering4ever.math.distances.BinaryDistance
 import clustering4ever.math.distances.binary.Hamming
 import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.util.SumArrays
+import clustering4ever.util.SumVectors
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.spark.clustering.KCommonsSparkVectors
 
@@ -27,16 +27,16 @@ import clustering4ever.spark.clustering.KCommonsSparkVectors
 class KModes[
 	ID: Numeric,
 	Obj,
-	V <: GenSeq[Int] : ClassTag,
+	V <: Seq[Int] : ClassTag,
 	Cz <: BinaryClusterizable[ID, Obj, V] : ClassTag,
-	D <: BinaryDistance[V]
+	D <: Hamming[V]
 ](
 	@transient val sc: SparkContext,
 	data: RDD[Cz],
 	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	metric: D,
+	metric: D = new Hamming[V],
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 ) extends KCommonsSparkVectors[ID, Int, V, Cz, D](data, metric, k, initializedCenters, persistanceLVL)
@@ -66,20 +66,21 @@ object KModes
 	def run[
 		ID: Numeric,
 		Obj,
-		V <: GenSeq[Int] : ClassTag,
-		Cz <: BinaryClusterizable[ID, Obj, V] : ClassTag,
-		D <: BinaryDistance[V]
+		V <: Seq[Int] : ClassTag,
+		Cz <: BinaryClusterizable[ID, Obj, V] : ClassTag
+		// D <: Hamming[V]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: D,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
-		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KModesModel[ID, Obj, V, Cz, D] =
+		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+	): KModesModel[ID, Obj, V, Cz, Hamming[V]] =
 	{
-		val kmodes = new KModes[ID, Obj, V, Cz, D](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+		val metric = new Hamming[V]
+		val kmodes = new KModes[ID, Obj, V, Cz, Hamming[V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kModesModel = kmodes.run()
 		kModesModel
 	}

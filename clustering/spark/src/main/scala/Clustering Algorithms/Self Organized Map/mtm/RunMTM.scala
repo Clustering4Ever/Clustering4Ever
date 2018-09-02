@@ -11,7 +11,8 @@ import clustering4ever.spark.clustering.mtm.global.AbstractTrainer
 import clustering4ever.spark.clustering.mtm.utils.NamedVector
 import clustering4ever.spark.clustering.mtm.utils.DataGenerator
 import clustering4ever.spark.clustering.mtm.utils.Output
-
+import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.ContinuousDistance
 /**
  * @author Sarazin Tugdual & Beck Gaël
  **/
@@ -20,8 +21,9 @@ object RunSom
 
   def run(
     sparkMaster: String,
-    intputFile: RDD[DenseVector],
+    intputFile: RDD[Seq[Double]],
     outputDir: String,
+    metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true),
     execName: String = "RunMTM",
     nbRow: Int = 10, 
     nbCol: Int = 10, 
@@ -37,6 +39,7 @@ object RunSom
     exec(
       intputFile,
       outputDir,
+      metric,
       nbRow,
       nbCol,
       tmin,
@@ -52,8 +55,9 @@ object RunSom
   }
 
   def exec(
-    intputFile: RDD[DenseVector],
+    intputFile: RDD[Seq[Double]],
     outputDir: String,
+    metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true),
     nbRow: Int = 10,
     nbCol: Int = 10,
     tmin: Double = 0.9,
@@ -82,7 +86,7 @@ object RunSom
 
     println(s"nbRow: ${trainingDataset.count()}")
     
-    val som = new SomTrainerA
+    val som = new SomTrainerA(metric)
     val startLearningTime = System.currentTimeMillis
     val model = som.training(trainingDataset, Some(somOptions), maxIter, convergeDist)
     val somDuration = (System.currentTimeMillis - startLearningTime) / 1000D

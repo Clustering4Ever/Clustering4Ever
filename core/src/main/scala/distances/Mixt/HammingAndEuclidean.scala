@@ -5,12 +5,11 @@ import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.math.distances.MixtDistanceClusterizable
 import clustering4ever.scala.clusterizables.MixtClusterizable
-import scala.collection.GenSeq
 
 /**
  * @author Beck Gaël
  **/
-trait HammingAndEuclideanMeta[Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable
+trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable
 {
 	protected val α: Double
 
@@ -40,7 +39,7 @@ trait HammingAndEuclideanMeta[Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: Bina
 	}
 }
 
-class HammingAndEuclidean[Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V]
+class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V]
 {
 	/**
 	 *	
@@ -49,7 +48,7 @@ class HammingAndEuclidean[Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinarySc
 	
 }
 
-class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V]
+class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V]
 {
 	/**
 	 *	

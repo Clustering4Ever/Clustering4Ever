@@ -4,11 +4,11 @@ import org.apache.commons.math3.distribution.EnumeratedDistribution
 import org.apache.commons.math3.util.Pair
 import scala.collection.JavaConverters._
 import scala.math.{min, max, pow}
-import scala.collection.{immutable, mutable, GenSeq}
+import scala.collection.{immutable, mutable}
 import scala.util.Random
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
-import clustering4ever.util.SumArrays
+import clustering4ever.util.SumVectors
 import clustering4ever.math.distances.{MixtDistance, MixtDistanceClusterizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.stats.Stats
@@ -28,13 +28,13 @@ import clustering4ever.util.CommonTypes
 class KPrototypes[
 	ID: Numeric,
 	Obj,
-	Vb <: GenSeq[Int],
-	Vs <: GenSeq[Double],
+	Vb <: Seq[Int],
+	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs],
 	Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V],
 	D <: MixtDistance[Vb, Vs, V]
 ](
-	data: GenSeq[Cz],
+	data: Seq[Cz],
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
@@ -54,10 +54,10 @@ class KPrototypes[
 		{
 			while( cpt < maxIterations && ! allCentersHaveConverged )
 			{
-				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(vectorizedDataset, centers, centersCardinality)
+				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(centers, centersCardinality)
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
 				{
-					centers(clusterID) = new BinaryScalarVector[Vb, Vs](SumArrays.obtainModeGen[Vb](aggregate.map(_._1.binary)), SumArrays.obtainMeanGen[Vs](aggregate.map(_._1.scalar))).asInstanceOf[V]
+					centers(clusterID) = new BinaryScalarVector[Vb, Vs](SumVectors.obtainMode[Vb](aggregate.map(_._1.binary)), SumVectors.obtainMean[Vs](aggregate.map(_._1.scalar))).asInstanceOf[V]
 					centersCardinality(clusterID) += aggregate.size
 				}}
 				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
@@ -89,7 +89,7 @@ object KPrototypes extends CommonTypes
 			BSV[MB[Int], MB[Double]]
 			]
 		](
-			data: GenSeq[Cz],
+			data: Seq[Cz],
 			k: Int,
 			epsilon: Double,
 			maxIterations: Int
@@ -132,7 +132,7 @@ object KPrototypes extends CommonTypes
 		Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V],
 		D <: MixtDistance[Vb, Vs, V]
 	](
-		data: GenSeq[Cz],
+		data: Seq[Cz],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,

@@ -1,6 +1,6 @@
 package clustering4ever.scala.indexes
 
-import scala.collection.{immutable, GenSeq}
+import scala.collection.immutable
 import clustering4ever.math.distances.ContinuousDistance
 
 /**
@@ -15,12 +15,12 @@ object InternalIndexesDBCommons
   *  scatter1,scatter2: Double - the scatter value of cluster 1 and cluster 2
   *  center1,center2: Array[Double] - The centroid of cluster 1 and cluster 2
   **/
-  def good(scatter1: Double, scatter2: Double, center1: GenSeq[Double], center2: GenSeq[Double], metric: ContinuousDistance[GenSeq[Double]]): Double = (scatter1 + scatter2) / metric.d(center1, center2)
+  def good[S <: Seq[Double]](scatter1: Double, scatter2: Double, center1: S, center2: S, metric: ContinuousDistance[S]): Double = (scatter1 + scatter2) / metric.d(center1, center2)
 
   /**
    * Scatter of point in cluster
    * Measure average distance to centroïd
    * @return Double - Scatter value
    **/
-  def scatter(cluster: GenSeq[GenSeq[Double]], centroid: GenSeq[Double], metric: ContinuousDistance[GenSeq[Double]]): Double = cluster.map(metric.d(centroid, _)).sum / cluster.size
+  def scatter[S <: Seq[Double]](cluster: Seq[S], centroid: S, metric: ContinuousDistance[S]): Double = cluster.map(metric.d(centroid, _)).sum / cluster.size
 }

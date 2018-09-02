@@ -27,7 +27,7 @@ object DataGen extends Serializable
   {
     // First, generate some centers
     val rand = new Random(42)
-    val r = 1.0
+    val r = 1D
     val centers = Array.fill(nbCls)(Array.fill(d)(rand.nextGaussian() * r))
     // Then generate points around each center
     sc.parallelize(0 until numPoints, numPartitions).map( idx =>
@@ -42,11 +42,9 @@ object DataGen extends Serializable
 
 object DataGenerator extends Serializable
 {
-  private val rand = new Random
-
   private case class DModel(a: Double, b: Double)
   {
-    def gen =  a * rand.nextDouble() + b
+    def gen =  a * Random.nextDouble() + b
   }
 
   private case class PModel(cls: Int, dmodels: Array[DModel])
@@ -61,8 +59,8 @@ object DataGenerator extends Serializable
 
   class SModel(N: Int, pmodels: Array[PModel])
   {
-    private def nextVector(i: Int) = pmodels(rand.nextInt(pmodels.size)).genVector
-    private def nextNamedVector(i: Int) = pmodels(rand.nextInt(pmodels.size)).genNamedVector
+    private def nextVector(i: Int) = pmodels(Random.nextInt(pmodels.size)).genVector
+    private def nextNamedVector(i: Int) = pmodels(Random.nextInt(pmodels.size)).genNamedVector
     def getVector = Array.tabulate(N)(nextVector)
     def getNamedVector = Array.tabulate(N)(nextNamedVector)
   }

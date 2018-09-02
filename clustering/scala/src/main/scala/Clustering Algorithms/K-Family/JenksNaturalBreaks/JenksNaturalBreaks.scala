@@ -25,18 +25,16 @@ object JenksNaturalBreaks
     var i3 = 0
     var i4 = 0
 
-    val preMat1 = ParArray.fill(nbCat)(1D)
-    val preMat2 = ParArray.fill(nbCat)(Double.MaxValue)
-    val mat1 = ParArray.fill(nbValues)(preMat1)
-    val mat2 = ParArray.fill(nbValues)(preMat2)
+    val preMat1 = Array.fill(nbCat)(1D)
+    val preMat2 = Array.fill(nbCat)(Double.MaxValue)
+    val mat1 = Array.fill(nbValues)(preMat1)
+    val mat2 = Array.fill(nbValues)(preMat2)
     
-    for( l <- 2 to nbValues)
-    {
+    (2 to nbValues).foreach{ l =>
       var s1 = 0D
       var s2 = 0D
       var w = 0D
-      for( m <- 1 to l )
-      {
+      (1 to l).foreach{ m =>
         val i3 = l - m + 1
         value = num.toDouble(sortedValues(i3 - 1))
         s2 += value * value
@@ -46,8 +44,7 @@ object JenksNaturalBreaks
         i4 = i3 - 1
         if( i4 != 0 )
         {
-          for( j <- 2 to nbCat )
-          {
+          (2 to nbCat).foreach{ j =>
             if( mat2(l - 1)(j - 1) >= (v + mat2(i4 - 1)(j - 2)) )
             {
               mat1(l - 1)(j - 1) = i3

@@ -1,8 +1,8 @@
 package clustering4ever.stats
 
-import scala.math.{sqrt, pow, min, max}
+import scala.math.{sqrt, pow, min, max, Pi}
 import scala.collection.{mutable, immutable, GenSeq}
-import clustering4ever.util.SumArrays
+import clustering4ever.util.SumVectors
 import clustering4ever.scala.kernels.Kernels
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
@@ -11,19 +11,17 @@ import clustering4ever.util.CommonTypes
 
 object Stats extends ClusteringCommons with CommonTypes
 {
-	type Mean = immutable.Vector[Double]
-	type SD = Double
+	type Mean = Seq[Double]
+	type SD = Seq[Double]
 
 	/**
-	 * Compute the standard deviation between vectors and a mean
+	 * @return the standard deviation between vectors and a mean
 	 **/
-	def sd(vectors: GenSeq[MB[Double]], mean: MB[Double]): SD =
+	def sd(vectors: Seq[Seq[Double]], mean: Seq[Double]): SD =
 	{
-		sqrt({
-			var sum = 0D
-			vectors.foreach( v => v.indices.foreach( i => sum += pow(v(i) - mean(i), 2) ) ) 
-			sum	/ (vectors.size - 1)
-		})
+		val sd = Array.fill(vectors.head.size)(0D)
+		vectors.foreach( v => v.seq.indices.foreach( i => sd(i) = sd(i) + pow(v(i) - mean(i), 2) ) )
+		sd.map(_ / (vectors.size - 1))
 	}
 	/**
 	 * @return min and max for the ith component in reduce style
@@ -36,7 +34,7 @@ object Stats extends ClusteringCommons with CommonTypes
 		)
 	}
 
-	def obtainMinAndMax[S <: GenSeq[Double]](data: GenSeq[S]): (MB[Double], MB[Double]) =
+	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]): (MB[Double], MB[Double]) =
 	{
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toBuffer
@@ -49,15 +47,15 @@ object Stats extends ClusteringCommons with CommonTypes
 		(minValues, maxValues)
 	}
 
-	def obtainGammaByCluster(v: immutable.Vector[Double], gaussianLawFeaturesSortedByClusterID: immutable.Vector[(ClusterID, (Mean, SD))], πksortedByClusterID: immutable.Vector[Double], metric: ContinuousDistance[GenSeq[Double]] = new Euclidean[GenSeq[Double]](true)) =
+	def obtainCenterFollowingWeightedDistribution[V](distribution: mutable.Buffer[(V, Double)]): V =
 	{
-		val genProb = gaussianLawFeaturesSortedByClusterID.map{ case (clusterID, (meanC, sdC)) => (clusterID, Kernels.gaussianKernel(v, meanC, 1D / (2 * pow(sdC, 2)), metric)) }
-
-		val averaging = genProb.map{ case (clusterID, prob) => prob * πksortedByClusterID(clusterID) }.sum 
-
-		val gammaByCluster = genProb.map{ case (clusterID, prob) => (clusterID, (πksortedByClusterID(clusterID) * prob) / averaging) }
-
-		gammaByCluster
+		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
+		var cpt = 0
+		var accum = 0D
+		while ( accum <= p ) {
+			accum += distribution(cpt)._2
+			cpt += 1
+		}
+		distribution(cpt - 1)._1
 	}
-
 }

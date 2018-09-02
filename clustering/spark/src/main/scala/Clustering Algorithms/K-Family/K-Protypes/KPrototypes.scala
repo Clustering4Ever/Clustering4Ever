@@ -1,6 +1,6 @@
 package clustering4ever.spark.clustering.kprototypes
 
-import scala.collection.{immutable, mutable, GenSeq}
+import scala.collection.{immutable, mutable}
 import scala.util.Random
 import scala.annotation.meta.param
 import scala.reflect.ClassTag
@@ -9,7 +9,7 @@ import org.apache.spark.{SparkContext, HashPartitioner}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.util.SumArrays
+import clustering4ever.util.SumVectors
 import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.math.distances.MixtDistance
@@ -30,11 +30,11 @@ import clustering4ever.spark.clustering.KCommonsSparkMixt
 class KPrototypes[
 	ID: Numeric,
 	Obj,
-	Vb <: GenSeq[Int],
-	Vs <: GenSeq[Double],
+	Vb <: Seq[Int],
+	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs] : ClassTag,
 	Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V] : ClassTag,
-	D <: MixtDistance[Vb, Vs, V]
+	D <: HammingAndEuclidean[Vb, Vs, V]
 ](
 	@transient val sc: SparkContext,
 	dataIn: RDD[Cz],
@@ -84,14 +84,23 @@ object KPrototypes extends DataSetsTypes[Long]
 	def run[
 		ID: Numeric,
 		Obj,
-		Vb <: GenSeq[Int],
-		Vs <: GenSeq[Double],
+		Vb <: Seq[Int],
+		Vs <: Seq[Double],
 		V <: BinaryScalarVector[Vb, Vs] : ClassTag,
-		Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V] : ClassTag,
-		D <: MixtDistance[Vb, Vs, V]
-	](@(transient @param) sc: SparkContext, data: RDD[Cz], k: Int, epsilon: Double, maxIter: Int, metric: D, initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, D] =
+		Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V] : ClassTag
+		// D <: HammingAndEuclidean[Vb, Vs, V]
+	](
+		@(transient @param) sc: SparkContext,
+		data: RDD[Cz],
+		k: Int,
+		epsilon: Double,
+		maxIter: Int,
+		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
+		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+	): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]] =
 	{
-		val kPrototypes = new KPrototypes[ID, Obj, Vb, Vs, V, Cz, D](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+		val metric = new HammingAndEuclidean[Vb, Vs, V]
+		val kPrototypes = new KPrototypes[ID, Obj, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kPrototypesModel = kPrototypes.run()
 		kPrototypesModel
 	}
