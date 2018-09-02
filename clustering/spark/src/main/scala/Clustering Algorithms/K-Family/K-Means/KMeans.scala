@@ -1,6 +1,6 @@
 package clustering4ever.spark.clustering.kmeans
 
-import scala.collection.{immutable, mutable, GenSeq}
+import scala.collection.{immutable, mutable}
 import scala.util.Random
 import scala.annotation.meta.param
 import scala.reflect.ClassTag
@@ -11,7 +11,7 @@ import org.apache.spark.storage.StorageLevel
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.util.SumArrays
+import clustering4ever.util.SumVectors
 import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
@@ -21,7 +21,7 @@ import clustering4ever.spark.clustering.KCommonsSparkVectors
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : an Array with and ID and the vector
+ * @param data : RDD of RealClusterizable
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
@@ -30,16 +30,16 @@ import clustering4ever.spark.clustering.KCommonsSparkVectors
 class KMeans[
 	ID: Numeric,
 	Obj,
-	V <: GenSeq[Double] : ClassTag,
+	V <: Seq[Double] : ClassTag,
 	Cz <: RealClusterizable[ID, Obj, V] : ClassTag,
-	D <: ContinuousDistance[V]
+	D <: Euclidean[V]
 ](
 	@transient val sc: SparkContext,
 	data: RDD[Cz],
 	k: Int,
 	var epsilon: Double,
 	var maxIter: Int,
-	metric: D,
+	metric: D = new Euclidean[V](squareRoot = true),
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 ) extends KCommonsSparkVectors[ID, Double, V, Cz, D](data, metric, k, initializedCenters, persistanceLVL)
@@ -70,46 +70,21 @@ object KMeans
 	def run[
 		ID: Numeric,
 		Obj,
-		V <: GenSeq[Double] : ClassTag,
-		Cz <: RealClusterizable[ID, Obj, V] : ClassTag,
-		D <: ContinuousDistance[V]
+		V <: Seq[Double] : ClassTag,
+		Cz <: RealClusterizable[ID, Obj, V] : ClassTag
+		// D <: Euclidean[V]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: D,
 		initializedCenters: mutable.HashMap[Int, V],
 		persistanceLVL: StorageLevel
-	): KMeansModel[ID, Obj, V, Cz, D] =
+	): KMeansModel[ID, Obj, V, Cz, Euclidean[V]] =
 	{
-		val kmeans = new KMeans[ID, Obj, V, Cz, D](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
-		val kmeansModel = kmeans.run()
-		kmeansModel
-	}
-
-	/**
-	 * The one to launch
-	 */
-	def run[
-		ID: Numeric,
-		Obj,
-		V <: GenSeq[Double] : ClassTag,
-		Cz <: RealClusterizable[ID, Obj, V] : ClassTag,
-		D <: Euclidean[V]
-	](
-		@(transient @param) sc: SparkContext,
-		data: RDD[Cz],
-		k: Int,
-		epsilon: Double,
-		metric: D,
-		maxIter: Int
-	): KMeansModel[ID, Obj, V, Cz, D] =
-	{
-		val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-		val initializedCenters = mutable.HashMap.empty[Int, V]
-		val kmeans = new KMeans[ID, Obj, V, Cz, D](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+		val metric = new Euclidean[V](squareRoot = true)
+		val kmeans = new KMeans[ID, Obj, V, Cz, Euclidean[V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kmeansModel = kmeans.run()
 		kmeansModel
 	}

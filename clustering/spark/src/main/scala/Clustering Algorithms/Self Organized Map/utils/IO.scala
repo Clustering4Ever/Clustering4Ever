@@ -33,16 +33,5 @@ object IO {
   /** Returns the children of directory `dir` in a non-null array.*/
   def listFiles(dir: File): Array[File] = wrapNull(dir.listFiles())
 
-  private def wrapNull(a: Array[File]) =
-  {
-
-    if( ! Option(a).isDefined )
-    {
-      new Array[File](0)
-    }
-    else
-    {
-      a
-    }
-  }
+  private def wrapNull(a: Array[File]) = if( ! Option(a).isDefined ) new Array[File](0) else a
 }

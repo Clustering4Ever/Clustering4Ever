@@ -16,9 +16,13 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 		"org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
 		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided"
 	)
+
+lazy val coreDeps = libraryDependencies ++= Seq(
+	  "org.scalanlp" %% "breeze" % "0.13.2",
+	  "org.scalanlp" %% "breeze-natives" % "0.13.2"
+	)
+
 lazy val scalaDeps = libraryDependencies ++= Seq(
-	  //"org.scalanlp" %% "breeze" % "0.13.2",
-	  //"org.scalanlp" %% "breeze-natives" % "0.13.2",
 	  "org.apache.commons" % "commons-math3" % "3.6.1"
 	)
 
@@ -35,7 +39,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
 		bintrayRepository := "Clustering4Ever",
-	 	version := "0.6.0",
+	 	version := "0.6.1",
 		scalaVersion := "2.11.12",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
@@ -46,6 +50,7 @@ lazy val commonSettingsC4E = Seq(
 lazy val core = (project in file("core"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
+	.settings(coreDeps)
 
 lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(commonSettingsC4E:_*)

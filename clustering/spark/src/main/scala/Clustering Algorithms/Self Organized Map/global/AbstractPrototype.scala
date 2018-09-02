@@ -1,26 +1,23 @@
 package clustering4ever.spark.clustering.mtm.global
 
 import org.apache.spark.mllib.linalg.{Vectors, Vector, DenseVector}
+import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.ContinuousDistance
 
 /**
  * @author Sarazin Tugdual & Beck Gaël
  **/
-abstract class AbstractPrototype(val id: Int, var point: DenseVector) extends Serializable
+abstract class AbstractPrototype(val id: Int, var point: Seq[Double], metric: ContinuousDistance[Seq[Double]]) extends Serializable
 {
-	def update(newPoint: DenseVector): Double =
+	def update(newPoint: Seq[Double]): Double =
 	{
-		val dist = Vectors.sqdist(point, newPoint)
+		val dist = metric.d(point, newPoint)
 		point = newPoint
 		dist
 	}
 
-	def dist(data: DenseVector) =
-	{
-		Vectors.sqdist(point, data) // a modifier: - ajouter une pondération fixe; - ajouter une pondération adaptative
-	}
+	// a modifier: - ajouter une pondération fixe; - ajouter une pondération adaptative
+	def dist(data: Seq[Double]) = metric.d(point, data)
 	
-	def dist(prototype: AbstractPrototype) =
-	{
-		Vectors.sqdist(point, prototype.point)
-	}
+	def dist(prototype: AbstractPrototype) = metric.d(point, prototype.point)
 }

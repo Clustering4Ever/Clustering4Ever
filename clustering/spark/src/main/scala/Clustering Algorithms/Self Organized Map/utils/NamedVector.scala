@@ -1,8 +1,5 @@
 package clustering4ever.spark.clustering.mtm.utils
 
-//import org.apache.spark.util.Vector
-import org.apache.spark.mllib.linalg.DenseVector
-
 /**
  * Created with IntelliJ IDEA.
  * User: tug
@@ -10,12 +7,9 @@ import org.apache.spark.mllib.linalg.DenseVector
  * Time: 17:07
  * To change this template use File | Settings | File Templates.
  */
-class NamedVector(elements: Array[Double], val cls: Int) extends DenseVector(elements) with Serializable
+class NamedVector(val elements: Seq[Double], val cls: Int) extends Serializable
 {
-  override def toString(): String =
-  {
-    "#" + cls + " " + super.toString
-  }
+  override def toString(): String = "#" + cls + " " + super.toString
 
   def toJSON(clusterId: Int): String =
   {

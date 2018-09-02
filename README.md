@@ -14,7 +14,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 ## Include it in your project
 
 Add following lines in your build.sbt :
-* `"clustering4ever" % "clustering4ever_2.11" % "0.6.0"` to your `libraryDependencies`
+* `"clustering4ever" % "clustering4ever_2.11" % "0.6.1"` to your `libraryDependencies`
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
@@ -120,10 +120,13 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 
 ## Miscellaneous
 
+* ArrayBuffer as vectors are a good start
+* ArrayBuffer or ParArray as vector containers are also recommended
+
 ### Implicit conversion
 
 We decided to feed algorithms with Clusterizable type object to ensure to keep original nature of data and transform them into computable vector when needed. In order to stay simple we provide implicit conversion that can be called through following lines:
 * `import clustering4ever.util.ScalaImplicits._`
 * `import clustering4ever.util.SparkImplicits._`
 
-They allow you to pass directly to our `data` algorithms argument as either `GenSeq` or `RDD` of `Seq[Int]` or `Seq[Double]` that will be transformed into the appropriate input format.
+They allow you to pass directly to our `data` algorithms argument as either `GenSeq` or `RDD` of `S <: Seq[Int]` or `S <: Seq[Double]` that will be transformed into the appropriate input format.

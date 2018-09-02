@@ -1,6 +1,5 @@
 package clustering4ever.math.distances
 
-import scala.collection.GenSeq
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.scala.clusterizables.MixtClusterizable
 
@@ -13,21 +12,21 @@ trait Distance[T] extends Serializable
 	def d(obj1: T, obj2: T): Double
 }
 
-trait ClusterizableDistance[T, V, D <: Distance[V]] extends Distance[T]
+trait ClusterizableDistance[T, S, D <: Distance[S]] extends Distance[T]
 {
 	def obtainClassicalDistance(): D
 }
 
-trait RealClusterizableDistance[T, V <: GenSeq[Double]] extends ClusterizableDistance[T, V, ContinuousDistance[V]]
+trait RealClusterizableDistance[T, S <: Seq[Double]] extends ClusterizableDistance[T, S, ContinuousDistance[S]]
 
-trait BinaryClusterizableDistance[T, V <: GenSeq[Int]] extends ClusterizableDistance[T, V, BinaryDistance[V]]
+trait BinaryClusterizableDistance[T, S <: Seq[Int]] extends ClusterizableDistance[T, S, BinaryDistance[S]]
 
-trait MixtClusterizableDistance[T, Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]] extends ClusterizableDistance[T, V, MixtDistance[Vb, Vs, V]]
+trait MixtClusterizableDistance[T, Vb <: Seq[Int], Vs <: Seq[Double], S <: BinaryScalarVector[Vb, Vs]] extends ClusterizableDistance[T, S, MixtDistance[Vb, Vs, S]]
 
-trait ContinuousDistance[V <: GenSeq[Double]] extends Distance[V]
+trait ContinuousDistance[S <: Seq[Double]] extends Distance[S]
 
-trait BinaryDistance[V <: GenSeq[Int]] extends Distance[V]
+trait BinaryDistance[S <: Seq[Int]] extends Distance[S]
 
-trait MixtDistance[Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Distance[V]
+trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double], S <: BinaryScalarVector[Vb, Vs]] extends Distance[S]
 
-trait MixtDistanceClusterizable[ID, Obj, Vb <: GenSeq[Int], Vs <: GenSeq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Distance[MixtClusterizable[ID, Obj, Vb, Vs, V]]
+trait MixtDistanceClusterizable[ID, Obj, Vb <: Seq[Int], Vs <: Seq[Double], S <: BinaryScalarVector[Vb, Vs]] extends Distance[MixtClusterizable[ID, Obj, Vb, Vs, S]]

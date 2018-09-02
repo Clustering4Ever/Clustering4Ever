@@ -1,6 +1,6 @@
 package clustering4ever.spark.clustering.kmodes
 
-import scala.collection.{mutable, GenSeq}
+import scala.collection.mutable
 import clustering4ever.spark.clustering.KCommonsModelSpark
 import scala.reflect.ClassTag
 import clustering4ever.scala.clusterizables.BinaryClusterizable
@@ -12,7 +12,7 @@ import clustering4ever.math.distances.BinaryDistance
 class KModesModel[
 	ID: Numeric,
 	Obj,
-	V <: GenSeq[Int],
+	V <: Seq[Int],
 	Cz <: BinaryClusterizable[ID, Obj, V] : ClassTag,
 	D <: BinaryDistance[V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModelSpark[ID, V, D, Cz](centers, metric)

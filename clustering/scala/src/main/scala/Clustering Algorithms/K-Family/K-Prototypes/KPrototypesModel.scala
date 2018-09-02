@@ -1,6 +1,6 @@
 package clustering4ever.scala.clustering.kprotoypes
 
-import scala.collection.{mutable, GenSeq}
+import scala.collection.mutable
 import clustering4ever.clustering.ClusteringModel
 import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
@@ -12,8 +12,8 @@ import clustering4ever.scala.clustering.KCommonsModel
  **/
 final class KPrototypesModel[
 	ID: Numeric,
-	Vb <: GenSeq[Int],
-	Vs <: GenSeq[Double],
+	Vb <: Seq[Int],
+	Vs <: Seq[Double],
 	Obj,
 	V <: BinaryScalarVector[Vb, Vs],
 	Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V],
