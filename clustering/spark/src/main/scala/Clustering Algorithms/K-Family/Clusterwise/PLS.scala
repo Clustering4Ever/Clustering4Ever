@@ -7,8 +7,8 @@ import breeze.linalg._
 
 trait CommonPLSTypes
 {
-	type IdWithX = Seq[(Int, Seq[Double])]
-	type Y = Seq[Seq[Double]]
+	type IdWithX = mutable.ArrayBuffer[(Int, Seq[Double])]
+	type Y = mutable.ArrayBuffer[Seq[Double]]
 }
 
 class PLS(
@@ -241,7 +241,7 @@ class PLS(
 
 object PLS extends CommonPLSTypes
 {
-	def runPLS(dsX: immutable.Vector[IdWithX], dsY: immutable.Vector[Y], g: Int, h: Int) =
+	def runPLS(dsX: Array[IdWithX], dsY: Array[Y], g: Int, h: Int) =
 	{
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)

@@ -1,7 +1,7 @@
 package clustering4ever.math.distances.scalar
 
-import scala.math.{pow, sqrt}
-import scala.collection.{Seq, parallel, mutable}
+import scala.math.sqrt
+import scala.collection.parallel
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 import clustering4ever.scala.clusterizables.RealClusterizable
 
@@ -13,7 +13,7 @@ trait EuclideanMeta extends Serializable
 	protected val squareRoot: Boolean
 
 	/**
-	 * Less elegant than recursion style but more efficient
+	 * Less elegant than recursion or zip style but much more efficient
 	 */
 	protected def euclidean[V <: Seq[Double]](dot1: V, dot2: V): Double =
 	{
@@ -21,10 +21,11 @@ trait EuclideanMeta extends Serializable
 		var i = 0
 		while( i < dot1.size )
 		{
-			d += pow(dot1(i) - dot2(i), 2)
+			val toPow2 = dot1(i) - dot2(i)
+			d += toPow2 * toPow2
 			i += 1
 		}
-		d
+		if( squareRoot ) sqrt(d) else d
 	}
 
 	lazy val toStringRoot = if( squareRoot ) "with " else "without "

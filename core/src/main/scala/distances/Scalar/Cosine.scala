@@ -12,12 +12,16 @@ class Cosine extends ContinuousDistance[Seq[Double]]
 
 	private def norm(dot1: Seq[Double]): Double =
 	{
-		sqrt(dot1.map( v => pow(v, 2) ).sum)
+		var d = 0D
+		dot1.foreach( v =>  d += v * v )
+		sqrt(d)
 	}
 
 	private def dotProd(dot1: Seq[Double], dot2: Seq[Double]): Double =
 	{
-		dot1.zip(dot2).map{ case (a, b) => a * b }.sum
+		var dp = 0D
+		dot1.zip(dot2).foreach{ case (a, b) => dp += a * b }
+		dp
 	}
 
 	/**

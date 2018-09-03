@@ -34,7 +34,7 @@ class Clusterwise(
 	type SqRmseCal = Double
 	type SqRmseVal = Double
 
-	def run: (Seq[(SqRmseCal, SqRmseVal)], Seq[ClusterwiseModel]) =
+	def run: (Array[(SqRmseCal, SqRmseVal)], Array[ClusterwiseModel]) =
 	{
 		val dataXYp = dataXY.par
 		val n = dataXY.size
@@ -89,7 +89,7 @@ class Clusterwise(
 		}
 		else None
 
-		val splits = scala.util.Random.shuffle(centerReductRDD.seq).grouped((centerReductRDD.size / nbCV) + 1).map(_.par).toVector
+		val splits = scala.util.Random.shuffle(centerReductRDD.seq).grouped((centerReductRDD.size / nbCV) + 1).map(_.par).toArray
 		val rangeCV = (0 until nbCV).toVector
 		val trainDS = for( j <- rangeCV ) yield (for( u <- rangeCV if( u != j )) yield splits(u)).flatten.sortBy{ case (id, _) => id }
 		val broadcastedTrainData = sc.broadcast(trainDS)
@@ -217,9 +217,9 @@ class Clusterwise(
 			(sqRmseTrainIn, sqRmseTestIn)
 		}
 
-		val rmseTrainAndTest = bestModelPerCV.toVector.map{ case (idxCV, (bestClassifiedDataOut, _, bestCoInterceptOut, bestCoXYcoefOut, bestFittedOut)) => computeRmseTrainAndTest(idxCV, bestClassifiedDataOut, bestCoInterceptOut, bestCoXYcoefOut, bestFittedOut) }
+		val rmseTrainAndTest = bestModelPerCV.toArray.map{ case (idxCV, (bestClassifiedDataOut, _, bestCoInterceptOut, bestCoXYcoefOut, bestFittedOut)) => computeRmseTrainAndTest(idxCV, bestClassifiedDataOut, bestCoInterceptOut, bestCoXYcoefOut, bestFittedOut) }
 
-		(rmseTrainAndTest, clusterwiseModels.toVector)
+		(rmseTrainAndTest, clusterwiseModels.toArray)
 	}
 }
 
@@ -244,7 +244,7 @@ object Clusterwise extends ClusterwiseTypes with Serializable
 		epsilonKmeans: Double = 0.00001,
 		iterMaxKmeans: Int = 100,
 		logOn: Boolean = false
-	): (Seq[(Double, Double)], Seq[ClusterwiseModel]) = 
+	): (Array[(Double, Double)], Array[ClusterwiseModel]) = 
 	{
 		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, k, withY, standardized, sizeBloc, nbMaxAttemps, epsilonKmeans, iterMaxKmeans, logOn)
 		clusterwise.run	

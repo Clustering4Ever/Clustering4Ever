@@ -5,7 +5,7 @@ import scala.math.pow
 import scala.collection.GenSeq
 /**
  * @author Beck Gaël
- * Object which gather common operation on arrays and datasets matrix
+ * Object which gather common operation on Seq[T] and GenSeq[Seq[T]]
  */
 object SumVectors
 {
