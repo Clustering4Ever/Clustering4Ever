@@ -1,5 +1,6 @@
 package clustering4ever.util
 
+import scala.collection.GenSeq
 import clustering4ever.scala.vectorizables.{RealVector, BinaryVector, MixtVector}
 import clustering4ever.scala.clusterizables.{RealClusterizable, BinaryClusterizable, MixtClusterizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector

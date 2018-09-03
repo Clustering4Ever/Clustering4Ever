@@ -2,11 +2,11 @@ package clustering4ever.spark.clustering.clusterwise
 
 import scala.util.Random
 import scala.util.control.Breaks._
-import scala.collection.{immutable, mutable, GenSeq}
+import scala.collection.{immutable, mutable}
 import scala.collection.parallel.mutable.ParArray
 
 class ClusterwiseCore(
-	val dsXYTrain: GenSeq[(Int, (Seq[Double], Seq[Double]))],
+	val dsXYTrain: Seq[(Int, (Seq[Double], Seq[Double]))],
 	val h: Int,
 	val g: Int,
 	val nbMaxAttemps: Int,
@@ -21,7 +21,7 @@ class ClusterwiseCore(
 	  	inputY(clusterID).remove( inputY(clusterID).size - 1 )
 	}
 
-	private[this] def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: immutable.Vector[Int]) = if( currClass == 0 ) elemNb else elemNb - classlimits( currClass - 1 ) - 1
+	private[this] def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: Array[Int]) = if( currClass == 0 ) elemNb else elemNb - classlimits( currClass - 1 ) - 1
 
 	private[this] def removeFirstElemXY(clusterID: Int, xDS: IDXDS, yDS: YDS) =
 	{
@@ -29,7 +29,7 @@ class ClusterwiseCore(
 		yDS(clusterID).remove(0)
 	}
 
-	private[this] def prepareMovingPoint(classedDS: ClassedDS, xDS: IDXDS, yDS: YDS, g: Int, elemNb: Int, currClass: Int, classlimits: immutable.Vector[Int]) =
+	private[this] def prepareMovingPoint(classedDS: ClassedDS, xDS: IDXDS, yDS: YDS, g: Int, elemNb: Int, currClass: Int, classlimits: Array[Int]) =
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, classlimits)
 		val (elemToReplaceID, (elemToReplaceX, elemToReplaceY, _)) = classedDS(currClass)._2(posInClass)
@@ -51,8 +51,8 @@ class ClusterwiseCore(
 		g: Int,
 		elemNb: Int,
 		currClass: Int,
-		classlimits: immutable.Vector[Int],
-		orderedBucketSize: immutable.Vector[Int]
+		classlimits: Array[Int],
+		orderedBucketSize: Array[Int]
 	) =
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, classlimits)
@@ -103,16 +103,13 @@ class ClusterwiseCore(
 			try
 			{
 				cptAttemps += 1
-			  	// Set randomly a class to each data point
 			  	val classedDS: Array[(Int, (Seq[Double], Seq[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
-			  	//val classedDS: ParArray[(Int, (Seq[Double], Seq[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.par
-			  	val classedDSv = classedDS.toVector
-			  	val valuesToBrowse = classedDSv.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
-				val dsPerClass = classedDSv.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toVector.sortBy{ case (clusterID, _) => clusterID }
+			  	val valuesToBrowse = classedDS.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
+				val dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, _) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
 			  	val inputY = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID)) => y }:_*) }
 			  	val preClassLimits = (0 until inputY.size).toVector.map(inputY(_).size)
-			  	val classlimits = (0 until preClassLimits.size).toVector.map( i => (0 to i).map(preClassLimits(_)).sum - 1 )
+			  	val classlimits = (0 until preClassLimits.size).toArray.map( i => (0 to i).map(preClassLimits(_)).sum - 1 )
 			  	var currentDotIdx = 0
 			  	var currentClass = 0
 			  	var nbIte = 0
@@ -175,7 +172,7 @@ class ClusterwiseCore(
 			  	if( continue ) mapRegCrit.clear
 			  	else
 			  	{
-					dsPerClassF = rangeOverClasses.map( i => classedDS.toVector.filter{ case (_, (_, _, clusterID)) => clusterID == i } )
+					dsPerClassF = rangeOverClasses.map( i => classedDS.filter{ case (_, (_, _, clusterID)) => clusterID == i } )
 					regPerClassFinal = rangeOverClasses.map( i => PLS.runPLS(inputX, inputY, i, h) )
 					classOfEachData = classedDS.toVector.map{ case (id, (_, _, clusterID)) => (id, clusterID) }	
 			  	}
@@ -218,24 +215,22 @@ class ClusterwiseCore(
 			  	// Initialisation par groupe
 			  	val perGroupClassInit = microClusterNumberRange.map( x => Random.nextInt(g) )
 
-			  	val dsPerClassPerBucket = dsXYTrain
-			  		.map{ case (id, (x, y)) => (allGroupedData(id), id, x, y) }
+			  	val dsPerClassPerBucket = dsXYTrain.map{ case (id, (x, y)) => (allGroupedData(id), id, x, y) }.toArray
 					.groupBy(_._1)
 					.toArray
-					.map{ case (microClusterID, aggregate) => (perGroupClassInit(microClusterID), microClusterID, aggregate.toVector) }
+					.map{ case (microClusterID, aggregate) => (perGroupClassInit(microClusterID), microClusterID, aggregate) }
 					.groupBy{ case (clusterID, _, _) => clusterID }
-					.toVector
+					.toArray
 					.sortBy{ case (clusterID, _) => clusterID }
 
-				val bucketOrderPerClass = (for( (clusterID, buckets) <- dsPerClassPerBucket ) yield ((clusterID, buckets.map{ case (clusterID, grpId, grpIdIdXY) => grpId }))).toArray
-				//val bucketOrderPerClass = (for( (clusterID, buckets) <- dsPerClassPerBucket ) yield ((clusterID, buckets.map{ case (clusterID, grpId, grpIdIdXY) => grpId }))).toArray.par
+				val bucketOrderPerClass = dsPerClassPerBucket.map{ case (clusterID, buckets) => ((clusterID, buckets.map{ case (clusterID, grpId, grpIdIdXY) => grpId })) }
 
 				val indexedFlatBucketOrder = bucketOrderPerClass.flatMap{ case (clusterID, grpIds) => grpIds.map( grpId => (grpId, clusterID) ) }.zipWithIndex
 
 				val preSize = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => dsPerBucket.map{ case (clusterID, grpId, ds) => ds.size } }
 				val orderedBucketSize = preSize.flatten
 				val classSize = preSize.map(_.size )
-				val classlimits = (0 until classSize.size).toVector.map( i => (0 to i).map(classSize(_)).sum - 1 )
+				val classlimits = (0 until classSize.size).toArray.map( i => (0 to i).map(classSize(_)).sum - 1 )
 
 			  	val inputX = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => mutable.ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => (id, x) } }:_*) }
 			  	val inputY = dsPerClassPerBucket.map{ case (clusterID, dsPerBucket) => mutable.ArrayBuffer(dsPerBucket.flatMap{ case (clusterID, grpId, ds) => ds.map{ case (grpId, id, x, y) => y } }:_*) }
@@ -341,7 +336,7 @@ class ClusterwiseCore(
 object ClusterwiseCore extends Serializable
 {
 	def plsPerDot(
-		dsXYTrain: GenSeq[(Int, (Seq[Double], Seq[Double]))],
+		dsXYTrain: Seq[(Int, (Seq[Double], Seq[Double]))],
 		h: Int,
 		g: Int,
 		nbMaxAttemps: Int = 30,
@@ -354,7 +349,7 @@ object ClusterwiseCore extends Serializable
 	}
 
 	def plsPerMicroClusters(
-		dsXYTrain: GenSeq[(Int, (Seq[Double], Seq[Double]))],
+		dsXYTrain: Seq[(Int, (Seq[Double], Seq[Double]))],
 		allGroupedData: immutable.HashMap[Int, Int],
 		h: Int,
 		g: Int,

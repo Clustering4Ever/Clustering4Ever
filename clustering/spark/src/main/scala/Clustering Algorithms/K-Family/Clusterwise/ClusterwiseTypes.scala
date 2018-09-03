@@ -11,10 +11,10 @@ trait ClusterwiseTypes
 	type Yvector = Seq[Double]
 	type IDXYtest = Seq[(Int, (Xvector, Yvector))]
 	type IDXtest = Seq[(Long, Xvector)]
-	type DSPerClass = immutable.Vector[(ID, (Xvector, Yvector, ClassID))]
-	type ClassedDS = immutable.Vector[(Int, DSPerClass)]
-	type IDXDS = immutable.Vector[mutable.ArrayBuffer[(Int, Xvector)]]
-	type YDS = immutable.Vector[mutable.ArrayBuffer[Yvector]]
+	type DSPerClass = Array[(ID, (Xvector, Yvector, ClassID))]
+	type ClassedDS = Array[(Int, DSPerClass)]
+	type IDXDS = Array[mutable.ArrayBuffer[(Int, Xvector)]]
+	type YDS = Array[mutable.ArrayBuffer[Yvector]]
 	type RegPerClass = (Double, DenseMatrix[Double], Array[Double], immutable.Vector[(Int, immutable.Vector[Double])])
-	type ClassedDSperGrp = immutable.Vector[(Int, Array[(Int, Int, immutable.Vector[(ClassID, Int, Xvector, Yvector)])])]
+	type ClassedDSperGrp = Array[(Int, Array[(Int, Int, Array[(ClassID, Int, Xvector, Yvector)])])]
 }

@@ -12,9 +12,9 @@ trait MinkowshiMeta extends Serializable
 
 	protected def minkowski[V <: Seq[Double]](dot1: V, dot2: V): Double =
 	{
-		var preDistance = 0D
-		dot1.zip(dot2).foreach{ case (a, b) => preDistance += pow(a - b, p) }
-		pow(preDistance, 1D / p )
+		var d = 0D
+		dot1.zip(dot2).foreach{ case (a, b) => d += pow(a - b, p) }
+		pow(d, 1D / p )
 	}
 }
 
