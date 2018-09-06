@@ -7,8 +7,7 @@ import clustering4ever.clustering.CommonPredictClusteringModel
 /**
  * @author Beck Gaël
  **/
-class DataBasedModel[Obj, ID](val data: mutable.HashMap[Int, mutable.HashSet[(ID, Obj)]], metric: Distance[Obj]) extends ClusteringModel
-{
+class DataBasedModel[Obj, ID](val data: mutable.HashMap[Int, mutable.HashSet[(ID, Obj)]], metric: Distance[Obj]) extends ClusteringModel {
 
 	lazy val dataAsSeq = data.toSeq.flatMap{ case (clusterID, values) => values.map{ case (id, vector) => (clusterID, (id, vector)) } }
 

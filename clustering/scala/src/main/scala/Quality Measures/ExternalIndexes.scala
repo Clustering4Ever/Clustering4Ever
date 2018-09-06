@@ -1,6 +1,7 @@
 package clustering4ever.scala.indexes
 
 import scala.math.{max, log, sqrt}
+import scala.collection.GenSeq
 import clustering4ever.util.ClusteringIndexesCommons
 import clustering4ever.scala.indexes.NmiNormalizationNature._
 
@@ -10,7 +11,7 @@ import clustering4ever.scala.indexes.NmiNormalizationNature._
  */
 class ExternalIndexes
 {
-	def mutualInformationInternal(x: Seq[Int], y: Seq[Int]) =
+	def mutualInformationInternal[S <: GenSeq[Int]](x: S, y: S) =
 	{
 		require( x.size == y.size )
 		val n = x.size
@@ -42,13 +43,13 @@ object ExternalIndexes
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 */
-	def mutualInformation(x: Seq[Int], y: Seq[Int]): Double =
+	def mutualInformation[S <: GenSeq[Int]](x: S, y: S): Double =
 		(new ExternalIndexes).mutualInformationInternal(x, y)._1
 	/**
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 */
-	def mutualInformation(xy: Seq[(Int, Int)]): Double =
+	def mutualInformation[S <: GenSeq[(Int, Int)]](xy: S): Double =
 	{
 		val (x, y) = xy.unzip
 		mutualInformation(x, y)
@@ -58,7 +59,7 @@ object ExternalIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 */
-	def nmi(x: Seq[Int], y: Seq[Int], normalization: Normalization = SQRT) =
+	def nmi[S <: GenSeq[Int]](x: S, y: S, normalization: Normalization = SQRT) =
 	{
 		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(x, y)
 		val nmi = normalization match
@@ -73,7 +74,7 @@ object ExternalIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 */
-	def nmi(xy: Seq[(Int, Int)], normalization: Normalization): Double =
+	def nmi[S <: GenSeq[Int]](xy: Seq[(Int, Int)], normalization: Normalization): Double =
 	{
 		val (x, y) = xy.unzip
 		nmi(x, y, normalization)
@@ -81,7 +82,7 @@ object ExternalIndexes
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 */
-	def prepareLabels(x: Seq[Int]) =
+	def prepareLabels[S <: GenSeq[Int]](x: S) =
 	{
 		val indexedValuesMap = x.distinct.zipWithIndex.toMap.seq
 		(indexedValuesMap, x.map(indexedValuesMap))

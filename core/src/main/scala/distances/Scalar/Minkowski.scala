@@ -6,20 +6,21 @@ import scala.math.pow
 import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 
-trait MinkowshiMeta extends Serializable
-{
+trait MinkowshiMeta extends Serializable {
 	val p: Int
 
-	protected def minkowski[V <: Seq[Double]](dot1: V, dot2: V): Double =
-	{
+	protected def minkowski[V <: Seq[Double]](dot1: V, dot2: V): Double = {
 		var d = 0D
-		dot1.zip(dot2).foreach{ case (a, b) => d += pow(a - b, p) }
+		var i = 0
+		while( i < dot1.size ) {
+			d += pow(dot1(i) - dot2(i), p)
+			i += 1			
+		}
 		pow(d, 1D / p )
 	}
 }
 
-class Minkowski[V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta with ContinuousDistance[V]
-{
+class Minkowski[V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta with ContinuousDistance[V] {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2
@@ -27,8 +28,7 @@ class Minkowski[V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta wi
 	def d(dot1: V, dot2: V): Double = minkowski[V](dot1, dot2)
 }
 
-class MinkowskiClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V]
-{
+class MinkowskiClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V] {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2

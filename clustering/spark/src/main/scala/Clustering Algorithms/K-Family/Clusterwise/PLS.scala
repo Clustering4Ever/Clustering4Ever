@@ -1,19 +1,19 @@
 package clustering4ever.spark.clustering.clusterwise
 
 import scala.math.{pow, sqrt => ssqrt}
-import scala.collection.{mutable, immutable}
+import scala.collection.{mutable, GenSeq}
 import clustering4ever.util.SumVectors
 import breeze.linalg._
 
 trait CommonPLSTypes
 {
-	type IdWithX = mutable.ArrayBuffer[(Int, Seq[Double])]
-	type Y = mutable.ArrayBuffer[Seq[Double]]
+	type IdWithX[S <: Seq[Double]] = mutable.ArrayBuffer[(Int, S)]
+	type Y[S <: Seq[Double]] = mutable.ArrayBuffer[S]
 }
 
-class PLS(
-	dsXi: Seq[(Int, Seq[Double])],
-	dsY: Seq[Seq[Double]],
+class PLS[S <: Seq[Double]](
+	dsXi: GenSeq[(Int, S)],
+	dsY: GenSeq[S],
 	n: Int,
 	h: Int,
 	lw: Double,
@@ -27,8 +27,8 @@ class PLS(
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map(_ / n)
-		val meanY = dsY.reduce(SumVectors.sumVectors[Double, Seq[Double]](_, _).seq).map(_ / n)
+		val meanX = dsX.reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map(_ / n)
+		val meanY = dsY.reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map(_ / n)
 		val meanYa = meanY.toArray
 
 
@@ -239,7 +239,7 @@ class PLS(
 
 object PLS extends CommonPLSTypes
 {
-	def runPLS(dsX: Array[IdWithX], dsY: Array[Y], g: Int, h: Int) =
+	def runClusterwisePLS[S <: Seq[Double]](dsX: Array[IdWithX[S]], dsY: Array[Y[S]], g: Int, h: Int) =
 	{
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
@@ -248,13 +248,16 @@ object PLS extends CommonPLSTypes
 		mbplsObj.reg()
 	}
 
-	def runFinalPLS(dsX: IdWithX, dsY: Y, lw: Double, n: Int, h: Int, ktabXdudiY: (Int, Double, Double)) =
+	def runPLS[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], h: Int) =
 	{
-		val mbplsObj = new PLS(dsX, dsY, n, h, lw, ktabXdudiY)
+		val n = dsX.size
+		val lw = 1D / n
+		val ktabXdudiYvalues = ktabXdudiY(dsX, dsY, n)
+		val mbplsObj = new PLS(dsX, dsY, n, h, lw, ktabXdudiYvalues)
 		mbplsObj.reg()
 	}
 
-	def ktabXdudiY(dsX: IdWithX, dsY: Y, n: Int): (Int, Double, Double) =
+	def ktabXdudiY[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], n: Int): (Int, Double, Double) =
 	{
 		val lw = 1D / n
 		val cw = dsX.head._2.size

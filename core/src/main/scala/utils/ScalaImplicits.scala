@@ -5,8 +5,7 @@ import clustering4ever.scala.vectorizables.{RealVector, BinaryVector, MixtVector
 import clustering4ever.scala.clusterizables.{RealClusterizable, BinaryClusterizable, MixtClusterizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 
-object GenerateClusterizable
-{
+object GenerateClusterizable {
 
 	def obtainSimpleRealClusterizable[ID: Numeric, V <: Seq[Double]](id: ID, vector: V): RealClusterizable[ID, V, V] = new RealClusterizable[ID, V, V](id, new RealVector[V](vector))
 
@@ -15,17 +14,16 @@ object GenerateClusterizable
 	def obtainSimpleMixtClusterizable[ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](id: ID, vectors: V): MixtClusterizable[ID, V, Vb, Vs, V] = new MixtClusterizable[ID, V, Vb, Vs, V](id, new MixtVector[Vb, Vs, V](vectors))
 }
 
-object ScalaImplicits
-{
-	implicit def seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable[ID: Numeric](seq: Seq[(Seq[Double], ID)]): Seq[RealClusterizable[ID, Seq[Double], Seq[Double]]] =
-		seq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(id, vector) }
+object ScalaImplicits {
+	implicit def seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable[ID: Numeric, V <: Seq[Double]](genSeq: GenSeq[(V, ID)]): GenSeq[RealClusterizable[ID, V, V]] =
+		genSeq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(id, vector) }
 
-	implicit def seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable[ID: Numeric](seq: Seq[(Seq[Int], ID)]): Seq[BinaryClusterizable[ID, Seq[Int], Seq[Int]]] =
-		seq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleBinaryClusterizable(id, vector) }
+	implicit def seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable[ID: Numeric, V <: Seq[Int]](genSeq: GenSeq[(V, ID)]): GenSeq[BinaryClusterizable[ID, V, V]] =
+		genSeq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleBinaryClusterizable(id, vector) }
 
-	implicit def realVectorSequenceToRealClusterizable(seq: Seq[Seq[Double]]): Seq[RealClusterizable[Int, Seq[Double], Seq[Double]]] =
-		seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable(seq.zipWithIndex)
+	implicit def realVectorSequenceToRealClusterizable[V <: Seq[Double]](genSeq: GenSeq[V]): GenSeq[RealClusterizable[Int, V, V]] =
+		seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable(genSeq.zipWithIndex)
 
-	implicit def binaryVectorSequenceToBinaryClusterizable(seq: Seq[Seq[Int]]): Seq[BinaryClusterizable[Int, Seq[Int], Seq[Int]]] =
-		seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable(seq.zipWithIndex)
+	implicit def binaryVectorSequenceToBinaryClusterizable[V <: Seq[Int]](genSeq: GenSeq[V]): GenSeq[BinaryClusterizable[Int, V, V]] =
+		seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable(genSeq.zipWithIndex)
 }

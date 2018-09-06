@@ -7,6 +7,7 @@ import scala.math.pow
 import scala.collection.{immutable, mutable, parallel, GenSeq}
 import scala.util.Random
 import scala.reflect.ClassTag
+import spire.math.{Numeric => SNumeric}
 import clustering4ever.math.distances.Distance
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.{ClusterizableExt, Clusterizable}
@@ -157,7 +158,7 @@ abstract class KCommonsScala[
 
 abstract class KCommonsVectors[
 	ID: Numeric,
-	N: Numeric,
+	@specialized(Int, Double) N: Numeric,
 	V <: Seq[N],
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]

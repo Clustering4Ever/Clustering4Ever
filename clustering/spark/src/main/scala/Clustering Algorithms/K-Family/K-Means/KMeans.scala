@@ -79,8 +79,8 @@ object KMeans
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		initializedCenters: mutable.HashMap[Int, V],
-		persistanceLVL: StorageLevel
+		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
+		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 	): KMeansModel[ID, Obj, V, Cz, Euclidean[V]] =
 	{
 		val metric = new Euclidean[V](squareRoot = true)

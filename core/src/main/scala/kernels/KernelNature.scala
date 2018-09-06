@@ -1,7 +1,6 @@
 package clustering4ever.scala.kernels
 
-object KernelNature extends Enumeration
-{
+object KernelNature extends Enumeration {
     type KernelType = Value
     val Flat,
     	KNN,

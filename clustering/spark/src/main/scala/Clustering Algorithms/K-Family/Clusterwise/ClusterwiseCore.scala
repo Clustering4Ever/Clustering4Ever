@@ -123,13 +123,13 @@ class ClusterwiseCore(
 				  	{
 					  	val (currentDotId, currentDotClass) = valuesToBrowse(nbIte)
 
-					  	val regPerClass = rangeOverClasses.map( i => PLS.runPLS(inputX, inputY, i, h) )
+					  	val regPerClass = rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
 					  	// Workaround when reducing data
 					  	if( ! regPerClass.map(_._1).filter(_.isNaN).isEmpty ) break
 
 					  	val error1 = regPerClass.map(_._1)
 					  	prepareMovingPoint(dsPerClass, inputX, inputY, g, currentDotIdx, currentClass, classlimits)
-					  	val regPerClass2 = try rangeOverClasses.map( i => PLS.runPLS(inputX, inputY, i, h) )
+					  	val regPerClass2 = try rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
 				  		catch
 				  		{
 				  			case emptyClass : java.lang.IndexOutOfBoundsException => Seq.empty[RegPerClass]
@@ -173,7 +173,7 @@ class ClusterwiseCore(
 			  	else
 			  	{
 					dsPerClassF = rangeOverClasses.map( i => classedDS.filter{ case (_, (_, _, clusterID)) => clusterID == i } )
-					regPerClassFinal = rangeOverClasses.map( i => PLS.runPLS(inputX, inputY, i, h) )
+					regPerClassFinal = rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
 					classOfEachData = classedDS.toVector.map{ case (id, (_, _, clusterID)) => (id, clusterID) }	
 			  	}
 			}
@@ -250,7 +250,7 @@ class ClusterwiseCore(
 				  		val ((grpId, currentclusterID), currentIdx) = indexedFlatBucketOrder(nbIte)
 				  	
 					  	// Regression with Point inside one Class and not the Rest
-					  	val regPerClass = rangeOverClasses.map( i => PLS.runPLS(inputX, inputY, i, h) )
+					  	val regPerClass = rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
 					  	val error1 = regPerClass.map(_._1)
 					  	prepareMovingPointByGroup(dsPerClassPerBucket, inputX, inputY, g, currentDotsGrpIdx, currentClass, classlimits, orderedBucketSize)
 					  	if( inputX.exists(_.isEmpty) )
@@ -262,7 +262,7 @@ class ClusterwiseCore(
 					  	val regPerClass2 =
 					  	{
 
-					  		try rangeOverClasses.map( i => PLS.runPLS(inputX, inputY, i, h) )
+					  		try rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
 					  		catch
 					  		{
 					  			case emptyClass : java.lang.IndexOutOfBoundsException => Seq.empty[RegPerClass]
@@ -307,7 +307,7 @@ class ClusterwiseCore(
 			  	else
 			  	{
 			  		dsPerClassF = for( i <- rangeOverClasses ) yield dsPerClassPerBucket.filter{ case (clusterID, _) => clusterID == i }
-					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runPLS(inputX, inputY, i, h)
+					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runClusterwisePLS(inputX, inputY, i, h)
 			  		classOfEachData = dsPerClassPerBucket.flatMap{ case (clusterID, dsPerBucket) => dsPerBucket.flatMap{ case (_, grpId, ds) => ds.map{ case (_, id, x, y) => (id, clusterID) } } }
 			  	}
 			}

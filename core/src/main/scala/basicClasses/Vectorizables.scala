@@ -2,13 +2,11 @@ package clustering4ever.scala.vectorizables
 
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 
-trait Vectorizable[Vector] extends Serializable
-{
+trait Vectorizable[Vector] extends Serializable {
 	def toVector(): Vector
 }
 
-abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Option[Obj => Vector] = None) extends Vectorizable[Vector]
-{
+abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Option[Obj => Vector] = None) extends Vectorizable[Vector] {
 	def toVector(): Vector =
 	{
 		if( ! vectorizableFct.isDefined ) obj.asInstanceOf[Vector]

@@ -9,29 +9,26 @@ import clustering4ever.scala.clusterizables.MixtClusterizable
 /**
  * @author Beck Gaël
  **/
-trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable
-{
+trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable {
 	protected val α: Double
 
-	protected def hammingAndEuclidean(dot1: V, dot2: V): Double =
-	{
+	protected def hammingAndEuclidean(dot1: V, dot2: V): Double = {
 		var db = 0D
 		var ds = 0D
 		var i = 0
-		while( i < dot1.scalar.size )
-		{
+		while( i < dot1.scalar.size ) {
 			ds += pow(dot1.scalar(i) - dot2.scalar(i), 2)
 			i += 1
 		}
+
 		ds = sqrt(ds)
-		while( i < dot1.binary.size )
-		{
+		
+		while( i < dot1.binary.size ) {
 			db += dot1.binary(i) ^ dot2.binary(i)
 			i += 1
 		}
 
-		if( α == 0 )
-		{
+		if( α == 0 ) {
 			val nbDim = dot1.binary.size + dot1.scalar.size
 			db * (dot1.binary.size.toDouble / nbDim) + ds * (dot1.scalar.size.toDouble / nbDim) 
 		}
@@ -39,8 +36,7 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScal
 	}
 }
 
-class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V]
-{
+class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V] {
 	/**
 	 *	
 	 */
@@ -48,8 +44,7 @@ class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVe
 	
 }
 
-class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V]
-{
+class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V] {
 	/**
 	 *	
 	 */

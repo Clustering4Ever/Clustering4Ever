@@ -13,8 +13,8 @@ import clustering4ever.util.SimilarityMatrix
  * @author Beck Gaël
  * Kernels gathers some of the most known kernels
  **/
-object Kernels
-{
+object Kernels {
+
 	def flatKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S]) = if( metric.d(v1, v2) / pow(bandwidth, 2) <= 1D ) 1D else 0D 
 
 	def flatKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S], λ: Double = 1D) = if( metric.d(v1, v2) / pow(bandwidth, 2) <= λ ) 1D else 0D 
@@ -23,18 +23,18 @@ object Kernels
 	 *  - λ is the bandwitch
 	 *  - |x<sub>1</sub>-x<sub>2</sub>| is the distance between x<sub>1</sub> and x<sub>2</sub>
 	 **/
-	def gaussianKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S]) = exp( - bandwidth * pow(metric.d(v1, v2), 2) )
-
-	def gmm(v1: DenseVector[Double], mean: DenseVector[Double], invCovMat: DenseMatrix[Double]) =
-	{
-		val diff = v1 - mean
-		exp((- 0.5 * diff.t * invCovMat * diff).sum)
+	def gaussianKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S]) = {
+		val d = metric.d(v1, v2)
+		exp( - bandwidth * d * d )
 	}
 
-	def sigmoidKernel[S <: Seq[Double]](v1: S, v2: S, a: Double = 1D, b: Double = 0D) =
-	{
-		var dotProd = 0D
-		v1.zip(v2).foreach{ case (a, b) => dotProd += a * b }
+	def gmm(v1: DenseVector[Double], mean: DenseVector[Double], invCovMat: DenseMatrix[Double]) = {
+		val diff = v1 - mean
+		exp(sum(- 0.5 * diff.t * invCovMat * diff))
+	}
+
+	def sigmoidKernel[S <: Seq[Double]](v1: S, v2: S, a: Double = 1D, b: Double = 0D) = {
+		val dotProd = SumVectors.dotProd(v1, v2)
 		tanh(a * dotProd + b)
 	}
 
@@ -48,32 +48,27 @@ object Kernels
 
 	private def computeModeAndCastIt[S <: Seq[Double]](preMode: S, kernelValue: Double) = preMode.map(_ / kernelValue).asInstanceOf[S]
 
-	def obtainModeThroughKernel[S <: Seq[Double]](v: S, env: Seq[S], bandwidth: Double, kernelType: KernelType, metric: ContinuousDistance[S]): S =
-	{
-		val kernel: (S, S, Double, ContinuousDistance[S]) => Double = kernelType match
-		{
+	def obtainModeThroughKernel[S <: Seq[Double]](v: S, env: Seq[S], bandwidth: Double, kernelType: KernelType, metric: ContinuousDistance[S]): S = {
+		val kernel: (S, S, Double, ContinuousDistance[S]) => Double = kernelType match {
 			case KernelNature.Gaussian => gaussianKernel[S]
 			case KernelNature.Flat => flatKernel[S]
 		}
 
 		val (preMode, kernelValue) = reducePreModeAndKernelValue[S](
 			env.map{ vi =>
-			{
 			  val kernelVal = kernel(v, vi, bandwidth, metric)
 			  (vi.map(_ * kernelVal).asInstanceOf[S], kernelVal)
-			}}
+			}
 		)
 		computeModeAndCastIt[S](preMode, kernelValue)
 	}
 
-	def obtainModeThroughSigmoid[S <: Seq[Double]](v: S, env: Seq[S], a: Double, b: Double): S =
-	{
+	def obtainModeThroughSigmoid[S <: Seq[Double]](v: S, env: Seq[S], a: Double, b: Double): S = {
 		val (preMode, kernelValue) = reducePreModeAndKernelValue[S](
 			env.map{ vi =>
-			{
 			  val kernelVal = sigmoidKernel(v, vi, a, b)
 			  (vi.map(_ * kernelVal).asInstanceOf[S], kernelVal)
-			}}
+			}
 		)
 		computeModeAndCastIt[S](preMode, kernelValue)
 	}
@@ -84,14 +79,12 @@ object Kernels
 	 * The KNN kernel for euclidean space, it select KNN using a specific distance measure and compute the mean<sup>*</sup> of them
 	 * @note Mean computation has a sense only for euclidean distance.
 	 **/
-	def euclideanKnnKernel[S <: Seq[Double]](v: S, env: Seq[S], k: Int, metric: Euclidean[S]): S =
-	{
+	def euclideanKnnKernel[S <: Seq[Double]](v: S, env: Seq[S], k: Int, metric: Euclidean[S]): S = {
 		val knn = obtainKnn[S](v, env, k, metric)
 		SumVectors.obtainMean[S](knn)
 	}
 
-	def knnKernel[Obj](v: Obj, env: Seq[Obj], k: Int, metric: Distance[Obj]): Obj =
-	{
+	def knnKernel[Obj](v: Obj, env: Seq[Obj], k: Int, metric: Distance[Obj]): Obj = {
 		val knn = obtainKnn[Obj](v, env, k, metric)
 		val sm = SimilarityMatrix.simpleSimilarityMatrix(knn, metric)
 		sm.minBy{ case (_, dists) => dists.sum }._1

@@ -23,8 +23,7 @@ trait HammingMeta extends Serializable {
 	}
 }
 
-class Hamming[V <: Seq[Int]] extends HammingMeta with BinaryDistance[V]
-{
+class Hamming[V <: Seq[Int]] extends HammingMeta with BinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
@@ -32,18 +31,7 @@ class Hamming[V <: Seq[Int]] extends HammingMeta with BinaryDistance[V]
 	def d(dot1: V, dot2: V): Double = hamming[V](dot1, dot2)
 }
 
-class FastHamming extends Hamming[mutable.Buffer[Int]]
-{
-	override def d(dot1: mutable.Buffer[Int], dot2: mutable.Buffer[Int]): Double =
-	{
-		var sum = 0
-		dot1.indices.foreach( i => sum += dot1(i) ^ dot2(i) )
-		sum.toDouble
-	}
-}
-
-class HammingClusterizable[ID: Numeric, Obj, V <: Seq[Int]] extends HammingMeta with BinaryClusterizableDistance[BinaryClusterizable[ID, Obj, V], V]
-{
+class HammingClusterizable[ID: Numeric, Obj, V <: Seq[Int]] extends HammingMeta with BinaryClusterizableDistance[BinaryClusterizable[ID, Obj, V], V] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2

@@ -158,13 +158,10 @@ class Clusterwise(
 
 			val modelByCluster = labeledRDD.groupBy{ case (clusterID, (idx, x, y)) => clusterID }.map{ case (clusterID, aggregate) =>
 			{
-				val ng = aggregate.size
-				val lw = 1D / ng
 				val tmpBuffer = mutable.ArrayBuffer(aggregate:_*)
 				val xDs = tmpBuffer.map{ case (_, (idx, x, _)) => (idx, x) }
 				val yDs = tmpBuffer.map{ case (_, (_, _, y)) => y }
-				val ktabXdudiY = PLS.ktabXdudiY(xDs, yDs, ng)
-				val (_, xyCoef, intercept, prediction) = PLS.runFinalPLS(xDs, yDs, lw, ng, h, ktabXdudiY)
+				val (_, xyCoef, intercept, prediction) = PLS.runPLS(xDs, yDs, h)
 				(clusterID, (intercept, xyCoef, prediction))
 			}}
 

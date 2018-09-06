@@ -79,7 +79,7 @@ abstract class KCommonsSpark[
 
 abstract class KCommonsSparkVectors[
 	ID: Numeric,
-	N: Numeric : ClassTag,
+	N: Numeric,
 	V <: Seq[N] : ClassTag,
 	Cz <: Clusterizable[ID, V],
 	D <: Distance[V]

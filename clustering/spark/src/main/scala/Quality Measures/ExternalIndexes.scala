@@ -75,9 +75,9 @@ object ExternalIndexes
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 */
-	def prepareLabels(x: Array[Int]) =
+	def prepareLabels(x: RDD[Int]) =
 	{
-		val indexedValuesMap = x.distinct.zipWithIndex.toMap
+		val indexedValuesMap = x.distinct.zipWithIndex.collectAsMap
 		(indexedValuesMap, x.map(indexedValuesMap))
 	}
 }

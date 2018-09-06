@@ -72,7 +72,7 @@ class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag, Rc <: RealClusteriza
 	}
 }
 
-object KMeans extends CommonTypes
+object KMeans
 {
 	/**
 	 * Run the K-Means with any continuous distance

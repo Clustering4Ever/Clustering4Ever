@@ -4,11 +4,9 @@ import scala.collection.mutable
 
 /**
  * @author Beck Gaël
- *
- *
- **/
-object LSH
-{
+ * A basic implementation of Locality Sensitive Hashing
+ */
+object LSH {
   /**
    * Create a random vector where component are taken on normal law N(0,1) for LSH
    */
@@ -16,10 +14,10 @@ object LSH
   /**
    *  Generate the hash value for a given vector x depending on w, b, hashVector
    */
-  def hf(x: mutable.ArrayBuffer[Double], w: Double, b: Double, hv: mutable.ArrayBuffer[Double]): Double =
-  {
+  def hf(x: mutable.ArrayBuffer[Double], w: Double, b: Double, hv: mutable.ArrayBuffer[Double]): Double = {
   	var s = 0D
-  	x.indices.foreach( i => s += x(i) * hv(i) )
+    var i = 0
+    while( i < x.size ) s += x(i) * hv(i)
   	( s + b ) / w
   }
 }

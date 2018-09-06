@@ -4,7 +4,7 @@ import org.apache.commons.math3.distribution.EnumeratedDistribution
 import org.apache.commons.math3.util.Pair
 import scala.collection.JavaConverters._
 import scala.math.{min, max, pow}
-import scala.collection.{immutable, mutable}
+import scala.collection.{GenSeq, mutable}
 import scala.util.Random
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
@@ -34,7 +34,7 @@ class KPrototypes[
 	Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V],
 	D <: MixtDistance[Vb, Vs, V]
 ](
-	data: Seq[Cz],
+	data: GenSeq[Cz],
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
@@ -78,49 +78,6 @@ class KPrototypes[
 object KPrototypes extends CommonTypes
 {
 	/**
-	 * Run the K-Protypes with combination of Euclidean and Hamming distances  distance in a fast way
-	 **/
-	def run[
-		Cz <: MixtClusterizable[
-			Long,
-			BSV[MB[Int], MB[Double]],
-			MB[Int],
-			MB[Double],
-			BSV[MB[Int], MB[Double]]
-			]
-		](
-			data: Seq[Cz],
-			k: Int,
-			epsilon: Double,
-			maxIterations: Int
-	): KPrototypesModel[
-		Long,
-		MB[Int],
-		MB[Double],
-		BSV[MB[Int], MB[Double]],
-		BSV[MB[Int], MB[Double]],
-		Cz,
-		HammingAndEuclidean[
-			MB[Int],
-			MB[Double],
-			BSV[MB[Int], MB[Double]]
-		]
-	] =
-	{
-		val metric = new HammingAndEuclidean[MB[Int], MB[Double], BSV[MB[Int], MB[Double]]]
-		val initializedCenters = mutable.HashMap.empty[Int, BSV[MB[Int], MB[Double]]]
-		val kPrototypes = new KPrototypes[
-			Long,
-			BSV[MB[Int], MB[Double]],
-			MB[Int],
-			MB[Double],
-			BSV[MB[Int], MB[Double]],
-			Cz,
-			HammingAndEuclidean[MB[Int], MB[Double], BSV[MB[Int], MB[Double]]]](data, k, epsilon, maxIterations, metric)
-		val kPrototypesModel = kPrototypes.run()
-		kPrototypesModel
-	}
-	/**
 	 * Run the K-Prototypes with any mixt distance
 	 */
 	def run[
@@ -132,7 +89,7 @@ object KPrototypes extends CommonTypes
 		Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V],
 		D <: MixtDistance[Vb, Vs, V]
 	](
-		data: Seq[Cz],
+		data: GenSeq[Cz],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,

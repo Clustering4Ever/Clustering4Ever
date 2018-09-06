@@ -25,10 +25,8 @@ object JenksNaturalBreaks
     var i3 = 0
     var i4 = 0
 
-    val preMat1 = Array.fill(nbCat)(1D)
-    val preMat2 = Array.fill(nbCat)(Double.MaxValue)
-    val mat1 = Array.fill(nbValues)(preMat1)
-    val mat2 = Array.fill(nbValues)(preMat2)
+    val mat1 = Array.fill(nbValues)(Array.fill(nbCat)(1D))
+    val mat2 = Array.fill(nbValues)(Array.fill(nbCat)(Double.MaxValue))
     
     (2 to nbValues).foreach{ l =>
       var s1 = 0D
