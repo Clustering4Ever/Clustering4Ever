@@ -2,18 +2,18 @@ package clustering4ever.spark.clustering.clusterwise
 
 import scala.util.Random
 import scala.util.control.Breaks._
-import scala.collection.{immutable, mutable}
+import scala.collection.{immutable, mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
 
-class ClusterwiseCore(
-	val dsXYTrain: Seq[(Int, (Seq[Double], Seq[Double]))],
+class ClusterwiseCore[S <: Seq[Double]](
+	val dsXYTrain: GenSeq[(Int, (S, S))],
 	val h: Int,
 	val g: Int,
 	val nbMaxAttemps: Int,
 	logOn: Boolean = false
-)  extends ClusterwiseTypes with Serializable
+)  extends ClusterwiseTypes[S] with Serializable
 {
-	val rangeOverClasses = (0 until g).toSeq
+	val rangeOverClasses = (0 until g).toArray
 
 	private[this] def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) =
 	{
@@ -69,7 +69,7 @@ class ClusterwiseCore(
 	}
 
 
-	private[this] def elseCaseWhenComputingError(errorsIndexes: Seq[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) =
+	private[this] def elseCaseWhenComputingError(errorsIndexes: Array[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) =
 	{
 		var b = true
 		errorsIndexes.map{ case ((err1, err2), idx) =>
@@ -93,9 +93,9 @@ class ClusterwiseCore(
 	{
 		var continue = true
 		var cptAttemps = 0
-		var classOfEachData = Seq.empty[(Int, Int)]
-		var dsPerClassF = Seq.empty[DSPerClass]
-		var regPerClassFinal = Seq.empty[RegPerClass]
+		var classOfEachData = Array.empty[(Int, Int)]
+		var dsPerClassF = Array.empty[DSPerClass]
+		var regPerClassFinal = Array.empty[RegPerClass]
 	  	val mapRegCrit = mutable.HashMap.empty[Int, Double]
 
 		do
@@ -103,36 +103,34 @@ class ClusterwiseCore(
 			try
 			{
 				cptAttemps += 1
-			  	val classedDS: Array[(Int, (Seq[Double], Seq[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
+			  	val classedDS: Array[(Int, (S, S, Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
 			  	val valuesToBrowse = classedDS.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
 				val dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, _) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
 			  	val inputY = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID)) => y }:_*) }
-			  	val preClassLimits = (0 until inputY.size).toVector.map(inputY(_).size)
+			  	val preClassLimits = (0 until inputY.size).toArray.map(inputY(_).size)
 			  	val classlimits = (0 until preClassLimits.size).toArray.map( i => (0 to i).map(preClassLimits(_)).sum - 1 )
 			  	var currentDotIdx = 0
 			  	var currentClass = 0
 			  	var nbIte = 0
 			  	val stop = valuesToBrowse.size - 1
 
-		  		breakable
-		  		{
+		  		breakable {
 			  		if( inputX.size != g || inputX.exists(_.isEmpty) ) break
 				  	
 				  	while( continue && nbIte != stop )
 				  	{
 					  	val (currentDotId, currentDotClass) = valuesToBrowse(nbIte)
 
-					  	val regPerClass = rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
-					  	// Workaround when reducing data
+					  	val regPerClass = rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
+
 					  	if( ! regPerClass.map(_._1).filter(_.isNaN).isEmpty ) break
 
 					  	val error1 = regPerClass.map(_._1)
 					  	prepareMovingPoint(dsPerClass, inputX, inputY, g, currentDotIdx, currentClass, classlimits)
-					  	val regPerClass2 = try rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
-				  		catch
-				  		{
-				  			case emptyClass : java.lang.IndexOutOfBoundsException => Seq.empty[RegPerClass]
+					  	val regPerClass2 = try rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
+				  		catch {
+				  			case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[RegPerClass]
 				  		}
 					  	
 					  	if( regPerClass2.isEmpty ) break
@@ -173,8 +171,8 @@ class ClusterwiseCore(
 			  	else
 			  	{
 					dsPerClassF = rangeOverClasses.map( i => classedDS.filter{ case (_, (_, _, clusterID)) => clusterID == i } )
-					regPerClassFinal = rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
-					classOfEachData = classedDS.toVector.map{ case (id, (_, _, clusterID)) => (id, clusterID) }	
+					regPerClassFinal = rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
+					classOfEachData = classedDS.map{ case (id, (_, _, clusterID)) => (id, clusterID) }	
 			  	}
 			}
 			catch
@@ -190,10 +188,11 @@ class ClusterwiseCore(
 
 		if( continue && cptAttemps == nbMaxAttemps ) throw new Exception("There was too many unsuccesufull attemps due to empty classes, try to diminish number of class ")
 
-	  	val resReg: Seq[Double] = regPerClassFinal.map(_._1)
-	  	val coXYcoef: Seq[immutable.Vector[Double]] = regPerClassFinal.map(_._2.toArray.toVector)
-	  	val coIntercept: Seq[Array[Double]] = regPerClassFinal.map(_._3)
-	  	val pred: Seq[immutable.Vector[(Int, immutable.Vector[Double])]] = regPerClassFinal.map(_._4)
+  		val resReg: Array[Double] = regPerClassFinal.map{ case (ist, _, _, _) => ist } 
+	  	val coXYcoef: Array[Array[Double]] = regPerClassFinal.map{ case (_, r, _, _) => r.toArray }
+	  	val coIntercept: Array[Array[Double]] = regPerClassFinal.map{ case (_, _, co, _) => co }
+	  	val pred: Array[immutable.Vector[(Int, mutable.ArrayBuffer[Double])]] = regPerClassFinal.map{ case (_, _, _, fth) => fth.map{ case (id, v) => (id, mutable.ArrayBuffer(v:_*)) } } 
+
 	  	(dsPerClassF, pred, coIntercept, coXYcoef, resReg, mapRegCrit, classOfEachData)
 
 	}
@@ -203,9 +202,9 @@ class ClusterwiseCore(
 		var continue = true
 		val microClusterNumberRange = (0 until microClusterNumber).toVector
 		var cptAttemps = 0
-		var classOfEachData = Seq.empty[(Int, Int)]
-		var dsPerClassF = Seq.empty[ClassedDSperGrp]
-		var regPerClassFinal = Seq.empty[RegPerClass]
+		var classOfEachData = Array.empty[(Int, Int)]
+		var dsPerClassF = Array.empty[ClassedDSperGrp]
+		var regPerClassFinal = Array.empty[RegPerClass]
 	  	val mapRegCrit = mutable.HashMap.empty[Int, Double]
 	  	do
 	  	{
@@ -245,27 +244,22 @@ class ClusterwiseCore(
 			  		// if init starts with empty classes, retry
 			  		if( inputX.size != g || inputX.exists(_.isEmpty) ) break
 
-				  	while( continue && nbIte != stop )
-				  	{
+				  	while( continue && nbIte != stop ) {
 				  		val ((grpId, currentclusterID), currentIdx) = indexedFlatBucketOrder(nbIte)
 				  	
 					  	// Regression with Point inside one Class and not the Rest
-					  	val regPerClass = rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
+					  	val regPerClass = rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
 					  	val error1 = regPerClass.map(_._1)
 					  	prepareMovingPointByGroup(dsPerClassPerBucket, inputX, inputY, g, currentDotsGrpIdx, currentClass, classlimits, orderedBucketSize)
-					  	if( inputX.exists(_.isEmpty) )
-					  	{
+					  	if( inputX.exists(_.isEmpty) ) {
 					  		if( logOn ) println("Problemo one class is becoming empty")
 					  		break
 					  	}
 					  	// Regression with Point inside all other Class and not the former
-					  	val regPerClass2 =
-					  	{
-
-					  		try rangeOverClasses.map( i => PLS.runClusterwisePLS(inputX, inputY, i, h) )
-					  		catch
-					  		{
-					  			case emptyClass : java.lang.IndexOutOfBoundsException => Seq.empty[RegPerClass]
+					  	val regPerClass2 = {
+					  		try rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
+					  		catch {
+					  			case emptyClass : java.lang.IndexOutOfBoundsException => Array.empty[RegPerClass]
 					  		}
 					  	}
 
@@ -280,15 +274,13 @@ class ClusterwiseCore(
 					  	val classToMoveGroupInto = errors.indexOf(minError)
 					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, classlimits)
 					  	val (_, bucketIDtoUpdate, grpIdIDXY) = dsPerClassPerBucket(currentClass)._2(posInClass)
-					  	if( classToMoveGroupInto != currentclusterID )
-					  	{
+					  	if( classToMoveGroupInto != currentclusterID ) {
 						  	dsPerClassPerBucket(currentClass)._2(posInClass) = (classToMoveGroupInto, bucketIDtoUpdate, grpIdIDXY)
 						  	val classWithoutDots = rangeOverClasses.filter( clusterID => clusterID != classToMoveGroupInto && clusterID != currentclusterID)
 						  	val rangeIn = (0 until orderedBucketSize(currentDotsGrpIdx))
 						  	classWithoutDots.foreach( j => rangeIn.foreach( i => removeLastXY(j, inputX, inputY) ) )
 					  	}
-					  	else
-					  	{
+					  	else {
 						  	val classWithoutDots = rangeOverClasses.filter(_ != currentclusterID)
 						  	val rangeIn = (0 until orderedBucketSize(currentDotsGrpIdx))
 						  	classWithoutDots.foreach( j => rangeIn.foreach( i => removeLastXY(j, inputX, inputY) ) )
@@ -304,10 +296,9 @@ class ClusterwiseCore(
 			  	}
 			  	continue = nbIte != stop
 			  	if( continue ) mapRegCrit.clear
-			  	else
-			  	{
+			  	else {
 			  		dsPerClassF = for( i <- rangeOverClasses ) yield dsPerClassPerBucket.filter{ case (clusterID, _) => clusterID == i }
-					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runClusterwisePLS(inputX, inputY, i, h)
+					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runClusterwisePLS[S](inputX, inputY, i, h)
 			  		classOfEachData = dsPerClassPerBucket.flatMap{ case (clusterID, dsPerBucket) => dsPerBucket.flatMap{ case (_, grpId, ds) => ds.map{ case (_, id, x, y) => (id, clusterID) } } }
 			  	}
 			}
@@ -324,40 +315,38 @@ class ClusterwiseCore(
 
 		if( continue && cptAttemps == nbMaxAttemps ) throw new Exception("There was too many unsuccesufull attemps due to empty classes, try to diminish number of class or size of blocs")
 
-	  	val resReg = regPerClassFinal.map(_._1)
-	  	val coXYcoef = regPerClassFinal.map(_._2.toArray.toVector)
-	  	val coIntercept = regPerClassFinal.map(_._3)
-	  	val pred = regPerClassFinal.map(_._4)
+  		val resReg: Array[Double] = regPerClassFinal.map{ case (ist, _, _, _) => ist } 
+	  	val coXYcoef: Array[Array[Double]] = regPerClassFinal.map{ case (_, r, _, _) => r.toArray }
+	  	val coIntercept: Array[Array[Double]] = regPerClassFinal.map{ case (_, _, co, _) => co }
+	  	val pred: Array[immutable.Vector[(Int, mutable.ArrayBuffer[Double])]] = regPerClassFinal.map{ case (_, _, _, fth) => fth.map{ case (id, v) => (id, mutable.ArrayBuffer(v:_*)) } } 
 
 	  	(dsPerClassF, pred, coIntercept, coXYcoef, resReg, mapRegCrit, classOfEachData)
 	}
 }
 
-object ClusterwiseCore extends Serializable
-{
-	def plsPerDot(
-		dsXYTrain: Seq[(Int, (Seq[Double], Seq[Double]))],
+object ClusterwiseCore extends Serializable {
+
+	def plsPerDot[S <: Seq[Double]](
+		dsXYTrain: GenSeq[(Int, (S, S))],
 		h: Int,
 		g: Int,
 		nbMaxAttemps: Int = 30,
 		logOn: Boolean = false
-	) =
-	{
+	) =	{
 		val oneClusterwise = new ClusterwiseCore(dsXYTrain, h, g, nbMaxAttemps, logOn)
 		val (dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = oneClusterwise.plsPerDot()
 		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)
 	}
 
-	def plsPerMicroClusters(
-		dsXYTrain: Seq[(Int, (Seq[Double], Seq[Double]))],
+	def plsPerMicroClusters[S <: Seq[Double]](
+		dsXYTrain: GenSeq[(Int, (S, S))],
 		allGroupedData: immutable.HashMap[Int, Int],
 		h: Int,
 		g: Int,
 		microClusterNumber: Int,
 		nbMaxAttemps: Int = 30,
 		logOn: Boolean = false
-	) =
-	{
+	) =	{
 		val oneClusterwise = new ClusterwiseCore(dsXYTrain, h, g, nbMaxAttemps, logOn)
 		val (dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = oneClusterwise.plsPerGroup(allGroupedData, microClusterNumber)
 		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)

@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import clustering4ever.math.distances.Distance
-import clustering4ever.stats.Stats
+import clustering4ever.stats.{Stats, SparkStats}
 import clustering4ever.scala.clusterizables.{ClusterizableExt, Clusterizable}
 import clustering4ever.scala.clustering.KCommons
 import clustering4ever.clustering.CommonRDDPredictClusteringModel
@@ -102,12 +102,9 @@ abstract class KCommonsSparkVectors[
 	{
 		val vectorRange = (0 until dim).toBuffer
 
-		val (minv, maxv) = vectorizedDataset.map{ v =>
-			val vector = v.toBuffer
-			(vector, vector)
-		}.reduce( (minMaxa, minMaxb) => vectorRange.map( i => Stats.obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
+		val (minValues, maxValues) = SparkStats.obtainMinAndMax[mutable.ArrayBuffer[Double]](vectorizedDataset)
 
-		val ranges = mutable.ArrayBuffer(minv.zip(maxv):_*).map{ case (min, max) => (max - min, min) }
+		val ranges = mutable.ArrayBuffer(minValues.zip(maxValues):_*).map{ case (min, max) => (max - min, min) }
 		val centers = mutable.HashMap((0 until k).map( clusterID => (clusterID, ranges.map{ case (range, min) => Random.nextDouble * range + min }) ):_*)
 		centers
 	}

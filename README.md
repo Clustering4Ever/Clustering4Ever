@@ -17,7 +17,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 
 Add following lines in your build.sbt :
 
-* `"clustering4ever" % "clustering4ever_2.11" % "0.6.3"` to your `libraryDependencies`
+* `"clustering4ever" % "clustering4ever_2.11" % "0.6.4"` to your `libraryDependencies`
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
@@ -43,6 +43,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * **_K-Modes_**
 * **_K-Prototypes_**
 * _Mean Shift Gradient Ascent_
+* **Self Organizing Maps**
 * **G-Stream**
 
 ### Quality indexes

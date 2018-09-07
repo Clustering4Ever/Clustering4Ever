@@ -31,7 +31,6 @@ object Stats extends ClusteringCommons with CommonTypes {
 	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]): (MB[Double], MB[Double]) = {
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toBuffer
-
 		val (minValues, maxValues) = data.map{ v => 
 			val buff = v.toBuffer
 			(buff, buff) 
