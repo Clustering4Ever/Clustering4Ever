@@ -1,6 +1,6 @@
 package clustering4ever.util
 
-import scala.collection.GenSeq
+import scala.collection.parallel.mutable.ParArray
 import clustering4ever.scala.vectorizables.{RealVector, BinaryVector, MixtVector}
 import clustering4ever.scala.clusterizables.{RealClusterizable, BinaryClusterizable, MixtClusterizable}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
@@ -16,15 +16,15 @@ object GenerateClusterizable {
 
 object ScalaImplicits {
 
-	implicit def seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable[ID: Numeric, V <: Seq[Double]](genSeq: GenSeq[(V, ID)]): GenSeq[RealClusterizable[ID, V, V]] =
-		genSeq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(id, vector) }
+	implicit def seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable[ID: Numeric, V <: Seq[Double]](parArr: ParArray[(V, ID)]): ParArray[RealClusterizable[ID, V, V]] =
+		parArr.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(id, vector) }
 
-	implicit def seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable[ID: Numeric, V <: Seq[Int]](genSeq: GenSeq[(V, ID)]): GenSeq[BinaryClusterizable[ID, V, V]] =
-		genSeq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleBinaryClusterizable(id, vector) }
+	implicit def seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable[ID: Numeric, V <: Seq[Int]](parArr: ParArray[(V, ID)]): ParArray[BinaryClusterizable[ID, V, V]] =
+		parArr.map{ case (vector, id) => GenerateClusterizable.obtainSimpleBinaryClusterizable(id, vector) }
 
-	implicit def realVectorSequenceToRealClusterizable[V <: Seq[Double]](genSeq: GenSeq[V]): GenSeq[RealClusterizable[Int, V, V]] =
-		seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable(genSeq.zipWithIndex)
+	implicit def realVectorSequenceToRealClusterizable[V <: Seq[Double]](parArr: ParArray[V]): ParArray[RealClusterizable[Int, V, V]] =
+		seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable(parArr.zipWithIndex)
 
-	implicit def binaryVectorSequenceToBinaryClusterizable[V <: Seq[Int]](genSeq: GenSeq[V]): GenSeq[BinaryClusterizable[Int, V, V]] =
-		seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable(genSeq.zipWithIndex)
+	implicit def binaryVectorSequenceToBinaryClusterizable[V <: Seq[Int]](parArr: ParArray[V]): ParArray[BinaryClusterizable[Int, V, V]] =
+		seqOfBinarySeqWithIndexedSequenceToSeqOfBinaryClusterizable(parArr.zipWithIndex)
 }

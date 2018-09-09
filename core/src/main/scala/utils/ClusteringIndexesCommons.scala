@@ -26,12 +26,18 @@ object ClusteringIndexesCommons {
     }
 
     def nmiObtainAi(emptyArr: Array[Double], arr1: Array[Int], arr2: Array[Int], count: Array[Array[Double]]): Array[Double] = {
-      def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] = arr.updated(i, count(i)(j))
+      def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] = {
+        arr(i) += count(i)(j)
+        arr
+      }
       RecursivFunctions.goOverMatrix[Array[Double]](arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
     }
 
-  	def nmiObtainBj(emptyArr: Array[Double], arr1: Array[Int], arr2: Array[Int], count: Array[Array[Double]]): Array[Double] = {
-      def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] = arr.updated(i, count(j)(i))
+    def nmiObtainBj(emptyArr: Array[Double], arr1: Array[Int], arr2: Array[Int], count: Array[Array[Double]]): Array[Double] = {
+      def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] = {
+        arr(i) += count(j)(i)
+        arr
+      }
       RecursivFunctions.goOverMatrix[Array[Double]](arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
     }
 }
