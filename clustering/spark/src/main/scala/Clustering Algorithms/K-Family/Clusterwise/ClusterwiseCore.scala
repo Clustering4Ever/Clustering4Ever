@@ -11,20 +11,17 @@ class ClusterwiseCore[S <: Seq[Double]](
 	val g: Int,
 	val nbMaxAttemps: Int,
 	logOn: Boolean = false
-)  extends ClusterwiseTypes[S] with Serializable
-{
+)  extends ClusterwiseTypes[S] with Serializable {
 	val rangeOverClasses = (0 until g).toArray
 
-	private[this] def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) =
-	{
+	private[this] def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) = {
 	  	inputX(clusterID).remove( inputX(clusterID).size - 1 )	
 	  	inputY(clusterID).remove( inputY(clusterID).size - 1 )
 	}
 
 	private[this] def posInClassForMovingPoints(currClass: Int, elemNb: Int, classlimits: Array[Int]) = if( currClass == 0 ) elemNb else elemNb - classlimits( currClass - 1 ) - 1
 
-	private[this] def removeFirstElemXY(clusterID: Int, xDS: IDXDS, yDS: YDS) =
-	{
+	private[this] def removeFirstElemXY(clusterID: Int, xDS: IDXDS, yDS: YDS) = {
 		xDS(clusterID).remove(0)
 		yDS(clusterID).remove(0)
 	}
@@ -33,15 +30,13 @@ class ClusterwiseCore[S <: Seq[Double]](
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, classlimits)
 		val (elemToReplaceID, (elemToReplaceX, elemToReplaceY, _)) = classedDS(currClass)._2(posInClass)
-		(0 until g).foreach( j =>
-		{
+		(0 until g).foreach{ j =>
 		  if( j == currClass ) removeFirstElemXY(j, xDS, yDS)
-		  else
-		  {
+		  else {
 		    xDS(j) += ( (elemToReplaceID, elemToReplaceX) )
 		    yDS(j) += elemToReplaceY
 		  }
-		})
+		}
 	}
 
 	private[this] def prepareMovingPointByGroup(
@@ -57,11 +52,9 @@ class ClusterwiseCore[S <: Seq[Double]](
 	{
 		val posInClass = posInClassForMovingPoints(currClass, elemNb, classlimits)
 		val elemToReplace = classedDS(currClass)._2(posInClass)._3
-		for( j <- 0 until g )
-		{
+		for( j <- 0 until g ) {
 		  if( j == currClass ) for( i <- 0 until orderedBucketSize(elemNb) ) removeFirstElemXY(j, xDS, yDS)
-		  else
-		  {
+		  else {
 		    xDS(j) ++= elemToReplace.map{ case(grpId, id, x, y) => (id, x) }
 		    yDS(j) ++= elemToReplace.map{ case(grpId, id, x, y) => y }
 		  }
@@ -69,23 +62,19 @@ class ClusterwiseCore[S <: Seq[Double]](
 	}
 
 
-	private[this] def elseCaseWhenComputingError(errorsIndexes: Array[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) =
-	{
+	private[this] def elseCaseWhenComputingError(errorsIndexes: Array[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) = {
 		var b = true
 		errorsIndexes.map{ case ((err1, err2), idx) =>
-		{
 			if( idx == currentClass ) err2
-			else
-			{
-	  			if( boolTab(idx) && b )
-	  			{
+			else {
+	  			if( boolTab(idx) && b ) {
 	  				boolTab(idx) = false
 	  				b = false
 	  				err2
 	  			}
 	  			else err1
 			}
-		}}
+		}
 	}
 
 
@@ -95,8 +84,8 @@ class ClusterwiseCore[S <: Seq[Double]](
 		var cptAttemps = 0
 		var classOfEachData = Array.empty[(Int, Int)]
 		var dsPerClassF = Array.empty[DSPerClass]
-		var regPerClassFinal = Array.empty[RegPerClass]
-	  	val mapRegCrit = mutable.HashMap.empty[Int, Double]
+		var regressionPerClassFinal = Array.empty[RegPerClass]
+	  	val regressionCriteriaMap = mutable.HashMap.empty[Int, Double]
 
 		do
 		{
@@ -137,49 +126,41 @@ class ClusterwiseCore[S <: Seq[Double]](
 
 					  	val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
-					  	val errorsIdx = error1.zip(error2).zipWithIndex
+					  	val errorsIndexes = error1.zip(error2).zipWithIndex
 					  	boolTab(currentDotClass) = false
-					  	val errors = rangeOverClasses.map( i => (if( i == currentDotClass ) errorsIdx.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIdx, boolTab, currentDotClass)).sum )
+					  	val errors = rangeOverClasses.map( i => (if( i == currentDotClass ) errorsIndexes.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndexes, boolTab, currentDotClass)).sum )
 					  	val minError = errors.min
 					  	val classToMovePointInto = errors.indexOf(minError)
 					  	val (pointID, (pointX, pointY, _)) = classedDS(currentDotIdx)
-					  	if( classToMovePointInto != currentDotClass )
-					  	{
+					  	if( classToMovePointInto != currentDotClass ) {
 						  	classedDS(currentDotIdx) = (pointID, (pointX, pointY, classToMovePointInto))
 						  	val classWithoutDot = rangeOverClasses.filter( clusterID => clusterID != classToMovePointInto && clusterID != currentDotClass)
 						  	for( j <- classWithoutDot ) removeLastXY(j, inputX, inputY)
 					  	}
-					  	else
-					  	{
+					  	else {
 						  	val classWithoutDot = rangeOverClasses.filter(_ != currentDotClass)
 						  	for( j <- classWithoutDot ) removeLastXY(j, inputX, inputY)
 							inputX(currentDotClass) += ((pointID, pointX))
 							inputY(currentDotClass) += pointY
 					  	}
 					  	continue = inputX.filter(_.isEmpty).isEmpty
-					  	mapRegCrit += ( currentDotId -> minError )
+					  	regressionCriteriaMap += ( currentDotId -> minError )
 					  	nbIte += 1
 				  		currentDotIdx += 1
-				  		if( currentDotIdx > classlimits(currentClass) )
-				  		{
-				  			currentClass += 1
-				  		}
+				  		if( currentDotIdx > classlimits(currentClass) ) currentClass += 1
 				  	}
 			  	}
 			  	continue = nbIte != stop
-			  	if( continue ) mapRegCrit.clear
-			  	else
-			  	{
+			  	if( continue ) regressionCriteriaMap.clear
+			  	else {
 					dsPerClassF = rangeOverClasses.map( i => classedDS.filter{ case (_, (_, _, clusterID)) => clusterID == i } )
-					regPerClassFinal = rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
+					regressionPerClassFinal = rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
 					classOfEachData = classedDS.map{ case (id, (_, _, clusterID)) => (id, clusterID) }	
 			  	}
 			}
-			catch
-			{ 
-				case svdExcept : breeze.linalg.NotConvergedException =>
-				{
-					mapRegCrit.clear
+			catch { 
+				case svdExcept : breeze.linalg.NotConvergedException => {
+					regressionCriteriaMap.clear
 					if( logOn ) println("\nThere was an Singular Value Decomposition Issue, retry with new initialisation")	
 				}
 			}
@@ -188,28 +169,25 @@ class ClusterwiseCore[S <: Seq[Double]](
 
 		if( continue && cptAttemps == nbMaxAttemps ) throw new Exception("There was too many unsuccesufull attemps due to empty classes, try to diminish number of class ")
 
-  		val resReg: Array[Double] = regPerClassFinal.map{ case (ist, _, _, _) => ist } 
-	  	val coXYcoef: Array[Array[Double]] = regPerClassFinal.map{ case (_, r, _, _) => r.toArray }
-	  	val coIntercept: Array[Array[Double]] = regPerClassFinal.map{ case (_, _, co, _) => co }
-	  	val pred: Array[immutable.Vector[(Int, mutable.ArrayBuffer[Double])]] = regPerClassFinal.map{ case (_, _, _, fth) => fth.map{ case (id, v) => (id, mutable.ArrayBuffer(v:_*)) } } 
+  		val regressionResults: Array[Double] = regressionPerClassFinal.map{ case (ist, _, _, _) => ist } 
+	  	val coXYcoef: Array[Array[Double]] = regressionPerClassFinal.map{ case (_, r, _, _) => r.toArray }
+	  	val coIntercept: Array[Array[Double]] = regressionPerClassFinal.map{ case (_, _, co, _) => co }
+	  	val predFitted: Array[immutable.IndexedSeq[(Int, Array[Double])]] = regressionPerClassFinal.map{ case (_, _, _, fth) => fth } 
 
-	  	(dsPerClassF, pred, coIntercept, coXYcoef, resReg, mapRegCrit, classOfEachData)
+	  	(dsPerClassF, predFitted, coIntercept, coXYcoef, regressionResults, regressionCriteriaMap, classOfEachData)
 
 	}
 
-	def plsPerGroup(allGroupedData: immutable.HashMap[Int, Int], microClusterNumber: Int) =
-	{
+	def plsPerGroup(allGroupedData: immutable.HashMap[Int, Int], microClusterNumber: Int) = {
 		var continue = true
 		val microClusterNumberRange = (0 until microClusterNumber).toVector
 		var cptAttemps = 0
 		var classOfEachData = Array.empty[(Int, Int)]
 		var dsPerClassF = Array.empty[ClassedDSperGrp]
-		var regPerClassFinal = Array.empty[RegPerClass]
-	  	val mapRegCrit = mutable.HashMap.empty[Int, Double]
-	  	do
-	  	{
-			try
-			{
+		var regressionPerClassFinal = Array.empty[RegPerClass]
+	  	val regressionCriteriaMap = mutable.HashMap.empty[Int, Double]
+	  	do {
+			try {
 		  		cptAttemps += 1
 			  	// Initialisation par groupe
 			  	val perGroupClassInit = microClusterNumberRange.map( x => Random.nextInt(g) )
@@ -239,8 +217,7 @@ class ClusterwiseCore[S <: Seq[Double]](
 			  	var nbIte = 0
 				val stop = indexedFlatBucketOrder.size - 1
 
-		  		breakable
-		  		{
+		  		breakable {
 			  		// if init starts with empty classes, retry
 			  		if( inputX.size != g || inputX.exists(_.isEmpty) ) break
 
@@ -266,10 +243,10 @@ class ClusterwiseCore[S <: Seq[Double]](
 					  	if( regPerClass2.isEmpty ) break
 			  	  		val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
-					  	val errorsIdx = error1.zip(error2).zipWithIndex
+					  	val errorsIndexes = error1.zip(error2).zipWithIndex
 
 					  	boolTab(currentclusterID) = false
-					  	val errors = rangeOverClasses.map( i => (if( i == currentclusterID ) errorsIdx.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIdx, boolTab, currentclusterID)).sum )
+					  	val errors = rangeOverClasses.map( i => (if( i == currentclusterID ) errorsIndexes.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndexes, boolTab, currentclusterID)).sum )
 					  	val minError = errors.min
 					  	val classToMoveGroupInto = errors.indexOf(minError)
 					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, classlimits)
@@ -287,7 +264,7 @@ class ClusterwiseCore[S <: Seq[Double]](
 						  	inputX(currentclusterID) ++= grpIdIDXY.map{ case (grpId, id, x, y) => (id, x) }
 						  	inputY(currentclusterID) ++= grpIdIDXY.map{ case (grpId, id, x, y) => y }
 					  	}
-					  	mapRegCrit += ( currentIdx -> minError )
+					  	regressionCriteriaMap += ( currentIdx -> minError )
 					  	continue = inputX.filter(_.isEmpty).isEmpty
 						nbIte += 1
 				  		currentDotsGrpIdx += 1
@@ -295,18 +272,16 @@ class ClusterwiseCore[S <: Seq[Double]](
 			  		}
 			  	}
 			  	continue = nbIte != stop
-			  	if( continue ) mapRegCrit.clear
+			  	if( continue ) regressionCriteriaMap.clear
 			  	else {
-			  		dsPerClassF = for( i <- rangeOverClasses ) yield dsPerClassPerBucket.filter{ case (clusterID, _) => clusterID == i }
-					regPerClassFinal = for( i <- rangeOverClasses ) yield PLS.runClusterwisePLS[S](inputX, inputY, i, h)
+			  		dsPerClassF = rangeOverClasses.map( i => dsPerClassPerBucket.filter{ case (clusterID, _) => clusterID == i } )
+					regressionPerClassFinal = rangeOverClasses.map( i => PLS.runClusterwisePLS[S](inputX, inputY, i, h) )
 			  		classOfEachData = dsPerClassPerBucket.flatMap{ case (clusterID, dsPerBucket) => dsPerBucket.flatMap{ case (_, grpId, ds) => ds.map{ case (_, id, x, y) => (id, clusterID) } } }
 			  	}
 			}
-			catch
-			{
-				case svdExcept : breeze.linalg.NotConvergedException =>
-				{
-					mapRegCrit.clear
+			catch {
+				case svdExcept : breeze.linalg.NotConvergedException => {
+					regressionCriteriaMap.clear
 					if( logOn ) println("\nThere was an Singular Value Decomposition Issue, retry with new initialisation")
 				}
 			}
@@ -315,12 +290,12 @@ class ClusterwiseCore[S <: Seq[Double]](
 
 		if( continue && cptAttemps == nbMaxAttemps ) throw new Exception("There was too many unsuccesufull attemps due to empty classes, try to diminish number of class or size of blocs")
 
-  		val resReg: Array[Double] = regPerClassFinal.map{ case (ist, _, _, _) => ist } 
-	  	val coXYcoef: Array[Array[Double]] = regPerClassFinal.map{ case (_, r, _, _) => r.toArray }
-	  	val coIntercept: Array[Array[Double]] = regPerClassFinal.map{ case (_, _, co, _) => co }
-	  	val pred: Array[immutable.Vector[(Int, mutable.ArrayBuffer[Double])]] = regPerClassFinal.map{ case (_, _, _, fth) => fth.map{ case (id, v) => (id, mutable.ArrayBuffer(v:_*)) } } 
+  		val regressionResults: Array[Double] = regressionPerClassFinal.map{ case (ist, _, _, _) => ist } 
+	  	val coXYcoef: Array[Array[Double]] = regressionPerClassFinal.map{ case (_, r, _, _) => r.toArray }
+	  	val coIntercept: Array[Array[Double]] = regressionPerClassFinal.map{ case (_, _, co, _) => co }
+	  	val predFitted: Array[immutable.IndexedSeq[(Int, Array[Double])]] = regressionPerClassFinal.map{ case (_, _, _, fth) => fth } 
 
-	  	(dsPerClassF, pred, coIntercept, coXYcoef, resReg, mapRegCrit, classOfEachData)
+	  	(dsPerClassF, predFitted, coIntercept, coXYcoef, regressionResults, regressionCriteriaMap, classOfEachData)
 	}
 }
 

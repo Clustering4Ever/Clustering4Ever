@@ -1,9 +1,5 @@
 package clustering4ever.scala.clustering.kmeans
 
-import org.apache.commons.math3.distribution.EnumeratedDistribution
-import org.apache.commons.math3.util.Pair
-import scala.collection.JavaConverters._
-import scala.math.{min, max, pow}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
 import scala.reflect.ClassTag
@@ -32,8 +28,7 @@ class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag, Rc <: RealClusteriza
 	maxIterations: Int,
 	metric: D = new Euclidean[S](squareRoot = true),
 	initializedCenters: mutable.HashMap[Int, S] = mutable.HashMap.empty[Int, S]
-) extends KCommonsVectors[ID, Double, S, D, Rc](data, metric, k, initializedCenters)
-{
+) extends KCommonsVectors[ID, Double, S, D, Rc](data, metric, k, initializedCenters) {
 	/**
 	 * Run the K-Means
 	 */
@@ -46,14 +41,12 @@ class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag, Rc <: RealClusteriza
 		{
 			var cpt = 0
 			var allCentersHaveConverged = false
-			while( cpt < maxIterations && ! allCentersHaveConverged )
-			{
+			while( cpt < maxIterations && ! allCentersHaveConverged ) {
 				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(centers, centersCardinality)
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
-				{
 					centers(clusterID) = SumVectors.obtainMean[S](aggregate.map(_._1))
 					centersCardinality(clusterID) += aggregate.size
-				}}
+				}
 				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
 				cpt += 1
 			}
@@ -72,8 +65,7 @@ class KMeans[ID: Numeric, Obj, S <: Seq[Double] : ClassTag, Rc <: RealClusteriza
 	}
 }
 
-object KMeans
-{
+object KMeans {
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
@@ -84,8 +76,7 @@ object KMeans
 		maxIterations: Int,
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, S] = mutable.HashMap.empty[Int, S]
-		): KMeansModel[ID, Obj, S, Rc, D] =
-	{
+		): KMeansModel[ID, Obj, S, Rc, D] = {
 		val kMeans = new KMeans[ID, Obj, S, Rc, D](data, k, epsilon, maxIterations, metric, initializedCenters)
 		val kmeansModel = kMeans.run()
 		kmeansModel

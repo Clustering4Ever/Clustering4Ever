@@ -14,12 +14,11 @@ import clustering4ever.util.ClusteringIndexesCommons
  * @author Beck Gaël
  *
  */
-class ExternalIndexes
-{
-	def mutualInformationInternal(@(transient @param) sc: SparkContext, trueAndPredict: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) =
-	{
-		trueAndPredict.persist(persistanceLVL)
+class ExternalIndexes {
 
+	private def mutualInformationInternal(@(transient @param) sc: SparkContext, trueAndPredict: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) = {
+
+		trueAndPredict.persist(persistanceLVL)
 		val n = trueAndPredict.count
 		val maxX = trueAndPredict.max()(Ordering[Int].on(_._1))._1
 		val maxY = trueAndPredict.max()(Ordering[Int].on(_._2))._2
@@ -48,8 +47,7 @@ class ExternalIndexes
 
 }
 
-object ExternalIndexes
-{
+object ExternalIndexes {
 	/**
 	 * Compute the mutual information
 	 * It is advise to cache trueAndPredict before passing it to this method.
@@ -62,11 +60,9 @@ object ExternalIndexes
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 */
-	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) =
-	{
+	def nmi(sc: SparkContext, trueAndPredict: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) = {
 		val (mi, hu, hv) = (new ExternalIndexes).mutualInformationInternal(sc, trueAndPredict, persistanceLVL)
-		val nmi = normalization match
-		{
+		val nmi = normalization match {
 			case SQRT => mi / sqrt(hu * hv)
 			case MAX => mi / max(hu, hv)
 		}
@@ -75,8 +71,7 @@ object ExternalIndexes
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 */
-	def prepareLabels(x: RDD[Int]) =
-	{
+	def prepareLabels(x: RDD[Int]) = {
 		val indexedValuesMap = x.distinct.zipWithIndex.collectAsMap
 		(indexedValuesMap, x.map(indexedValuesMap))
 	}

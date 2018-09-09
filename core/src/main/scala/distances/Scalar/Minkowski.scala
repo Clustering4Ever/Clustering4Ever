@@ -7,6 +7,7 @@ import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 
 trait MinkowshiMeta extends Serializable {
+
 	val p: Int
 
 	protected def minkowski[V <: Seq[Double]](dot1: V, dot2: V): Double = {
@@ -28,7 +29,7 @@ class Minkowski[V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta wi
 	def d(dot1: V, dot2: V): Double = minkowski[V](dot1, dot2)
 }
 
-class MinkowskiClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V] {
+class MinkowskiClusterizable[ID: Numeric, Obj, V <: Seq[Double]](final val p: Int = 2, val classicalMetric: Minkowski[V]) extends MinkowshiMeta with RealClusterizableDistance[RealClusterizable[ID, Obj, V], V] {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2

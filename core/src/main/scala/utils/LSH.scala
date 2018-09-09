@@ -17,7 +17,10 @@ object LSH {
   def hf(x: mutable.ArrayBuffer[Double], w: Double, b: Double, hv: mutable.ArrayBuffer[Double]): Double = {
   	var s = 0D
     var i = 0
-    while( i < x.size ) s += x(i) * hv(i)
+    while( i < x.size ) {
+      s += x(i) * hv(i)
+      i += 1
+    }
   	( s + b ) / w
   }
 }

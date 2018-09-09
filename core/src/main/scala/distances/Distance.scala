@@ -1,5 +1,6 @@
 package clustering4ever.math.distances
 
+import scala.reflect.runtime.universe.TypeTag
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.scala.clusterizables.MixtClusterizable
 
@@ -12,7 +13,7 @@ trait Distance[T] extends Serializable {
 }
 
 trait ClusterizableDistance[T, S, D <: Distance[S]] extends Distance[T] {
-	def obtainClassicalDistance(): D
+	val classicalMetric: D
 }
 
 trait RealClusterizableDistance[T, S <: Seq[Double]] extends ClusterizableDistance[T, S, ContinuousDistance[S]]

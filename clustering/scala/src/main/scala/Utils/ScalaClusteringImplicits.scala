@@ -7,13 +7,13 @@ import clustering4ever.scala.measurableclass.BinaryScalarVector
 
 object ScalaClassicClusteringAlgorithmsImplicits extends CommonTypes
 {
-	type FastMixtVector = BinaryScalarVector[MB[Int], MB[Double]]
+	type ShortMixtVector = BinaryScalarVector[MB[Int], MB[Double]]
 
-	implicit def prepareDataWithIDToEuclideanKMeans[ID, V <: Seq[Double]](seq: GenSeq[(V, ID)])(implicit num: Numeric[ID]): parallel.ParSeq[RealClusterizable[Long, MB[Double], MB[Double]]] =
-		seq.par.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(num.toLong(id), vector.toBuffer) }
+	implicit def prepareDataWithIDToEuclideanKMeans[ID, V <: Seq[Double]](genSeq: GenSeq[(V, ID)])(implicit num: Numeric[ID]): GenSeq[RealClusterizable[Long, MB[Double], MB[Double]]] =
+		genSeq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(num.toLong(id), vector.toBuffer) }
 
-	implicit def prepareDataWithIDToEuclideanKModes[ID, V <: Seq[Int]](seq: GenSeq[(V, ID)])(implicit num: Numeric[ID]): parallel.ParSeq[BinaryClusterizable[Long, MB[Int], MB[Int]]] =
-		seq.par.map{ case (vector, id) => GenerateClusterizable.obtainSimpleBinaryClusterizable(num.toLong(id), vector.toBuffer) }
+	implicit def prepareDataWithIDToEuclideanKModes[ID, V <: Seq[Int]](genSeq: GenSeq[(V, ID)])(implicit num: Numeric[ID]): GenSeq[BinaryClusterizable[Long, MB[Int], MB[Int]]] =
+		genSeq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleBinaryClusterizable(num.toLong(id), vector.toBuffer) }
 
 	implicit def prepareDataWithIDToEuclideanHammingKPrototypes[
 		ID,
@@ -21,22 +21,24 @@ object ScalaClassicClusteringAlgorithmsImplicits extends CommonTypes
 		Vs <: Seq[Double],
 		V <: BinaryScalarVector[Vb, Vs]
 		]
-		(seq: GenSeq[(V, ID)])
-		(implicit num: Numeric[ID]): parallel.ParSeq[MixtClusterizable[
-			Long,
-			FastMixtVector,
-			MB[Int],
-			MB[Double],
-			FastMixtVector
-			]] =
-		seq.par.map{ case (vectors, id) => GenerateClusterizable.obtainSimpleMixtClusterizable[Long, MB[Int], MB[Double], FastMixtVector](num.toLong(id), new BinaryScalarVector(vectors.binary.toBuffer, vectors.scalar.toBuffer)) }
+		(genSeq: GenSeq[(V, ID)])
+		(implicit num: Numeric[ID]): GenSeq[
+			MixtClusterizable[
+				Long,
+				ShortMixtVector,
+				MB[Int],
+				MB[Double],
+				ShortMixtVector
+			]
+		] =
+		genSeq.map{ case (vectors, id) => GenerateClusterizable.obtainSimpleMixtClusterizable[Long, MB[Int], MB[Double], ShortMixtVector](num.toLong(id), new BinaryScalarVector(vectors.binary.toBuffer, vectors.scalar.toBuffer)) }
 
-	implicit def prepareToEuclideanKMeans[V <: Seq[Double]](seq: GenSeq[V]): parallel.ParSeq[RealClusterizable[Long, MB[Double], MB[Double]]] =
-		prepareDataWithIDToEuclideanKMeans(seq.zipWithIndex)
+	implicit def prepareToEuclideanKMeans[V <: Seq[Double]](genSeq: GenSeq[V]): GenSeq[RealClusterizable[Long, MB[Double], MB[Double]]] =
+		prepareDataWithIDToEuclideanKMeans(genSeq.zipWithIndex)
 
-	implicit def prepareToEuclideanKModes[V <: Seq[Int]](seq: GenSeq[V]): parallel.ParSeq[BinaryClusterizable[Long, MB[Int], MB[Int]]] =
-		prepareDataWithIDToEuclideanKModes(seq.zipWithIndex)
+	implicit def prepareToEuclideanKModes[V <: Seq[Int]](genSeq: GenSeq[V]): GenSeq[BinaryClusterizable[Long, MB[Int], MB[Int]]] =
+		prepareDataWithIDToEuclideanKModes(genSeq.zipWithIndex)
 
-	implicit def prepareToEuclideanHammingKPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](seq: GenSeq[V]): parallel.ParSeq[MixtClusterizable[Long, FastMixtVector, MB[Int], MB[Double], FastMixtVector]] =
-		prepareDataWithIDToEuclideanHammingKPrototypes[Int, Vb, Vs, V](seq.zipWithIndex)
+	implicit def prepareToEuclideanHammingKPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](genSeq: GenSeq[V]): GenSeq[MixtClusterizable[Long, ShortMixtVector, MB[Int], MB[Double], ShortMixtVector]] =
+		prepareDataWithIDToEuclideanHammingKPrototypes[Int, Vb, Vs, V](genSeq.zipWithIndex)
 }

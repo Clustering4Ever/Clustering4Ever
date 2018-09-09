@@ -7,8 +7,7 @@ trait Vectorizable[Vector] extends Serializable {
 }
 
 abstract class VectorizableObj[Obj, Vector](val obj: Obj, vectorizableFct: Option[Obj => Vector] = None) extends Vectorizable[Vector] {
-	def toVector(): Vector =
-	{
+	def toVector(): Vector = {
 		if( ! vectorizableFct.isDefined ) obj.asInstanceOf[Vector]
 		else vectorizableFct.get(obj)
 	}

@@ -15,6 +15,7 @@ object GenerateClusterizable {
 }
 
 object ScalaImplicits {
+
 	implicit def seqOfRealSeqWithIndexedSequenceToSeqOfRealClusterizable[ID: Numeric, V <: Seq[Double]](genSeq: GenSeq[(V, ID)]): GenSeq[RealClusterizable[ID, V, V]] =
 		genSeq.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(id, vector) }
 

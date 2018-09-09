@@ -8,7 +8,7 @@ import clustering4ever.scala.clusterizables.MixtClusterizable
 
 /**
  * @author Beck Gaël
- **/
+ */
 trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable {
 	protected val α: Double
 
@@ -17,7 +17,8 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScal
 		var ds = 0D
 		var i = 0
 		while( i < dot1.scalar.size ) {
-			ds += pow(dot1.scalar(i) - dot2.scalar(i), 2)
+			val toPow2 = dot1.scalar(i) - dot2.scalar(i)
+			ds += toPow2 * toPow2
 			i += 1
 		}
 
@@ -44,7 +45,7 @@ class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVe
 	
 }
 
-class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V] {
+class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D, val classicalMetric: HammingAndEuclidean[Vb, Vs, V]) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V] {
 	/**
 	 *	
 	 */

@@ -1,6 +1,6 @@
 package clustering4ever.scala.kernels
 
-import scala.math.{exp, tanh, pow}
+import scala.math.{exp, tanh}
 import breeze.linalg._
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
@@ -15,14 +15,14 @@ import clustering4ever.util.SimilarityMatrix
  **/
 object Kernels {
 
-	def flatKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S]) = if( metric.d(v1, v2) / pow(bandwidth, 2) <= 1D ) 1D else 0D 
+	def flatKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S]) = if( metric.d(v1, v2) / (bandwidth * bandwidth) <= 1D ) 1D else 0D 
 
-	def flatKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S], λ: Double = 1D) = if( metric.d(v1, v2) / pow(bandwidth, 2) <= λ ) 1D else 0D 
+	def flatKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S], λ: Double = 1D) = if( metric.d(v1, v2) / (bandwidth * bandwidth) <= λ ) 1D else 0D 
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-λ|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - λ is the bandwitch
 	 *  - |x<sub>1</sub>-x<sub>2</sub>| is the distance between x<sub>1</sub> and x<sub>2</sub>
-	 **/
+	 */
 	def gaussianKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S]) = {
 		val d = metric.d(v1, v2)
 		exp( - bandwidth * d * d )
@@ -38,16 +38,16 @@ object Kernels {
 		tanh(a * dotProd + b)
 	}
 
-	private def reducePreModeAndKernelValue[S <: Seq[Double]](gs: Seq[(S, Double)]) = gs.reduce( (a, b) => (SumVectors.sumVectors[Double, S](a._1, b._1), a._2 + b._2) )		
+	private[this] def reducePreModeAndKernelValue[S <: Seq[Double]](gs: Seq[(S, Double)]) = gs.reduce( (a, b) => (SumVectors.sumVectors[Double, S](a._1, b._1), a._2 + b._2) )		
+
+	private[this] def computeModeAndCastIt[S <: Seq[Double]](preMode: S, kernelValue: Double) = preMode.map(_ / kernelValue).asInstanceOf[S]
+
 	/**
 	 * Compute the local mode of a point v knowing its environement env, the bandwidth, kernelType and metric
 	 * @param kernelType can be either "gaussian" or "flat", if "flat" λ = 1
 	 * @param bandwidth of the kernel approach
 	 * @param metric is the dissimilarity measure used for kernels computation
-	 **/
-
-	private def computeModeAndCastIt[S <: Seq[Double]](preMode: S, kernelValue: Double) = preMode.map(_ / kernelValue).asInstanceOf[S]
-
+	 */
 	def obtainModeThroughKernel[S <: Seq[Double]](v: S, env: Seq[S], bandwidth: Double, kernelType: KernelType, metric: ContinuousDistance[S]): S = {
 		val kernel: (S, S, Double, ContinuousDistance[S]) => Double = kernelType match {
 			case KernelNature.Gaussian => gaussianKernel[S]
@@ -73,12 +73,11 @@ object Kernels {
 		computeModeAndCastIt[S](preMode, kernelValue)
 	}
 
-	private def obtainKnn[Obj](v: Obj, env: Seq[Obj], k: Int, metric: Distance[Obj]) = env.sortBy( v2 => metric.d(v, v2) ).take(k)
-
+	private[this] def obtainKnn[Obj](v: Obj, env: Seq[Obj], k: Int, metric: Distance[Obj]) = env.sortBy( v2 => metric.d(v, v2) ).take(k)
 	/**
 	 * The KNN kernel for euclidean space, it select KNN using a specific distance measure and compute the mean<sup>*</sup> of them
 	 * @note Mean computation has a sense only for euclidean distance.
-	 **/
+	 */
 	def euclideanKnnKernel[S <: Seq[Double]](v: S, env: Seq[S], k: Int, metric: Euclidean[S]): S = {
 		val knn = obtainKnn[S](v, env, k, metric)
 		SumVectors.obtainMean[S](knn)

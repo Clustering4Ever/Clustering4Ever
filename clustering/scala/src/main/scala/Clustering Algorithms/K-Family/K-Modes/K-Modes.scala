@@ -1,10 +1,6 @@
 package clustering4ever.scala.clustering.kmodes
 
-import org.apache.commons.math3.distribution.EnumeratedDistribution
-import org.apache.commons.math3.util.Pair
-import scala.collection.JavaConverters._
 import scala.collection.{GenSeq, mutable}
-import scala.math.pow
 import scala.reflect.ClassTag
 import scala.util.Random
 import clustering4ever.math.distances.BinaryDistance
@@ -22,13 +18,11 @@ class KModes[ID: Numeric, Obj, V <: Seq[Int] : ClassTag, Bc <: BinaryClusterizab
 	maxIterations: Int,
 	metric: D = new Hamming[V],
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-) extends KCommonsVectors[ID, Int, V, D, Bc](data, metric, k, initializedCenters)
-{
+) extends KCommonsVectors[ID, Int, V, D, Bc](data, metric, k, initializedCenters) {
 	/**
 	 * Run the K-Means
 	 */
-	def run(): KModesModel[ID, Obj, V, Bc, D] =
-	{
+	def run(): KModesModel[ID, Obj, V, Bc, D] = {
 		/**
 		 * Run the K-Modes with Hamming metric
 		 */
@@ -36,22 +30,19 @@ class KModes[ID: Numeric, Obj, V <: Seq[Int] : ClassTag, Bc <: BinaryClusterizab
 		{
 			var cpt = 0
 			var allCentersHaveConverged = false
-			while( cpt < maxIterations && ! allCentersHaveConverged )
-			{
+			while( cpt < maxIterations && ! allCentersHaveConverged ) {
 				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(centers, centersCardinality)
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
-				{
 					centers(clusterID) = SumVectors.obtainMode(aggregate.map(_._1)).asInstanceOf[V]
 					centersCardinality(clusterID) += aggregate.size
-				}}
+				}
 				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
 				cpt += 1
 			}
 			new KModesModel[ID, Obj, V, Bc, D](centers, metric)
 		}
 
-		def runCustom(): KModesModel[ID, Obj, V, Bc, D] =
-		{
+		def runCustom(): KModesModel[ID, Obj, V, Bc, D] = {
 			runKAlgorithmWithCustomMetric(maxIterations, epsilon)
 			new KModesModel[ID, Obj, V, Bc, D](centers, metric)
 		}
@@ -60,8 +51,7 @@ class KModes[ID: Numeric, Obj, V <: Seq[Int] : ClassTag, Bc <: BinaryClusterizab
 	}
 }
 
-object KModes
-{
+object KModes {
 	/**
 	 * Run the K-Modes with any binary distance
 	 */
@@ -72,8 +62,7 @@ object KModes
 		maxIterations: Int,
 		metric: D = new Hamming[V],
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	): KModesModel[ID, Obj, V, Bc, D] =
-	{
+	): KModesModel[ID, Obj, V, Bc, D] = {
 		val kmodes = new KModes[ID, Obj, V, Bc, D](data, k, epsilon, maxIterations, metric, initializedCenters)
 		val kModesModel = kmodes.run()
 		kModesModel

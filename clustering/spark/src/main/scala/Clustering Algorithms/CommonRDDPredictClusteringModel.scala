@@ -7,8 +7,7 @@ import org.apache.spark.rdd.RDD
 /**
  * @author Beck Gaël
  **/
-trait CommonRDDPredictClusteringModel[V, D <: Distance[V]] extends CommonPredictClusteringModel[V, D]
-{
+trait CommonRDDPredictClusteringModel[V, D <: Distance[V]] extends CommonPredictClusteringModel[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input RDD with labels obtain via centerPredict method

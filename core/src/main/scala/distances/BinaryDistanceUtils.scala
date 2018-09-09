@@ -20,8 +20,7 @@ object BinaryDistanceUtil {
 		val zeroByte = 0
 
 		def incrementValues(n: Int, a: Int, b: Int, c: Int, d: Int): (Int, Int, Int, Int) = {
-			if( vector1(n) == oneByte )
-			{
+			if( vector1(n) == oneByte ) {
 				if( vector2(n) == oneByte ) (a + 1, b, c, d)
 				else (a, b + 1, c, d)
 			}
@@ -53,9 +52,10 @@ object BinaryDistanceUtil {
 	def genProb2Feat(nbOccFeatTab: Seq[(Int, Int)], nbTotData: Int): Seq[(Double, Double)] = {
 		nbOccFeatTab.map{ case (zero, one) =>
 			val totDataMinusOne = nbTotData - 1D
+			val product = nbTotData * totDataMinusOne
 			(
-				(zero * (zero - 1D)) / (nbTotData * totDataMinusOne),
-				(one * (one - 1D)) / (nbTotData * totDataMinusOne)
+				(zero * (zero - 1D)) / product,
+				(one * (one - 1D)) / product
 			)
 		}
 	}

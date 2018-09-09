@@ -3,8 +3,8 @@ package clustering4ever.util
 import org.apache.spark.rdd.RDD
 import clustering4ever.scala.clusterizables.{RealClusterizable, BinaryClusterizable}
 
-object SparkImplicits
-{
+object SparkImplicits {
+
 	implicit def realVectorWithIndexRDDToRealClusterizable[ID: Numeric, V <: Seq[Double]](rdd: RDD[(V, ID)]): RDD[RealClusterizable[ID, V, V]] =
 		rdd.map{ case (vector, id) => GenerateClusterizable.obtainSimpleRealClusterizable(id, vector) }
 

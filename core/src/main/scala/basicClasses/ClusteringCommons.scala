@@ -10,7 +10,7 @@ trait DataSetsTypes[IDNature] extends ClusteringCommons {
 
 trait ClusteringModel extends ClusteringCommons with Serializable
 
-trait ClusteringAlgorithms[IDNature] extends DataSetsTypes[IDNature] with Serializable {
+trait ClusteringAlgorithms[ID] extends DataSetsTypes[ID] with Serializable {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel

@@ -15,8 +15,11 @@ object Stats extends ClusteringCommons with CommonTypes {
 	 */
 	def sd(vectors: GenSeq[mutable.ArrayBuffer[Double]], mean: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = {
 		val sd = mutable.ArrayBuffer.fill(vectors.head.size)(0D)
-		vectors.foreach( v => v.seq.indices.foreach( i => sd(i) = sd(i) + pow(v(i) - mean(i), 2) ) )
-		sd.map(_ / (vectors.size - 1))
+		vectors.foreach( v => v.seq.indices.foreach{ i => 
+			val toPow2 = v(i) - mean(i)
+			sd(i) = sd(i) + toPow2 * toPow2
+		})
+		sd.map( v => sqrt(v / (vectors.size - 1)) )
 	}
 	/**
 	 * @return min and max for the ith component in reduce style

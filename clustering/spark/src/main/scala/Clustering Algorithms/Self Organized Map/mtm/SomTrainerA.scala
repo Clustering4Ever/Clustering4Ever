@@ -98,7 +98,6 @@ class SomTrainerA(metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Do
     
   }
 
-  //protected def processT(maxIt:Int, currentIt:Int) = maxIt.toFloat - currentIt
   protected def processT(maxIt: Int, currentIt: Int) = this.tmax * math.pow(this.tmin / this.tmax, currentIt / (maxIt.toFloat - 1))
 
   protected class SomModel(val nbRow: Int, val nbCol: Int, neurons: Array[SomNeuron]) extends AbstractModel(neurons.asInstanceOf[Array[AbstractPrototype]])

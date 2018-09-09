@@ -40,37 +40,27 @@ class KPrototypes[
 	dataIn: RDD[Cz],
 	k: Int,
 	epsilon: Double,
-	var maxIter: Int,
-	var metric: D,
+	maxIter: Int,
+	metric: D,
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSparkMixt[ID, Vb, Vs, V, Cz, D](dataIn, metric, k, initializedCenters, persistanceLVL)
-{
+) extends KCommonsSparkMixt[ID, Vb, Vs, V, Cz, D](dataIn, metric, k, initializedCenters, persistanceLVL) {
+
 	private[this] val data = dataIn.map(_.vector).persist(persistanceLVL)
 
 	private[this] def obtainNearestModID(v: V, centers: mutable.HashMap[Int, V]): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
 
-	def run(): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, D] =
-	{
+	def run(): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, D] = {
 		var cpt = 0
 		var allModHaveConverged = false
-		while( cpt < maxIter && ! allModHaveConverged )
-		{
+		while( cpt < maxIter && ! allModHaveConverged ) {
 			val centersInfo = obtainvalCentersInfo.map{ case (clusterID, (cardinality, preMean)) =>
-			{
-				(
-					clusterID,
-					{
-						// Majority Vote for Hamming Distance
-						val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 ).asInstanceOf[Vb]
-						// Mean for Euclidean Distance
-						val scalarVector = preMean.scalar.map(_ / cardinality).asInstanceOf[Vs]
-						(new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V]
-					},
-					cardinality
-				)
-
-			}}
+				// Majority Vote for Hamming Distance
+				val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 ).asInstanceOf[Vb]
+				// Mean for Euclidean Distance
+				val scalarVector = preMean.scalar.map(_ / cardinality).asInstanceOf[Vs]
+				(clusterID, (new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V], cardinality)
+			}
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
@@ -79,8 +69,7 @@ class KPrototypes[
 }
 
 
-object KPrototypes extends DataSetsTypes[Long]
-{
+object KPrototypes extends DataSetsTypes[Long] {
 	def run[
 		ID: Numeric,
 		Obj,
@@ -97,8 +86,7 @@ object KPrototypes extends DataSetsTypes[Long]
 		maxIter: Int,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-	): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]] =
-	{
+	): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]] = {
 		val metric = new HammingAndEuclidean[Vb, Vs, V]
 		val kPrototypes = new KPrototypes[ID, Obj, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kPrototypesModel = kPrototypes.run()

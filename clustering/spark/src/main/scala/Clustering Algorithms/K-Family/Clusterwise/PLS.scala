@@ -1,12 +1,11 @@
 package clustering4ever.spark.clustering.clusterwise
 
 import scala.math.{pow, sqrt => ssqrt}
-import scala.collection.{mutable, GenSeq}
+import scala.collection.{immutable, mutable, GenSeq}
 import clustering4ever.util.SumVectors
-import breeze.linalg._
+import breeze.linalg.{DenseVector, DenseMatrix, Transpose, eigSym, svd, sum, *, diag}
 
-trait CommonPLSTypes
-{
+trait CommonPLSTypes {
 	type IdWithX[S <: Seq[Double]] = mutable.ArrayBuffer[(Int, S)]
 	type Y[S <: Seq[Double]] = mutable.ArrayBuffer[S]
 }
@@ -18,10 +17,8 @@ class PLS[S <: Seq[Double]](
 	h: Int,
 	lw: Double,
 	ktabXdudiY: (Int, Double, Double)
-) extends AbstractRegression with CommonPLSTypes
-{
-	def reg() = 
-	{
+) extends AbstractRegression with CommonPLSTypes {
+	def regression: (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val (idxDsX, dsX) = dsXi.unzip
 		val ncolX = dsX.head.size
 		val nrowX = dsX.size
@@ -32,8 +29,8 @@ class PLS[S <: Seq[Double]](
 		val meanYa = meanY.toArray
 
 
-		val yK = dsY.map( _.zip(meanY).map{ case (y, meanY) => y - meanY } )
-		val xK = dsX.map( _.zip(meanX).map{ case (x, meanX) => x - meanX } )
+		val yK = dsY.map(_.zip(meanY).map{ case (y, meanY) => y - meanY })
+		val xK = dsX.map(_.zip(meanX).map{ case (x, meanX) => x - meanX })
 
 		val maxdim = h
 		val nblo = 0
@@ -55,8 +52,7 @@ class PLS[S <: Seq[Double]](
 		val yKt = yK.transpose.map(_.seq).seq
 		val bYkt = DenseMatrix(yKt:_*)
 
-		for( i <- 0 until maxdim )
-		{
+		for( i <- 0 until maxdim ) {
 			val bXklw = bxK.map(_ * lw)
 			val bXkt = bxK.t
 			val bXklwT = bXklw.t
@@ -65,31 +61,28 @@ class PLS[S <: Seq[Double]](
 
 			val eigen = eigSym(crossprod2)
 			val eigenVectors = eigen.eigenvectors.map( - _)
-			val eigenValues = eigen.eigenvalues.toArray.zipWithIndex.sortBy(- _._1)
+			val eigenValues = eigen.eigenvalues.toArray.zipWithIndex.sortBy(_._1)(Ordering[Double].reverse)
 			val rescov2in = mutable.ArrayBuffer.empty[Double]
 			var covutk = 0D
 		  
-			for( k <- 0 to nblo )
-			{
+			for( k <- 0 to nblo ) {
 				reseig += eigenValues(0)._1
 				resYc1 += eigenVectors(::, eigenValues(0)._2)
 				reslY += bYk * resYc1(i)
 				resTc1 += bXklwT * reslY(i)
-				resTc1(i) =
-				{
+				resTc1(i) = {
 					val tmpA = resTc1(i).toArray
-					val sqrtsum = ssqrt(tmpA.map( x => scala.math.pow(x, 2)).sum )
+					val sqrtsum = ssqrt(tmpA.map( x => x * x ).sum )
 					DenseVector(tmpA.map(_ / sqrtsum))
 				}
 				resTlX += bxK * resTc1(i)
 				covutk = reslY(i).map(_ * lw).t * resTlX(i)
-				rescov2in += scala.math.pow(covutk, 2)
+				rescov2in += covutk * covutk
 			}
 			
 			rescov2 += rescov2in
 			
-			for( k <- 0 to nblo )
-			{
+			for( k <- 0 to nblo ) {
 				ak += covutk / ssqrt(rescov2(i).sum)
 				reslX += resTlX(i).map(_ * ak(i))
 			}
@@ -106,10 +99,9 @@ class PLS[S <: Seq[Double]](
 			val rd = s.map(1D / _)
 			val maxtol = math.max(tol * s(0), 0)
 			val rsIdx = s.toArray.zipWithIndex
-			val positive = rsIdx.filter( _._1 > maxtol ).map(_._2).toArray
+			val positive = rsIdx.collect{ case (x, y) if x > maxtol => y }.toArray
 
-			val ginv = if( positive.size == rsIdx.size )
-			{
+			val ginv = if( positive.size == rsIdx.size ) {
 				val rdScala = rd.toArray
 				val trutScala = rut.toArray.grouped(rut.rows).toArray.transpose
 				val rowWiseProduct = rdScala.zip(trutScala).map{ case(multiplier, row) => row.map(_ * multiplier) }
@@ -117,8 +109,7 @@ class PLS[S <: Seq[Double]](
 				v.t * breezeRowWiseProduct
 			}
 			else if( positive.size == 0 ) DenseMatrix.zeros[Double](rsIdx.size, rsIdx.size)
-			else
-			{
+			else {
 				val xsvdvKept = v.toArray.grouped(v.rows).toArray.map( row => for( keep <- positive ) yield (row(keep)) )
 				val breezeXsvdKeptRv = DenseMatrix(xsvdvKept:_*)
 
@@ -151,12 +142,10 @@ class PLS[S <: Seq[Double]](
 
 		val resFax = mutable.ArrayBuffer(resW.head)
 
-		if( maxdim >= 2 )
-		{
+		if( maxdim >= 2 ) {
 			val identityM = DenseMatrix.eye[Double](ncolX)
 
-			def addToBuff(i: Int, m: DenseMatrix[Double]) =
-			{
+			def addToBuff(i: Int, m: DenseMatrix[Double]) = {
 				val a0 = resl1(i - 2).t * bxK
 				val a1 = ssqrt(reslX(i - 1).t * reslX(i - 1))
 				val a = a0.t.map(_ / a1).t
@@ -166,8 +155,7 @@ class PLS[S <: Seq[Double]](
 			}
 
 			@annotation.tailrec
-			def go(i: Int, m: DenseMatrix[Double]): DenseMatrix[Double] =
-			{
+			def go(i: Int, m: DenseMatrix[Double]): DenseMatrix[Double] = {
 				if( i < maxdim ) go(i + 1, addToBuff(i, m))
 				else addToBuff(i, m)
 			}
@@ -182,22 +170,20 @@ class PLS[S <: Seq[Double]](
 		val resYco = bYk.t * diag(DenseVector(Array.fill(nrowX)(lw))) * reslXmat
 		val scalaResYco = resYco.toArray.grouped(resYco.rows).toArray.transpose
 
-		val resYcoli = scalaResYco.map(_.zipWithIndex.map{ case(v,idx) => v / normli(idx) })
+		val resYcoli = scalaResYco.map(_.zipWithIndex.map{ case (v, idx) => v / normli(idx) })
 
 
-		val resFaxRange = (0 until resFax.size)
-		val rr = (0 until ncolY).map( i => resFaxRange.map( j => resFax(j).map(_ * resYcoli(i)(j)) ) )
+		val faxRange = (0 until resFax.size)
+		val rr = (0 until ncolY).map( i => faxRange.map( j => resFax(j).map(_ * resYcoli(i)(j)) ) )
 
-		val resXYcoef = for( i <- 0 until ncolY ) yield(
-		{
+		val resXYcoef = for( i <- 0 until ncolY ) yield {
 	  		var cum = DenseVector.zeros[Double](rr.head.head.size)
-	  		for( j <- resFaxRange ) yield(
-	  		{
+	  		faxRange.map{ j =>
 			    val res = rr(i)(j) + cum
 			    cum = rr(i)(j)
 			    res
-	  		})
-		})
+	  		}
+		}
 
 		val dataXb = DenseMatrix(dsX.seq:_*)
 		val dataYb = DenseMatrix(dsY.seq:_*)
@@ -212,63 +198,52 @@ class PLS[S <: Seq[Double]](
 
 		val residuals = arrayRange1.map( i => DenseMatrix(Array.fill(maxdim)(dataYb(::,i).toArray):_*).t - resFitted(i) )
 
-		val sumResidualSq = for( i <- 0 until ncolY ) yield(
-		{ 
-		  val squared = residuals(i).map(pow(_, 2))
+		val sumResidualSq = for( i <- 0 until ncolY ) yield { 
+		  val squared = residuals(i).map( x => x * x )
 		  sum(squared(::, *))
-		})
+		}
 
-		val rescritregmat = DenseMatrix((0 until sumResidualSq.size).map( j => sumResidualSq(j).t.toArray ).toArray:_* )
-		val resCritReg = sum( rescritregmat(::, *) )
+		val regressionCriteriaMatrix = DenseMatrix((0 until sumResidualSq.size).map( j => sumResidualSq(j).t.toArray ).toArray:_* )
+		val regressionCriteria: Transpose[DenseVector[Double]] = sum(regressionCriteriaMatrix(::, *))
+		val regressionCriteriaHopt = regressionCriteria.apply(h - 1)
 
-		val resCritRegHopt = resCritReg.t.toVector.apply(h - 1)
+		val arrayRange2 = (0 until ncolY)
+		val xyCoef = new DenseMatrix(rows = resXYcoefBreeze(0).rows, cols = ncolY, arrayRange2.flatMap( i => resXYcoefBreeze(i)(::, h - 1).toArray ).toArray)
+		val interceptF = resIntercept.map(_.toArray.last).toArray
+		val fittedF = new DenseMatrix(rows = resFitted(0).rows, cols = ncolY, arrayRange2.flatMap( i => resFitted(i)(::,h - 1).toArray ).toArray)
+		val fittedFscala = (0 until fittedF.rows).map( i => (idxDsX(i), fittedF(i,::).t.toArray) )
 
-		val arrayRange2 = (0 until ncolY).toArray
-
-		val colss = arrayRange2.map( i => resXYcoefBreeze(i)(::, h - 1) )
-		val resXYcoefF = new DenseMatrix(rows = resXYcoefBreeze(0).rows, cols = ncolY, colss.flatMap(_.toArray) )
-		val resInterceptF = resIntercept.map(_.toArray.last).toArray
-		val colsss = arrayRange2.map( i => resFitted(i)(::,h - 1) )
-		val resFittedF = new DenseMatrix(rows = resFitted(0).rows, cols = ncolY, colsss.flatMap(_.toArray) )
-		val resFittedFscala = (0 until resFittedF.rows).toVector.map( i => (idxDsX(i), resFittedF(i,::).t.toArray.toVector) )
-
-		(resCritRegHopt, resXYcoefF, resInterceptF, resFittedFscala)
+		(regressionCriteriaHopt, xyCoef, interceptF, fittedFscala)
 	}
 }
 
+object PLS extends CommonPLSTypes {
 
-object PLS extends CommonPLSTypes
-{
-	def runClusterwisePLS[S <: Seq[Double]](dsX: Array[IdWithX[S]], dsY: Array[Y[S]], g: Int, h: Int) =
-	{
+	def runClusterwisePLS[S <: Seq[Double]](dsX: Array[IdWithX[S]], dsY: Array[Y[S]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
 		val lw = 1D / n
 		val mbplsObj = new PLS(dsX(g), dsY(g), n, h, lw, ktabXdudiYval)
-		mbplsObj.reg()
+		mbplsObj.regression
 	}
 
-	def runPLS[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], h: Int) =
-	{
+	def runPLS[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX.size
 		val lw = 1D / n
 		val ktabXdudiYvalues = ktabXdudiY(dsX, dsY, n)
 		val mbplsObj = new PLS(dsX, dsY, n, h, lw, ktabXdudiYvalues)
-		mbplsObj.reg()
+		mbplsObj.regression
 	}
 
-	def ktabXdudiY[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], n: Int): (Int, Double, Double) =
-	{
+	def ktabXdudiY[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], n: Int): (Int, Double, Double) = {
 		val lw = 1D / n
 		val cw = dsX.head._2.size
 		val colw = dsY.head.size
 		val dsY0 = dsY.map(_.head)
 		val roww = dsY0.map( x => 1D / n )
-		val ds = dsY0.zip(roww).map( x => x._1 * ssqrt(x._2))
-		val eigValue = ds.map(pow(_, 2)).sum
+		val ds = dsY0.zip(roww).map{ case (x, y) => x * ssqrt(y) }
+		val eigValue = ds.map( x => x * x ).sum
 		(cw, lw, eigValue)
 	}
-
-
 }
 

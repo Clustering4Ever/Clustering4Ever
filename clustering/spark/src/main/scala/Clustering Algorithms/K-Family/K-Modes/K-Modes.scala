@@ -34,19 +34,16 @@ class KModes[
 	@transient val sc: SparkContext,
 	data: RDD[Cz],
 	k: Int,
-	var epsilon: Double,
-	var maxIter: Int,
+	epsilon: Double,
+	maxIter: Int,
 	metric: D = new Hamming[V],
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSparkVectors[ID, Int, V, Cz, D](data, metric, k, initializedCenters, persistanceLVL)
-{
-	def run(): KModesModel[ID, Obj, V, Cz, D] =
-	{
+) extends KCommonsSparkVectors[ID, Int, V, Cz, D](data, metric, k, initializedCenters, persistanceLVL) {
+	def run(): KModesModel[ID, Obj, V, Cz, D] =	{
 		var cpt = 0
 		var allModHaveConverged = false
-		while( cpt < maxIter && ! allModHaveConverged )
-		{
+		while( cpt < maxIter && ! allModHaveConverged ) {
 			val centersInfo = obtainvalCentersInfo.map{ case (clusterID, (cardinality, preMode)) => 
 				(
 					clusterID,
@@ -77,8 +74,7 @@ object KModes
 		maxIter: Int,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-	): KModesModel[ID, Obj, V, Cz, Hamming[V]] =
-	{
+	): KModesModel[ID, Obj, V, Cz, Hamming[V]] = {
 		val metric = new Hamming[V]
 		val kmodes = new KModes[ID, Obj, V, Cz, Hamming[V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kModesModel = kmodes.run()

@@ -37,19 +37,17 @@ class KMeans[
 	@transient val sc: SparkContext,
 	data: RDD[Cz],
 	k: Int,
-	var epsilon: Double,
-	var maxIter: Int,
+	epsilon: Double,
+	maxIter: Int,
 	metric: D = new Euclidean[V](squareRoot = true),
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSparkVectors[ID, Double, V, Cz, D](data, metric, k, initializedCenters, persistanceLVL)
-{
-	def run(): KMeansModel[ID, Obj, V, Cz, D] =
-	{
+) extends KCommonsSparkVectors[ID, Double, V, Cz, D](data, metric, k, initializedCenters, persistanceLVL) {
+
+	def run(): KMeansModel[ID, Obj, V, Cz, D] = {
 		var cpt = 0
 		var allModHaveConverged = false
-		while( cpt < maxIter && ! allModHaveConverged )
-		{
+		while( cpt < maxIter && ! allModHaveConverged ) {
 			val centersInfo = obtainvalCentersInfo.map{ case (clusterID, (cardinality, preMean)) => 
 				(
 					clusterID,
@@ -65,8 +63,8 @@ class KMeans[
 }
 
 
-object KMeans
-{
+object KMeans {
+
 	def run[
 		ID: Numeric,
 		Obj,
@@ -81,8 +79,7 @@ object KMeans
 		maxIter: Int,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	): KMeansModel[ID, Obj, V, Cz, Euclidean[V]] =
-	{
+	): KMeansModel[ID, Obj, V, Cz, Euclidean[V]] = {
 		val metric = new Euclidean[V](squareRoot = true)
 		val kmeans = new KMeans[ID, Obj, V, Cz, Euclidean[V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kmeansModel = kmeans.run()

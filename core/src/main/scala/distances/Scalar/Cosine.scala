@@ -4,7 +4,7 @@ import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.util.SumVectors
 /**
  * @author Beck Gaël
- **/
+ */
 class Cosine[S <: Seq[Double]] extends ContinuousDistance[S] {
 	/**
 	  * The cosine distance
