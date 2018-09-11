@@ -18,9 +18,9 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 )
 
 lazy val coreDeps = libraryDependencies ++= Seq(
-	  "org.scalanlp" %% "breeze-natives" % "0.13.2"
+	  "org.scalanlp" %% "breeze-natives" % "0.13.2",
+	  "org.typelevel" %% "spire" % "0.14.1"
 	  // "org.scalanlp" %% "breeze" % "0.13.2",
-	  // "org.typelevel" %% "spire" % "0.14.1"
 )
 
 lazy val scalaDeps = libraryDependencies ++= Seq(
@@ -40,13 +40,13 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "clustering4ever",
 		bintrayRepository := "Clustering4Ever",
-	 	version := "0.6.7",
+	 	version := "0.6.8",
 		scalaVersion := "2.11.12",
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
 		bintrayOrganization := Some("clustering4ever"),
 		credentials += Credentials(Path.userHome / ".bintray" / ".credentials"),
-		scalacOptions ++= Seq("-unchecked", "-deprecation")
+		// scalacOptions ++= Seq("-unchecked", "-deprecation")
 )
 
 lazy val core = (project in file("core"))
@@ -68,7 +68,8 @@ lazy val clusteringSpark = (project in file("clustering/spark"))
 
 lazy val documentation = (project in file("documentation"))
 	.settings(commonSettingsC4E: _*)
-  	.settings( name := "documentation" )
+  	.settings(name := "documentation")
+  	.settings(skip in publish := true)
 	.enablePlugins(ScalaUnidocPlugin)
 	.aggregate(core, clusteringScala, clusteringSpark)
 

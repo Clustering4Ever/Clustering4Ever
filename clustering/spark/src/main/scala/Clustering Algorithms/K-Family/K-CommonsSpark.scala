@@ -16,6 +16,7 @@ import clustering4ever.scala.clustering.KCommons
 import clustering4ever.clustering.CommonRDDPredictClusteringModel
 import clustering4ever.util.SumVectors
 import clustering4ever.scala.measurableclass.BinaryScalarVector
+import spire.math.{Numeric => SNumeric}
 
 abstract class KCommonsSpark[
 	ID: Numeric,
@@ -77,7 +78,7 @@ abstract class KCommonsSpark[
 
 abstract class KCommonsSparkVectors[
 	ID: Numeric,
-	N: Numeric,
+	N: SNumeric,
 	V <: Seq[N] : ClassTag,
 	Cz <: Clusterizable[ID, V],
 	D <: Distance[V]

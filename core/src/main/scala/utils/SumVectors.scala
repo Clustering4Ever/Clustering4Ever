@@ -4,6 +4,7 @@ import scala.reflect.ClassTag
 import scala.math.sqrt
 import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
+
 /**
  * @author Beck Gaël
  * Object which gather common operation on Seq[N] and GenSeq[Seq[N]]
@@ -12,15 +13,15 @@ object SumVectors {
 	/**
 	 * Sum two vector of Numeric into one
 	 */
-	def sumVectors[N, S <: Seq[N]](a: S, b: S)(implicit num: Numeric[N]): S = a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[S]
+	def sumVectors[@specialized(Int, Double) N, S <: Iterable[N]](a: S, b: S)(implicit num: SNumeric[N]): S = a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[S]
 	/**
 	 * Reduce an Array[Array[N]] into an Array[N]
 	 */
-	def sumColumnMatrix[N: Numeric, S <: Seq[N]](cluster: GenSeq[S]): S = cluster.reduce(sumVectors[N, S](_, _))
+	def sumColumnMatrix[@specialized(Int, Double) N: SNumeric, S <: Iterable[N]](cluster: GenSeq[S]): S = cluster.reduce(sumVectors[N, S](_, _))
 	/**
 	 * Reduce Array of multiple vectors
 	 */
-	def reduceMultipleVectorsMatrice[S <: Seq[Double]](a: GenSeq[S], b: GenSeq[S]) = a.zip(b).map{ case (c, d) => sumVectors[Double, S](c, d) }.asInstanceOf[S]
+	def reduceMultipleVectorsMatrice[S <: Seq[Double], It <: Iterable[S]](a: It, b: It) = a.zip(b).map{ case (c, d) => sumVectors[Double, S](c, d) }.asInstanceOf[It]
 	/**
 	 * Make the dot product of the difference dot1 - dot2
 	 * @return dor product of difference
