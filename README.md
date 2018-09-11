@@ -43,8 +43,9 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/Clusteri
 * **_K-Modes_**
 * **_K-Prototypes_**
 * _Mean Shift Gradient Ascent_
-* **Self Organizing Maps**
-* **G-Stream**
+* **[Self Organizing Maps](https://github.com/TugdualSarazin/spark-clustering)**
+* **[G-Stream](https://github.com/Spark-clustering-notebook/G-stream)**
+* **[PatchWork](https://github.com/crim-ca/patchwork)**
 
 ### Quality indexes
 
@@ -134,8 +135,6 @@ They allow you to pass directly to our `data` algorithms argument as either `Gen
   * Complexity **_O(k.n.t)_**
   * Implementation allowing the choice of the dissimilarity measure.
   * **Warning** -> with another distance than Euclidean, similarity matrix in _O(n<sup>2</sup>)_ of each cluster is computed to find the best prototype, depending on cluster size it can becomes way slower than Euclidean
-* [Gaussian Mixture](https://en.wikipedia.org/wiki/Mixture_model)
-  * Complexity **_O(k.n.t)_**
 
 #### Binary data
 
