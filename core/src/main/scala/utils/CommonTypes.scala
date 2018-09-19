@@ -1,5 +1,7 @@
 package clustering4ever.util
-
+/**
+ * @author Beck Gaël
+ */
 import scala.collection.{mutable, parallel}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 

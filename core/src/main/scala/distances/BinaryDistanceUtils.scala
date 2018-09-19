@@ -1,11 +1,10 @@
 package clustering4ever.math.distances
-
-import scala.collection.mutable
-import clustering4ever.util.SumVectors
-
 /**
  * @author Beck Gaël
  */
+import scala.collection.mutable
+import clustering4ever.util.SumVectors
+
 object BinaryDistanceUtil {
 	/**
 	 * Buil the contingency matrix where for each bite i, j :

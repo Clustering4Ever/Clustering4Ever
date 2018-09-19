@@ -1,5 +1,8 @@
 package clustering4ever.clustering
-
+/**
+ * @author Beck Gaël
+ */
+ 
 trait ClusteringCommons {
 	type ClusterID = Int
 }

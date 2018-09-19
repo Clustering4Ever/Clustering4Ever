@@ -1,5 +1,7 @@
 package clustering4ever.scala.clustering.meanshift
-
+/**
+ * @author Beck Gaël
+ */
 import scala.util.Random
 import scala.math.{min, max}
 import scala.collection.{immutable, mutable, GenSeq}
@@ -16,11 +18,16 @@ import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable
 
 /**
- * @author Beck Gaël
  * Mean Shift gradient ascent
  * @param kernelType defines the nature of kernel usud in the gradient ascent
  */
-class GradientAscent[ID: Numeric, Obj, V <: Seq[Double], Cz <: RealClusterizable[ID, Obj, V], D <: ContinuousDistance[V]](
+class GradientAscent[
+  ID: Numeric,
+  O,
+  V <: Seq[Double],
+  Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
+  D <: ContinuousDistance[V]
+](
   epsilon: Double,
   maxIterations: Int,
   metric: D,
@@ -28,11 +35,11 @@ class GradientAscent[ID: Numeric, Obj, V <: Seq[Double], Cz <: RealClusterizable
   kernelArgs: immutable.Vector[String]
 ) extends DataSetsTypes[ID] {
 
-  def gradientAscent(readyToGA: GenSeq[Cz]) = {
+  def gradientAscent(readyToGA: GenSeq[Cz[ID, O, V]]) = {
     val haveNotConverged = false
     val kernelLocality = readyToGA.map(_.vector).seq
 
-    var gradientAscentData: GenSeq[(Cz, Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
 
     lazy val kernelLocalitySeq: Option[Seq[V]] = kernelType match {
       case KernelNature.EuclideanKNN => Some(kernelLocality)
@@ -40,7 +47,7 @@ class GradientAscent[ID: Numeric, Obj, V <: Seq[Double], Cz <: RealClusterizable
       case _ => None
     }
 
-    def kernelGradientAscent(toExplore: GenSeq[(Cz, Boolean)]) = {
+    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
         val mode = obj.v2.get
@@ -61,7 +68,7 @@ class GradientAscent[ID: Numeric, Obj, V <: Seq[Double], Cz <: RealClusterizable
         }
         else false
 
-        (obj.setV2[Cz](newMode.asInstanceOf[V]), hasConverged)
+        (obj.setV2(newMode.asInstanceOf[V]), hasConverged)
       }
       (convergingData, cptConvergedPoints)
     }
@@ -83,12 +90,18 @@ object GradientAscent extends DataSetsTypes[Int] {
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
    */
-   def run[ID: Numeric, Obj, V <: Seq[Double], Cz <: RealClusterizable[ID, Obj, V], D <: ContinuousDistance[V]](
-    data: GenSeq[Cz],
+  def run[
+    ID: Numeric,
+    O,
+    V <: Seq[Double],
+    Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
+    D <: ContinuousDistance[V]
+  ](
+    data: GenSeq[Cz[ID, O, V]],
     metric: D,
     epsilon: Double,
     maxIterations: Int,
     kernelType: KernelType,
     kernelArgs: immutable.Vector[String]
-    ) = (new GradientAscent[ID, Obj, V, Cz, D](epsilon, maxIterations, metric, kernelType, kernelArgs)).gradientAscent(data)
+    ) = (new GradientAscent[ID, O, V, Cz, D](epsilon, maxIterations, metric, kernelType, kernelArgs)).gradientAscent(data)
 }

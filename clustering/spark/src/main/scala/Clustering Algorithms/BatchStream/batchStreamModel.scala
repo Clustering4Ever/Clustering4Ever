@@ -132,7 +132,7 @@ class BatchStreamModel(
 		pointStats.foreach { case (label, (bmu2, errs, sum, count, idsData)) =>
 		  
 		  // increment the age of all edges emanating from s1.
-		  val s1_Neighbors = this.edges(label).zipWithIndex.filter(_._1 == 1).map(_._2)
+		  val s1_Neighbors = this.edges(label).zipWithIndex.collect{ case (v, idx) if v == 1 => idx }
 		  val SizeOfNeighborhood = s1_Neighbors.size
 		  for( i <- 0 until SizeOfNeighborhood ) {
 		    this.ages(s1_Neighbors(i))(label) *= lambdaAge
@@ -149,7 +149,7 @@ class BatchStreamModel(
 		  if (voisinage == 1) {
 			  var tsumi :Vector[Double] = Vector.zeros[Double](dim) 		    
 			  var tcounti = 0D
-			  val labelNeighbors = this.edges(label).zipWithIndex.filter(_._1 == 1).map(_._2)
+			  val labelNeighbors = this.edges(label).zipWithIndex.collect{ case (v, idx) if v == 1 => idx }
 			  labelNeighbors.foreach{ e =>
 				  val tmp = pointStats.filter(_._1 == e)
 				  if (tmp.length > 0) {
@@ -189,14 +189,13 @@ class BatchStreamModel(
   // remove old edges   
   def removeOldEdges(maxAge: Int) = {
     val delRowCol: mutable.ArrayBuffer[mutable.ArrayBuffer[Int]] = mutable.ArrayBuffer()
-    	for ( i <- 0 until this.ages.size ) delRowCol += this.ages(i).zipWithIndex.filter(_._1 > maxAge).map(_._2)
+    	(0 until this.ages.size).foreach( i => delRowCol += this.ages(i).zipWithIndex.collect{ case (v, idx) if v > maxAge => idx } )
     	val sizeDelRowCol = delRowCol.size
-    	for ( i <- 0 until sizeDelRowCol ) {
-      	delRowCol(i).foreach( x =>
-        {
+    	(0 until sizeDelRowCol).foreach{ i =>
+      	delRowCol(i).foreach{ x =>
           this.edges(i)(x) = 0  
           this.ages(i)(x) = Double.NaN
-        })
+        }
     	}
   }
 
@@ -234,7 +233,7 @@ class BatchStreamModel(
 		  val q = this.errors.indexOf(this.errors.max)
 		  
 		  //val (errs, idxErr) = erreurs.zipWithIndex.sorted.unzip
-		  val qNeighbors = this.edges(q).zipWithIndex.filter(_._1 == 1).map(_._2)
+		  val qNeighbors = this.edges(q).zipWithIndex.collect{ case (v, idx) if v == 1 => idx }
       
 		  // find the neighbor f with the largest accumulated error 
       val f = this.errors.indexOf(this.errors.zipWithIndex.collect{ case (a, b) if qNeighbors.exists(_ == b) => a }.max)
@@ -329,13 +328,13 @@ class BatchStreamModel(
   def removeLineCol(i: Int, a: mutable.ArrayBuffer[mutable.ArrayBuffer[Double]]): mutable.ArrayBuffer[mutable.ArrayBuffer[Double]] = {
     var b = a
         b.remove(i)
-        b.foreach { x => x.remove(i) }
+        b.foreach(_.remove(i))
         b
   }
   def removeLineColInt(i: Int, a: mutable.ArrayBuffer[mutable.ArrayBuffer[Int]]): mutable.ArrayBuffer[mutable.ArrayBuffer[Int]] = {
     var b = a
         b.remove(i)
-        b.foreach { x => x.remove(i) }
+        b.foreach(_.remove(i))
         b
   }
   // remove the ith line and the ith column 
@@ -346,9 +345,9 @@ class BatchStreamModel(
     b
   }  
   //	res = a x b 
-  def scal(a: Double, b: Array[Double]): Array[Double] = b.zipWithIndex.collect{ case (x, y) => a * x } 
+  def scal(a: Double, b: Array[Double]): Array[Double] = b.zipWithIndex.map{ case (x, y) => a * x } 
 
-  def scal(a: Double, b: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = b.zipWithIndex.collect{ case (x, y) => a * x }
+  def scal(a: Double, b: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = b.zipWithIndex.map{ case (x, y) => a * x }
 
   def scal(a: Double, b: Vector[Double]): Vector[Double] = Vector(scal(a, b.toArray))
 

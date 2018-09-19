@@ -9,7 +9,6 @@ import org.apache.spark.{SparkContext, HashPartitioner}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.util.SumVectors
 import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.math.distances.MixtDistance
@@ -29,28 +28,28 @@ import clustering4ever.spark.clustering.KCommonsSparkMixt
  **/
 class KPrototypes[
 	ID: Numeric,
-	Obj,
+	O,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs] : ClassTag,
-	Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V] : ClassTag,
+	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V],
 	D <: HammingAndEuclidean[Vb, Vs, V]
 ](
 	@transient val sc: SparkContext,
-	dataIn: RDD[Cz],
+	dataIn: RDD[Cz[ID, O, Vb, Vs, V]],
 	k: Int,
 	epsilon: Double,
 	maxIter: Int,
 	metric: D,
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSparkMixt[ID, Vb, Vs, V, Cz, D](dataIn, metric, k, initializedCenters, persistanceLVL) {
+)(implicit ct: ClassTag[Cz[ID, O, Vb, Vs, V]]) extends KCommonsSparkMixt[ID, Vb, Vs, V, Cz[ID, O, Vb, Vs, V], D](dataIn, metric, k, initializedCenters, persistanceLVL) {
 
 	private[this] val data = dataIn.map(_.vector).persist(persistanceLVL)
 
 	private[this] def obtainNearestModID(v: V, centers: mutable.HashMap[Int, V]): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
 
-	def run(): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, D] = {
+	def run(): KPrototypesModel[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V], D] = {
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged ) {
@@ -64,7 +63,7 @@ class KPrototypes[
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, D](centers, metric)
+		new KPrototypesModel[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V], D](centers, metric)
 	}
 }
 
@@ -72,23 +71,23 @@ class KPrototypes[
 object KPrototypes extends DataSetsTypes[Long] {
 	def run[
 		ID: Numeric,
-		Obj,
+		O,
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
 		V <: BinaryScalarVector[Vb, Vs] : ClassTag,
-		Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V] : ClassTag
+		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V]
 		// D <: HammingAndEuclidean[Vb, Vs, V]
 	](
 		@(transient @param) sc: SparkContext,
-		data: RDD[Cz],
+		data: RDD[Cz[ID, O, Vb, Vs, V]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-	): KPrototypesModel[ID, Obj, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]] = {
+	)(implicit ct: ClassTag[Cz[ID, O, Vb, Vs, V]]): KPrototypesModel[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V], HammingAndEuclidean[Vb, Vs, V]] = {
 		val metric = new HammingAndEuclidean[Vb, Vs, V]
-		val kPrototypes = new KPrototypes[ID, Obj, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+		val kPrototypes = new KPrototypes[ID, O, Vb, Vs, V, Cz, HammingAndEuclidean[Vb, Vs, V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kPrototypesModel = kPrototypes.run()
 		kPrototypesModel
 	}

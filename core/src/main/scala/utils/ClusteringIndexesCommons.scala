@@ -1,5 +1,7 @@
 package clustering4ever.util
-
+/**
+ * @author Beck Gaël
+ */
 import scala.math.log
 
 object ClusteringIndexesCommons {

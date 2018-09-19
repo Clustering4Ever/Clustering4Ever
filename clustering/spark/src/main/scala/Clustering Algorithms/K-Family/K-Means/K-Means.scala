@@ -11,7 +11,6 @@ import org.apache.spark.storage.StorageLevel
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.util.SumVectors
 import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
@@ -29,22 +28,22 @@ import clustering4ever.spark.clustering.KCommonsSparkVectors
  **/
 class KMeans[
 	ID: Numeric,
-	Obj,
+	O,
 	V <: Seq[Double] : ClassTag,
-	Cz <: RealClusterizable[ID, Obj, V] : ClassTag,
+	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
 	D <: Euclidean[V]
 ](
 	@transient val sc: SparkContext,
-	data: RDD[Cz],
+	data: RDD[Cz[ID, O, V]],
 	k: Int,
 	epsilon: Double,
 	maxIter: Int,
 	metric: D = new Euclidean[V](squareRoot = true),
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSparkVectors[ID, Double, V, Cz, D](data, metric, k, initializedCenters, persistanceLVL) {
+)(implicit ct: ClassTag[Cz[ID, O, V]]) extends KCommonsSparkVectors[ID, Double, V, Cz[ID, O, V], D](data, metric, k, initializedCenters, persistanceLVL) {
 
-	def run(): KMeansModel[ID, Obj, V, Cz, D] = {
+	def run(): KMeansModel[ID, O, V, Cz[ID, O, V], D] = {
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged ) {
@@ -58,7 +57,7 @@ class KMeans[
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KMeansModel[ID, Obj, V, Cz, D](centers, metric)
+		new KMeansModel[ID, O, V, Cz[ID, O, V], D](centers, metric)
 	}
 }
 
@@ -67,21 +66,21 @@ object KMeans {
 
 	def run[
 		ID: Numeric,
-		Obj,
+		O,
 		V <: Seq[Double] : ClassTag,
-		Cz <: RealClusterizable[ID, Obj, V] : ClassTag
+		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V]
 		// D <: Euclidean[V]
 	](
 		@(transient @param) sc: SparkContext,
-		data: RDD[Cz],
+		data: RDD[Cz[ID, O, V]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	): KMeansModel[ID, Obj, V, Cz, Euclidean[V]] = {
+	)(implicit ct: ClassTag[Cz[ID, O, V]]): KMeansModel[ID, O, V, Cz[ID, O, V], Euclidean[V]] = {
 		val metric = new Euclidean[V](squareRoot = true)
-		val kmeans = new KMeans[ID, Obj, V, Cz, Euclidean[V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+		val kmeans = new KMeans[ID, O, V, Cz, Euclidean[V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kmeansModel = kmeans.run()
 		kmeansModel
 	}

@@ -1,9 +1,10 @@
 package clustering4ever.util
-
+/**
+ * @author Beck Gaël
+ */
 import scala.collection.mutable
 
 /**
- * @author Beck Gaël
  * A basic implementation of Locality Sensitive Hashing
  */
 object LSH {

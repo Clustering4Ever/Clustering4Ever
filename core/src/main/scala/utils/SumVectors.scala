@@ -1,32 +1,33 @@
 package clustering4ever.util
-
+/**
+ * @author Beck Gaël
+ */
 import scala.reflect.ClassTag
 import scala.math.sqrt
 import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
 
 /**
- * @author Beck Gaël
  * Object which gather common operation on Seq[N] and GenSeq[Seq[N]]
  */
 object SumVectors {
 	/**
 	 * Sum two vector of Numeric into one
 	 */
-	def sumVectors[@specialized(Int, Double) N, S <: Iterable[N]](a: S, b: S)(implicit num: SNumeric[N]): S = a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[S]
+	def sumVectors[@specialized(Int, Double) N, V <: Iterable[N]](a: V, b: V)(implicit num: SNumeric[N]): V = a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[V]
 	/**
 	 * Reduce an Array[Array[N]] into an Array[N]
 	 */
-	def sumColumnMatrix[@specialized(Int, Double) N: SNumeric, S <: Iterable[N]](cluster: GenSeq[S]): S = cluster.reduce(sumVectors[N, S](_, _))
+	def sumColumnMatrix[@specialized(Int, Double) N: SNumeric, V <: Iterable[N]](cluster: GenSeq[V]): V = cluster.reduce(sumVectors[N, V](_, _))
 	/**
 	 * Reduce Array of multiple vectors
 	 */
-	def reduceMultipleVectorsMatrice[S <: Seq[Double], It <: Iterable[S]](a: It, b: It) = a.zip(b).map{ case (c, d) => sumVectors[Double, S](c, d) }.asInstanceOf[It]
+	def reduceMultipleVectorsMatrice[V <: Seq[Double], It <: Iterable[V]](a: It, b: It) = a.zip(b).map{ case (c, d) => sumVectors[Double, V](c, d) }.asInstanceOf[It]
 	/**
 	 * Make the dot product of the difference dot1 - dot2
 	 * @return dor product of difference
 	 */
-	def diffDotProduct[S <: Seq[Double]](dot1: S, dot2: S) = {
+	def diffDotProduct[V <: Seq[Double]](dot1: V, dot2: V) = {
 		var s = 0D
 		var i = 0
 		while( i < dot1.size ) {
@@ -36,16 +37,8 @@ object SumVectors {
 		}
 		s		
 	}
-	/**
-	 * @return the centroid of the given cluster composed by real vectors
-	 */
-	def obtainMean[S <: Seq[Double]](cluster: GenSeq[S]): S = sumColumnMatrix[Double, S](cluster).map(_ / cluster.size).asInstanceOf[S]
-	/**
-	 * @return the centroid of the given cluster composed by binary vectors
-	 */
-	def obtainMode[S <: Seq[Int]](cluster: GenSeq[S]): S = sumColumnMatrix[Int, S](cluster).map( v => if( 2 * v >= cluster.size ) 1 else 0 ).asInstanceOf[S]
 
-	def norm[S <: Seq[Double]](dot1: S): Double = {
+	def norm[V <: Seq[Double]](dot1: V): Double = {
 	  var s = 0D
 	  var i = 0
 	  while( i < dot1.size ) {
@@ -56,10 +49,13 @@ object SumVectors {
 	  sqrt(s)
 	}
 
-	def dotProd[S <: Seq[Double]](dot1: S, dot2: S): Double = {
+	def dotProd[V <: Seq[Double]](dot1: V, dot2: V): Double = {
 		var dp = 0D
 		var i = 0
-		while( i < dot1.size ) dp += dot1(i) * dot2(i)
+		while( i < dot1.size ) {
+			dp += dot1(i) * dot2(i)
+			i += 1
+		}
 		dp
 	}
 }

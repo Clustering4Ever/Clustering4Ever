@@ -85,7 +85,7 @@ class SomTrainerA(metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Do
         //ML: dans le cas de non présence de réelle vecteur vide, pareil pour les varibales binaires
         new SomObsA(d.take(sizeRealVars).map(_ * factor), factor, mapBinPondere, neuron.id)
         // ligne originale
-        //new SomObsA(Vector(d.toArray.take(sizeRealVars)) * factor, factor, mapBinPondere, neuron.id)
+        //new SomObsA(V(d.toArray.take(sizeRealVars)) * factor, factor, mapBinPondere, neuron.id)
       })
     }) //end mapping
 

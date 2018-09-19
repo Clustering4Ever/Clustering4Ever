@@ -1,11 +1,10 @@
 package clustering4ever.clustering
-
+/**
+ * @author Beck Gaël
+ */
 import clustering4ever.math.distances.Distance
 import scala.collection.{mutable, GenSeq}
 
-/**
- * @author Beck Gaël
- **/
 trait CommonPredictClusteringModel[V, D <: Distance[V]] extends ClusteringModel {
 
 	val centers: mutable.HashMap[Int, V]

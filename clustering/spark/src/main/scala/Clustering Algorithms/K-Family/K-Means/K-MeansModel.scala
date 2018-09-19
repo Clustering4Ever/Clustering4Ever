@@ -13,8 +13,8 @@ import scala.reflect.ClassTag
  **/
 final class KMeansModel[
 	ID: Numeric,
-	Obj,
+	O,
 	V <: Seq[Double],
-	Cz <: RealClusterizable[ID, Obj, V] : ClassTag,
+	Cz <: RealClusterizable[ID, O, V] : ClassTag,
 	D <: ContinuousDistance[V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModelSpark[ID, V, D, Cz](centers, metric)

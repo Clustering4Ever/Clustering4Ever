@@ -78,7 +78,7 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 ) {
 	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateClusterizable.obtainSimpleRealClusterizable[Int, S](id, (x ++ y).asInstanceOf[S]) }
-	  	  	val kmeansModel = KMeans.run[Int, S, S, RealClusterizable[Int, S, S], Euclidean[S]](kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[S](squareRoot = true))
+	  	  	val kmeansModel = KMeans.run[Int, S, S, RealClusterizable, Euclidean[S]](kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[S](squareRoot = true))
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
 	  	  	val microClusterNumbers = kmeansModel.centers.size
 	  	  	val clusterizedData = centerReductRDD.map{ case (id, (x, y)) => (id, unregularClusterIdsByStandardClusterIDs(kmeansModel.centerPredict((x ++ y).asInstanceOf[S]))) }.seq
