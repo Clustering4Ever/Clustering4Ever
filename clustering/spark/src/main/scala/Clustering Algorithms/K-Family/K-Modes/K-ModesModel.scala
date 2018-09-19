@@ -11,8 +11,8 @@ import clustering4ever.math.distances.BinaryDistance
  **/
 class KModesModel[
 	ID: Numeric,
-	Obj,
+	O,
 	V <: Seq[Int],
-	Cz <: BinaryClusterizable[ID, Obj, V] : ClassTag,
+	Cz <: BinaryClusterizable[ID, O, V] : ClassTag,
 	D <: BinaryDistance[V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModelSpark[ID, V, D, Cz](centers, metric)

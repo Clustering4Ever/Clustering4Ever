@@ -1,11 +1,10 @@
 package clustering4ever.scala.clustering
-
-import scala.collection.{mutable, GenSeq}
-import scala.collection.parallel.mutable.ParArray
-
 /**
  * @author Beck Gaël
  */
+import scala.collection.{mutable, GenSeq}
+import scala.collection.parallel.mutable.ParArray
+
 object JenksNaturalBreaks
 {
   /**

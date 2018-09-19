@@ -14,10 +14,10 @@ import clustering4ever.spark.clustering.KCommonsModelSpark
  **/
 class KPrototypesModel[
 	ID: Numeric,
-	Obj,
+	O,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs],
-	Cz <: MixtClusterizable[ID, Obj, Vb, Vs, V] : ClassTag,
+	Cz <: MixtClusterizable[ID, O, Vb, Vs, V] : ClassTag,
 	D <: MixtDistance[Vb, Vs, V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModelSpark[ID, V, D, Cz](centers, metric)

@@ -1,6 +1,5 @@
 package clustering4ever.spark.clustering.mtm.global
 
-import org.apache.spark.mllib.linalg.{Vectors, Vector, DenseVector}
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.math.distances.ContinuousDistance
 

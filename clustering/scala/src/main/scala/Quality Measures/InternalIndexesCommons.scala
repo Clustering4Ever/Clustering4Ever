@@ -1,10 +1,11 @@
 package clustering4ever.scala.indexes
-
+/**
+ * @author Beck Gaël
+ */
 import scala.collection.immutable
 import clustering4ever.math.distances.ContinuousDistance
 
 /**
- * @author Beck Gaël
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */
 object InternalIndexesDBCommons {

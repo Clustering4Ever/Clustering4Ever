@@ -1,14 +1,13 @@
 package clustering4ever.math.distances.mixt
-
+/**
+ * @author Beck Gaël
+ */
 import scala.math.{pow, sqrt}
 import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.math.distances.MixtDistanceClusterizable
 import clustering4ever.scala.clusterizables.MixtClusterizable
 
-/**
- * @author Beck Gaël
- */
 trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable {
 	protected val α: Double
 
@@ -45,9 +44,9 @@ class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVe
 	
 }
 
-class HammingAndEuclideanClusterizable[ID: Numeric, Obj, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D, val classicalMetric: HammingAndEuclidean[Vb, Vs, V]) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, Obj, Vb, Vs, V] {
+class HammingAndEuclideanClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val α: Double = 0D, val classicalMetric: HammingAndEuclidean[Vb, Vs, V]) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistanceClusterizable[ID, O, Vb, Vs, V] {
 	/**
 	 *	
 	 */
-	override def d(dot1: MixtClusterizable[ID, Obj, Vb, Vs, V], dot2: MixtClusterizable[ID, Obj, Vb, Vs, V]): Double = hammingAndEuclidean(dot1.vector, dot2.vector)
+	override def d(dot1: MixtClusterizable[ID, O, Vb, Vs, V], dot2: MixtClusterizable[ID, O, Vb, Vs, V]): Double = hammingAndEuclidean(dot1.vector, dot2.vector)
 }

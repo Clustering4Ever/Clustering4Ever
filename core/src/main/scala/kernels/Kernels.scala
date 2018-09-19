@@ -1,18 +1,18 @@
 package clustering4ever.scala.kernels
-
+/**
+ * @author Beck Gaël
+ */
 import scala.math.{exp, tanh}
 import breeze.linalg._
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.math.distances.Distance
-import clustering4ever.util.SumVectors
+import clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
 import clustering4ever.scala.kernels.KernelNature._
-import clustering4ever.util.SimilarityMatrix
 
 /**
- * @author Beck Gaël
  * Kernels gathers some of the most known kernels
- **/
+ */
 object Kernels {
 
 	def flatKernel[S <: Seq[Double]](v1: S, v2: S, bandwidth: Double, metric: ContinuousDistance[S]) = if( metric.d(v1, v2) / (bandwidth * bandwidth) <= 1D ) 1D else 0D 
@@ -73,18 +73,18 @@ object Kernels {
 		computeModeAndCastIt[S](preMode, kernelValue)
 	}
 
-	private[this] def obtainKnn[Obj](v: Obj, env: Seq[Obj], k: Int, metric: Distance[Obj]) = env.sortBy( v2 => metric.d(v, v2) ).take(k)
+	private[this] def obtainKnn[O](v: O, env: Seq[O], k: Int, metric: Distance[O]) = env.sortBy( v2 => metric.d(v, v2) ).take(k)
 	/**
 	 * The KNN kernel for euclidean space, it select KNN using a specific distance measure and compute the mean<sup>*</sup> of them
 	 * @note Mean computation has a sense only for euclidean distance.
 	 */
 	def euclideanKnnKernel[S <: Seq[Double]](v: S, env: Seq[S], k: Int, metric: Euclidean[S]): S = {
 		val knn = obtainKnn[S](v, env, k, metric)
-		SumVectors.obtainMean[S](knn)
+		ClusterBasicOperations.obtainMean[S](knn)
 	}
 
-	def knnKernel[Obj](v: Obj, env: Seq[Obj], k: Int, metric: Distance[Obj]): Obj = {
-		val knn = obtainKnn[Obj](v, env, k, metric)
+	def knnKernel[O](v: O, env: Seq[O], k: Int, metric: Distance[O]): O = {
+		val knn = obtainKnn[O](v, env, k, metric)
 		val sm = SimilarityMatrix.simpleSimilarityMatrix(knn, metric)
 		sm.minBy{ case (_, dists) => dists.sum }._1
 	}

@@ -119,7 +119,7 @@ abstract class KCommonsScala[
 
 abstract class KCommonsVectors[
 	ID: Numeric,
-	@specialized(Int, Double) N: Numeric,
+	@specialized(Int, Double) N: SNumeric,
 	V <: Seq[N],
 	D <: Distance[V],
 	Cz <: Clusterizable[ID, V]
@@ -162,13 +162,13 @@ abstract class KCommonsModel[
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
-	 **/
-	def centerPredict(data: GenSeq[Cz])(implicit i: DummyImplicit): GenSeq[Cz] = data.map( rc => rc.setClusterID[Cz](centerPredict(rc.vector)) )
+	 */
+	def centerPredict(data: GenSeq[Cz])(implicit i: DummyImplicit): GenSeq[Cz] = data.map( rc => rc.setClusterID(centerPredict(rc.vector)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredict(data: GenSeq[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): GenSeq[Cz] = data.map( rc => rc.setClusterID[Cz](knnPredict(rc.vector, k, trainDS)) )
+	def knnPredict(data: GenSeq[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): GenSeq[Cz] = data.map( rc => rc.setClusterID(knnPredict(rc.vector, k, trainDS)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method

@@ -1,5 +1,7 @@
 package clustering4ever.util
-
+/**
+ * @author Beck Gaël
+ */
 object RecursivFunctions {
   @annotation.tailrec
   final def goOverMatrix[T](i: Int, j: Int, t: T, sizeColumn: Int, f: (Int, Int, T) => T): T = {

@@ -1,12 +1,13 @@
 package clustering4ever.scala.indexes
-
+/**
+ * @author Beck Gaël
+ */
 import scala.math.{max, log, sqrt}
 import scala.collection.GenSeq
 import clustering4ever.util.ClusteringIndexesCommons
 import clustering4ever.scala.indexes.NmiNormalizationNature._
 
 /**
- * @author Beck Gaël
  *
  */
 class ExternalIndexes {
@@ -77,6 +78,6 @@ object ExternalIndexes {
 	 */
 	def prepareLabels[S <: GenSeq[Int]](x: S) =	{
 		val indexedValuesMap = x.distinct.zipWithIndex.toMap.seq
-		(indexedValuesMap, x.map(indexedValuesMap))
+		(indexedValuesMap, x.map(indexedValuesMap).asInstanceOf[S])
 	}
 }
