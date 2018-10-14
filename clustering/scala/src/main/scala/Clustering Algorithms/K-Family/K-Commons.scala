@@ -154,7 +154,7 @@ abstract class KCommonsModel[
 	ID: Numeric,
 	V,
 	D <: Distance[V],
-	Cz <: ClusterizableExt[ID, V]
+	Cz <: ClusterizableExt[ID, V, Cz]
 	](
 	val centers: mutable.HashMap[Int, V],
 	val metric: D

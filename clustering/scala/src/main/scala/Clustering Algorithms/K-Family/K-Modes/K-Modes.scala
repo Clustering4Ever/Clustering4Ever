@@ -12,12 +12,13 @@ import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.scala.clustering.KCommonsVectors
 import clustering4ever.util.CommonTypes
+import scala.language.higherKinds
 
 class KModes[
 	ID: Numeric,
 	O,
 	V <: Seq[Int] : ClassTag,
-	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V],
+	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
 	D <: BinaryDistance[V]
 ](
 	data: GenSeq[Cz[ID, O, V]],
@@ -66,7 +67,7 @@ object KModes {
 		ID: Numeric,
 		O,
 		V <: Seq[Int] : ClassTag,
-		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V],
+		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
 		D <: BinaryDistance[V]
 	](
 		data: GenSeq[Cz[ID, O, V]],

@@ -13,7 +13,7 @@ import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable
 import clustering4ever.scala.clustering.KCommonsVectors
 import clustering4ever.util.CommonTypes
-
+import scala.language.higherKinds
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of Clusterizable
@@ -26,7 +26,7 @@ class KMeans[
 	ID: Numeric,
 	O,
 	V <: Seq[Double] : ClassTag,
-	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
+	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
 	D <: ContinuousDistance[V]
 ](
 	data: GenSeq[Cz[ID, O, V]],
@@ -80,7 +80,7 @@ object KMeans {
 		ID: Numeric,
 		O,
 		V <: Seq[Double] : ClassTag,
-		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
+		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
 		D <: ContinuousDistance[V]
 	](
 		data: GenSeq[Cz[ID, O, V]],

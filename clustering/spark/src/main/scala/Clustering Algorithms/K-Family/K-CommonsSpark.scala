@@ -69,7 +69,7 @@ abstract class KCommonsSpark[
 		(1 until k).foreach( i => centersBuff += Stats.obtainCenterFollowingWeightedDistribution[V](vectorizedDataset.map{ v =>
 			val toPow2 = metric.d(v, obtainNearestCenter(v, centersBuff))
 			(v, toPow2 * toPow2)
-		}.collect.toBuffer) )
+		}.sample(false, 0.01, 8L).collect.toBuffer) )
 
 		val centers = mutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
 		centers
@@ -142,7 +142,7 @@ abstract class KCommonsModelSpark[
 	ID: Numeric,
 	V,
 	D <: Distance[V],
-	Cz <: ClusterizableExt[ID, V] : ClassTag
+	Cz <: ClusterizableExt[ID, V, Cz] : ClassTag
 	](
 	val centers: mutable.HashMap[Int, V],
 	val metric: D

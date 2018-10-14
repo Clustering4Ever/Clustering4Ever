@@ -15,6 +15,6 @@ final class KPrototypesModel[
 	Vs <: Seq[Double],
 	O,
 	V <: BinaryScalarVector[Vb, Vs],
-	Cz <: MixtClusterizable[ID, O, Vb, Vs, V],
+	Cz <: MixtClusterizable[ID, O, Vb, Vs, V, Cz],
 	D <: MixtDistance[Vb, Vs, V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModel[ID, V, D, Cz](centers, metric)

@@ -4,7 +4,7 @@ package clustering4ever.math.distances
  */
 import scala.reflect.runtime.universe.TypeTag
 import clustering4ever.scala.measurableclass.BinaryScalarVector
-import clustering4ever.scala.clusterizables.MixtClusterizable
+import clustering4ever.scala.clusterizables.SimpleMixtClusterizable
 
 /**
  * Most general notion of Distance, taking two object of type T and returning a Double
@@ -29,4 +29,4 @@ trait BinaryDistance[S <: Seq[Int]] extends Distance[S]
 
 trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double], S <: BinaryScalarVector[Vb, Vs]] extends Distance[S]
 
-trait MixtDistanceClusterizable[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], S <: BinaryScalarVector[Vb, Vs]] extends Distance[MixtClusterizable[ID, O, Vb, Vs, S]]
+trait MixtDistanceClusterizable[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], S <: BinaryScalarVector[Vb, Vs]] extends Distance[SimpleMixtClusterizable[ID, O, Vb, Vs, S]]

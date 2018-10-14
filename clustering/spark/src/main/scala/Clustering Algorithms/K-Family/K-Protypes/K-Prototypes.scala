@@ -16,7 +16,7 @@ import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.MixtClusterizable
 import clustering4ever.spark.clustering.KCommonsSparkMixt
-
+import scala.language.higherKinds
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
@@ -25,14 +25,14 @@ import clustering4ever.spark.clustering.KCommonsSparkMixt
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding MixtDistance distance function
- **/
+ */
 class KPrototypes[
 	ID: Numeric,
 	O,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs] : ClassTag,
-	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V],
+	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]],
 	D <: HammingAndEuclidean[Vb, Vs, V]
 ](
 	@transient val sc: SparkContext,
@@ -75,8 +75,7 @@ object KPrototypes extends DataSetsTypes[Long] {
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
 		V <: BinaryScalarVector[Vb, Vs] : ClassTag,
-		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V]
-		// D <: HammingAndEuclidean[Vb, Vs, V]
+		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz[ID, O, Vb, Vs, V]],

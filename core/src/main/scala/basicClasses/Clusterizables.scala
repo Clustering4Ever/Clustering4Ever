@@ -14,31 +14,31 @@ abstract class Clusterizable[ID: Numeric, V](val id: ID, val vectorizable: Vecto
 /**
  *
  */
-abstract class ClusterizableExt[ID: Numeric, V](
+abstract class ClusterizableExt[ID: Numeric, V, Self <: ClusterizableExt[ID, V, Self]](
 	id: ID, 
-	vectorizable: Vectorizable[V]
+	vectorizable: Vectorizable[V],
+	val v2: Option[V] = None,
+	val clusterID: Option[Int] = None
 ) extends Clusterizable[ID, V](id, vectorizable) {
 
-	var v2: Option[V]
-	var clusterID: Option[Int]
-	
-	def setV2(newV2: V): this.type = {
-		v2 = Some(newV2)
-		this
-	}
+	def setV2(newV2: V): Self
 
-	def setClusterID(newCID: Int): this.type = {
-		clusterID = Some(newCID)
-		this
-	}
+	def setClusterID(newCID: Int): Self
 }
 /**
  *
  */
-abstract class ClusterizableExtVectors[ID: Numeric, @specialized(Int, Double) N: SNumeric, V <: Seq[N]](
+abstract class ClusterizableExtVectors[
+	ID: Numeric,
+	@specialized(Int, Double) N: SNumeric,
+	V <: Seq[N],
+	Self <: ClusterizableExtVectors[ID, N, V, Self]
+](
 	id: ID, 
-	vectorizable: Vectorizable[V]
-) extends ClusterizableExt[ID, V](id, vectorizable) {
+	vectorizable: Vectorizable[V],
+	v2: Option[V] = None,
+	clusterID: Option[Int] = None
+) extends ClusterizableExt[ID, V, Self](id, vectorizable, v2, clusterID) {
 
 	override def hashCode(): Int = {
 		val prime = 31
@@ -53,10 +53,18 @@ abstract class ClusterizableExtVectors[ID: Numeric, @specialized(Int, Double) N:
 /**
  *
  */
-abstract class ClusterizableExtMixt[ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Double], Vectors <: BinaryScalarVector[Vb, Vs]](
+abstract class ClusterizableExtMixt[
+	ID: Numeric,
+	Vb <: Seq[Int],
+	Vs <: Seq[Double],
+	Vectors <: BinaryScalarVector[Vb, Vs],
+	Self <: ClusterizableExtMixt[ID, Vb, Vs, Vectors, Self]
+](
 	id: ID, 
-	vectorizable: Vectorizable[Vectors]
-) extends ClusterizableExt[ID, Vectors](id, vectorizable) {
+	vectorizable: Vectorizable[Vectors],
+	v2: Option[Vectors] = None,
+	clusterID: Option[Int] = None
+) extends ClusterizableExt[ID, Vectors, Self](id, vectorizable) {
 
 	override def hashCode(): Int = {
 		val prime = 31
@@ -70,65 +78,105 @@ abstract class ClusterizableExtMixt[ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Doubl
 	}
 }
 /**
- * Generic clusterizable for both Mixt Vectors => (V[Int], V[Double]) 
+ *
  */
-case class MixtClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](
-	override val id: ID,
-	override val vectorizable: MixtVectorizable[O, Vb, Vs, V],
-	var v2: Option[V] = None,
-	var clusterID: Option[Int] = None
-) extends ClusterizableExtMixt[ID, Vb, Vs, V](id, vectorizable) {
-
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[MixtClusterizable[ID, O, Vb, Vs, V]]
-
-	override def equals(that: Any): Boolean = {
-		that match {
-		  case that: MixtClusterizable[ID, O, Vb, Vs, V] => that.canEqual(this) && that.hashCode == this.hashCode
-		  case _ => false
-		}
-	}
-
-	def copy() = new MixtClusterizable[ID, O, Vb, Vs, V](id, vectorizable.asInstanceOf[MixtVectorizable[O, Vb, Vs, V]])
-}
+abstract class RealClusterizable[ID: Numeric, O, V <: Seq[Double], Self <: RealClusterizable[ID, O, V, Self]](
+	id: ID,
+	vectorizable: RealVectorizable[O, V],
+	v2: Option[V] = None,
+	clusterID: Option[Int] = None
+) extends ClusterizableExtVectors[ID, Double, V, Self](id, vectorizable, v2, clusterID)
 /**
- * Clusterizable for V[Double] 
- */
-case class RealClusterizable[ID: Numeric, O, V <: Seq[Double]](
+ *
+ **/
+case class SimpleRealClusterizable[ID: Numeric, O, V <: Seq[Double]](
 	override val id: ID,
 	override val vectorizable: RealVectorizable[O, V],
-	var v2: Option[V] = None,
-	var clusterID: Option[Int] = None
-) extends ClusterizableExtVectors[ID, Double, V](id, vectorizable) {
+	override val v2: Option[V] = None,
+	override val clusterID: Option[Int] = None
+) extends RealClusterizable[ID, O, V, SimpleRealClusterizable[ID, O, V]](id, vectorizable, v2, clusterID) {
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[RealClusterizable[ID, O, V]]
+	override def canEqual(a: Any): Boolean = a.isInstanceOf[SimpleRealClusterizable[ID, O, V]]
 
 	override def equals(that: Any): Boolean = {
 		that match {
-		  case that: RealClusterizable[ID, O, V] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: SimpleRealClusterizable[ID, O, V] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
-  
-	def copy() = new RealClusterizable[ID, O, V](id, vectorizable.asInstanceOf[RealVectorizable[O, V]], v2, clusterID)
+
+	def setV2(newV2: V): SimpleRealClusterizable[ID, O, V] = this.copy(v2 = Some(newV2))
+
+	def setClusterID(newCID: Int): SimpleRealClusterizable[ID, O, V] = this.copy(clusterID = Some(newCID))
 }
 /**
- * Clusterizable for V[Int] 
+ *
  */
-case class BinaryClusterizable[ID: Numeric, O, V <: Seq[Int]](
+abstract class BinaryClusterizable[ID: Numeric, O, V <: Seq[Int], Self <: BinaryClusterizable[ID, O, V, Self]](
+	id: ID,
+	vectorizable: BinaryVectorizable[O, V],
+	v2: Option[V] = None,
+	clusterID: Option[Int] = None
+) extends ClusterizableExtVectors[ID, Int, V, Self](id, vectorizable, v2, clusterID)
+/**
+ *
+ */
+case class SimpleBinaryClusterizable[ID: Numeric, O, V <: Seq[Int]](
 	override val id: ID,
 	override val vectorizable: BinaryVectorizable[O, V],
-	var v2: Option[V] = None,
-	var clusterID: Option[Int] = None
-) extends ClusterizableExtVectors[ID, Int, V](id, vectorizable) {
+	override val v2: Option[V] = None,
+	override val clusterID: Option[Int] = None
+) extends BinaryClusterizable[ID, O, V, SimpleBinaryClusterizable[ID, O, V]](id, vectorizable, v2, clusterID) {
 
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[BinaryClusterizable[ID, O, V]]
+	def canEqual(a: Any): Boolean = a.isInstanceOf[SimpleBinaryClusterizable[ID, O, V]]
 
 	override def equals(that: Any): Boolean = {
 		that match {
-		  case that: BinaryClusterizable[ID, O, V] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: SimpleBinaryClusterizable[ID, O, V] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
 
-	def copy() = new BinaryClusterizable[ID, O, V](id, vectorizable.asInstanceOf[BinaryVectorizable[O, V]], v2, clusterID)
+	def setV2(newV2: V): SimpleBinaryClusterizable[ID, O, V] = this.copy(v2 = Some(newV2))
+
+	def setClusterID(newCID: Int): SimpleBinaryClusterizable[ID, O, V] = this.copy(clusterID = Some(newCID))
+}
+/**
+ *
+ */
+abstract class MixtClusterizable[
+	ID: Numeric,
+	O,
+	Vb <: Seq[Int],
+	Vs <: Seq[Double],
+	V <: BinaryScalarVector[Vb, Vs],
+	Self <: MixtClusterizable[ID, O, Vb, Vs, V, Self]
+](
+	id: ID,
+	vectorizable: MixtVectorizable[O, Vb, Vs, V],
+	v2: Option[V] = None,
+	clusterID: Option[Int] = None
+) extends ClusterizableExtMixt[ID, Vb, Vs, V, Self](id, vectorizable, v2, clusterID)
+/**
+ * Basic clusterizable for Mixt Vectors => (V[Int], V[Double]) 
+ */
+case class SimpleMixtClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](
+	override val id: ID,
+	override val vectorizable: MixtVectorizable[O, Vb, Vs, V],
+	override val v2: Option[V] = None,
+	override val clusterID: Option[Int] = None
+) extends MixtClusterizable[ID, O, Vb, Vs, V, SimpleMixtClusterizable[ID, O, Vb, Vs, V]](id, vectorizable, v2, clusterID) {
+
+	def canEqual(a: Any): Boolean = a.isInstanceOf[SimpleMixtClusterizable[ID, O, Vb, Vs, V]]
+
+	override def equals(that: Any): Boolean = {
+		that match {
+		  case that: SimpleMixtClusterizable[ID, O, Vb, Vs, V] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case _ => false
+		}
+	}
+	
+	def setV2(newV2: V): SimpleMixtClusterizable[ID, O, Vb, Vs, V] = this.copy(v2 = Some(newV2))
+
+	def setClusterID(newCID: Int): SimpleMixtClusterizable[ID, O, Vb, Vs, V] = this.copy(clusterID = Some(newCID))
 }

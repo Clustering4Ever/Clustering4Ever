@@ -13,6 +13,6 @@ final class KMeansModel[
 	ID: Numeric,
 	O,
 	V <: Seq[Double] : ClassTag,
-	Cz <: RealClusterizable[ID, O, V],
+	Cz <: RealClusterizable[ID, O, V, Cz],
 	D <: ContinuousDistance[V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModel[ID, V, D, Cz](centers, metric)

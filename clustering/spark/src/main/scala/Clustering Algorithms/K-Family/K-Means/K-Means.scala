@@ -16,7 +16,7 @@ import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable
 import clustering4ever.spark.clustering.KCommonsSparkVectors
-
+import scala.language.higherKinds
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
@@ -25,12 +25,12 @@ import clustering4ever.spark.clustering.KCommonsSparkVectors
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
- **/
+ */
 class KMeans[
 	ID: Numeric,
 	O,
 	V <: Seq[Double] : ClassTag,
-	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
+	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
 	D <: Euclidean[V]
 ](
 	@transient val sc: SparkContext,
@@ -68,8 +68,7 @@ object KMeans {
 		ID: Numeric,
 		O,
 		V <: Seq[Double] : ClassTag,
-		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V]
-		// D <: Euclidean[V]
+		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz[ID, O, V]],

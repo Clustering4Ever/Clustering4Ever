@@ -13,7 +13,7 @@ import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.MixtClusterizable
 import clustering4ever.scala.clustering.KCommonsMixt
 import clustering4ever.util.CommonTypes
-
+import scala.language.higherKinds
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data : an Array with and ID and the vector
@@ -21,14 +21,14 @@ import clustering4ever.util.CommonTypes
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding ContinuousDistance distance function
- **/
+ */
 class KPrototypes[
 	ID: Numeric,
 	O,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs],
-	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V],
+	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]],
 	D <: MixtDistance[Vb, Vs, V]
 ](
 	data: GenSeq[Cz[ID, O, Vb, Vs, V]],
@@ -76,7 +76,7 @@ object KPrototypes extends CommonTypes {
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
 		V <: BSV[Vb, Vs],
-		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BSV[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V],
+		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BSV[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]],
 		D <: MixtDistance[Vb, Vs, V]
 	](
 		data: GenSeq[Cz[ID, O, Vb, Vs, V]],

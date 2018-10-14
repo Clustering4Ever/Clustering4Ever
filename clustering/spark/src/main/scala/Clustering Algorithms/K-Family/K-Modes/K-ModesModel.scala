@@ -13,6 +13,6 @@ class KModesModel[
 	ID: Numeric,
 	O,
 	V <: Seq[Int],
-	Cz <: BinaryClusterizable[ID, O, V] : ClassTag,
+	Cz <: BinaryClusterizable[ID, O, V, Cz] : ClassTag,
 	D <: BinaryDistance[V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModelSpark[ID, V, D, Cz](centers, metric)

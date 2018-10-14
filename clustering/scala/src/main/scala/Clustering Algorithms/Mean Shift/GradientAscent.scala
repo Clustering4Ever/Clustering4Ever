@@ -16,7 +16,7 @@ import clustering4ever.scala.kernels.KernelNature._
 import clustering4ever.scala.kernels.KernelNature
 import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable
-
+import scala.language.higherKinds
 /**
  * Mean Shift gradient ascent
  * @param kernelType defines the nature of kernel usud in the gradient ascent
@@ -25,7 +25,7 @@ class GradientAscent[
   ID: Numeric,
   O,
   V <: Seq[Double],
-  Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
+  Cz[ID, O, V <: Seq[Double], _] <: RealClusterizable[ID, O, V, Cz[ID, O, V, _]],
   D <: ContinuousDistance[V]
 ](
   epsilon: Double,
@@ -35,11 +35,11 @@ class GradientAscent[
   kernelArgs: immutable.Vector[String]
 ) extends DataSetsTypes[ID] {
 
-  def gradientAscent(readyToGA: GenSeq[Cz[ID, O, V]]) = {
+  def gradientAscent(readyToGA: GenSeq[Cz[ID, O, V, _]]) = {
     val haveNotConverged = false
     val kernelLocality = readyToGA.map(_.vector).seq
 
-    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    var gradientAscentData: GenSeq[(Cz[ID, O, V, _], Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
 
     lazy val kernelLocalitySeq: Option[Seq[V]] = kernelType match {
       case KernelNature.EuclideanKNN => Some(kernelLocality)
@@ -47,7 +47,7 @@ class GradientAscent[
       case _ => None
     }
 
-    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
+    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V, _], Boolean)]) = {
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
         val mode = obj.v2.get
@@ -94,10 +94,10 @@ object GradientAscent extends DataSetsTypes[Int] {
     ID: Numeric,
     O,
     V <: Seq[Double],
-    Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V],
+    Cz[ID, O, V <: Seq[Double], _] <: RealClusterizable[ID, O, V, Cz[ID, O, V, _]],
     D <: ContinuousDistance[V]
   ](
-    data: GenSeq[Cz[ID, O, V]],
+    data: GenSeq[Cz[ID, O, V, _]],
     metric: D,
     epsilon: Double,
     maxIterations: Int,

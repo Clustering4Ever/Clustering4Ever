@@ -13,7 +13,7 @@ import clustering4ever.math.distances.binary.Hamming
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.spark.clustering.KCommonsSparkVectors
-
+import scala.language.higherKinds
 /**
  * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
@@ -22,12 +22,12 @@ import clustering4ever.spark.clustering.KCommonsSparkVectors
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param iterMax : maximal number of iteration
  * @param metric : a defined dissimilarity measure, it can be custom by overriding BinaryDistance distance function
- **/
+ */
 class KModes[
 	ID: Numeric,
 	O,
 	V <: Seq[Int] : ClassTag,
-	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V],
+	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
 	D <: Hamming[V]
 ](
 	@transient val sc: SparkContext,
@@ -63,8 +63,7 @@ object KModes
 		ID: Numeric,
 		O,
 		V <: Seq[Int] : ClassTag,
-		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V]
-		// D <: Hamming[V]
+		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz[ID, O, V]],

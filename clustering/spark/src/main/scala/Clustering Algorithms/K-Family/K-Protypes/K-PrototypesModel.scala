@@ -18,6 +18,6 @@ class KPrototypesModel[
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
 	V <: BinaryScalarVector[Vb, Vs],
-	Cz <: MixtClusterizable[ID, O, Vb, Vs, V] : ClassTag,
+	Cz <: MixtClusterizable[ID, O, Vb, Vs, V, Cz] : ClassTag,
 	D <: MixtDistance[Vb, Vs, V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModelSpark[ID, V, D, Cz](centers, metric)

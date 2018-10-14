@@ -13,6 +13,6 @@ final class KModesModel[
 	ID: Numeric,
 	O,
 	V <: Seq[Int] : ClassTag,
-	Cz <: BinaryClusterizable[ID, O, V],
+	Cz <: BinaryClusterizable[ID, O, V, Cz],
 	D <: BinaryDistance[V]
 ](centers: mutable.HashMap[Int, V], metric: D) extends KCommonsModel[ID, V, D, Cz](centers, metric)

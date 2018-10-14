@@ -5,7 +5,7 @@ package clustering4ever.math.distances.scalar
 import scala.reflect.runtime.universe.TypeTag
 import scala.math.sqrt
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
-import clustering4ever.scala.clusterizables.RealClusterizable
+import clustering4ever.scala.clusterizables.SimpleRealClusterizable
 
 trait EuclideanMeta extends Serializable {
 
@@ -37,10 +37,10 @@ class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends 
 	def d(dot1: V, dot2: V): Double = euclidean[V](dot1, dot2)
 }
 
-class EuclideanClusterizable[ID: Numeric, O, V <: Seq[Double]](final val squareRoot: Boolean = true, val classicalMetric: Euclidean[V]) extends EuclideanMeta with RealClusterizableDistance[RealClusterizable[ID, O, V], V] {
+class EuclideanClusterizable[ID: Numeric, O, V <: Seq[Double]](final val squareRoot: Boolean = true, val classicalMetric: Euclidean[V]) extends EuclideanMeta with RealClusterizableDistance[SimpleRealClusterizable[ID, O, V], V] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
 	  */
-	def d(dot1: RealClusterizable[ID, O, V], dot2: RealClusterizable[ID, O, V]): Double = euclidean[V](dot1.vector, dot2.vector)
+	def d(dot1: SimpleRealClusterizable[ID, O, V], dot2: SimpleRealClusterizable[ID, O, V]): Double = euclidean[V](dot1.vector, dot2.vector)
 }
