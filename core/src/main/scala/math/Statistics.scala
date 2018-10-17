@@ -47,10 +47,10 @@ object Stats extends ClusteringCommons with CommonTypes {
 		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
 		var cpt = 0
 		var accum = 0D
-		while ( accum <= p ) {
+		while ( accum < p ) {
 			accum += distribution(cpt)._2
 			cpt += 1
 		}
-		distribution(cpt - 1)._1
+		if( cpt == 0 ) distribution.head._1 else distribution(cpt - 1)._1
 	}
 }
