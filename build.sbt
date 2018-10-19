@@ -18,8 +18,8 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 )
 
 lazy val coreDeps = libraryDependencies ++= Seq(
-	  "org.scalanlp" %% "breeze-natives" % "0.13.2",
-	  // "org.scalanlp" %% "breeze" % "0.13.2",
+	  "org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
+	  "org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 	  "org.typelevel" %% "spire" % "0.14.1"
 )
 
@@ -33,20 +33,23 @@ lazy val commonCredentialsAndResolvers = Seq(
 		resolvers += "Sbt plugins" at "https://dl.bintray.com/sbt/sbt-plugin-releases",
 		resolvers += "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
 		credentials += Credentials(Path.userHome / ".sbt" / "credentials"),
+		credentials += Credentials(Path.userHome / ".sbt" / "1.0" / "sonatype_credential"),
+		credentials += Credentials(Path.userHome / ".sbt" / "1.0" / "pgp.credentials"),
 		assemblyOption in assembly := (assemblyOption in assembly).value.copy(cacheUnzip = true),
 		assemblyOption in assembly := (assemblyOption in assembly).value.copy(cacheOutput = false)
 )
 
 lazy val commonSettingsC4E = Seq(
-		organization := "clustering4ever",
-		bintrayRepository := "Clustering4Ever",
-	 	version := "0.6.11",
+		organization := "org.clustering4ever",
+		bintrayRepository := "C4E",
+	 	version := "0.6.30",
 		scalaVersion := "2.11.12",
+		conflictManager := ConflictManager.all,
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
 		bintrayOrganization := Some("clustering4ever"),
 		credentials += Credentials(Path.userHome / ".bintray" / ".credentials"),
-		// scalacOptions ++= Seq("-unchecked", "-deprecation")
+		scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 )
 
 lazy val core = (project in file("core"))
@@ -78,3 +81,41 @@ lazy val clustering4ever = (project in file("clustering4Ever"))
   	.settings(name := "Clustering4Ever")
 	.dependsOn(core, clusteringScala, clusteringSpark)
 	.aggregate(core, clusteringScala, clusteringSpark)
+
+// Sonatype deployment
+
+// useGpg := true
+
+publishTo := sonatypePublishTo.value
+
+ThisBuild / organization := "org.clustering4ever"
+ThisBuild / organizationName := "Clustering4Ever"
+ThisBuild / organizationHomepage := Some(url("https://github.com/Clustering4Ever/Clustering4Ever/"))
+
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/Clustering4Ever/Clustering4Ever"),
+    "scm:git@github.com:Clustering4Ever/Clustering4Ever.git"
+  )
+)
+ThisBuild / developers := List(
+  Developer(
+    id    = "beckgael",
+    name  = "Beck Gaël",
+    email = "beck.gael@gmail.com",
+    url   = url("http://www.beckgael.fr")
+  )
+)
+
+ThisBuild / description := "Let's clustered everything."
+ThisBuild / licenses := List("Apache-2.0" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / homepage := Some(url("https://github.com/Clustering4Ever/Clustering4Ever"))
+
+// Remove all additional repository other than Maven Central from POM
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+ThisBuild / publishMavenStyle := true

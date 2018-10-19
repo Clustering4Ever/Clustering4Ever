@@ -1,4 +1,4 @@
-# Clustering 4 Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clustering4ever/_latestVersion)
+# Clustering 4 Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion)
 
 **Welcome** to Big Data Clustering Library gathering clustering algorithms and quality indexes. Don't hesitate to ask questions or make recommendations in our [Gitter](https://gitter.im/Clustering4Ever/Lobby).
 You will find additional contents about clustering algorithms [here](https://github.com/PhDStudentsP13/Clustering).
@@ -17,14 +17,14 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 
 Add following lines in your build.sbt :
 
-* `"clustering4ever" % "clustering4ever_2.11" % "0.6.11"` to your `libraryDependencies`
-* `resolvers += Resolver.bintrayRepo("clustering4ever", "Clustering4Ever")`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.6.30"` to your `libraryDependencies`
 
-You can also take [specifics parts](https://bintray.com/clustering4ever/Clustering4Ever) :
+You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 
-* Core [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/core/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/core/_latestVersion)
-* Scala Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringscala/_latestVersion)
-* Spark Clustering[ ![Download](https://api.bintray.com/packages/clustering4ever/Clustering4Ever/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/Clustering4Ever/clusteringspark/_latestVersion)
+* Core [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/core/images/download.svg) ](https://bintray.com/clustering4ever/C4E/core/_latestVersion)
+* Scala Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clusteringscala/_latestVersion)
+* Spark Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clusteringspark/_latestVersion)
+
 
 ## [API documentation](http://clustering4ever.org/API%20Documentation/)
 
