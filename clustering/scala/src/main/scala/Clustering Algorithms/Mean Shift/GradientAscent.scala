@@ -11,7 +11,7 @@ import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.SumVectors
-import clustering4ever.scala.kernels.Kernels
+import clustering4ever.scala.kernels.{Kernels, KernelArgs}
 import clustering4ever.scala.kernels.KernelNature._
 import clustering4ever.scala.kernels.KernelNature
 import clustering4ever.scala.clusterizables.RealClusterizable
@@ -25,39 +25,35 @@ class GradientAscent[
   ID: Numeric,
   O,
   V <: Seq[Double],
-  Cz[ID, O, V <: Seq[Double], _] <: RealClusterizable[ID, O, V, Cz[ID, O, V, _]],
+  Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
   D <: ContinuousDistance[V]
 ](
   epsilon: Double,
   maxIterations: Int,
   metric: D,
-  kernelType: KernelType,
-  kernelArgs: immutable.Vector[String]
+  kernelArgs: KernelArgs[V, D]
 ) extends DataSetsTypes[ID] {
 
-  def gradientAscent(readyToGA: GenSeq[Cz[ID, O, V, _]]) = {
+  def gradientAscent(readyToGA: GenSeq[Cz[ID, O, V]]) = {
+
     val haveNotConverged = false
     val kernelLocality = readyToGA.map(_.vector).seq
+    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    lazy val kernelLocalitySeq: Seq[V] = kernelLocality.seq
 
-    var gradientAscentData: GenSeq[(Cz[ID, O, V, _], Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
 
-    lazy val kernelLocalitySeq: Option[Seq[V]] = kernelType match {
-      case KernelNature.EuclideanKNN => Some(kernelLocality)
-      case KernelNature.KNN => Some(kernelLocality)
-      case _ => None
-    }
-
-    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V, _], Boolean)]) = {
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
         val mode = obj.v2.get
         val newMode = if( haveConverged ) mode
           else {
-            kernelType match {
-              case kernel if( kernel == KernelNature.Gaussian || kernel == KernelNature.Flat ) =>  Kernels.obtainModeThroughKernel[V](mode, kernelLocality, kernelArgs.head.toDouble, kernelType, metric)
-              case KernelNature.EuclideanKNN =>  Kernels.euclideanKnnKernel[V](mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric.asInstanceOf[Euclidean[V]])
-              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq.get, kernelArgs.head.toInt, metric)
-              case KernelNature.Sigmoid =>  Kernels.obtainModeThroughSigmoid(mode, kernelLocality, kernelArgs.head.toDouble, kernelArgs(1).toDouble)
+            kernelArgs.kernelType match {
+              case KernelNature.Gaussian => Kernels.obtainModeThroughKernel[V, D](mode, kernelLocality, kernelArgs)
+              case KernelNature.Flat => Kernels.obtainModeThroughKernel[V, D](mode, kernelLocality, kernelArgs)
+              case KernelNature.Sigmoid => Kernels.obtainModeThroughKernel(mode, kernelLocality, kernelArgs)
+              case KernelNature.EuclideanKNN => Kernels.euclideanKnnKernel[V](mode, kernelLocalitySeq, kernelArgs, metric.asInstanceOf[Euclidean[V]])
+              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq, kernelArgs)
             }
           }
         
@@ -70,8 +66,10 @@ class GradientAscent[
 
         (obj.setV2(newMode.asInstanceOf[V]), hasConverged)
       }
+
       (convergingData, cptConvergedPoints)
     }
+
     var ind = 0
     var everyPointsHaveConverged = false
     while( ind < maxIterations && ! everyPointsHaveConverged ) {
@@ -80,6 +78,7 @@ class GradientAscent[
       everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
       ind += 1
     }
+
     gradientAscentData.map(_._1)
   }
 }
@@ -94,14 +93,13 @@ object GradientAscent extends DataSetsTypes[Int] {
     ID: Numeric,
     O,
     V <: Seq[Double],
-    Cz[ID, O, V <: Seq[Double], _] <: RealClusterizable[ID, O, V, Cz[ID, O, V, _]],
+    Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
     D <: ContinuousDistance[V]
   ](
-    data: GenSeq[Cz[ID, O, V, _]],
+    data: GenSeq[Cz[ID, O, V]],
     metric: D,
     epsilon: Double,
     maxIterations: Int,
-    kernelType: KernelType,
-    kernelArgs: immutable.Vector[String]
-    ) = (new GradientAscent[ID, O, V, Cz, D](epsilon, maxIterations, metric, kernelType, kernelArgs)).gradientAscent(data)
+    kernelArgs: KernelArgs[V, D]
+    ) = (new GradientAscent[ID, O, V, Cz, D](epsilon, maxIterations, metric, kernelArgs)).gradientAscent(data)
 }
