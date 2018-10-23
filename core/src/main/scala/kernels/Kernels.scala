@@ -58,7 +58,7 @@ object Kernels {
 	 * @param metric is the dissimilarity measure used for kernels computation
 	 */
 	def obtainModeThroughKernel[V <: Seq[Double], D <: ContinuousDistance[V]](v: V, env: GenSeq[V], kernelArgs: KernelArgs[V, D]): V = {
-		
+
 		def reducePreModeAndKernelValue(gs: GenSeq[(V, Double)]) = gs.reduce( (a, b) => (SumVectors.sumVectors[Double, V](a._1, b._1), a._2 + b._2) )		
 		
 		def computeModeAndCastIt(preMode: V, kernelValue: Double) = preMode.map(_ / kernelValue).asInstanceOf[V]
@@ -68,7 +68,6 @@ object Kernels {
 			case KernelNature.Flat => flatKernel[V, D]
 			case KernelNature.Sigmoid => sigmoidKernel[V]
 		}
-
 		val (preMode, kernelValue) = reducePreModeAndKernelValue(
 			env.map{ vi =>
 			  val kernelVal = kernel(v, vi, kernelArgs)
@@ -79,7 +78,7 @@ object Kernels {
 	}
 
 	private[this] def obtainKnn[O](v: O, env: Seq[O], k: Int, metric: Distance[O]) = env.sortBy( v2 => metric.d(v, v2) ).take(k)
-	
+
 	private[this] def obtainKnnVectors[@specialized(Int, Double) N: SNumeric, V <: Seq[N]](v: V, env: Seq[V], k: Int, metric: Distance[V]) = obtainKnn[V](v, env, k, metric)
 	/**
 	 *
@@ -93,8 +92,8 @@ object Kernels {
 	 * The KNN kernel for euclidean space, it select KNN using a specific distance measure and compute the mean<sup>*</sup> of them
 	 * @note Mean computation has a sense only for euclidean distance.
 	 */
-	def euclideanKnnKernel[V <: Seq[Double]](v: V, env: Seq[V], kernelArgs: KernelArgs[V, _], metric: Euclidean[V]): V = {
-		val knn = obtainKnnVectors[Double, V](v, env, kernelArgs.k.get, metric)
+	def euclideanKnnKernel[V <: Seq[Double]](v: V, env: Seq[V], kernelArgs: KernelArgs[V, Euclidean[V]]): V = {
+		val knn = obtainKnnVectors[Double, V](v, env, kernelArgs.k.get, kernelArgs.metric.get)
 		ClusterBasicOperations.obtainMean[V](knn)
 	}
 	/**

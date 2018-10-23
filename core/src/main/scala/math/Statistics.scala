@@ -32,7 +32,9 @@ object Stats extends ClusteringCommons with CommonTypes {
 			max(vminMax1._2(idx), vminMax2._2(idx))
 		)
 	}
-
+	/**
+	 *
+	 */
 	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]): (MB[Double], MB[Double]) = {
 		val dim = data.head.size
 		val vectorRange = (0 until dim).toBuffer
@@ -42,7 +44,9 @@ object Stats extends ClusteringCommons with CommonTypes {
 		}.reduce( (minMaxa, minMaxb) => vectorRange.map( i => obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
 		(minValues, maxValues)
 	}
-
+	/**
+	 *
+	 */
 	def obtainCenterFollowingWeightedDistribution[V](distribution: mutable.Buffer[(V, Double)]): V = {
 		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
 		var cpt = 0

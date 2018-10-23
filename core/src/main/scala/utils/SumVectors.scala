@@ -37,7 +37,9 @@ object SumVectors {
 		}
 		s		
 	}
-
+	/**
+	 *
+	 */
 	def norm[V <: Seq[Double]](dot1: V): Double = {
 	  var s = 0D
 	  var i = 0
@@ -48,7 +50,9 @@ object SumVectors {
 	  }
 	  sqrt(s)
 	}
-
+	/**
+	 *
+	 */
 	def dotProd[V <: Seq[Double]](dot1: V, dot2: V): Double = {
 		var dp = 0D
 		var i = 0

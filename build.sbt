@@ -63,24 +63,14 @@ lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(scalaDeps)
 	.dependsOn(core)
 
-lazy val clusteringSpark = (project in file("clustering/spark"))
-	.settings(commonSettingsC4E:_*)
-	.settings(mergeStrategyC4E)
-	.settings(sparkDeps)
-	.dependsOn(core, clusteringScala)
-
-lazy val documentation = (project in file("documentation"))
+lazy val clustering4ever = (project in file("clustering/spark"))
 	.settings(commonSettingsC4E: _*)
-  	.settings(name := "documentation")
+	.settings(sparkDeps)
+  	.settings(name := "Clustering4Ever")
   	.settings(skip in publish := true)
 	.enablePlugins(ScalaUnidocPlugin)
-	.aggregate(core, clusteringScala, clusteringSpark)
-
-lazy val clustering4ever = (project in file("clustering4Ever"))
-	.settings(commonSettingsC4E: _*)
-  	.settings(name := "Clustering4Ever")
-	.dependsOn(core, clusteringScala, clusteringSpark)
-	.aggregate(core, clusteringScala, clusteringSpark)
+	.dependsOn(core, clusteringScala)
+	.aggregate(core, clusteringScala)
 
 // Sonatype deployment
 

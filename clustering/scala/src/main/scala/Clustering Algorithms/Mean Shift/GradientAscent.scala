@@ -37,25 +37,26 @@ class GradientAscent[
   def gradientAscent(readyToGA: GenSeq[Cz[ID, O, V]]) = {
 
     val haveNotConverged = false
-    val kernelLocality = readyToGA.map(_.vector).seq
+    val kernelLocality = readyToGA.map(_.vector)
     var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = readyToGA.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
     lazy val kernelLocalitySeq: Seq[V] = kernelLocality.seq
+
+    val kernel: Either[(V, GenSeq[V], KernelArgs[V, D]) => V, (V, Seq[V], KernelArgs[V, Euclidean[V]]) => V] = kernelArgs.kernelType match {
+      case KernelNature.Gaussian => Left(Kernels.obtainModeThroughKernel[V, D])
+      case KernelNature.Flat => Left(Kernels.obtainModeThroughKernel[V, D])
+      case KernelNature.Sigmoid => Left(Kernels.obtainModeThroughKernel)
+      case KernelNature.EuclideanKNN => Right(Kernels.euclideanKnnKernel[V])
+      case KernelNature.KNN =>  Right(Kernels.knnKernel)
+    }
+
+    val isLeft = kernel.isLeft
 
     def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
 
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
         val mode = obj.v2.get
-        val newMode = if( haveConverged ) mode
-          else {
-            kernelArgs.kernelType match {
-              case KernelNature.Gaussian => Kernels.obtainModeThroughKernel[V, D](mode, kernelLocality, kernelArgs)
-              case KernelNature.Flat => Kernels.obtainModeThroughKernel[V, D](mode, kernelLocality, kernelArgs)
-              case KernelNature.Sigmoid => Kernels.obtainModeThroughKernel(mode, kernelLocality, kernelArgs)
-              case KernelNature.EuclideanKNN => Kernels.euclideanKnnKernel[V](mode, kernelLocalitySeq, kernelArgs, metric.asInstanceOf[Euclidean[V]])
-              case KernelNature.KNN =>  Kernels.knnKernel(mode, kernelLocalitySeq, kernelArgs)
-            }
-          }
+        val newMode = if( haveConverged ) mode else if(isLeft) kernel.left.get(mode, kernelLocality, kernelArgs) else kernel.right.get(mode, kernelLocalitySeq, kernelArgs.asInstanceOf[KernelArgs[V, Euclidean[V]]])  
         
         val modeShift = metric.d(newMode, mode)
         val hasConverged = if( modeShift <= epsilon ) {
