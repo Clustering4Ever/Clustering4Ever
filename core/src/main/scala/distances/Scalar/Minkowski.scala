@@ -29,12 +29,10 @@ class Minkowski[V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta wi
 	def d(dot1: V, dot2: V): Double = minkowski[V](dot1, dot2)
 }
 
-class MinkowskiClusterizable[ID: Numeric, O, V <: Seq[Double]](final val p: Int = 2, val classicalMetric: Minkowski[V]) extends MinkowshiMeta with RealClusterizableDistance[SimpleRealClusterizable[ID, O, V], V] {
+class MinkowskiClusterizable[ID: Numeric, O, V <: Seq[Double], D <: Minkowski[V]](final val p: Int = 2, val classicalMetric: D) extends MinkowshiMeta with RealClusterizableDistance[SimpleRealClusterizable[ID, O, V], V, D] {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2
 	  */
 	def d(dot1: SimpleRealClusterizable[ID, O, V], dot2: SimpleRealClusterizable[ID, O, V]): Double = minkowski[V](dot1.vector, dot2.vector)
-
-	def obtainClassicalDistance(): Minkowski[V] = new Minkowski[V]
 }

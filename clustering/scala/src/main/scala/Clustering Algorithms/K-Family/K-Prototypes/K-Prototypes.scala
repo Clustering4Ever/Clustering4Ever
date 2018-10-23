@@ -7,7 +7,7 @@ import scala.util.Random
 import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.util.ClusterBasicOperations
-import clustering4ever.math.distances.{MixtDistance, MixtDistanceClusterizable}
+import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.MixtClusterizable
