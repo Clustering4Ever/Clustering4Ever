@@ -15,9 +15,11 @@ import clustering4ever.scala.clusterizables.{ClusterizableExt, Clusterizable}
 import clustering4ever.scala.clustering.KCommons
 import clustering4ever.clustering.CommonRDDPredictClusteringModel
 import clustering4ever.util.SumVectors
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import clustering4ever.scala.measurableclass.{BinaryScalarVector, SimpleBinaryScalarVector}
 import spire.math.{Numeric => SNumeric}
-
+/**
+ *
+ */
 abstract class KCommonsSpark[
 	ID: Numeric,
 	V : ClassTag,
@@ -75,7 +77,9 @@ abstract class KCommonsSpark[
 		centers
 	}
 }
-
+/**
+ *
+ */
 abstract class KCommonsSparkVectors[
 	ID: Numeric,
 	N: SNumeric,
@@ -107,12 +111,14 @@ abstract class KCommonsSparkVectors[
 		centers
 	}
 }
-
+/**
+ *
+ */
 abstract class KCommonsSparkMixt[
 	ID: Numeric,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
-	V <: BinaryScalarVector[Vb, Vs] : ClassTag,
+	V <: SimpleBinaryScalarVector[Vb, Vs] : ClassTag,
 	Cz <: Clusterizable[ID, V],
 	D <: Distance[V]
 	](
@@ -129,15 +135,17 @@ abstract class KCommonsSparkMixt[
 	protected def obtainvalCentersInfo = {
 		vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) )
 			.reduceByKeyLocally{ case ((sum1, v1), (sum2, v2)) =>
-				val BinaryScalarVector(v1Binary, v1Scalar) = v1
-				val BinaryScalarVector(v2Binary, v2Scalar) = v2
+				val SimpleBinaryScalarVector(v1Binary, v1Scalar) = v1
+				val SimpleBinaryScalarVector(v2Binary, v2Scalar) = v2
 				val binaryVector = SumVectors.sumVectors[Int, Vb](v1Binary, v2Binary)
 				val scalarVector = SumVectors.sumVectors[Double, Vs](v1Scalar, v2Scalar)
-				(sum1 + sum2, (new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V])
+				(sum1 + sum2, (new SimpleBinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V])
 			}
 	}
 }
-
+/**
+ *
+ */
 abstract class KCommonsModelSpark[
 	ID: Numeric,
 	V,

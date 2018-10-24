@@ -10,7 +10,7 @@ import scala.collection.{GenSeq, mutable}
 import scala.util.Random
 import clustering4ever.math.distances.Distance
 import clustering4ever.stats.Stats
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import clustering4ever.scala.measurableclass.{BinaryScalarVector, SimpleBinaryScalarVector}
 /**
  * This object gather different initialization methods for K-Means, K-Modes, K-Prototypes
  */
@@ -29,11 +29,10 @@ object KppInitialization {
 	 * Simplest centers initialization which generate random binary vectors 
 	 */
 	def naiveInitializationBinary(dim: Int, k: Int): mutable.HashMap[Int, mutable.ArrayBuffer[Int]] = mutable.HashMap((0 until k).map( clusterID => (clusterID, mutable.ArrayBuffer.fill(dim)(Random.nextInt(2))) ):_*) 
-
 	/**
 	 * Simplest centroids initializations
 	 * We search range for each dimension and take a random value between each range for scalar data and take a random {0, 1} for binary data
-	 **/
+	 */
 	def naiveInitializationMixt(vectorizedDataset: GenSeq[BinaryScalarVector[mutable.ArrayBuffer[Int], mutable.ArrayBuffer[Double]]], k: Int): mutable.HashMap[Int, BinaryScalarVector[mutable.ArrayBuffer[Int], mutable.ArrayBuffer[Double]]] = {
 		val realPart = vectorizedDataset.map(_.scalar)
 		val h = vectorizedDataset.head
@@ -44,7 +43,7 @@ object KppInitialization {
 		val realPartCenters = naiveInitializationReal(realPart, k)
 		val binaryPartCenters = naiveInitializationBinary(dimBinary, k)
 
-		binaryPartCenters.zip(realPartCenters).map{ case ((clusterID, binary), (_, scalar)) => (clusterID, new BinaryScalarVector[mutable.ArrayBuffer[Int], mutable.ArrayBuffer[Double]](binary, scalar)) }
+		binaryPartCenters.zip(realPartCenters).map{ case ((clusterID, binary), (_, scalar)) => (clusterID, new SimpleBinaryScalarVector[mutable.ArrayBuffer[Int], mutable.ArrayBuffer[Double]](binary, scalar)) }
 	}
 	/**
 	 * Kmeans++ initialization

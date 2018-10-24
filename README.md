@@ -39,6 +39,7 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 * **[Self Organizing Maps](https://github.com/TugdualSarazin/spark-clustering)**
 * **[G-Stream](https://github.com/Spark-clustering-notebook/G-stream)**
 * **[PatchWork](https://github.com/crim-ca/patchwork)**
+* _Random Local Area_
 
 ### Quality indexes
 

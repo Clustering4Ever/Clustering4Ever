@@ -4,11 +4,10 @@ package clustering4ever.scala.clustering.kprotoypes
  */
 import scala.collection.{GenSeq, mutable}
 import scala.util.Random
-import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.util.ClusterBasicOperations
 import clustering4ever.math.distances.MixtDistance
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import clustering4ever.scala.measurableclass.{BinaryScalarVector, SimpleBinaryScalarVector}
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.MixtClusterizable
 import clustering4ever.scala.clustering.KCommonsMixt
@@ -49,7 +48,7 @@ class KPrototypes[
 			while( cpt < maxIterations && ! allCentersHaveConverged ) {
 				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(centers, centersCardinality)
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
-					centers(clusterID) = new BinaryScalarVector[Vb, Vs](ClusterBasicOperations.obtainMode[Vb](aggregate.map(_._1.binary)), ClusterBasicOperations.obtainMean[Vs](aggregate.map(_._1.scalar))).asInstanceOf[V]
+					centers(clusterID) = new SimpleBinaryScalarVector[Vb, Vs](ClusterBasicOperations.obtainMode[Vb](aggregate.map(_._1.binary)), ClusterBasicOperations.obtainMean[Vs](aggregate.map(_._1.scalar))).asInstanceOf[V]
 					centersCardinality(clusterID) += aggregate.size
 				}
 				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)

@@ -6,8 +6,6 @@ import scala.util.Random
 import scala.math.{min, max}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
-import clustering4ever.clustering.DataSetsTypes
-import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.SumVectors
@@ -32,7 +30,7 @@ class GradientAscent[
   maxIterations: Int,
   metric: D,
   kernelArgs: KernelArgs[V, D]
-) extends DataSetsTypes[ID] {
+) {
 
   def gradientAscent(readyToGA: GenSeq[Cz[ID, O, V]]) = {
 
@@ -84,7 +82,7 @@ class GradientAscent[
   }
 }
 
-object GradientAscent extends DataSetsTypes[Int] {
+object GradientAscent {
   /**
    * @param data : an RDD[(String, Seq)] where String is the ID and Seq the rest of data
    * @param epsilon : threshold under which we stop iteration in gradient ascent

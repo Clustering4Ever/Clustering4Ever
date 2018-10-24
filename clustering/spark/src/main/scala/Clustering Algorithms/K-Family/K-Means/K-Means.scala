@@ -10,8 +10,6 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
 import clustering4ever.scala.vectorizables.RealVectorizable

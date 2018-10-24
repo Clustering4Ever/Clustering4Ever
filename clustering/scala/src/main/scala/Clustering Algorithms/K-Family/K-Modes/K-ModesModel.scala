@@ -2,7 +2,7 @@ package clustering4ever.scala.clustering.kmodes
 /**
  * @author Beck Gaël
  */
-import clustering4ever.clustering.CommonPredictClusteringModel
+import clustering4ever.clustering.CentersBasedModel
 import scala.collection.mutable
 import clustering4ever.math.distances.{BinaryDistance, Distance}
 import clustering4ever.scala.clusterizables.BinaryClusterizable

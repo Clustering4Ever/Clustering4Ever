@@ -8,11 +8,9 @@ import scala.math.{min, max}
 import org.apache.spark.{SparkContext, HashPartitioner}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import clustering4ever.clustering.ClusteringAlgorithms
-import clustering4ever.clustering.DataSetsTypes
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.math.distances.MixtDistance
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import clustering4ever.scala.measurableclass.SimpleBinaryScalarVector
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.MixtClusterizable
 import clustering4ever.spark.clustering.KCommonsSparkMixt
@@ -31,8 +29,8 @@ class KPrototypes[
 	O,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
-	V <: BinaryScalarVector[Vb, Vs] : ClassTag,
-	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]],
+	V <: SimpleBinaryScalarVector[Vb, Vs] : ClassTag,
+	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: SimpleBinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]],
 	D <: HammingAndEuclidean[Vb, Vs, V]
 ](
 	@transient val sc: SparkContext,
@@ -58,7 +56,7 @@ class KPrototypes[
 				val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 ).asInstanceOf[Vb]
 				// Mean for Euclidean Distance
 				val scalarVector = preMean.scalar.map(_ / cardinality).asInstanceOf[Vs]
-				(clusterID, (new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V], cardinality)
+				(clusterID, (new SimpleBinaryScalarVector[Vb, Vs](binaryVector, scalarVector)).asInstanceOf[V], cardinality)
 			}
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
@@ -66,16 +64,17 @@ class KPrototypes[
 		new KPrototypesModel[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V], D](centers, metric)
 	}
 }
-
-
-object KPrototypes extends DataSetsTypes[Long] {
+/**
+ *
+ */
+object KPrototypes {
 	def run[
 		ID: Numeric,
 		O,
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
-		V <: BinaryScalarVector[Vb, Vs] : ClassTag,
-		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]]
+		V <: SimpleBinaryScalarVector[Vb, Vs] : ClassTag,
+		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: SimpleBinaryScalarVector[Vb, Vs]] <: MixtClusterizable[ID, O, Vb, Vs, V, Cz[ID, O, Vb, Vs, V]]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz[ID, O, Vb, Vs, V]],

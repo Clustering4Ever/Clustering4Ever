@@ -10,7 +10,6 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import clustering4ever.math.distances.BinaryDistance
 import clustering4ever.math.distances.binary.Hamming
-import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.spark.clustering.KCommonsSparkVectors
 import scala.language.higherKinds

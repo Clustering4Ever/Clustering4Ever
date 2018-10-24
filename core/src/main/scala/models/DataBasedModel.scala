@@ -5,13 +5,15 @@ package clustering4ever.scala.clustering
 import clustering4ever.clustering.ClusteringModel
 import clustering4ever.math.distances.Distance
 import scala.collection.{GenSeq, mutable}
-import clustering4ever.clustering.CommonPredictClusteringModel
-
+import clustering4ever.clustering.CentersBasedModel
+/**
+ *
+ */
 class DataBasedModel[O, ID](val data: mutable.HashMap[Int, mutable.HashSet[(ID, O)]], metric: Distance[O]) extends ClusteringModel {
 	/**
 	 *
 	 */
-	lazy val dataAsSeq = data.toSeq.flatMap{ case (clusterID, values) => values.map{ case (id, vector) => (clusterID, (id, vector)) } }
+	lazy val dataAsSeq: Seq[(Int, (ID, O))] = data.toSeq.flatMap{ case (clusterID, values) => values.map{ case (id, vector) => (clusterID, (id, vector)) } }
 	/**
 	 *
 	 */

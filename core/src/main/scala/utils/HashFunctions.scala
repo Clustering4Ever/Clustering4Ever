@@ -9,13 +9,13 @@ trait HashingArgs extends Serializable
 /**
  * Trait regrouping various hashing methods
  */
-trait Hasher[V <: Seq[Double]] extends Serializable {
+trait Hasher[V] extends Serializable {
   def hf(v: V): Double
 }
 /**
  * A basic implementation of Locality Sensitive Hashing
  */
-class LSH(val dim: Int, val w: Double = 1D) extends Hasher[mutable.ArrayBuffer[Double]] {
+class LSH[V <: Seq[Double]](val dim: Int, val w: Double = 1D) extends Hasher[V] {
 
   val b = Random.nextDouble * w
   /**
@@ -25,7 +25,7 @@ class LSH(val dim: Int, val w: Double = 1D) extends Hasher[mutable.ArrayBuffer[D
   /**
    *  Generate the hash value for a given vector x depending on w, b, hashVector
    */
-  def hf(x: mutable.ArrayBuffer[Double]): Double = {
+  def hf(x: V): Double = {
   	var s = 0D
     var i = 0
     while( i < x.size ) {

@@ -24,7 +24,7 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 )
 
 lazy val scalaDeps = libraryDependencies ++= Seq(
-	  "org.apache.commons" % "commons-math3" % "3.6.1"
+	  // "org.apache.commons" % "commons-math3" % "3.6.1"
 )
 
 lazy val commonCredentialsAndResolvers = Seq(
@@ -63,14 +63,18 @@ lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(scalaDeps)
 	.dependsOn(core)
 
-lazy val clustering4ever = (project in file("clustering/spark"))
-	.settings(commonSettingsC4E: _*)
+lazy val clusteringSpark = (project in file("clustering/spark"))
+	.settings(commonSettingsC4E:_*)
+	.settings(mergeStrategyC4E)
 	.settings(sparkDeps)
+	.dependsOn(clusteringScala)
+
+lazy val clustering4ever = (project in file("clustering4ever"))
+	.settings(commonSettingsC4E: _*)
   	.settings(name := "Clustering4Ever")
-  	.settings(skip in publish := true)
 	.enablePlugins(ScalaUnidocPlugin)
-	.dependsOn(core, clusteringScala)
-	.aggregate(core, clusteringScala)
+	.dependsOn(clusteringSpark)
+	.aggregate(core, clusteringScala, clusteringSpark)
 
 // Sonatype deployment
 

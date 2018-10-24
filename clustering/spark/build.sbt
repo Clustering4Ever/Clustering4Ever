@@ -1,4 +1,4 @@
-val clusteringName = "Clustering4Ever"
+val clusteringName = "clusteringSpark"
 
 name := clusteringName
 

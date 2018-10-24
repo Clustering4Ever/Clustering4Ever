@@ -10,10 +10,10 @@ import spire.math.{Numeric => SNumeric}
 import clustering4ever.math.distances.Distance
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.{ClusterizableExt, Clusterizable}
-import clustering4ever.clustering.{ClusteringAlgorithms, CommonPredictClusteringModel}
+import clustering4ever.clustering.{ClusteringAlgorithms, CentersBasedModel}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 
-abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends ClusteringAlgorithms[ID] {
+abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends ClusteringAlgorithms {
 	/**
 	 * Check if there are empty centers and remove them
 	 */
@@ -158,7 +158,7 @@ abstract class KCommonsModel[
 	](
 	val centers: mutable.HashMap[Int, V],
 	val metric: D
-) extends CommonPredictClusteringModel[V, D] {
+) extends CentersBasedModel[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method

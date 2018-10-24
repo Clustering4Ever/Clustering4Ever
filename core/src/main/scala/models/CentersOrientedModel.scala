@@ -7,7 +7,7 @@ import scala.collection.{mutable, GenSeq}
 /**
  *
  */
-trait CommonPredictClusteringModel[V, D <: Distance[V]] extends ClusteringModel {
+trait CentersBasedModel[V, D <: Distance[V]] extends ClusteringModel {
 
 	val centers: mutable.HashMap[Int, V]
 	val metric: D

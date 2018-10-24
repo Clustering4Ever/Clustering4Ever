@@ -8,7 +8,6 @@ import scala.util.Random
 import clustering4ever.math.distances.BinaryDistance
 import clustering4ever.math.distances.binary.Hamming
 import clustering4ever.util.ClusterBasicOperations
-import clustering4ever.clustering.ClusteringAlgorithms
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.scala.clustering.KCommonsVectors
 import clustering4ever.util.CommonTypes

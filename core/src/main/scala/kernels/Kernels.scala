@@ -76,9 +76,13 @@ object Kernels {
 		)
 		computeModeAndCastIt(preMode, kernelValue)
 	}
-
+	/**
+	 *
+	 */
 	private[this] def obtainKnn[O](v: O, env: Seq[O], k: Int, metric: Distance[O]) = env.sortBy( v2 => metric.d(v, v2) ).take(k)
-
+	/**
+	 *
+	 */
 	private[this] def obtainKnnVectors[@specialized(Int, Double) N: SNumeric, V <: Seq[N]](v: V, env: Seq[V], k: Int, metric: Distance[V]) = obtainKnn[V](v, env, k, metric)
 	/**
 	 *

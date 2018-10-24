@@ -5,9 +5,11 @@ package clustering4ever.util
 import scala.collection.{mutable, GenSeq, parallel}
 import clustering4ever.scala.vectorizables.{RealVector, BinaryVector, MixtVector}
 import clustering4ever.scala.clusterizables.{SimpleRealClusterizable, SimpleBinaryClusterizable, SimpleMixtClusterizable}
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import clustering4ever.scala.measurableclass.{BinaryScalarVector, SimpleBinaryScalarVector}
 import scala.language.implicitConversions
-
+/**
+ *
+ */
 object ScalaImplicits {
 
 	type MAB[N] = mutable.ArrayBuffer[N]
@@ -34,7 +36,7 @@ object ScalaImplicits {
 				MixtVector
 			]
 		] =
-		genSeq.map{ case (vectors, id) => GenerateClusterizable.obtainSimpleMixtClusterizable[Long, MAB[Int], MAB[Double], MixtVector](num.toLong(id), new BinaryScalarVector(mutable.ArrayBuffer(vectors.binary:_*), mutable.ArrayBuffer(vectors.scalar:_*))) }
+		genSeq.map{ case (vectors, id) => GenerateClusterizable.obtainSimpleMixtClusterizable[Long, MAB[Int], MAB[Double], MixtVector](num.toLong(id), new SimpleBinaryScalarVector(mutable.ArrayBuffer(vectors.binary:_*), mutable.ArrayBuffer(vectors.scalar:_*))) }
 
 	implicit def prepareToRealClustering[V <: Seq[Double]](genSeq: GenSeq[V]): GenSeq[SimpleRealClusterizable[Long, MAB[Double], MAB[Double]]] =
 		prepareDataWithIDToRealClustering(genSeq.zipWithIndex)
