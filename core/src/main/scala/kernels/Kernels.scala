@@ -61,8 +61,6 @@ object Kernels {
 
 		def reducePreModeAndKernelValue(gs: GenSeq[(V, Double)]) = gs.reduce( (a, b) => (SumVectors.sumVectors[Double, V](a._1, b._1), a._2 + b._2) )		
 		
-		def computeModeAndCastIt(preMode: V, kernelValue: Double) = preMode.map(_ / kernelValue).asInstanceOf[V]
-		
 		val kernel: (V, V, KernelArgs[V, D]) => Double = kernelArgs.kernelType match {
 			case KernelNature.Gaussian => gaussianKernel[V, D]
 			case KernelNature.Flat => flatKernel[V, D]
@@ -74,7 +72,7 @@ object Kernels {
 			  (vi.map(_ * kernelVal).asInstanceOf[V], kernelVal)
 			}
 		)
-		computeModeAndCastIt(preMode, kernelValue)
+		preMode.map(_ / kernelValue).asInstanceOf[V]
 	}
 	/**
 	 *
@@ -96,7 +94,7 @@ object Kernels {
 	 * The KNN kernel for euclidean space, it select KNN using a specific distance measure and compute the mean<sup>*</sup> of them
 	 * @note Mean computation has a sense only for euclidean distance.
 	 */
-	def euclideanKnnKernel[V <: Seq[Double]](v: V, env: Seq[V], kernelArgs: KernelArgs[V, Euclidean[V]]): V = {
+	def euclideanKnnKernel[V <: Seq[Double]](v: V, env: Seq[V], kernelArgs: KernelArgs[V, _ <: Euclidean[V]]): V = {
 		val knn = obtainKnnVectors[Double, V](v, env, kernelArgs.k.get, kernelArgs.metric.get)
 		ClusterBasicOperations.obtainMean[V](knn)
 	}
