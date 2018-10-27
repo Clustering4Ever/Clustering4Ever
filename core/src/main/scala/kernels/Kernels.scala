@@ -52,10 +52,10 @@ object Kernels {
 		exp(multivariateGaussianKernelLog(v1, mean, invSigma))
 	}
 	/**
-	 * Compute the local mode of a point v knowing its environement env, the bandwidth, kernelType and metric
-	 * @param kernelType can be either "gaussian" or "flat", if "flat" lambda = 1
-	 * @param bandwidth of the kernel approach
-	 * @param metric is the dissimilarity measure used for kernels computation
+	 * Compute the local mode of a point v knowing its environement env, the bandwidth and kernelArgs
+	 * @param kernelArgs: an instanciation of KernelArgs class with neccessary arguments to run choiced kernel
+	 * @param env: the environement where we have to looking for the mode
+	 * @param v: the vector we are looking for its mode
 	 */
 	def obtainModeThroughKernel[V <: Seq[Double], D <: ContinuousDistance[V]](v: V, env: GenSeq[V], kernelArgs: KernelArgs[V, D]): V = {
 

@@ -4,7 +4,9 @@ package clustering4ever.math.distances
  */
 import scala.collection.mutable
 import clustering4ever.util.SumVectors
-
+/**
+ *
+ */
 object BinaryDistanceUtil {
 	/**
 	 * Buil the contingency matrix where for each bite i, j :
@@ -15,15 +17,15 @@ object BinaryDistanceUtil {
 	 */
 	def contingencyTable(vector1: mutable.ArrayBuffer[Int], vector2: mutable.ArrayBuffer[Int]) = {
 
-		val oneByte = 1
-		val zeroByte = 0
+		val oneBite = 1
+		val zeroBite = 0
 
 		def incrementValues(n: Int, a: Int, b: Int, c: Int, d: Int): (Int, Int, Int, Int) = {
-			if( vector1(n) == oneByte ) {
-				if( vector2(n) == oneByte ) (a + 1, b, c, d)
+			if( vector1(n) == oneBite ) {
+				if( vector2(n) == oneBite ) (a + 1, b, c, d)
 				else (a, b + 1, c, d)
 			}
-			else if( vector2(n) == zeroByte ) (a, b, c, d + 1)
+			else if( vector2(n) == zeroBite ) (a, b, c, d + 1)
 			else (a, b, c + 1, d)
 		}
 

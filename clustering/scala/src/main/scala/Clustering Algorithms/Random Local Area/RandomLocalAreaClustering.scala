@@ -15,7 +15,7 @@ import scala.util.Random
  * @param metric : a dissimilarity measure associated to O
  */
 class RLA[O](
-	val data: GenSeq[O],
+	data: GenSeq[O],
 	epsilon: Double,
 	metric: Distance[O]
 ) extends ClusteringAlgorithms {

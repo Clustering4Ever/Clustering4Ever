@@ -32,7 +32,7 @@ class GradientAscent[
   data: GenSeq[Cz[ID, O, V]],
   epsilon: Double,
   maxIterations: Int,
-  metric: D = new Euclidean[V](false),
+  metric: D = new Euclidean[V](true),
   kernelArgs: Either[KernelArgs[V, D], KernelArgs[V, Euclidean[V]]] = Right(new KernelArgs[V, Euclidean[V]](kernelType = EuclideanKNN, k = Some(50)))
 ) {
 
@@ -63,15 +63,15 @@ class GradientAscent[
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
         val mode = obj.v2.get
-        val newMode = if( haveConverged ) mode else if( isLeft ) kernel.left.get(mode, kernelLocality, kernelArgs.left.get) else kernel.right.get(mode, kernelLocalitySeq, kernelArgs.right.get)
-        val modeShift = metric.d(newMode, mode)
+        val updatedMode = if( haveConverged ) mode else if( isLeft ) kernel.left.get(mode, kernelLocality, kernelArgs.left.get) else kernel.right.get(mode, kernelLocalitySeq, kernelArgs.right.get)
+        val modeShift = metric.d(updatedMode, mode)
         val hasConverged = if( modeShift <= epsilon ) {
           cptConvergedPoints += 1
           true
         }
         else false
 
-        (obj.setV2(newMode), hasConverged)
+        (obj.setV2(updatedMode), hasConverged)
       }
 
       (convergingData, cptConvergedPoints)

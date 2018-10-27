@@ -10,7 +10,7 @@ import clustering4ever.scala.clusterizables.MixtClusterizable
 /**
  *
  */
-trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]] extends Serializable {
+trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Serializable {
 	/**
 	 *
 	 */
@@ -18,7 +18,7 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScal
 	/**
 	 *
 	 */
-	protected def hammingAndEuclidean(dot1: V, dot2: V): Double = {
+	protected def hammingAndEuclidean(dot1: BinaryScalarVector[Vb, Vs], dot2: BinaryScalarVector[Vb, Vs]): Double = {
 		var db = 0D
 		var ds = 0D
 		var i = 0
@@ -45,16 +45,16 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScal
 /**
  *
  */
-class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](val alpha: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtDistance[Vb, Vs, V] {
+class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
 	/**
 	 *	
 	 */
-	def d(dot1: V, dot2: V): Double = hammingAndEuclidean(dot1, dot2)	
+	def d(dot1: BinaryScalarVector[Vb, Vs], dot2: BinaryScalarVector[Vb, Vs]): Double = hammingAndEuclidean(dot1, dot2)	
 }
 /**
  *
  */
-class HammingAndEuclideanClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs], D <: HammingAndEuclidean[Vb, Vs, V], Cz <: MixtClusterizable[ID, O, Vb, Vs, V, Cz]](val alpha: Double = 0D, val classicalMetric: D) extends HammingAndEuclideanMeta[Vb, Vs, V] with MixtClusterizableDistance[Cz, Vb, Vs, V, D] {
+class HammingAndEuclideanClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], D <: HammingAndEuclidean[Vb, Vs], Cz <: MixtClusterizable[ID, O, Vb, Vs, Cz]](val alpha: Double = 0D, val classicalMetric: D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtClusterizableDistance[Cz, Vb, Vs, D] {
 	/**
 	 *
 	 */

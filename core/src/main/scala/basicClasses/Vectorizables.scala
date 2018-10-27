@@ -20,6 +20,6 @@ class BinaryVectorizable[O, V <: Seq[Int]](obj: O, vectorizableFct: O => V = ide
 
 class BinaryVector[V <: Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector, identity)
 
-class MixtVectorizable[O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](obj: O, vectorizableFct: O => V = identity _) extends VectorizableObj[O, V](obj, vectorizableFct)
+class MixtVectorizable[O, Vb <: Seq[Int], Vs <: Seq[Double]](obj: O, vectorizableFct: O => BinaryScalarVector[Vb, Vs] = identity _) extends VectorizableObj[O, BinaryScalarVector[Vb, Vs]](obj, vectorizableFct)
 
-class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](obj: V) extends MixtVectorizable[V, Vb, Vs, V](obj, identity)
+class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](obj: BinaryScalarVector[Vb, Vs]) extends MixtVectorizable[BinaryScalarVector[Vb, Vs], Vb, Vs](obj, identity)

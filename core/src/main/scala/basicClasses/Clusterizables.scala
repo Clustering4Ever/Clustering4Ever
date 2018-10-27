@@ -57,14 +57,13 @@ abstract class ClusterizableExtMixt[
 	ID: Numeric,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
-	Vectors <: BinaryScalarVector[Vb, Vs],
-	Self <: ClusterizableExtMixt[ID, Vb, Vs, Vectors, Self]
+	Self <: ClusterizableExtMixt[ID, Vb, Vs, Self]
 ](
 	id: ID, 
-	vectorizable: Vectorizable[Vectors],
-	v2: Option[Vectors] = None,
+	vectorizable: Vectorizable[BinaryScalarVector[Vb, Vs]],
+	v2: Option[BinaryScalarVector[Vb, Vs]] = None,
 	clusterID: Option[Int] = None
-) extends ClusterizableExt[ID, Vectors, Self](id, vectorizable) {
+) extends ClusterizableExt[ID, BinaryScalarVector[Vb, Vs], Self](id, vectorizable) {
 
 	override def hashCode(): Int = {
 		val prime = 31
@@ -149,34 +148,33 @@ abstract class MixtClusterizable[
 	O,
 	Vb <: Seq[Int],
 	Vs <: Seq[Double],
-	V <: BinaryScalarVector[Vb, Vs],
-	Self <: MixtClusterizable[ID, O, Vb, Vs, V, Self]
+	Self <: MixtClusterizable[ID, O, Vb, Vs, Self]
 ](
 	id: ID,
-	vectorizable: MixtVectorizable[O, Vb, Vs, V],
-	v2: Option[V] = None,
+	vectorizable: MixtVectorizable[O, Vb, Vs],
+	v2: Option[BinaryScalarVector[Vb, Vs]] = None,
 	clusterID: Option[Int] = None
-) extends ClusterizableExtMixt[ID, Vb, Vs, V, Self](id, vectorizable, v2, clusterID)
+) extends ClusterizableExtMixt[ID, Vb, Vs, Self](id, vectorizable, v2, clusterID)
 /**
  * Basic clusterizable for Mixt Vectors => (V[Int], V[Double]) 
  */
-case class SimpleMixtClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], V <: BinaryScalarVector[Vb, Vs]](
+case class SimpleMixtClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double]](
 	override val id: ID,
-	override val vectorizable: MixtVectorizable[O, Vb, Vs, V],
-	override val v2: Option[V] = None,
+	override val vectorizable: MixtVectorizable[O, Vb, Vs],
+	override val v2: Option[BinaryScalarVector[Vb, Vs]] = None,
 	override val clusterID: Option[Int] = None
-) extends MixtClusterizable[ID, O, Vb, Vs, V, SimpleMixtClusterizable[ID, O, Vb, Vs, V]](id, vectorizable, v2, clusterID) {
+) extends MixtClusterizable[ID, O, Vb, Vs, SimpleMixtClusterizable[ID, O, Vb, Vs]](id, vectorizable, v2, clusterID) {
 
-	def canEqual(a: Any): Boolean = a.isInstanceOf[SimpleMixtClusterizable[ID, O, Vb, Vs, V]]
+	def canEqual(a: Any): Boolean = a.isInstanceOf[SimpleMixtClusterizable[ID, O, Vb, Vs]]
 
 	override def equals(that: Any): Boolean = {
 		that match {
-		  case that: SimpleMixtClusterizable[ID, O, Vb, Vs, V] => that.canEqual(this) && that.hashCode == this.hashCode
+		  case that: SimpleMixtClusterizable[ID, O, Vb, Vs] => that.canEqual(this) && that.hashCode == this.hashCode
 		  case _ => false
 		}
 	}
 	
-	def setV2(newV2: V): SimpleMixtClusterizable[ID, O, Vb, Vs, V] = this.copy(v2 = Some(newV2))
+	def setV2(newV2: BinaryScalarVector[Vb, Vs]): SimpleMixtClusterizable[ID, O, Vb, Vs] = this.copy(v2 = Some(newV2))
 
-	def setClusterID(newCID: Int): SimpleMixtClusterizable[ID, O, Vb, Vs, V] = this.copy(clusterID = Some(newCID))
+	def setClusterID(newCID: Int): SimpleMixtClusterizable[ID, O, Vb, Vs] = this.copy(clusterID = Some(newCID))
 }

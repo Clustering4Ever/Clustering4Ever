@@ -3,6 +3,8 @@ package clustering4ever.math.distances.scalar
  * @author Beck Gaël
  */
 import scala.math.sqrt
+import scala.collection.mutable
+import clustering4ever.util.SumVectors
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 import clustering4ever.scala.clusterizables.RealClusterizable
 /**
@@ -32,7 +34,7 @@ trait EuclideanMeta extends Serializable {
 	override def toString() = "Euclidean distance " + toStringRoot + "root applied"
 }
 /**
- *
+ * The Euclidean distance with or without squareRoot
  */
 class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V] {
 	/**
@@ -40,7 +42,15 @@ class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends 
 	  * @return The Euclidean distance between dot1 and dot2
 	  */
 	def d(dot1: V, dot2: V): Double = euclidean[V](dot1, dot2)
+	/**
+	 * The euclidean norm
+	 */
+	def norm(dot: V): Double = SumVectors.norm(dot)
 }
+/**
+ * The easy to use Euclidean distance with or without squareRoot for vectors =:= mutable.ArrayBuffer[Double]
+ */
+class EasyEuclidean(squareRoot: Boolean = true) extends Euclidean[mutable.ArrayBuffer[Double]](squareRoot)
 /**
  *
  */

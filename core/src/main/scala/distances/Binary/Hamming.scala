@@ -32,6 +32,10 @@ class Hamming[V <: Seq[Int]] extends HammingMeta with BinaryDistance[V] {
 	def d(dot1: V, dot2: V): Double = hamming[V](dot1, dot2)
 }
 /**
+ * The easy to use Hamminh distance for vectors =:= mutable.ArrayBuffer[Int]
+ */
+class EasyHamming extends Hamming[mutable.ArrayBuffer[Int]]
+/**
  *
  */
 class HammingClusterizable[ID: Numeric, O, V <: Seq[Int], D <: Hamming[V], Cz <: BinaryClusterizable[ID, O, V, Cz]](val classicalMetric: D) extends HammingMeta with BinaryClusterizableDistance[Cz, V, D] {

@@ -10,7 +10,7 @@ import scala.collection.{GenSeq, mutable}
 import scala.util.Random
 import clustering4ever.math.distances.Distance
 import clustering4ever.stats.Stats
-import clustering4ever.scala.measurableclass.{BinaryScalarVector, SimpleBinaryScalarVector}
+import clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  * This object gather different initialization methods for K-Means, K-Modes, K-Prototypes
  */
@@ -43,7 +43,7 @@ object KppInitialization {
 		val realPartCenters = naiveInitializationReal(realPart, k)
 		val binaryPartCenters = naiveInitializationBinary(dimBinary, k)
 
-		binaryPartCenters.zip(realPartCenters).map{ case ((clusterID, binary), (_, scalar)) => (clusterID, new SimpleBinaryScalarVector[mutable.ArrayBuffer[Int], mutable.ArrayBuffer[Double]](binary, scalar)) }
+		binaryPartCenters.zip(realPartCenters).map{ case ((clusterID, binary), (_, scalar)) => (clusterID, new BinaryScalarVector(binary, scalar)) }
 	}
 	/**
 	 * Kmeans++ initialization

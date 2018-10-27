@@ -34,5 +34,6 @@ class LSH[V <: Seq[Double]](val dim: Int, val w: Double = 1D) extends Hasher[V] 
     }
   	( s + b ) / w
   }
-
 }
+
+class EasyLSH(dim: Int, w: Double = 1D) extends LSH[mutable.ArrayBuffer[Double]](dim, w)
