@@ -10,7 +10,7 @@ You will find additional contents about clustering algorithms **[here](https://g
 
 Add following lines in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.6.30"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.0"` to your `libraryDependencies`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 
@@ -35,6 +35,7 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 * **_K-Means_**
 * **_K-Modes_**
 * **_K-Prototypes_**
+* _Tensor Biclustering_
 * _Mean Shift Gradient Ascent_
 * **[Self Organizing Maps](https://github.com/TugdualSarazin/spark-clustering)**
 * **[G-Stream](https://github.com/Spark-clustering-notebook/G-stream)**
@@ -60,7 +61,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 ### Incoming soon 
 
 * **Improved Spark Mean Shift**
-* **_2 new scalable clustering algorithms_**
+* new scalable clustering algorithms
 * Gaussian Mixture Models
 * Meta heuristic
 * Rough Set Features selection
