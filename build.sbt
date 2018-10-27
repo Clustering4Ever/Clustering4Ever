@@ -42,7 +42,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.6.31",
+	 	version := "0.7.0",
 		scalaVersion := "2.11.12",
 		conflictManager := ConflictManager.all,
 		autoAPIMappings := true,
@@ -77,7 +77,6 @@ lazy val clustering4ever = (project in file("clustering4ever"))
 	.aggregate(core, clusteringScala, clusteringSpark)
 
 // Sonatype deployment
-
 // useGpg := true
 
 publishTo := sonatypePublishTo.value
