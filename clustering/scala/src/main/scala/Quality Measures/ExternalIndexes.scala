@@ -6,7 +6,6 @@ import scala.math.{max, log, sqrt}
 import scala.collection.GenSeq
 import clustering4ever.util.ClusteringIndexesCommons
 import clustering4ever.scala.indexes.NmiNormalizationNature._
-
 /**
  *
  */
@@ -36,21 +35,15 @@ class ExternalIndexes {
 	}
 
 }
-
+/**
+ *
+ */
 object ExternalIndexes {
 	/**
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 */
 	def mutualInformation[S <: GenSeq[Int]](x: S, y: S): Double = (new ExternalIndexes).mutualInformationInternal(x, y)._1
-	/**
-	 * Compute the mutual information
-	 * @return (Mutual Information, entropy x, entropy y)
-	 */
-	def mutualInformation[S <: GenSeq[(Int, Int)]](xy: S): Double =	{
-		val (x, y) = xy.unzip
-		mutualInformation(x, y)
-	}
 	/**
 	 * Compute the normalize mutual entropy
 	 * @param normalization : nature of normalization, either sqrt or max

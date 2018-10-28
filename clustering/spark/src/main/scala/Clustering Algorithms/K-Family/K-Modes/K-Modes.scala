@@ -1,5 +1,8 @@
 package clustering4ever.spark.clustering.kmodes
-
+/**
+ * @author Beck Gaël
+ */
+import scala.language.higherKinds
 import scala.collection.{immutable, mutable}
 import scala.util.Random
 import scala.annotation.meta.param
@@ -14,7 +17,6 @@ import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.spark.clustering.KCommonsSparkVectors
 import scala.language.higherKinds
 /**
- * @author Beck Gaël
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : an Seq with and ID and the vector
  * @param k : number of clusters
@@ -26,19 +28,19 @@ class KModes[
 	ID: Numeric,
 	O,
 	V[Int] <: Seq[Int],
-	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
-	D <: Hamming[V[Int]]
+	Cz[ID, O, V[Int] <: Seq[Int]] <: BinaryClusterizable[ID, O, V[Int], Cz[ID, O, V]],
+	D[V[Int] <: Seq[Int]] <: Hamming[V]
 ](
 	@transient val sc: SparkContext,
-	data: RDD[Cz[ID, O, V[Int]]],
+	data: RDD[Cz[ID, O, V]],
 	k: Int,
 	epsilon: Double,
 	maxIter: Int,
-	metric: D = new Hamming[V[Int]],
+	metric: D[V] = new Hamming[V],
 	initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]) extends KCommonsSparkVectors[ID, Int, V, Cz[ID, O, V[Int]], D](data, metric, k, initializedCenters, persistanceLVL) {
-	def run(): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D] =	{
+)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V[Int]]) extends KCommonsSparkVectors[ID, Int, V, Cz[ID, O, V], D[V]](data, metric, k, initializedCenters, persistanceLVL) {
+	def run(): KModesModel[ID, O, V, Cz, D] = {
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged ) {
@@ -52,27 +54,28 @@ class KModes[
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D](centers, metric)
+		new KModesModel[ID, O, V, Cz, D](centers, metric)
 	}
 }
 
-object KModes
-{
+object KModes {
+
 	def run[
 		ID: Numeric,
 		O,
 		V[Int] <: Seq[Int],
-		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]]
+		Cz[ID, O, V[Int] <: Seq[Int]] <: BinaryClusterizable[ID, O, V[Int], Cz[ID, O, V]],
+		D[V[Int] <: Seq[Int]] <: Hamming[V]
 	](
 		@(transient @param) sc: SparkContext,
-		data: RDD[Cz[ID, O, V[Int]]],
+		data: RDD[Cz[ID, O, V]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
+		metric: D[V] = new Hamming[V],
 		initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-	)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], Hamming[V[Int]]] = {
-		val metric = new Hamming[V[Int]]
+	)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V[Int]]): KModesModel[ID, O, V, Cz, D] = {
 		val kmodes = new KModes(sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kModesModel = kmodes.run()
 		kModesModel

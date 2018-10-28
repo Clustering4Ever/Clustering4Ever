@@ -33,7 +33,7 @@ class KPrototypes[
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
-	metric: D = new HammingAndEuclidean[Vb[Int], Vs[Double]],
+	metric: D,
 	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]]
 ) extends KCommonsMixt[ID, Vb[Int], Vs[Double], BinaryScalarVector[Vb[Int], Vs[Double]], D, Cz[ID, O, Vb[Int], Vs[Double]]](data, metric, k, initializedCenters) {
 	/**

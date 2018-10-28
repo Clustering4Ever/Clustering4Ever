@@ -5,7 +5,6 @@ package clustering4ever.stats
 import scala.math.{sqrt, pow, min, max, Pi}
 import scala.collection.{mutable, immutable, GenSeq}
 import clustering4ever.util.SumVectors
-import clustering4ever.scala.kernels.Kernels
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.clustering.ClusteringCommons

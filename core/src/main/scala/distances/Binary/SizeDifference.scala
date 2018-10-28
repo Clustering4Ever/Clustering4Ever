@@ -5,7 +5,7 @@ package clustering4ever.math.distances.binary
 import clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
 import scala.collection.mutable
 
-class SizeDifference extends BinaryDistance[mutable.ArrayBuffer[Int]] {
+class SizeDifference extends BinaryDistance[mutable.ArrayBuffer] {
 
 	def d(vector1: mutable.ArrayBuffer[Int], vector2: mutable.ArrayBuffer[Int]): Double = {
 		val (a,b,c,d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)

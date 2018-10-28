@@ -14,7 +14,7 @@ import clustering4ever.math.distances.ContinuousDistance
 /**
  * @author Sarazin Tugdual & Lebbah Mustapha & Beck Gaël
  **/
-class SomTrainerA(metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq](true)) extends AbstractTrainer
+class SomTrainerA(metric: ContinuousDistance[Seq] = new Euclidean[Seq](true)) extends AbstractTrainer
 {
   val DEFAULT_SOM_ROW = 10
   val DEFAULT_SOM_COL = 10
