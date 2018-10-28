@@ -1,8 +1,8 @@
 *.class
 *.log
-target/
 clustering/target/
-core/target/
-qualityMeasure/target/
-documentation/target
 clustering4Ever/target
+core/target/
+target/
+documentation/target
+qualityMeasure/target/

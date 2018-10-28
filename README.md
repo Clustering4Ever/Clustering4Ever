@@ -8,7 +8,7 @@ You will find additional contents about clustering algorithms **[here](https://g
 
 ## Include it in your project
 
-Add following lines in your build.sbt :
+Add following line in your build.sbt :
 
 * `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.0"` to your `libraryDependencies`
 

@@ -45,7 +45,7 @@ object BinaryDistanceUtil {
 	 */
 	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] = {
 		val nbTotData = data.size
-		val nbOne = data.reduce(SumVectors.sumVectors[Int, Seq[Int]](_, _))
+		val nbOne = data.reduce(SumVectors.sumVectors(_, _))
 		val nbZero = nbOne.map(nbTotData - _)
 		nbZero.zip(nbOne)
 	}

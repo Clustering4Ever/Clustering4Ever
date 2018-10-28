@@ -25,26 +25,26 @@ import scala.language.higherKinds
 class KMeans[
 	ID: Numeric,
 	O,
-	V <: Seq[Double] : ClassTag,
+	V[Double] <: Seq[Double],
 	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-	D <: ContinuousDistance[V]
+	D <: ContinuousDistance[V[Double]]
 ](
-	data: GenSeq[Cz[ID, O, V]],
+	data: GenSeq[Cz[ID, O, V[Double]]],
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
 	metric: D = new Euclidean[V](squareRoot = true),
-	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-) extends KCommonsVectors[ID, Double, V, D, Cz[ID, O, V]](data, metric, k, initializedCenters) {
+	initializedCenters: mutable.HashMap[Int, V[Double]] = mutable.HashMap.empty[Int, V[Double]]
+)(implicit ct: ClassTag[V[Double]]) extends KCommonsVectors[ID, Double, V[Double], D, Cz[ID, O, V[Double]]](data, metric, k, initializedCenters) {
 	/**
 	 * Run the K-Means
 	 */
-	def run(): KMeansModel[ID, O, V, Cz[ID, O, V], D] =
+	def run(): KMeansModel[ID, O, V[Double], Cz[ID, O, V[Double]], D] =
 	{
 		/**
 		 * Run the K-Means with Euclidean metric
 		 */
-		def runEuclidean(): KMeansModel[ID, O, V, Cz[ID, O, V], D] =
+		def runEuclidean(): KMeansModel[ID, O, V[Double], Cz[ID, O, V[Double]], D] =
 		{
 			var cpt = 0
 			var allCentersHaveConverged = false
@@ -57,15 +57,15 @@ class KMeans[
 				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
 				cpt += 1
 			}
-			new KMeansModel[ID, O, V, Cz[ID, O, V], D](centers, metric)
+			new KMeansModel[ID, O, V[Double], Cz[ID, O, V[Double]], D](centers, metric)
 		}
 		/**
 		 * Run the K-Means with Custom metric
 		 */
-		def runCustom(): KMeansModel[ID, O, V, Cz[ID, O, V], D] =
+		def runCustom(): KMeansModel[ID, O, V[Double], Cz[ID, O, V[Double]], D] =
 		{
 			runKAlgorithmWithCustomMetric(maxIterations, epsilon)
-			new KMeansModel[ID, O, V, Cz[ID, O, V], D](centers, metric)
+			new KMeansModel[ID, O, V[Double], Cz[ID, O, V[Double]], D](centers, metric)
 		}
 
 		if( metric.isInstanceOf[Euclidean[V]] ) runEuclidean() else runCustom()
@@ -79,18 +79,18 @@ object KMeans {
 	def run[
 		ID: Numeric,
 		O,
-		V <: Seq[Double] : ClassTag,
+		V[Double] <: Seq[Double],
 		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-		D <: ContinuousDistance[V]
+		D <: ContinuousDistance[V[Double]]
 	](
-		data: GenSeq[Cz[ID, O, V]],
+		data: GenSeq[Cz[ID, O, V[Double]]],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,
 		metric: D,
-		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-		): KMeansModel[ID, O, V, Cz[ID, O, V], D] = {
-		val kMeans = new KMeans[ID, O, V, Cz, D](data, k, epsilon, maxIterations, metric, initializedCenters)
+		initializedCenters: mutable.HashMap[Int, V[Double]] = mutable.HashMap.empty[Int, V[Double]]
+		)(implicit ct: ClassTag[V[Double]]) : KMeansModel[ID, O, V[Double], Cz[ID, O, V[Double]], D] = {
+		val kMeans = new KMeans(data, k, epsilon, maxIterations, metric, initializedCenters)
 		val kmeansModel = kMeans.run()
 		kmeansModel
 	}

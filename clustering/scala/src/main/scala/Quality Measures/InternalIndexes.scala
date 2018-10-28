@@ -4,6 +4,7 @@ package clustering4ever.scala.indexes
  */
 import scala.math.{max, min}
 import scala.collection.{GenSeq, mutable}
+import scala.language.higherKinds
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.clustering.ClusteringCommons
@@ -14,15 +15,15 @@ import clustering4ever.util.ClusterBasicOperations
  */
 class InternalIndexes extends ClusteringCommons {
 
-  def daviesBouldinIndex[S <: Seq[Double]](data: GenSeq[(ClusterID, S)], clusterLabels: Seq[Int], metric: ContinuousDistance[S]) = {
+  def daviesBouldinIndex[V[Double] <: Seq[Double]](data: GenSeq[(ClusterID, V[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[V[Double]]) = {
     if( clusterLabels.size == 1 ) {
       println(" One Cluster found")
       0D
     }
     else {
       val clusters = data.groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).seq) }
-      val centers = clusters.map{ case (k, v) => (k, ClusterBasicOperations.obtainMean[S](v)) }.toArray
-      val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, InternalIndexesDBCommons.scatter[S](v, centers(idCLust)._2, metric)) }
+      val centers = clusters.map{ case (k, v) => (k, ClusterBasicOperations.obtainMean(v)) }.toArray
+      val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, InternalIndexesDBCommons.scatter[V[Double]](v, centers(idCLust)._2, metric)) }
       val clustersWithCenterandScatters = (centers.map{ case (id, ar) => (id, (Some(ar), None)) } ++ scatters.map{ case (id, v) => (id, (None, Some(v))) })
         .par
         .groupBy(_._1)
@@ -33,7 +34,7 @@ class InternalIndexes extends ClusteringCommons {
           if( a._1.isDefined ) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get))
         }
       val cart = for( i <- clustersWithCenterandScatters; j <- clustersWithCenterandScatters if( i._1 != j._1 ) ) yield (i, j)
-      val rijList = cart.map{ case ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) => (idClust1, InternalIndexesDBCommons.good[S](centroid1, centroid2, scatter1, scatter2, metric)) }
+      val rijList = cart.map{ case ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) => (idClust1, InternalIndexesDBCommons.good[V[Double]](centroid1, centroid2, scatter1, scatter2, metric)) }
       val di = rijList.groupBy(_._1).map{ case (_, goods) => goods.map(_._2).reduce(max(_,_)) }
       val numCluster = clusterLabels.size
       val daviesBouldinIndex = di.sum / numCluster
@@ -41,10 +42,10 @@ class InternalIndexes extends ClusteringCommons {
     }
   }
 
-  def ballHallIndex[S <: Seq[Double]](clusterized: GenSeq[(ClusterID, S)], metric: ContinuousDistance[S] = new Euclidean[S](squareRoot = true)): Double = {
+  def ballHallIndex[V[Double] <: Seq[Double]](clusterized: GenSeq[(ClusterID, V[Double])], metric: ContinuousDistance[V[Double]] = new Euclidean[V](squareRoot = true)): Double = {
     val clusters = clusterized.groupBy(_._1).map{ case (clusterID, aggregate) => (clusterID, aggregate.map(_._2)) }
 
-    val prototypes = clusters.map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMean[S](aggregate)) }
+    val prototypes = clusters.map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMean(aggregate)) }
     
     clusters.map{ case (clusterID, aggregate) => aggregate.map( v => metric.d(v, prototypes(clusterID)) ).sum / aggregate.size }.sum / clusters.size
   }
@@ -53,13 +54,13 @@ class InternalIndexes extends ClusteringCommons {
    * Silhouette Index
    * Complexity : O(n<sup>2</sup>)
    */
-  def silhouette[S <: Seq[Double]](data: GenSeq[(Int, S)], clusterLabels: Seq[Int], metric: ContinuousDistance[S]) = {  
+  def silhouette[V[Double] <: Seq[Double]](data: GenSeq[(Int, V[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[V[Double]]) = {  
     /*
      * Compute the  within-cluster mean distance a(i) for all the point in cluster
      * Param: cluster: RDD[Seq]
      * Return index of point and the corresponding a(i) Array[(Int, Double)]
      */
-    def aiList(cluster: Seq[(Int, S)]): Map[Int, Double] = {
+    def aiList(cluster: Seq[(Int, V[Double])]): Map[Int, Double] = {
       val pointPairs = for( i <- cluster; j <- cluster if( i._1 != j._1 ) ) yield (i,j)
       val allPointsDistances = pointPairs.map( pp => ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2)) )
       val totalDistanceList = allPointsDistances.map(v => (v._1._1, v._2)).groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).sum) }
@@ -102,14 +103,14 @@ class InternalIndexes extends ClusteringCommons {
 
 object InternalIndexes extends ClusteringCommons {
 
-  def obtainClusterIDs[S <: Seq[Double]](clusterized: GenSeq[(ClusterID, S)]) = mutable.ArrayBuffer(clusterized.map(_._1).distinct.seq:_*)
+  def obtainClusterIDs[V[Double] <: Seq[Double]](clusterized: GenSeq[(ClusterID, V[Double])]) = mutable.ArrayBuffer(clusterized.map(_._1).distinct.seq:_*)
   /**
    * Davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with:
    *   * n number of data points
    *   * c number of clusters
    */
-  def daviesBouldinIndex[S <: Seq[Double]](clusterized: GenSeq[(ClusterID, S)], clusterLabels: Seq[Int], metric: ContinuousDistance[S]): Double =
+  def daviesBouldinIndex[V[Double] <: Seq[Double]](clusterized: GenSeq[(ClusterID, V[Double])], clusterLabels: Seq[Int], metric: ContinuousDistance[V[Double]]): Double =
     (new InternalIndexes).daviesBouldinIndex(clusterized, clusterLabels, metric)
   /**
    * Davies bouldin index
@@ -117,20 +118,20 @@ object InternalIndexes extends ClusteringCommons {
    *   * n number of data points
    *   * c number of clusters
    */
-  def daviesBouldinIndex[S <: Seq[Double]](clusterized: GenSeq[(ClusterID, S)], metric: ContinuousDistance[S]): Double = {
+  def daviesBouldinIndex[V[Double] <: Seq[Double]](clusterized: GenSeq[(ClusterID, V[Double])], metric: ContinuousDistance[V[Double]]): Double = {
     val clusterLabels = obtainClusterIDs(clusterized)
     (new InternalIndexes).daviesBouldinIndex(clusterized, clusterLabels, metric) 
   }
 
-  def silhouetteIndex[S <: Seq[Double]](clusterized: GenSeq[(ClusterID, S)], metric: ContinuousDistance[S]): Double = {
+  def silhouetteIndex[V[Double] <: Seq[Double]](clusterized: GenSeq[(ClusterID, V[Double])], metric: ContinuousDistance[V[Double]]): Double = {
     val clusterLabels = obtainClusterIDs(clusterized)
     (new InternalIndexes).silhouette(clusterized, clusterLabels, metric)
   }
 
-  def silhouetteIndex[S <: Seq[Double]](clusterized: GenSeq[(ClusterID, S)], clusterLabels: Seq[ClusterID], metric: ContinuousDistance[S]): Double =
+  def silhouetteIndex[V[Double] <: Seq[Double]](clusterized: GenSeq[(ClusterID, V[Double])], clusterLabels: Seq[ClusterID], metric: ContinuousDistance[V[Double]]): Double =
     (new InternalIndexes).silhouette(clusterized, clusterLabels, metric)
 
-  def ballHallIndex[S <: Seq[Double]](clusterized: GenSeq[(ClusterID, S)], metric: ContinuousDistance[S] = new Euclidean(true)) =
+  def ballHallIndex[V[Double] <: Seq[Double]](clusterized: GenSeq[(ClusterID, V[Double])], metric: ContinuousDistance[V[Double]] = new Euclidean(true)) =
     (new InternalIndexes).ballHallIndex(clusterized, metric)
 
 }

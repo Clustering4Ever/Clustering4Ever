@@ -25,45 +25,41 @@ import scala.language.higherKinds
 class GradientAscent[
   ID: Numeric,
   O,
-  V <: Seq[Double],
+  V[Double] <: Seq[Double],
   Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-  D <: ContinuousDistance[V]
+  D[V[Double] <: Seq[Double]] <: ContinuousDistance[V[Double]]
 ](
-  data: GenSeq[Cz[ID, O, V]],
+  data: GenSeq[Cz[ID, O, V[Double]]],
   epsilon: Double,
   maxIterations: Int,
-  metric: D = new Euclidean[V](true),
-  kernelArgs: Either[KernelArgs[V, D], KernelArgs[V, Euclidean[V]]] = Right(new KernelArgs[V, Euclidean[V]](kernelType = EuclideanKNN, k = Some(50)))
+  metric: D[V] = new Euclidean[V](true),
+  kernelArgs: KernelArgs
 ) {
 
   def run() = {
 
     val haveNotConverged = false
     val kernelLocality = data.map(_.vector)
-    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = data.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
-    lazy val kernelLocalitySeq: Seq[V] = kernelLocality.seq
+    var gradientAscentData: GenSeq[(Cz[ID, O, V[Double]], Boolean)] = data.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    lazy val kernelLocalitySeq: Seq[V[Double]] = kernelLocality.seq
     
-    val isLeft = kernelArgs.isLeft
 
-    val kernel: Either[(V, GenSeq[V], KernelArgs[V, D]) => V, (V, Seq[V], KernelArgs[V, Euclidean[V]]) => V] = if( isLeft ) kernelArgs.left.get.kernelType match {
-      case KernelNature.Gaussian => Left(Kernels.obtainModeThroughKernel[V, D])
-      case KernelNature.Flat => Left(Kernels.obtainModeThroughKernel[V, D])
-      case KernelNature.Sigmoid => Left(Kernels.obtainModeThroughKernel)
-    }
-    else {
-      kernelArgs.right.get.kernelType match {
-        case KernelNature.EuclideanKNN => Right(Kernels.euclideanKnnKernel[V])
-        case KernelNature.KNN =>  Right(Kernels.knnKernel)
-      }
+    val (kernelNature, kernel) = kernelArgs.kernelType match {
+      case KernelNature.Gaussian => (0, Kernels.obtainModeThroughKernel[V, D] _)
+      case KernelNature.Flat => (0, Kernels.obtainModeThroughKernel[V, D] _)
+      case KernelNature.Sigmoid => (0, Kernels.obtainModeThroughKernel[V, D] _)
+      case KernelNature.EuclideanKNN => (1, Kernels.euclideanKnnKernel[V] _)
+      case KernelNature.KNN =>  (1, Kernels.knnKernel _)
     }
 
+    val castedKernel = kernel.asInstanceOf[Function3[V[Double], GenSeq[V[Double]], KernelArgs, V[Double]]]
 
-    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
+    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V[Double]], Boolean)]) = {
 
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
         val mode = obj.v2.get
-        val updatedMode = if( haveConverged ) mode else if( isLeft ) kernel.left.get(mode, kernelLocality, kernelArgs.left.get) else kernel.right.get(mode, kernelLocalitySeq, kernelArgs.right.get)
+        val updatedMode = if( haveConverged ) mode else if( kernelNature == 0 ) castedKernel(mode, kernelLocality, kernelArgs) else castedKernel(mode, kernelLocalitySeq, kernelArgs)
         val modeShift = metric.d(updatedMode, mode)
         val hasConverged = if( modeShift <= epsilon ) {
           cptConvergedPoints += 1
@@ -101,14 +97,14 @@ object GradientAscent {
   def run[
     ID: Numeric,
     O,
-    V <: Seq[Double],
+    V[Double] <: Seq[Double],
     Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-    D <: ContinuousDistance[V]
+    D[V[Double] <: Seq[Double]] <: ContinuousDistance[V[Double]]
   ](
-    data: GenSeq[Cz[ID, O, V]],
-    metric: D,
+    data: GenSeq[Cz[ID, O, V[Double]]],
+    metric: D[V],
     epsilon: Double,
     maxIterations: Int,
-    kernelArgs: Either[KernelArgs[V, D], KernelArgs[V, Euclidean[V]]]
-    ) = (new GradientAscent[ID, O, V, Cz, D](data, epsilon, maxIterations, metric, kernelArgs)).run()
+    kernelArgs: KernelArgs
+    ) = (new GradientAscent(data, epsilon, maxIterations, metric, kernelArgs)).run()
 }

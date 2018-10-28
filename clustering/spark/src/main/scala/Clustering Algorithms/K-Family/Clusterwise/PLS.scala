@@ -1,18 +1,23 @@
 package clustering4ever.spark.clustering.clusterwise
 
+import scala.language.higherKinds
 import scala.math.{pow, sqrt => ssqrt}
 import scala.collection.{immutable, mutable, GenSeq}
 import clustering4ever.util.SumVectors
 import breeze.linalg.{DenseVector, DenseMatrix, Transpose, eigSym, svd, sum, *, diag}
-
+/**
+ *
+ */
 trait CommonPLSTypes {
-	type IdWithX[S <: Seq[Double]] = mutable.ArrayBuffer[(Int, S)]
-	type Y[S <: Seq[Double]] = mutable.ArrayBuffer[S]
+	type IdWithX[V <: Seq[Double]] = mutable.ArrayBuffer[(Int, V)]
+	type Y[V <: Seq[Double]] = mutable.ArrayBuffer[V]
 }
-
-class PLS[S <: Seq[Double]](
-	dsXi: GenSeq[(Int, S)],
-	dsY: GenSeq[S],
+/**
+ *
+ */
+class PLS[V[Double] <: Seq[Double]](
+	dsXi: GenSeq[(Int, V[Double])],
+	dsY: GenSeq[V[Double]],
 	n: Int,
 	h: Int,
 	lw: Double,
@@ -24,8 +29,8 @@ class PLS[S <: Seq[Double]](
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map(_ / n)
-		val meanY = dsY.reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map(_ / n)
+		val meanX = dsX.reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map(_ / n)
+		val meanY = dsY.reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map(_ / n)
 		val meanYa = meanY.toArray
 
 
@@ -219,7 +224,7 @@ class PLS[S <: Seq[Double]](
 
 object PLS extends CommonPLSTypes {
 
-	def runClusterwisePLS[S <: Seq[Double]](dsX: Array[IdWithX[S]], dsY: Array[Y[S]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	def runClusterwisePLS[V[Double] <: Seq[Double]](dsX: Array[IdWithX[V[Double]]], dsY: Array[Y[V[Double]]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
 		val lw = 1D / n
@@ -227,7 +232,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	def runPLS[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	def runPLS[V[Double] <: Seq[Double]](dsX: IdWithX[V[Double]], dsY: Y[V[Double]], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX.size
 		val lw = 1D / n
 		val ktabXdudiYvalues = ktabXdudiY(dsX, dsY, n)
@@ -235,7 +240,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	def ktabXdudiY[S <: Seq[Double]](dsX: IdWithX[S], dsY: Y[S], n: Int): (Int, Double, Double) = {
+	def ktabXdudiY[V[Double] <: Seq[Double]](dsX: IdWithX[V[Double]], dsY: Y[V[Double]], n: Int): (Int, Double, Double) = {
 		val lw = 1D / n
 		val cw = dsX.head._2.size
 		val colw = dsY.head.size

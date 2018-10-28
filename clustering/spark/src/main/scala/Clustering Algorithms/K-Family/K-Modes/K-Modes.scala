@@ -25,34 +25,34 @@ import scala.language.higherKinds
 class KModes[
 	ID: Numeric,
 	O,
-	V <: Seq[Int] : ClassTag,
+	V[Int] <: Seq[Int],
 	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
-	D <: Hamming[V]
+	D <: Hamming[V[Int]]
 ](
 	@transient val sc: SparkContext,
-	data: RDD[Cz[ID, O, V]],
+	data: RDD[Cz[ID, O, V[Int]]],
 	k: Int,
 	epsilon: Double,
 	maxIter: Int,
-	metric: D = new Hamming[V],
-	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
+	metric: D = new Hamming[V[Int]],
+	initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-)(implicit ct: ClassTag[Cz[ID, O, V]]) extends KCommonsSparkVectors[ID, Int, V, Cz[ID, O, V], D](data, metric, k, initializedCenters, persistanceLVL) {
-	def run(): KModesModel[ID, O, V, Cz[ID, O, V], D] =	{
+)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]) extends KCommonsSparkVectors[ID, Int, V, Cz[ID, O, V[Int]], D](data, metric, k, initializedCenters, persistanceLVL) {
+	def run(): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D] =	{
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged ) {
 			val centersInfo = obtainvalCentersInfo.map{ case (clusterID, (cardinality, preMode)) => 
 				(
 					clusterID,
-					preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ).asInstanceOf[V],
+					preMode.map( x => if( x * 2 >= cardinality ) 1 else 0 ).asInstanceOf[V[Int]],
 					cardinality
 				)
 			}
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KModesModel[ID, O, V, Cz[ID, O, V], D](centers, metric)
+		new KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D](centers, metric)
 	}
 }
 
@@ -61,19 +61,19 @@ object KModes
 	def run[
 		ID: Numeric,
 		O,
-		V <: Seq[Int] : ClassTag,
+		V[Int] <: Seq[Int],
 		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]]
 	](
 		@(transient @param) sc: SparkContext,
-		data: RDD[Cz[ID, O, V]],
+		data: RDD[Cz[ID, O, V[Int]]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
+		initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-	)(implicit ct: ClassTag[Cz[ID, O, V]]): KModesModel[ID, O, V, Cz[ID, O, V], Hamming[V]] = {
-		val metric = new Hamming[V]
-		val kmodes = new KModes[ID, O, V, Cz, Hamming[V]](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+	)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], Hamming[V[Int]]] = {
+		val metric = new Hamming[V[Int]]
+		val kmodes = new KModes(sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kModesModel = kmodes.run()
 		kModesModel
 	}

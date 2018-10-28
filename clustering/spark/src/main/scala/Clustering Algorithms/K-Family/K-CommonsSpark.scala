@@ -1,5 +1,6 @@
 package clustering4ever.spark.clustering
 
+import scala.language.higherKinds
 import org.apache.commons.math3.distribution.EnumeratedDistribution
 import org.apache.commons.math3.util.Pair
 import scala.collection.JavaConverters._
@@ -83,20 +84,20 @@ abstract class KCommonsSpark[
 abstract class KCommonsSparkVectors[
 	ID: Numeric,
 	N: SNumeric,
-	V <: Seq[N] : ClassTag,
-	Cz <: Clusterizable[ID, V],
-	D <: Distance[V]
+	V[N] <: Seq[N],
+	Cz <: Clusterizable[ID, V[N]],
+	D <: Distance[V[N]]
 	](
 	data: RDD[Cz],
 	metric: D,
 	k: Int,
-	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
+	initializedCenters: mutable.HashMap[Int, V[N]] = mutable.HashMap.empty[Int, V[N]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSpark[ID, V, D, Cz](data, metric, k, initializedCenters, persistanceLVL) {
+)(implicit ct: ClassTag[V[N]]) extends KCommonsSpark[ID, V[N], D, Cz](data, metric, k, initializedCenters, persistanceLVL) {
 
 	val dim = vectorizedDataset.first.size
 
-	protected def obtainvalCentersInfo = vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) ).reduceByKeyLocally{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumVectors.sumVectors[N, V](v1, v2)) }
+	protected def obtainvalCentersInfo = vectorizedDataset.map( v => (obtainNearestCenterID(v, centers), (1L, v)) ).reduceByKeyLocally{ case ((sum1, v1), (sum2, v2)) => (sum1 + sum2, SumVectors.sumVectors(v1, v2)) }
 
 	/**
 	 * To upgrade
@@ -116,17 +117,17 @@ abstract class KCommonsSparkVectors[
  */
 abstract class KCommonsSparkMixt[
 	ID: Numeric,
-	Vb <: Seq[Int],
-	Vs <: Seq[Double],
-	Cz <: Clusterizable[ID, BinaryScalarVector[Vb, Vs]],
-	D <: Distance[BinaryScalarVector[Vb, Vs]]
+	Vb[Int] <: Seq[Int],
+	Vs[Double] <: Seq[Double],
+	Cz <: Clusterizable[ID, BinaryScalarVector[Vb[Int], Vs[Double]]],
+	D <: Distance[BinaryScalarVector[Vb[Int], Vs[Double]]]
 	](
 	data: RDD[Cz],
 	metric: D,
 	k: Int,
-	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]],
+	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommonsSpark[ID, BinaryScalarVector[Vb, Vs], D, Cz](data, metric, k, initializedCenters, persistanceLVL) {
+) extends KCommonsSpark[ID, BinaryScalarVector[Vb[Int], Vs[Double]], D, Cz](data, metric, k, initializedCenters, persistanceLVL) {
 
 	protected val dimBinary = vectorizedDataset.first.binary.size
 	protected val dimScalar = vectorizedDataset.first.scalar.size
@@ -136,9 +137,9 @@ abstract class KCommonsSparkMixt[
 			.reduceByKeyLocally{ case ((sum1, v1), (sum2, v2)) =>
 				val BinaryScalarVector(v1Binary, v1Scalar) = v1
 				val BinaryScalarVector(v2Binary, v2Scalar) = v2
-				val binaryVector = SumVectors.sumVectors[Int, Vb](v1Binary, v2Binary)
-				val scalarVector = SumVectors.sumVectors[Double, Vs](v1Scalar, v2Scalar)
-				(sum1 + sum2, new BinaryScalarVector[Vb, Vs](binaryVector, scalarVector))
+				val binaryVector = SumVectors.sumVectors(v1Binary, v2Binary)
+				val scalarVector = SumVectors.sumVectors(v1Scalar, v2Scalar)
+				(sum1 + sum2, new BinaryScalarVector(binaryVector, scalarVector))
 			}
 	}
 }

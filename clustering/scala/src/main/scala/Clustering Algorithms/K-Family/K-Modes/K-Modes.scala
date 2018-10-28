@@ -16,45 +16,45 @@ import scala.language.higherKinds
 class KModes[
 	ID: Numeric,
 	O,
-	V <: Seq[Int] : ClassTag,
+	V[Int] <: Seq[Int],
 	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
-	D <: BinaryDistance[V]
+	D <: BinaryDistance[V[Int]]
 ](
-	data: GenSeq[Cz[ID, O, V]],
+	data: GenSeq[Cz[ID, O, V[Int]]],
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
-	metric: D = new Hamming[V],
-	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-) extends KCommonsVectors[ID, Int, V, D, Cz[ID, O, V]](data, metric, k, initializedCenters) {
+	metric: D = new Hamming[V[Int]],
+	initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]]
+)(implicit ct: ClassTag[V[Int]]) extends KCommonsVectors[ID, Int, V[Int], D, Cz[ID, O, V[Int]]](data, metric, k, initializedCenters) {
 	/**
 	 * Run the K-Means
 	 */
-	def run(): KModesModel[ID, O, V, Cz[ID, O, V], D] = {
+	def run(): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D] = {
 		/**
 		 * Run the K-Modes with Hamming metric
 		 */
-		def runHamming(): KModesModel[ID, O, V, Cz[ID, O, V], D] = {
+		def runHamming(): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D] = {
 			var cpt = 0
 			var allCentersHaveConverged = false
 			while( cpt < maxIterations && ! allCentersHaveConverged ) {
 				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(centers, centersCardinality)
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
-					centers(clusterID) = ClusterBasicOperations.obtainMode(aggregate.map(_._1)).asInstanceOf[V]
+					centers(clusterID) = ClusterBasicOperations.obtainMode(aggregate.map(_._1)).asInstanceOf[V[Int]]
 					centersCardinality(clusterID) += aggregate.size
 				}
 				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
 				cpt += 1
 			}
-			new KModesModel[ID, O, V, Cz[ID, O, V], D](centers, metric)
+			new KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D](centers, metric)
 		}
 
-		def runCustom(): KModesModel[ID, O, V, Cz[ID, O, V], D] = {
+		def runCustom(): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D] = {
 			runKAlgorithmWithCustomMetric(maxIterations, epsilon)
-			new KModesModel[ID, O, V, Cz[ID, O, V], D](centers, metric)
+			new KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D](centers, metric)
 		}
 	
-		if( metric.isInstanceOf[Hamming[V]] ) runHamming() else runCustom()
+		if( metric.isInstanceOf[Hamming[V[Int]]] ) runHamming() else runCustom()
 	}
 }
 
@@ -65,18 +65,18 @@ object KModes {
 	def run[
 		ID: Numeric,
 		O,
-		V <: Seq[Int] : ClassTag,
+		V[Int] <: Seq[Int],
 		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
-		D <: BinaryDistance[V]
+		D <: BinaryDistance[V[Int]]
 	](
-		data: GenSeq[Cz[ID, O, V]],
+		data: GenSeq[Cz[ID, O, V[Int]]],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,
-		metric: D = new Hamming[V],
-		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	): KModesModel[ID, O, V, Cz[ID, O, V], D] = {
-		val kmodes = new KModes[ID, O, V, Cz, D](data, k, epsilon, maxIterations, metric, initializedCenters)
+		metric: D = new Hamming[V[Int]],
+		initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]]
+	)(implicit ct: ClassTag[V[Int]]): KModesModel[ID, O, V[Int], Cz[ID, O, V[Int]], D] = {
+		val kmodes = new KModes(data, k, epsilon, maxIterations, metric, initializedCenters)
 		val kModesModel = kmodes.run()
 		kModesModel
 	}

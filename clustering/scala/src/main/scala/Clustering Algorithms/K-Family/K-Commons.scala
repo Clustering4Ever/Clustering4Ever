@@ -75,7 +75,9 @@ abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends Clu
 	lazy val kmppInitialization: (GenSeq[V], Int) => mutable.HashMap[Int, V] = (vectorizedDataset, k) => KppInitialization.kmppInitialization[V, GenSeq[V]](vectorizedDataset, k, metric)
 	
 }
-
+/**
+ *
+ */
 abstract class KCommonsScala[
 	ID: Numeric,
 	V,
@@ -116,7 +118,9 @@ abstract class KCommonsScala[
 		}
 	}
 }
-
+/**
+ *
+ */
 abstract class KCommonsVectors[
 	ID: Numeric,
 	@specialized(Int, Double) N: SNumeric,
@@ -131,7 +135,9 @@ abstract class KCommonsVectors[
 ) extends KCommonsScala[ID, V, D, Cz](data, metric, k, initializedCenters) {
 	protected val dim = vectorizedDataset.head.size
 }
-
+/**
+ *
+ */
 abstract class KCommonsMixt[
 	ID: Numeric,
 	Vb <: Seq[Int],
@@ -149,7 +155,9 @@ abstract class KCommonsMixt[
 	protected val dimBinary = vectorizedDataset.head.binary.size
 	protected val dimScalar = vectorizedDataset.head.scalar.size
 }
-
+/**
+ *
+ */
 abstract class KCommonsModel[
 	ID: Numeric,
 	V,

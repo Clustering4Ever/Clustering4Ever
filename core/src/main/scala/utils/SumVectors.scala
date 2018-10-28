@@ -5,6 +5,7 @@ package clustering4ever.util
 import scala.reflect.ClassTag
 import scala.math.sqrt
 import scala.collection.GenSeq
+import scala.language.higherKinds
 import spire.math.{Numeric => SNumeric}
 /**
  * Object which gather common operation on Seq[N] and GenSeq[Seq[N]]
@@ -13,15 +14,15 @@ object SumVectors {
 	/**
 	 * Sum two vector of Numeric into one
 	 */
-	def sumVectors[@specialized(Int, Double) N, V <: Seq[N]](a: V, b: V)(implicit num: SNumeric[N]): V = a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[V]
+	def sumVectors[@specialized(Int, Double) N, V[N] <: Seq[N]](a: V[N], b: V[N])(implicit num: SNumeric[N]): V[N] = a.zip(b).map{ case (c, d) => num.plus(c, d) }.asInstanceOf[V[N]]
 	/**
 	 * Reduce an Array[Array[N]] into an Array[N]
 	 */
-	def sumColumnMatrix[@specialized(Int, Double) N: SNumeric, V <: Seq[N]](cluster: GenSeq[V]): V = cluster.reduce(sumVectors[N, V](_, _))
+	def sumColumnMatrix[@specialized(Int, Double) N: SNumeric, V[N] <: Seq[N]](cluster: GenSeq[V[N]]): V[N] = cluster.reduce(sumVectors(_, _))
 	/**
 	 * Reduce Array of multiple vectors
 	 */
-	def reduceMultipleVectorsMatrice[V <: Seq[Double], It <: Seq[V]](a: It, b: It) = a.zip(b).map{ case (c, d) => sumVectors[Double, V](c, d) }.asInstanceOf[It]
+	def reduceMultipleVectorsMatrice[V[Double] <: Seq[Double], It <: Seq[V[Double]]](a: It, b: It) = a.zip(b).map{ case (c, d) => sumVectors(c, d) }.asInstanceOf[It]
 	/**
 	 *
 	 */

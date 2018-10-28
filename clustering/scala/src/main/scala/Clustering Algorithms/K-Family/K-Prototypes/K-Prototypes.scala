@@ -24,43 +24,43 @@ import scala.language.higherKinds
 class KPrototypes[
 	ID: Numeric,
 	O,
-	Vb <: Seq[Int],
-	Vs <: Seq[Double],
+	Vb[Int] <: Seq[Int],
+	Vs[Double] <: Seq[Double],
 	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double]] <: MixtClusterizable[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs]],
-	D <: MixtDistance[Vb, Vs]
+	D <: MixtDistance[Vb[Int], Vs[Double]]
 ](
-	data: GenSeq[Cz[ID, O, Vb, Vs]],
+	data: GenSeq[Cz[ID, O, Vb[Int], Vs[Double]]],
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
-	metric: D = new HammingAndEuclidean[Vb, Vs],
-	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
-) extends KCommonsMixt[ID, Vb, Vs, BinaryScalarVector[Vb, Vs], D, Cz[ID, O, Vb, Vs]](data, metric, k, initializedCenters) {
+	metric: D = new HammingAndEuclidean[Vb[Int], Vs[Double]],
+	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]]
+) extends KCommonsMixt[ID, Vb[Int], Vs[Double], BinaryScalarVector[Vb[Int], Vs[Double]], D, Cz[ID, O, Vb[Int], Vs[Double]]](data, metric, k, initializedCenters) {
 	/**
 	 * Run the K-Protypes
 	 **/
-	def run(): KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], D] = {
+	def run(): KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], D] = {
 		var cpt = 0
 		var allCentersHaveConverged = false
 
-		def runHammingAndEuclidean(): KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], D] = {
+		def runHammingAndEuclidean(): KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], D] = {
 			while( cpt < maxIterations && ! allCentersHaveConverged ) {
 				val (clusterized, kCentersBeforeUpdate) = clusterizedAndSaveCentersWithResetingCentersCardinalities(centers, centersCardinality)
 				clusterized.groupBy{ case (_, clusterID) => clusterID }.foreach{ case (clusterID, aggregate) =>
-					centers(clusterID) = new BinaryScalarVector[Vb, Vs](ClusterBasicOperations.obtainMode(aggregate.map(_._1.binary)), ClusterBasicOperations.obtainMean(aggregate.map(_._1.scalar)))
+					centers(clusterID) = new BinaryScalarVector[Vb[Int], Vs[Double]](ClusterBasicOperations.obtainMode(aggregate.map(_._1.binary)), ClusterBasicOperations.obtainMean(aggregate.map(_._1.scalar)))
 					centersCardinality(clusterID) += aggregate.size
 				}
 				allCentersHaveConverged = removeEmptyClustersAndCheckIfallCentersHaveConverged(centers, kCentersBeforeUpdate, centersCardinality, epsilon)
 				cpt += 1
 			}
-			new KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], D](centers, metric)
+			new KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], D](centers, metric)
 		}
-		def runCustom(): KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], D] = {
+		def runCustom(): KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], D] = {
 			runKAlgorithmWithCustomMetric(maxIterations, epsilon)
-			new KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], D](centers, metric)
+			new KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], D](centers, metric)
 		}
 	
-		if( metric.isInstanceOf[HammingAndEuclidean[Vb, Vs]] ) runHammingAndEuclidean() else runCustom()
+		if( metric.isInstanceOf[HammingAndEuclidean[Vb[Int], Vs[Double]]] ) runHammingAndEuclidean() else runCustom()
 	}
 }
 
@@ -71,19 +71,19 @@ object KPrototypes extends CommonTypes {
 	def run[
 		ID: Numeric,
 		O,
-		Vb <: Seq[Int],
-		Vs <: Seq[Double],
+		Vb[Int] <: Seq[Int],
+		Vs[Double] <: Seq[Double],
 		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double]] <: MixtClusterizable[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs]],
-		D <: MixtDistance[Vb, Vs]
+		D <: MixtDistance[Vb[Int], Vs[Double]]
 	](
-		data: GenSeq[Cz[ID, O, Vb, Vs]],
+		data: GenSeq[Cz[ID, O, Vb[Int], Vs[Double]]],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,
 		metric: D,
-		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
-	): KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], D] = {
-		val kPrototypes = new KPrototypes[ID, O, Vb, Vs, Cz, D](data, k, epsilon, maxIterations, metric)
+		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]]
+	): KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], D] = {
+		val kPrototypes = new KPrototypes(data, k, epsilon, maxIterations, metric)
 		val kPrototypesModel = kPrototypes.run()
 		kPrototypesModel
 	}

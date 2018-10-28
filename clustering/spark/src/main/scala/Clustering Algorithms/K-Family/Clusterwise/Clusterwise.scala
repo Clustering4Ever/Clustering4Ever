@@ -1,5 +1,6 @@
 package clustering4ever.spark.clustering.clusterwise
 
+import scala.language.higherKinds
 import scala.util.Random
 import scala.reflect.ClassTag
 import scala.collection.{mutable, immutable, GenSeq}
@@ -16,9 +17,9 @@ import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.GenerateClusterizable
 import clustering4ever.scala.clusterizables.SimpleRealClusterizable
 
-class Clusterwise[S <: Seq[Double] : ClassTag](
+class Clusterwise[V[Double] <: Seq[Double]](
 	@(transient @param) sc: SparkContext,
-	dataXY: GenSeq[(Int, (S, S))],
+	dataXY: GenSeq[(Int, (V[Double], V[Double]))],
 	g: Int,
 	h: Int,
 	nbCV: Int,
@@ -31,19 +32,19 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 	epsilonKmeans: Double,
 	iterMaxKmeans: Int,
 	logOn: Boolean = false
-	) extends Serializable {
+	)(implicit ev: ClassTag[V[Double]]) extends Serializable {
 	type SqRmseCal = Double
 	type SqRmseVal = Double
 
-	def run: (Array[(SqRmseCal, SqRmseVal)], Array[ClusterwiseModel[S]]) = {
+	def run: (Array[(SqRmseCal, SqRmseVal)], Array[ClusterwiseModel[V]]) = {
 		val n = dataXY.size
 		val first = dataXY.head
 		val p = first._2._1.size  // dimX
 		val q = first._2._2.size  // dimY
 		val kmeansKValue = (n / sizeBloc).toInt
-		val clusterwiseModels = mutable.ArrayBuffer.empty[ClusterwiseModel[S]]
+		val clusterwiseModels = mutable.ArrayBuffer.empty[ClusterwiseModel[V]]
 
-		def reduceXY(a: (S, S), b: (S, S)): (S, S) = (SumVectors.sumVectors[Double, S](a._1, b._1).asInstanceOf[S], SumVectors.sumVectors[Double, S](a._2, b._2).asInstanceOf[S])
+		def reduceXY(a: (V[Double], V[Double]), b: (V[Double], V[Double])): (V[Double], V[Double]) = (SumVectors.sumVectors(a._1, b._1).asInstanceOf[V[Double]], SumVectors.sumVectors(a._2, b._2).asInstanceOf[V[Double]])
 
   		val standardizationParameters = if( standardized )
   		{
@@ -52,7 +53,7 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 	  		val meanY = preMeanY.map(_ / n)
 
 	  		val (preSDX, preSDY) = dataXY.map{ case (_, (x, y)) => (x.zipWithIndex, y.zipWithIndex) }
-	  			.map{ case (x, y) => (x.map{ case (v, idx) =>  pow(v - meanX(idx), 2) }.asInstanceOf[S], y.map{ case (v, idx) => pow(v - meanX(idx), 2) }.asInstanceOf[S]) }
+	  			.map{ case (x, y) => (x.map{ case (v, idx) =>  pow(v - meanX(idx), 2) }.asInstanceOf[V[Double]], y.map{ case (v, idx) => pow(v - meanX(idx), 2) }.asInstanceOf[V[Double]]) }
 	  			.reduce(reduceXY)
 	  		val sdX = preSDX.map( v => sqrt(v / (n - 1)))
 	  		val sdY = preSDY.map( v => sqrt(v / (n - 1)))
@@ -68,8 +69,8 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
   				(
 	  				id,
 	  				(
-	  					x.zipWithIndex.map{ case (v, idx) => (v - meanX(idx)) / sdX(idx) }.asInstanceOf[S],
-	  					y.zipWithIndex.map{ case (v, idx) => (v - meanY(idx)) / sdY(idx) }.asInstanceOf[S]
+	  					x.zipWithIndex.map{ case (v, idx) => (v - meanX(idx)) / sdX(idx) }.asInstanceOf[V[Double]],
+	  					y.zipWithIndex.map{ case (v, idx) => (v - meanY(idx)) / sdY(idx) }.asInstanceOf[V[Double]]
 	  				)
   				)
   			}
@@ -77,11 +78,11 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
   		else dataXY
 
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 ) {
-	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateClusterizable.obtainSimpleRealClusterizable[Int, S](id, (x ++ y).asInstanceOf[S]) }
-	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[S](squareRoot = true))
+	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateClusterizable.obtainSimpleRealClusterizable[Int, V[Double]](id, (x ++ y).asInstanceOf[V[Double]]) }
+	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[V](squareRoot = true))
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
 	  	  	val microClusterNumbers = kmeansModel.centers.size
-	  	  	val clusterizedData = centerReductRDD.map{ case (id, (x, y)) => (id, unregularClusterIdsByStandardClusterIDs(kmeansModel.centerPredict((x ++ y).asInstanceOf[S]))) }.seq
+	  	  	val clusterizedData = centerReductRDD.map{ case (id, (x, y)) => (id, unregularClusterIdsByStandardClusterIDs(kmeansModel.centerPredict((x ++ y).asInstanceOf[V[Double]]))) }.seq
   	  		val microClusterByIdIn = immutable.HashMap(clusterizedData:_*)
   	  		Some((microClusterByIdIn, microClusterNumbers))
 		}
@@ -103,7 +104,7 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 			val coXYcoefBuff = mutable.ArrayBuffer.empty[Array[Array[Double]]]
 		  	// Clusterwise
 		  	if( sizeBloc == 1 ) {
-		  		val (_, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = ClusterwiseCore.plsPerDot[S](broadcastedTrainData.value(idxCV), h, g, nbMaxAttemps, logOn)
+		  		val (_, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = ClusterwiseCore.plsPerDot(broadcastedTrainData.value(idxCV), h, g, nbMaxAttemps, logOn)
 		  		predFittedBuff += predFitted
 		  		coInterceptBuff += coIntercept
 		  		coXYcoefBuff += coXYcoef
@@ -113,7 +114,7 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 		  	}
 		  	// Micro Bacth Clusterwise
 		  	else {
-		  		val (_, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = ClusterwiseCore.plsPerMicroClusters[S](broadcastedTrainData.value(idxCV), broadcastedMicroClusterByIdAndNumbers.value.get._1, h, g, broadcastedMicroClusterByIdAndNumbers.value.get._2, nbMaxAttemps, logOn)
+		  		val (_, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = ClusterwiseCore.plsPerMicroClusters(broadcastedTrainData.value(idxCV), broadcastedMicroClusterByIdAndNumbers.value.get._1, h, g, broadcastedMicroClusterByIdAndNumbers.value.get._2, nbMaxAttemps, logOn)
 		  		predFittedBuff += predFitted
 		  		coInterceptBuff += coIntercept
 		  		coXYcoefBuff += coXYcoef
@@ -154,8 +155,8 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 			/* 										Test the model on testing set 									*/
 			/********************************************************************************************************/
 			val trainedData = labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }
-			val metric = new Euclidean[S]
-			val clusterwiseModel = new ClusterwiseModel[S](trainedData, modelByCluster, standardizationParameters, metric)
+			val metric = new Euclidean[V]
+			val clusterwiseModel = new ClusterwiseModel[V](trainedData, modelByCluster, standardizationParameters, metric)
 			clusterwiseModels += clusterwiseModel
 
 			val testY = splits(idxCV)
@@ -170,18 +171,18 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 
 		 	val (meanX, meanY, sdX, sdY) = standardizationParameters.get
 
-		 	val meanTrain = trainY.reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map(_ / trainY.size)
+		 	val meanTrain = trainY.reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map(_ / trainY.size)
 
-		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }.asInstanceOf[S]).reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
+		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }.asInstanceOf[V[Double]]).reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
 		 	
-		 	val meanTest = testY.map(_._2._2).reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map(_ / testSize)
+		 	val meanTest = testY.map(_._2._2).reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map(_ / testSize)
 		 	
-		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }.asInstanceOf[S]).reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S]).map( x => sqrt(x / (testSize - 1)))
+		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }.asInstanceOf[V[Double]]).reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map( x => sqrt(x / (testSize - 1)))
 
 		 	// Standardized RMSE of train data
 			val sqRmseTrainIn = if( q == 1 ) trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => pow(trueY.head - yPred.head, 2)}.sum / trainY.size / sdYtrain.head
-				else trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ).asInstanceOf[S] }
-			    	.reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S])
+				else trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ).asInstanceOf[V[Double]] }
+			    	.reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]])
 			    	.map(_ / trainY.size)
 			    	.zip(sdYtrain)
 			    	.map{ case (rmseTrain, sdy) => rmseTrain / sdy }
@@ -190,8 +191,8 @@ class Clusterwise[S <: Seq[Double] : ClassTag](
 			val testAndPredData = testY.zip(labelAndPrediction)
 		 	// Standardized RMSE of test data
 			val sqRmseTestIn = if( q == 1 ) testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => pow(y.head - yPred(0), 2) }.sum / testSize / sdYtest.head
-				else testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) }.asInstanceOf[S] }
-					.reduce(SumVectors.sumVectors[Double, S](_, _).asInstanceOf[S])
+				else testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) }.asInstanceOf[V[Double]] }
+					.reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]])
 					.zip(sdYtest)
 					.map{ case (rmseTest, sdTest) => rmseTest / sdTest }
 					.sum / q
@@ -211,9 +212,9 @@ object Clusterwise extends Serializable
 	 *
 	 *
 	 */
-	def run[S <: Seq[Double] : ClassTag](
+	def run[V[Double] <: Seq[Double]](
 		@(transient @param) sc: SparkContext,
-		dataXY: GenSeq[(Int, (S, S))],
+		dataXY: GenSeq[(Int, (V[Double], V[Double]))],
 		g: Int,
 		h: Int,
 		nbCV: Int,
@@ -226,8 +227,8 @@ object Clusterwise extends Serializable
 		epsilonKmeans: Double = 0.00001,
 		iterMaxKmeans: Int = 100,
 		logOn: Boolean = false
-	): (Array[(Double, Double)], Array[ClusterwiseModel[S]]) = {
-		val clusterwise = new Clusterwise[S](sc, dataXY, g, h, nbCV, init, k, withY, standardized, sizeBloc, nbMaxAttemps, epsilonKmeans, iterMaxKmeans, logOn)
+	)(implicit ev: ClassTag[V[Double]]): (Array[(Double, Double)], Array[ClusterwiseModel[V]]) = {
+		val clusterwise = new Clusterwise(sc, dataXY, g, h, nbCV, init, k, withY, standardized, sizeBloc, nbMaxAttemps, epsilonKmeans, iterMaxKmeans, logOn)
 		clusterwise.run	
 	}
 }

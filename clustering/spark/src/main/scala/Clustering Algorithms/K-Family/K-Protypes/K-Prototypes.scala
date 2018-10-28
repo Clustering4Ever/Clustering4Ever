@@ -27,40 +27,40 @@ import scala.language.higherKinds
 class KPrototypes[
 	ID: Numeric,
 	O,
-	Vb <: Seq[Int],
-	Vs <: Seq[Double],
+	Vb[Int] <: Seq[Int],
+	Vs[Double] <: Seq[Double],
 	Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double]] <: MixtClusterizable[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs]]
-	// D <: HammingAndEuclidean[Vb, Vs]
+	// D <: HammingAndEuclidean[Vb[Int], Vs[Double]]
 ](
 	@transient val sc: SparkContext,
-	dataIn: RDD[Cz[ID, O, Vb, Vs]],
+	dataIn: RDD[Cz[ID, O, Vb[Int], Vs[Double]]],
 	k: Int,
 	epsilon: Double,
 	maxIter: Int,
-	metric: HammingAndEuclidean[Vb, Vs] = new HammingAndEuclidean[Vb, Vs],
-	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]],
+	metric: HammingAndEuclidean[Vb[Int], Vs[Double]] = new HammingAndEuclidean[Vb[Int], Vs[Double]],
+	initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-)(implicit ct: ClassTag[Cz[ID, O, Vb, Vs]]) extends KCommonsSparkMixt[ID, Vb, Vs, Cz[ID, O, Vb, Vs], HammingAndEuclidean[Vb, Vs]](dataIn, metric, k, initializedCenters, persistanceLVL) {
+)(implicit ct: ClassTag[Cz[ID, O, Vb[Int], Vs[Double]]]) extends KCommonsSparkMixt[ID, Vb, Vs, Cz[ID, O, Vb[Int], Vs[Double]], HammingAndEuclidean[Vb[Int], Vs[Double]]](dataIn, metric, k, initializedCenters, persistanceLVL) {
 
 	private[this] val data = dataIn.map(_.vector).persist(persistanceLVL)
 
-	private[this] def obtainNearestModID(v: BinaryScalarVector[Vb, Vs], centers: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]]): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
+	private[this] def obtainNearestModID(v: BinaryScalarVector[Vb[Int], Vs[Double]], centers: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]]): Int = centers.minBy{ case(clusterID, mod) => metric.d(mod, v) }._1
 
-	def run(): KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], HammingAndEuclidean[Vb, Vs]] = {
+	def run(): KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], HammingAndEuclidean[Vb[Int], Vs[Double]]] = {
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged ) {
 			val centersInfo = obtainvalCentersInfo.map{ case (clusterID, (cardinality, preMean)) =>
 				// Majority Vote for Hamming Distance
-				val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 ).asInstanceOf[Vb]
+				val binaryVector = preMean.binary.map( v => if( v * 2 > cardinality ) 1 else 0 ).asInstanceOf[Vb[Int]]
 				// Mean for Euclidean Distance
-				val scalarVector = preMean.scalar.map(_ / cardinality).asInstanceOf[Vs]
+				val scalarVector = preMean.scalar.map(_ / cardinality).asInstanceOf[Vs[Double]]
 				(clusterID, new BinaryScalarVector(binaryVector, scalarVector), cardinality)
 			}
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], HammingAndEuclidean[Vb, Vs]](centers, metric)
+		new KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], HammingAndEuclidean[Vb[Int], Vs[Double]]](centers, metric)
 	}
 }
 /**
@@ -70,20 +70,20 @@ object KPrototypes {
 	def run[
 		ID: Numeric,
 		O,
-		Vb <: Seq[Int],
-		Vs <: Seq[Double],
+		Vb[Int] <: Seq[Int],
+		Vs[Double] <: Seq[Double],
 		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double]] <: MixtClusterizable[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs]]
 	](
 		@(transient @param) sc: SparkContext,
-		data: RDD[Cz[ID, O, Vb, Vs]],
+		data: RDD[Cz[ID, O, Vb[Int], Vs[Double]]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: HammingAndEuclidean[Vb, Vs] = new HammingAndEuclidean[Vb, Vs],
-		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]],
+		metric: HammingAndEuclidean[Vb[Int], Vs[Double]] = new HammingAndEuclidean[Vb[Int], Vs[Double]],
+		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-	)(implicit ct: ClassTag[Cz[ID, O, Vb, Vs]]): KPrototypesModel[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs], HammingAndEuclidean[Vb, Vs]] = {
-		val kPrototypes = new KPrototypes[ID, O, Vb, Vs, Cz](sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
+	)(implicit ct: ClassTag[Cz[ID, O, Vb[Int], Vs[Double]]]): KPrototypesModel[ID, O, Vb[Int], Vs[Double], Cz[ID, O, Vb[Int], Vs[Double]], HammingAndEuclidean[Vb[Int], Vs[Double]]] = {
+		val kPrototypes = new KPrototypes(sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kPrototypesModel = kPrototypes.run()
 		kPrototypesModel
 	}
