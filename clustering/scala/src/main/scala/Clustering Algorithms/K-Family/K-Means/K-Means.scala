@@ -3,18 +3,15 @@ package clustering4ever.scala.clustering.kmeans
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import scala.collection.{immutable, mutable, GenSeq}
-import scala.util.Random
 import scala.reflect.ClassTag
+import scala.collection.{mutable, GenSeq}
+import scala.util.Random
 import clustering4ever.math.distances.{ContinuousDistance, Distance}
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.ClusterBasicOperations
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.RealClusterizable
-import clustering4ever.scala.vectorizables.RealVectorizable
 import clustering4ever.scala.clustering.KCommonsVectors
-import clustering4ever.util.CommonTypes
-import scala.language.higherKinds
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of Clusterizable
@@ -28,7 +25,7 @@ class KMeans[
 	O,
 	V[Double] <: Seq[Double],
 	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-	D <: ContinuousDistance[V]
+	D <: ContinuousDistance[V[Double]]
 ](
 	data: GenSeq[Cz[ID, O, V[Double]]],
 	k: Int,
@@ -69,7 +66,7 @@ class KMeans[
 			new KMeansModel[ID, O, V, Cz[ID, O, V[Double]], D](centers, metric)
 		}
 
-		if( metric.isInstanceOf[Euclidean[V]] ) runEuclidean() else runCustom()
+		if( metric.isInstanceOf[Euclidean[V[Double]]] ) runEuclidean() else runCustom()
 	}
 }
 
@@ -82,7 +79,7 @@ object KMeans {
 		O,
 		V[Double] <: Seq[Double],
 		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-		D <: ContinuousDistance[V]
+		D <: ContinuousDistance[V[Double]]
 	](
 		data: GenSeq[Cz[ID, O, V[Double]]],
 		k: Int,

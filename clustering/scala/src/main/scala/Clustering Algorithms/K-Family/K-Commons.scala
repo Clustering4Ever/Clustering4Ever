@@ -1,5 +1,7 @@
 package clustering4ever.scala.clustering
-
+/**
+ * @author Beck Gaël
+ */
 import org.apache.commons.math3.distribution.EnumeratedDistribution
 import org.apache.commons.math3.util.Pair
 import scala.collection.JavaConverters._
@@ -12,8 +14,10 @@ import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.{ClusterizableExt, Clusterizable}
 import clustering4ever.clustering.{ClusteringAlgorithms, CentersBasedModel}
 import clustering4ever.scala.measurableclass.BinaryScalarVector
-
-abstract class KCommons[ID: Numeric, V, D <: Distance[V]](metric: D) extends ClusteringAlgorithms {
+/**
+ *
+ */
+abstract class KCommons[@specialized(Int, Long) ID: Numeric, V, D <: Distance[V]](metric: D) extends ClusteringAlgorithms {
 	/**
 	 * Check if there are empty centers and remove them
 	 */

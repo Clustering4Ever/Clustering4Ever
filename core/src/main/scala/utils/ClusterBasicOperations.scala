@@ -4,7 +4,7 @@ package clustering4ever.util
  */
 import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
-import clustering4ever.math.distances.Distance
+import clustering4ever.math.distances.{Distance, DistanceSeq}
 import scala.language.higherKinds
 /**
  *
@@ -17,7 +17,7 @@ object ClusterBasicOperations {
 	/**
 	 * @return the medoid which minimize its distance from all others cluster members for real or binary space
 	 */
-	def obtainMedoid[@specialized(Int, Double) N: SNumeric, V[N] <: Seq[N], D <: Distance[V[N]]](cluster: GenSeq[V[N]], metric: D): V[N] = obtainMedoid(cluster, metric)
+	def obtainMedoid[@specialized(Int, Double) N: SNumeric, V <: Seq[N], D <: DistanceSeq[N, V]](cluster: GenSeq[V], metric: D): V = obtainMedoid(cluster, metric)
 	/**
 	 * @return the centroid of the given cluster composed by real vectors
 	 * 

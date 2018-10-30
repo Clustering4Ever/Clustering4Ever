@@ -11,7 +11,6 @@ import clustering4ever.math.distances.binary.Hamming
 import clustering4ever.util.ClusterBasicOperations
 import clustering4ever.scala.clusterizables.BinaryClusterizable
 import clustering4ever.scala.clustering.KCommonsVectors
-import clustering4ever.util.CommonTypes
 import scala.language.higherKinds
 /**
  *
@@ -21,7 +20,7 @@ class KModes[
 	O,
 	V[Int] <: Seq[Int],
 	Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
-	D <: BinaryDistance[V]
+	D <: BinaryDistance[V[Int]]
 ](
 	data: GenSeq[Cz[ID, O, V[Int]]],
 	k: Int,
@@ -57,7 +56,7 @@ class KModes[
 			new KModesModel[ID, O, V, Cz[ID, O, V[Int]], D](centers, metric)
 		}
 	
-		if( metric.isInstanceOf[Hamming[V]] ) runHamming() else runCustom()
+		if( metric.isInstanceOf[Hamming[V[Int]]] ) runHamming() else runCustom()
 	}
 }
 /**
@@ -72,7 +71,7 @@ object KModes {
 		O,
 		V[Int] <: Seq[Int],
 		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
-		D <: BinaryDistance[V]
+		D <: BinaryDistance[V[Int]]
 	](
 		data: GenSeq[Cz[ID, O, V[Int]]],
 		k: Int,

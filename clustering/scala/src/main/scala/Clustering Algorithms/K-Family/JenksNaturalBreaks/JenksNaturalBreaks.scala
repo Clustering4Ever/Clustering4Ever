@@ -2,13 +2,13 @@ package clustering4ever.scala.clustering
 /**
  * @author Beck Gaël
  */
-import scala.collection.{mutable, immutable, GenSeq}
+import scala.collection.{mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
 import clustering4ever.clustering.{ClusteringAlgorithms, ClusteringModel}
 /**
  *
  */
-class JenksNaturalBreaks[N](sortedValues: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]) extends ClusteringAlgorithms {
+class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](sortedValues: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]) extends ClusteringAlgorithms {
   /**
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
    * Return breaks position in the sorted GenSeq
@@ -86,13 +86,13 @@ class JenksNaturalBreaks[N](sortedValues: GenSeq[N], desiredNumberCategories: In
  */
 object JenksNaturalBreaks {
 
-  def run[N](sortedValues: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(sortedValues, desiredNumberCategories)).run()
+  def run[@specialized(Int, Double, Long, Float) N](sortedValues: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(sortedValues, desiredNumberCategories)).run()
 
 }
 /**
  *
  */
-class JenksNaturalBreaksModel[N](val breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModel {
+class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](val breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModel {
 
   private val breaksIndexed = breaks.zipWithIndex
   /**

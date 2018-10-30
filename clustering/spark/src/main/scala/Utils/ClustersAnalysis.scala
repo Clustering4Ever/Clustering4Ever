@@ -17,7 +17,7 @@ import clustering4ever.util.SumVectors
  *
  */
 abstract class ClustersAnalysis[
-    ID: Numeric,
+    @specialized(Int, Long) ID: Numeric,
     O,
     V,
     Cz <: ClusterizableExt[ID, V, Cz]

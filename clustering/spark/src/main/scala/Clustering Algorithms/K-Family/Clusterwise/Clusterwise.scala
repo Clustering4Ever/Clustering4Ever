@@ -79,7 +79,7 @@ class Clusterwise[V[Double] <: Seq[Double]](
 
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 ) {
 	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateClusterizable.obtainSimpleRealClusterizable[Int, V[Double]](id, (x ++ y).asInstanceOf[V[Double]]) }
-	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[V](squareRoot = true))
+	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[V[Double]](squareRoot = true))
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
 	  	  	val microClusterNumbers = kmeansModel.centers.size
 	  	  	val clusterizedData = centerReductRDD.map{ case (id, (x, y)) => (id, unregularClusterIdsByStandardClusterIDs(kmeansModel.centerPredict((x ++ y).asInstanceOf[V[Double]]))) }.seq
@@ -155,7 +155,7 @@ class Clusterwise[V[Double] <: Seq[Double]](
 			/* 										Test the model on testing set 									*/
 			/********************************************************************************************************/
 			val trainedData = labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }
-			val metric = new Euclidean[V]
+			val metric = new Euclidean[V[Double]]
 			val clusterwiseModel = new ClusterwiseModel[V](trainedData, modelByCluster, standardizationParameters, metric)
 			clusterwiseModels += clusterwiseModel
 

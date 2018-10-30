@@ -14,7 +14,7 @@ import clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
  *
  */
 abstract class ClustersAnalysis[
-    ID: Numeric,
+    @specialized(Int, Long) ID: Numeric,
     O,
     V,
     Cz <: ClusterizableExt[ID, V, Cz]
@@ -35,13 +35,13 @@ class RealClustersAnalysis[
     O,
     V[Double] <: Seq[Double],
     Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-    D <: ContinuousDistance[V]
+    D <: ContinuousDistance[V[Double]]
 ](clusterized: GenSeq[Cz[ID, O, V[Double]]], metric: D) extends ClustersAnalysis[ID, O, V[Double], Cz[ID, O, V[Double]]](clusterized) {
 
     def obtainCentroids: Map[Int, V[Double]] = groupByClusterID.map{ case (clusterIDOption, aggregate) =>
         (
             clusterIDOption.get,
-            if( metric.isInstanceOf[Euclidean[V]] ) ClusterBasicOperations.obtainMean(aggregate.map(_.vector)) else ClusterBasicOperations.obtainMedoid(aggregate.map(_.vector), metric)
+            if( metric.isInstanceOf[Euclidean[V[Double]]] ) ClusterBasicOperations.obtainMean(aggregate.map(_.vector)) else ClusterBasicOperations.obtainMedoid(aggregate.map(_.vector), metric)
         )
     }.seq
 }
@@ -53,13 +53,13 @@ class BinaryClustersAnalysis[
     O,
     V[Int] <: Seq[Int],
     Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
-    D <: BinaryDistance[V]
+    D <: BinaryDistance[V[Int]]
 ](clusterized: GenSeq[Cz[ID, O, V[Int]]], metric: D) extends ClustersAnalysis[ID, O, V[Int], Cz[ID, O, V[Int]]](clusterized) {
 
     def obtainCentroids: Map[Int, V[Int]] = groupByClusterID.map{ case (clusterIDOption, aggregate) =>
         (
             clusterIDOption.get,
-            if( metric.isInstanceOf[Hamming[V]] ) ClusterBasicOperations.obtainMode(aggregate.map(_.vector)) else ClusterBasicOperations.obtainMedoid[Int, V, D](aggregate.map(_.vector), metric)
+            if( metric.isInstanceOf[Hamming[V[Int]]] ) ClusterBasicOperations.obtainMode(aggregate.map(_.vector)) else ClusterBasicOperations.obtainMedoid(aggregate.map(_.vector), metric)
         )
     }.seq
 }

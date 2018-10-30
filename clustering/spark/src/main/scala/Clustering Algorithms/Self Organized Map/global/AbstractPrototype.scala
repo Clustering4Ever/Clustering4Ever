@@ -6,7 +6,7 @@ import clustering4ever.math.distances.ContinuousDistance
 /**
  * @author Sarazin Tugdual & Beck Gaël
  **/
-abstract class AbstractPrototype(val id: Int, var point: Seq[Double], metric: ContinuousDistance[Seq]) extends Serializable
+abstract class AbstractPrototype(val id: Int, var point: Seq[Double], metric: ContinuousDistance[Seq[Double]]) extends Serializable
 {
 	def update(newPoint: Seq[Double]): Double =
 	{

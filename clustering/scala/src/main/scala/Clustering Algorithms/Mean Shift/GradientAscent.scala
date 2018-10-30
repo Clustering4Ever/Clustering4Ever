@@ -8,7 +8,7 @@ import scala.util.Random
 import scala.math.{min, max}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
-import clustering4ever.math.distances.{ContinuousDistance, Distance, DistanceSeq}
+import clustering4ever.math.distances.{ContinuousDistance, Distance}
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.SumVectors
 import clustering4ever.scala.kernels.KernelNature._
@@ -23,11 +23,11 @@ import clustering4ever.scala.kernels.{Kernel, KernelSeq, KernelArgs}//, KernelAr
  *  * Left[KernelArgs] else
  */
 class GradientAscent[
-  ID: Numeric,
+  @specialized(Int, Long) ID: Numeric,
   O,
   V[Double] <: Seq[Double],
   Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-  D <: ContinuousDistance[V],
+  D <: ContinuousDistance[V[Double]],
   K <: Kernel[V[Double], KernelArgs]
 ](
   data: GenSeq[Cz[ID, O, V[Double]]],
@@ -54,8 +54,9 @@ class GradientAscent[
           cptConvergedPoints += 1
           true
         }
-        else false
-
+        else {
+          false
+        }
         (obj.setV2(updatedMode), hasConverged)
       }
 
@@ -88,7 +89,7 @@ object GradientAscent {
     O,
     V[Double] <: Seq[Double],
     Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-    D <: ContinuousDistance[V],
+    D <: ContinuousDistance[V[Double]],
     K <: Kernel[V[Double], KernelArgs]
   ](
     data: GenSeq[Cz[ID, O, V[Double]]],

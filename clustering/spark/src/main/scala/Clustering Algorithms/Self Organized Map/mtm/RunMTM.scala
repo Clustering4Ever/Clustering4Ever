@@ -23,7 +23,7 @@ object RunSom
     sparkMaster: String,
     intputFile: RDD[Seq[Double]],
     outputDir: String,
-    metric: ContinuousDistance[Seq] = new Euclidean[Seq](true),
+    metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true),
     execName: String = "RunMTM",
     nbRow: Int = 10, 
     nbCol: Int = 10, 
@@ -57,7 +57,7 @@ object RunSom
   def exec(
     intputFile: RDD[Seq[Double]],
     outputDir: String,
-    metric: ContinuousDistance[Seq] = new Euclidean[Seq](true),
+    metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true),
     nbRow: Int = 10,
     nbCol: Int = 10,
     tmin: Double = 0.9,

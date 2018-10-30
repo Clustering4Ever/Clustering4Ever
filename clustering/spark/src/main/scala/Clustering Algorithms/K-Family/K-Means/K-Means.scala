@@ -29,7 +29,7 @@ class KMeans[
 	O,
 	V[Double] <: Seq[Double],
 	Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-	D <: Euclidean[V]
+	D <: Euclidean[V[Double]]
 ](
 	@transient val sc: SparkContext,
 	data: RDD[Cz[ID, O, V[Double]]],
@@ -39,9 +39,9 @@ class KMeans[
 	metric: D,
 	initializedCenters: mutable.HashMap[Int, V[Double]] = mutable.HashMap.empty[Int, V[Double]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-)(implicit ct: ClassTag[Cz[ID, O, V[Double]]], ct2: ClassTag[V[Double]]) extends KCommonsSparkVectors[ID, Double, V, Cz[ID, O, V[Double]], Euclidean[V]](data, metric, k, initializedCenters, persistanceLVL) {
+)(implicit ct: ClassTag[Cz[ID, O, V[Double]]], ct2: ClassTag[V[Double]]) extends KCommonsSparkVectors[ID, Double, V, Cz[ID, O, V[Double]], Euclidean[V[Double]]](data, metric, k, initializedCenters, persistanceLVL) {
 
-	def run(): KMeansModel[ID, O, V, Cz[ID, O, V[Double]], Euclidean[V]] = {
+	def run(): KMeansModel[ID, O, V, Cz[ID, O, V[Double]], Euclidean[V[Double]]] = {
 		var cpt = 0
 		var allModHaveConverged = false
 		while( cpt < maxIter && ! allModHaveConverged ) {
@@ -55,7 +55,7 @@ class KMeans[
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KMeansModel[ID, O, V, Cz[ID, O, V[Double]], Euclidean[V]](centers, metric)
+		new KMeansModel[ID, O, V, Cz[ID, O, V[Double]], Euclidean[V[Double]]](centers, metric)
 	}
 }
 
@@ -67,7 +67,7 @@ object KMeans {
 		O,
 		V[Double] <: Seq[Double],
 		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-		D <: Euclidean[V]
+		D <: Euclidean[V[Double]]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz[ID, O, V[Double]]],
@@ -77,7 +77,7 @@ object KMeans {
 		metric: D,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, V[Double]] = mutable.HashMap.empty[Int, V[Double]]
-	)(implicit ct: ClassTag[Cz[ID, O, V[Double]]], ct2: ClassTag[V[Double]]): KMeansModel[ID, O, V, Cz[ID, O, V[Double]], Euclidean[V]] = {
+	)(implicit ct: ClassTag[Cz[ID, O, V[Double]]], ct2: ClassTag[V[Double]]): KMeansModel[ID, O, V, Cz[ID, O, V[Double]], Euclidean[V[Double]]] = {
 		val kmeans = new KMeans(sc, data, k, epsilon, maxIter, metric, initializedCenters, persistanceLVL)
 		val kmeansModel = kmeans.run()
 		kmeansModel

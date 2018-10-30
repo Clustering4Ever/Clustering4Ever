@@ -14,7 +14,7 @@ import clustering4ever.scala.kernels.KernelNature._
 /**
  *
  */
-trait Kernel[V, +KA <: KernelArgs] {
+trait Kernel[V, +KA <: KernelArgs] extends Serializable {
 	/**
 	 *
 	 */
@@ -27,7 +27,7 @@ trait Kernel[V, +KA <: KernelArgs] {
 /**
  *
  */
-trait KernelSeq[N, V[N] <: Seq[N], +KA <: KernelArgs] extends Kernel[V[N], KA]
+trait KernelSeq[N, V <: Seq[N], +KA <: KernelArgs] extends Kernel[V, KA]
 /**
  *
  */
@@ -46,7 +46,7 @@ object KernelUtils {
 	def obtainPreMode[V[Double] <: Seq[Double]](vi: V[Double], kernelVal: Double) = vi.map(_ * kernelVal).asInstanceOf[V[Double]]
 }
 
-class KernelGaussian[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends KernelSeq[Double, V, KernelArgsGaussian[V, D]] {
+class KernelGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends KernelSeq[Double, V[Double], KernelArgsGaussian[V, D]] {
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-lambda|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - lambda is the bandwidth
@@ -72,7 +72,7 @@ class KernelGaussian[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: Co
 /**
  *
  */
-class KernelFlat[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends KernelSeq[Double, V, KernelArgsFlat[V, D]] {
+class KernelFlat[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends KernelSeq[Double, V[Double], KernelArgsFlat[V, D]] {
 	/**
 	 *
 	 */
@@ -138,7 +138,7 @@ object GmmKernels {
  */
 trait KnnKernel[
 	N,
-	V[N] <: Seq[N],
+	V <: Seq[N],
 	D <: DistanceSeq[N, V],
 	+Args <: KernelArgsKnnVec[N, V, D]
 ] extends KernelSeq[N, V, Args]  {
@@ -149,22 +149,21 @@ trait KnnKernel[
 	/**
 	 * @return knn
 	 */
-	def obtainKnn(v: V[N], env: Seq[V[N]]) = env.sortBy(kernelArgs.metric.d(v, _)).take(kernelArgs.k)
+	def obtainKnn(v: V, env: Seq[V]) = env.sortBy(kernelArgs.metric.d(v, _)).take(kernelArgs.k)
 	/**
 	 * The KNN kernel for real space, it select KNN using any real measure and compute the mode of them by looking for element which minimize average pair to pair distance
 	 * @note Mean computation has a sense only for euclidean distance.
 	 */
-	def obtainMode(v: V[N], env: GenSeq[V[N]]): V[N] = {
+	def obtainMode(v: V, env: GenSeq[V]): V = {
 		val knn = obtainKnn(v, env.seq)
-		val sm = SimilarityMatrix.simpleSimilarityMatrix(knn, kernelArgs.metric)
-		sm.minBy{ case (_, distances) => distances.sum }._1
+		SimilarityMatrix.distanceMinimizer(knn, kernelArgs.metric)
 	}
 }
 /**
  *
  */
-trait KnnKernelMetaReal[
-	V[Double] <: Seq[Double],
+trait KnnKernelRealMeta[
+	V <: Seq[Double],
 	D <: ContinuousDistance[V],
 	+Args <: KernelArgsKnnRealMeta[V, D]
 ] extends KnnKernel[Double, V, D, Args]
@@ -173,17 +172,17 @@ trait KnnKernelMetaReal[
  */
 class KnnKernelReal[
 	V[Double] <: Seq[Double],
-	D[V[Double] <: Seq[Double]] <: ContinuousDistance[V],
-	Args[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: ContinuousDistance[V]] <: KernelArgsKnnReal[V, D]
-](val kernelArgs: Args[V, D]) extends KnnKernelMetaReal[V, D[V], Args[V, D]]
+	D[V <: Seq[Double]] <: ContinuousDistance[V],
+	Args[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]] <: KernelArgsKnnReal[V, D]
+](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V[Double], D[V[Double]], Args[V, D]]
 /**
  *
  */
 class KnnKernelEuclidean[
 	V[Double] <: Seq[Double],
-	D[V[Double] <: Seq[Double]] <: Euclidean[V],
-	Args[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: Euclidean[V]] <: KernelArgsEuclideanKnn[V, D]
-](val kernelArgs: Args[V, D]) extends KnnKernelMetaReal[V, D[V], Args[V, D]] {
+	D[V <: Seq[Double]] <: Euclidean[V],
+	Args[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]] <: KernelArgsEuclideanKnn[V, D]
+](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V[Double], D[V[Double]], Args[V, D]] {
 	/**
 	 * The KNN kernel for euclidean space, it select KNN using a Euclidean measure and compute the mean<sup>*</sup> of them
 	 * @note Mean computation has a sense only for euclidean distance.

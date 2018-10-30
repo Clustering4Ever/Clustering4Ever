@@ -37,25 +37,25 @@ trait EuclideanMeta extends Serializable {
 /**
  * The Euclidean distance with or without squareRoot
  */
-class Euclidean[V[Double] <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V] {
+ class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta with ContinuousDistance[V] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
 	  */
-	def d(dot1: V[Double], dot2: V[Double]): Double = euclidean(dot1, dot2)
+	def d(dot1: V, dot2: V): Double = euclidean(dot1, dot2)
 	/**
 	 * The euclidean norm
 	 */
-	def norm(dot: V[Double]): Double = SumVectors.norm(dot)
+	def norm(dot: V): Double = SumVectors.norm(dot)
 }
 /**
  * The easy to use Euclidean distance with or without squareRoot for vectors =:= mutable.ArrayBuffer[Double]
  */
-class EasyEuclidean(squareRoot: Boolean = true) extends Euclidean[mutable.ArrayBuffer](squareRoot)
+class EasyEuclidean(squareRoot: Boolean = true) extends Euclidean[mutable.ArrayBuffer[Double]](squareRoot)
 /**
  *
  */
-class EuclideanClusterizable[ID: Numeric, O, V[Double] <: Seq[Double], D <: Euclidean[V], Cz <: RealClusterizable[ID, O, V[Double], Cz]](final val squareRoot: Boolean = true, val classicalMetric: D) extends EuclideanMeta with RealClusterizableDistance[Cz, V, D] {
+class EuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Euclidean[V], Cz <: RealClusterizable[ID, O, V, Cz]](final val squareRoot: Boolean = true, val classicalMetric: D) extends EuclideanMeta with RealClusterizableDistance[Cz, V, D] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
