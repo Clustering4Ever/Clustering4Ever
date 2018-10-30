@@ -21,57 +21,63 @@ class TensorFoldSpectral(val k1: Int, val k2: Int, val tensor: mutable.ListBuffe
     val timeColumn = DenseMatrix.zeros[Double](m, n2)  
     val timeRow = DenseMatrix.zeros[Double](m, n1)
 
-    @annotation.tailrec
-    def matrice1(t: mutable.ListBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
-      if (j < t.head.cols && k < t.length) {
-        m(k,j) = t(k)(i,j)
-        matrice1(t, m, c, i, j, k + 1)
+     // function take all the lateral slice T(i,:,:)
+     @annotation.tailrec
+     def matrice_columnset(t:ListBuffer[DenseMatrix[Double]], m:DenseMatrix[Double], c:DenseMatrix[Double], i: Int, j: Int , k: Int): 
+        DenseMatrix[Double] = {
+        if (j < t(0).cols && k < t.length){
+        m(k,j) = t(k)(i,j);
+        matrice_columnset(t,m, c, i, j, k + 1);
       }
-      else if (k == t.length && j < t(0).cols) {
-        matrice1(t, m, c, i, j + 1 , 0)
+      else if (k == t.length && j < t(0).cols){
+        matrice_columnset(t, m, c, i, j+1 , 0);
       }
+
       else if (i < t(0).rows - 1){
-        c += m.t * m
-        matrice1(t, m, c, i + 1, 0, 0)
-      }
-      else {
         c += (m.t * m)
-        c
+        matrice_columnset(t, m, c, i+1, 0, 0);
+      }else {
+        c += (m.t * m)
+        c;
       }
     }
+    
 
+    // function take all the horizontal slice T(:,j,:)
     @annotation.tailrec
-    def matrice2(t: mutable.ListBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
-      if (i < t.head.rows && k < t.length){
-        m(k,i) = t(k)(i,j)
-        matrice2(t,m, c, i, j, k + 1)
+    def matrice_rowset(t:ListBuffer[DenseMatrix[Double]], m:DenseMatrix[Double], c:DenseMatrix[Double], i: Int, j: Int , k: Int): 
+        DenseMatrix[Double] = {
+        if (i < t(0).rows && k < t.length){
+        m(k,i) = t(k)(i,j);
+        matrice_rowset(t,m, c, i, j, k + 1);
       }
       else if (k == t.length && i < t(0).rows){
-        matrice2(t, m, c, i + 1, j , 0)
+        matrice_rowset(t, m, c, i+1, j , 0);
       }
+
       else if (j < t(0).cols - 1){
-        c += m.t * m
-        matrice2(t, m, c, 0, j + 1, 0)
-      }
-      else {
+        c += (m.t * m)
+        matrice_rowset(t, m, c, 0, j+1, 0);
+      }else {
         c += (m.t * m)
         c
       }
     }
 
-    val columnMatrix = matrice1(tensor, timeColumn, DenseMatrix.zeros[Double](n2, n2), 0, 0, 0 )
-    val rowMatrix = matrice2(tensor, timeRow, DenseMatrix.zeros[Double](n1, n1), 0, 0, 0 )
+    val columnMatrix = matrice_columnset(tensor, timeColumn, DenseMatrix.zeros[Double](n2, n2), 0, 0, 0 )
+    val rowMatrix = matrice_rowset(tensor, timeRow, DenseMatrix.zeros[Double](n1, n1), 0, 0, 0 )
 
+    //extraction of the top eigenvector and the eigenvalues 
      def topEigenVector(matrix: DenseMatrix[Double]) = {
       val svd.SVD(u, eigValue, eigVector) = svd(matrix) // X is a symetric matrix
       val u1 = (eigVector(0, ::).t).map(abs(_))   // top components eigenvector
       (u1, eigValue)
     }
 
-    // the top eigenvector of matrix C2  
+    // the top eigenvector of matrix_rowset  
     val (eigenvectorRow, eigValueRow) = topEigenVector(rowMatrix)
 
-    //the top eigenvector of matrix C1
+    //the top eigenvector of matrix_columnset
     val (eigenvectorColumn, eigValueCol) = topEigenVector(columnMatrix)
 
     //set of indices of rows belonging to the first cluster
