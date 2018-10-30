@@ -18,5 +18,5 @@ final class KMeansModel[
 	O,
 	V[Double] <: Seq[Double],
 	Cz <: RealClusterizable[ID, O, V[Double], Cz],
-	D <: ContinuousDistance[V]
+	D <: ContinuousDistance[V[Double]]
 ](centers: mutable.HashMap[Int, V[Double]], metric: D)(implicit ev: ClassTag[Cz]) extends KCommonsModelSpark[ID, V[Double], D, Cz](centers, metric)

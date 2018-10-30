@@ -29,17 +29,17 @@ class KModes[
 	O,
 	V[Int] <: Seq[Int],
 	Cz[ID, O, V[Int] <: Seq[Int]] <: BinaryClusterizable[ID, O, V[Int], Cz[ID, O, V]],
-	D[V[Int] <: Seq[Int]] <: Hamming[V]
+	D <: Hamming[V[Int]]
 ](
 	@transient val sc: SparkContext,
 	data: RDD[Cz[ID, O, V]],
 	k: Int,
 	epsilon: Double,
 	maxIter: Int,
-	metric: D[V] = new Hamming[V],
+	metric: D,
 	initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V[Int]]) extends KCommonsSparkVectors[ID, Int, V, Cz[ID, O, V], D[V]](data, metric, k, initializedCenters, persistanceLVL) {
+)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V[Int]]) extends KCommonsSparkVectors[ID, Int, V, Cz[ID, O, V], D](data, metric, k, initializedCenters, persistanceLVL) {
 	def run(): KModesModel[ID, O, V, Cz, D] = {
 		var cpt = 0
 		var allModHaveConverged = false
@@ -65,14 +65,14 @@ object KModes {
 		O,
 		V[Int] <: Seq[Int],
 		Cz[ID, O, V[Int] <: Seq[Int]] <: BinaryClusterizable[ID, O, V[Int], Cz[ID, O, V]],
-		D[V[Int] <: Seq[Int]] <: Hamming[V]
+		D <: Hamming[V[Int]]
 	](
 		@(transient @param) sc: SparkContext,
 		data: RDD[Cz[ID, O, V]],
 		k: Int,
 		epsilon: Double,
 		maxIter: Int,
-		metric: D[V] = new Hamming[V],
+		metric: D,
 		initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
 	)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V[Int]]): KModesModel[ID, O, V, Cz, D] = {

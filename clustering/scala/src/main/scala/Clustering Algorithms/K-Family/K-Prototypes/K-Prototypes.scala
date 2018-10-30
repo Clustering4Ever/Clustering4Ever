@@ -2,6 +2,7 @@ package clustering4ever.scala.clustering.kprotoypes
 /**
  * @author Beck Gaël
  */
+import scala.language.higherKinds
 import scala.collection.{GenSeq, mutable}
 import scala.util.Random
 import clustering4ever.math.distances.mixt.HammingAndEuclidean
@@ -11,8 +12,6 @@ import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.stats.Stats
 import clustering4ever.scala.clusterizables.MixtClusterizable
 import clustering4ever.scala.clustering.KCommonsMixt
-import clustering4ever.util.CommonTypes
-import scala.language.higherKinds
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data : an Array with and ID and the vector
@@ -64,7 +63,7 @@ class KPrototypes[
 	}
 }
 
-object KPrototypes extends CommonTypes {
+object KPrototypes {
 	/**
 	 * Run the K-Prototypes with any mixt distance
 	 */

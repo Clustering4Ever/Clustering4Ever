@@ -25,21 +25,21 @@ trait HammingMeta extends Serializable {
 /**
  *
  */
-class Hamming[V[Int] <: Seq[Int]] extends HammingMeta with BinaryDistance[V] {
+class Hamming[V <: Seq[Int]] extends HammingMeta with BinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
 	  */
-	def d(dot1: V[Int], dot2: V[Int]): Double = hamming(dot1, dot2)
+	def d(dot1: V, dot2: V): Double = hamming(dot1, dot2)
 }
 /**
  * The easy to use Hamminh distance for vectors =:= mutable.ArrayBuffer[Int]
  */
-class EasyHamming extends Hamming[mutable.ArrayBuffer]
+class EasyHamming extends Hamming[mutable.ArrayBuffer[Int]]
 /**
  *
  */
-class HammingClusterizable[ID: Numeric, O, V[Int] <: Seq[Int], D <: Hamming[V], Cz <: BinaryClusterizable[ID, O, V[Int], Cz]](val classicalMetric: D) extends HammingMeta with BinaryClusterizableDistance[Cz, V, D] {
+class HammingClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Int], D <: Hamming[V], Cz <: BinaryClusterizable[ID, O, V, Cz]](val classicalMetric: D) extends HammingMeta with BinaryClusterizableDistance[Cz, V, D] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2

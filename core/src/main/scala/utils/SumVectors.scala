@@ -22,7 +22,7 @@ object SumVectors {
 	/**
 	 * Reduce Array of multiple vectors
 	 */
-	def reduceMultipleVectorsMatrice[V[Double] <: Seq[Double], It <: Seq[V[Double]]](a: It, b: It) = a.zip(b).map{ case (c, d) => sumVectors(c, d) }.asInstanceOf[It]
+	def reduceMultipleVectorsMatrice[V[Double] <: Seq[Double], It[V] <: Seq[V]](a: It[V[Double]], b: It[V[Double]]) = a.zip(b).map{ case (c, d) => sumVectors(c, d) }.asInstanceOf[It[V[Double]]]
 	/**
 	 *
 	 */

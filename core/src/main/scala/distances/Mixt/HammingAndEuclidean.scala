@@ -54,7 +54,7 @@ class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double =
 /**
  *
  */
-class HammingAndEuclideanClusterizable[ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], D <: HammingAndEuclidean[Vb, Vs], Cz <: MixtClusterizable[ID, O, Vb, Vs, Cz]](val alpha: Double = 0D, val classicalMetric: D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtClusterizableDistance[Cz, Vb, Vs, D] {
+class HammingAndEuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], D <: HammingAndEuclidean[Vb, Vs], Cz <: MixtClusterizable[ID, O, Vb, Vs, Cz]](val alpha: Double = 0D, val classicalMetric: D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtClusterizableDistance[Cz, Vb, Vs, D] {
 	/**
 	 *
 	 */

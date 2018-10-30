@@ -8,7 +8,7 @@ import spire.math.{Numeric => SNumeric}
 /**
  *
  */
-abstract class Clusterizable[ID: Numeric, V](val id: ID, val vectorizable: Vectorizable[V]) extends Serializable {
+abstract class Clusterizable[@specialized(Int, Long) ID: Numeric, V](val id: ID, val vectorizable: Vectorizable[V]) extends Serializable {
 	final lazy val vector: V = vectorizable.toVector
 }
 /**

@@ -17,7 +17,7 @@ class ClusterwiseModel[V[Double] <: Seq[Double]](
 	val xyTrain: GenSeq[(Int, (V[Double], V[Double], Int))],
 	interceptXYcoefPredByClass: immutable.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.IndexedSeq[(Int, Array[Double])])],
 	standardizationParameters: Option[(mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double])] = None,
-	metric: ContinuousDistance[V] = new Euclidean[V]
+	metric: ContinuousDistance[V[Double]] = new Euclidean[V[Double]]
 ) extends ClusteringModel {
 	type Xvector = V[Double]
 	type Yvector = V[Double]

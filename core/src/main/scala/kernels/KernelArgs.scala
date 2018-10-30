@@ -5,7 +5,7 @@ package clustering4ever.scala.kernels
 import scala.language.higherKinds
 import scala.reflect.ClassTag
 import clustering4ever.math.distances.{Distance, ContinuousDistance, DistanceSeq}
-import clustering4ever.math.distances.scalar.Euclidean
+import clustering4ever.math.distances.scalar.{Euclidean}
 import clustering4ever.math.distances.binary.Hamming
 import spire.math.{Numeric => SNumeric}
 /**
@@ -25,7 +25,7 @@ import clustering4ever.scala.kernels.KernelNature._
 /**
  * Class regrouping arguments value for a specific kernel type
  */
-trait KernelArgs {
+trait KernelArgs extends Serializable {
 	val kernelType: KernelType
 }
 /**
@@ -43,51 +43,48 @@ trait KernelArgsKnn[O, D <: Distance[O]] extends KernelArgsWithMetric[O, D] {
 /**
  *
  */
-trait KernelArgsWithMetricSeq[N, V[N] <: Seq[N], D <: DistanceSeq[N, V]] extends KernelArgsWithMetric[V[N], D] {
+trait KernelArgsWithMetricSeq[@specialized(Int, Double) N, V <: Seq[N], D <: DistanceSeq[N, V]] extends KernelArgsWithMetric[V, D] {
     val metric: D
 }
 /**
  * Investigate why specialization with Spire Numeric prevent compilations
  */
-trait KernelArgsKnnVec[N, V[N] <: Seq[N], D <: DistanceSeq[N, V]] extends KernelArgsWithMetricSeq[N, V, D] {
+trait KernelArgsKnnVec[@specialized(Int, Double) N, V <: Seq[N], D <: DistanceSeq[N, V]] extends KernelArgsKnn[V, D] {
     val metric: D
     val k: Int
 }
 /**
  *
  */
-trait KernelArgsKnnRealMeta[V[Double] <: Seq[Double], D <: ContinuousDistance[V]] extends KernelArgsKnnVec[Double, V, D] {
-    val k: Int
-    val metric: D
-}
+trait KernelArgsKnnRealMeta[V <: Seq[Double], D <: ContinuousDistance[V]] extends KernelArgsKnnVec[Double, V, D]
 /**
  *
  */
-class KernelArgsKnnReal[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: ContinuousDistance[V]](val k: Int, val metric: D[V]) extends KernelArgsKnnRealMeta[V, D[V]] {
+class KernelArgsKnnReal[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val k: Int, val metric: D[V[Double]]) extends KernelArgsKnnRealMeta[V[Double], D[V[Double]]] {
     val kernelType = KNN_Real
 }
 /**
  *
  */
-class KernelArgsEuclideanKnn[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: Euclidean[V]](val k: Int, val metric: D[V]) extends KernelArgsKnnRealMeta[V, D[V]] {
+class KernelArgsEuclideanKnn[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]](val k: Int, val metric: D[V[Double]]) extends KernelArgsKnnRealMeta[V[Double], D[V[Double]]] {
     val kernelType = KNN_Euclidean
 }
 /**
  *
  */
-class KernelArgsHammingKnn[V[Int] <: Seq[Int], D[V[Int] <: Seq[Int]] <: Hamming[V]](val k: Int, val metric: D[V]) extends KernelArgsKnnVec[Int, V, D[V]] {
+class KernelArgsHammingKnn[V[Int] <: Seq[Int], D[V <: Seq[Int]] <: Hamming[V]](val k: Int, val metric: D[V[Int]]) extends KernelArgsKnnVec[Int, V[Int], D[V[Int]]] {
     val kernelType = KNN_Hamming
 }
 /**
  *
  */
-class KernelArgsGaussian[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: ContinuousDistance[V]](val bandwidth: Double, val metric: D[V]) extends KernelArgsWithMetricSeq[Double, V, D[V]] {
+class KernelArgsGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val bandwidth: Double, val metric: D[V[Double]]) extends KernelArgsWithMetricSeq[Double, V[Double], D[V[Double]]] {
     val kernelType = Gaussian
 }
 /**
  *
  */  
-class KernelArgsFlat[V[Double] <: Seq[Double], D[V[Double] <: Seq[Double]] <: ContinuousDistance[V]](val bandwidth: Double, val metric: D[V], val lambda: Double = 1D) extends KernelArgsWithMetricSeq[Double, V, D[V]] {
+class KernelArgsFlat[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val bandwidth: Double, val metric: D[V[Double]], val lambda: Double = 1D) extends KernelArgsWithMetricSeq[Double, V[Double], D[V[Double]]] {
     val kernelType = Flat
 }
 /**

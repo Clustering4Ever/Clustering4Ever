@@ -10,7 +10,7 @@ You will find additional contents about clustering algorithms **[here](https://g
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.0"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.1"` to your `libraryDependencies`
 
 Eventually add this resolver :
 
