@@ -6,6 +6,7 @@ import scala.math.{max, log, sqrt}
 import scala.collection.GenSeq
 import clustering4ever.util.ClusteringIndexesCommons
 import clustering4ever.scala.indexes.NmiNormalizationNature._
+import scala.collection.mutable
 /**
  *
  */
@@ -20,7 +21,7 @@ class ExternalIndexes {
 		val maxOneIndices = (0 to maxX).toArray
 		val maxTwoIndices = (0 to maxY).toArray
 
-		val count = Array.fill(maxX + 1)(Array.fill(maxY +1)(0D))
+		val count = mutable.ArrayBuffer.fill(maxX + 1)(mutable.ArrayBuffer.fill(maxY +1)(0D))
 		x.seq.indices.foreach( i => count(x(i))(y(i)) += 1D )
 
 		val ai = ClusteringIndexesCommons.nmiObtainAi(new Array[Double](maxX + 1), maxOneIndices, maxTwoIndices, count)

@@ -2,7 +2,8 @@ package clustering4ever.scala.clustering.rla
 /**
  * @author Beck Gaël
  */
-import clustering4ever.clustering.ClusteringAlgorithms
+import scala.language.higherKinds
+import clustering4ever.clustering.{MeanShiftable}
 import clustering4ever.math.distances.Distance
 import clustering4ever.util.SumVectors
 import scala.math.{min, max}
@@ -14,15 +15,14 @@ import scala.util.Random
  * @param epsilon : distance from random selected point under which we consider dots belongs to the same cluster
  * @param metric : a dissimilarity measure associated to O
  */
-class RLA[O](
-	data: GenSeq[O],
+class RLA[O, D <: Distance[O]](
 	epsilon: Double,
-	metric: Distance[O]
-) extends ClusteringAlgorithms {
+	metric: D
+) extends MeanShiftable[GenSeq[O]] {
 	/**
 	 * Run the Random Local Clustering
 	 */
-	def run(): RLAModel[O] = {
+	def run(data: GenSeq[O]): RLAModel[O, D] = {
 
 		@annotation.tailrec
 		def go(data: GenSeq[O], medoids: mutable.HashMap[Int, O], clusterID: Int): mutable.HashMap[Int, O] = {
@@ -36,8 +36,10 @@ class RLA[O](
 			else medoids
 		}
 
-		new RLAModel[O](go(data, mutable.HashMap.empty[Int, O], 0), metric)
+		new RLAModel[O, D](go(data, mutable.HashMap.empty[Int, O], 0), metric)
 	}
+
+	type ClusteringModelType = RLAModel[O, D]
 }
 /**
  * Compagnion object to run the algorithm effortlessly
@@ -46,9 +48,9 @@ object RLA {
 	/**
 	 * Run the RLA
 	 */
-	def run[O](data: GenSeq[O], epsilon: Double, metric: Distance[O]): RLAModel[O] = {
-		val rlc = new RLA(data, epsilon, metric)
-		val rlcModel = rlc.run()
+	def run[O, D <: Distance[O]](data: GenSeq[O], epsilon: Double, metric: D): RLAModel[O, D] = {
+		val rlc = new RLA[O, D](epsilon, metric)
+		val rlcModel = rlc.run(data)
 		rlcModel
 	}
 }

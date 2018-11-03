@@ -4,22 +4,22 @@ package clustering4ever.scala.clustering
  */
 import scala.collection.{mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
-import clustering4ever.clustering.{ClusteringAlgorithms, ClusteringModel}
+import clustering4ever.clustering.{LocalClusteringAlgorithm, ClusteringModel}
 /**
  *
  */
-class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](sortedValues: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]) extends ClusteringAlgorithms {
+class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumberCategories: Int)(implicit num: Numeric[N]) extends LocalClusteringAlgorithm[GenSeq[N]] {
   /**
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
    * Return breaks position in the sorted GenSeq
-   * @param sortedValues : a sorted GenSeq
+   * @param data : a sorted GenSeq
    * @param desiredNumberCategories : number of breaks user desire
-   * @return Indexes of breaks in sortedValues sequence
+   * @return Indexes of breaks in data sequence
    */
-  def run(): JenksNaturalBreaksModel[N] = {
+  def run(data: GenSeq[N]): JenksNaturalBreaksModel[N] = {
 
     val nbCat = desiredNumberCategories - 1
-    val nbValues = sortedValues.size
+    val nbValues = data.size
     var value = 0D
     var v = 0D
     var i3 = 0
@@ -34,7 +34,7 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](sortedValues:
       var w = 0D
       (1 to l).foreach{ m =>
         val i3 = l - m + 1
-        value = num.toDouble(sortedValues(i3 - 1))
+        value = num.toDouble(data(i3 - 1))
         s2 += value * value
         s1 += value
         w += 1
@@ -74,9 +74,9 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](sortedValues:
     val (_, kclass2) = go(nbCat, nbValues, kclass)
 
     val res = mutable.ArrayBuffer.empty[N]
-    res += sortedValues.head
+    res += data.head
 
-    (1 to nbCat).foreach( i => res += sortedValues(kclass2(i - 1).toInt - 1) )
+    (1 to nbCat).foreach( i => res += data(kclass2(i - 1).toInt - 1) )
     
     new JenksNaturalBreaksModel[N](mutable.ArrayBuffer(res:_*))
   }
@@ -86,7 +86,7 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](sortedValues:
  */
 object JenksNaturalBreaks {
 
-  def run[@specialized(Int, Double, Long, Float) N](sortedValues: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(sortedValues, desiredNumberCategories)).run()
+  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(desiredNumberCategories)).run(data)
 
 }
 /**

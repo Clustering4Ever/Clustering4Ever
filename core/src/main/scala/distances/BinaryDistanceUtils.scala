@@ -3,7 +3,7 @@ package clustering4ever.math.distances
  * @author Beck Gaël
  */
 import scala.collection.mutable
-import clustering4ever.util.SumVectors
+import clustering4ever.util.{SumVectors, VectorsBasicOperationsImplicits}
 /**
  *
  */
@@ -15,7 +15,7 @@ object BinaryDistanceUtil {
 	 *   - c is incremented if i = 0, j = 1
 	 *   - d is incremented if i = 0, j = 0
 	 */
-	def contingencyTable(vector1: mutable.ArrayBuffer[Int], vector2: mutable.ArrayBuffer[Int]) = {
+	def contingencyTable[V <: Seq[Int]](vector1: V, vector2: V) = {
 
 		val oneBite = 1
 		val zeroBite = 0
@@ -44,6 +44,7 @@ object BinaryDistanceUtil {
 	 * @return Array[(numberOf0, numberOf1)]
 	 */
 	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] = {
+		import VectorsBasicOperationsImplicits._
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumVectors.sumVectors(_, _))
 		val nbZero = nbOne.map(nbTotData - _)

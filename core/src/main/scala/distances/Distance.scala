@@ -13,7 +13,15 @@ trait Distance[O] extends Serializable {
 /**
  *
  */
-trait DistanceSeq[@specialized(Int, Double) N, @specialized V <: Seq[N]] extends Distance[V]
+trait ContinuousDistance[V <: Seq[Double]] extends Distance[V]
+/**
+ *
+ */
+trait BinaryDistance[V <: Seq[Int]] extends Distance[V]
+/**
+ *
+ */
+trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[BinaryScalarVector[Vb, Vs]]
 /**
  *
  */
@@ -32,15 +40,3 @@ trait BinaryClusterizableDistance[O, V <: Seq[Int], D <: BinaryDistance[V]] exte
  *
  */
 trait MixtClusterizableDistance[O, Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]] extends ClusterizableDistance[O, BinaryScalarVector[Vb, Vs], D]
-/**
- *
- */
-trait ContinuousDistance[V <: Seq[Double]] extends DistanceSeq[Double, V]
-/**
- *
- */
-trait BinaryDistance[V <: Seq[Int]] extends DistanceSeq[Int, V]
-/**
- *
- */
-trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[BinaryScalarVector[Vb, Vs]]

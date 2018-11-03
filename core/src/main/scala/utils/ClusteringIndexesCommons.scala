@@ -3,7 +3,10 @@ package clustering4ever.util
  * @author Beck Gaël
  */
 import scala.math.log
-
+import scala.collection.mutable
+/**
+ *
+ */
 object ClusteringIndexesCommons {
 
 	def nmiIn1(arr: Array[Double], s: Double) = {
@@ -20,27 +23,27 @@ object ClusteringIndexesCommons {
 		go(0, 0D)
 	}
 
-  def nmiIn2(moi: Array[Int], mti: Array[Int], count: Array[Array[Double]], s: Double, bj: Array[Double]) = {
-      def computeVal(i: Int, j: Int, v: Double): Double = {
-        val tmp = count(i)(j)
-        if( tmp > 0 ) v - tmp / s * log( tmp / bj(j) ) else v
-      }
-      RecursivFunctions.goOverMatrix[Double](moi.size - 1, mti.size - 1, 0D, mti.size, computeVal)
+  def nmiIn2(moi: Array[Int], mti: Array[Int], count: mutable.ArrayBuffer[mutable.ArrayBuffer[Double]], s: Double, bj: Array[Double]) = {
+    def computeVal(i: Int, j: Int, v: Double): Double = {
+      val tmp = count(i)(j)
+      if( tmp > 0 ) v - tmp / s * log( tmp / bj(j) ) else v
     }
+    RecursivFunctions.goOverMatrix(moi.size - 1, mti.size - 1, 0D, mti.size, computeVal)
+  }
 
-  def nmiObtainAi(emptyArr: Array[Double], arr1: Array[Int], arr2: Array[Int], count: Array[Array[Double]]): Array[Double] = {
+  def nmiObtainAi(emptyArr: Array[Double], arr1: Array[Int], arr2: Array[Int], count: mutable.ArrayBuffer[mutable.ArrayBuffer[Double]]): Array[Double] = {
     def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] = {
       arr(i) += count(i)(j)
       arr
     }
-    RecursivFunctions.goOverMatrix[Array[Double]](arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
+    RecursivFunctions.goOverMatrix(arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
   }
 
-  def nmiObtainBj(emptyArr: Array[Double], arr1: Array[Int], arr2: Array[Int], count: Array[Array[Double]]): Array[Double] = {
+  def nmiObtainBj(emptyArr: Array[Double], arr1: Array[Int], arr2: Array[Int], count: mutable.ArrayBuffer[mutable.ArrayBuffer[Double]]): Array[Double] = {
     def computeVal(i: Int, j: Int, arr: Array[Double]): Array[Double] = {
       arr(i) += count(j)(i)
       arr
     }
-    RecursivFunctions.goOverMatrix[Array[Double]](arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
+    RecursivFunctions.goOverMatrix(arr1.size - 1, arr2.size - 1, emptyArr, arr2.size, computeVal)
   }
 }

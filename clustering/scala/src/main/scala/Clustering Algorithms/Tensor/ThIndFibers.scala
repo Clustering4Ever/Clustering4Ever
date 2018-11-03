@@ -8,31 +8,33 @@ import breeze.numerics._
 import scala.collection.mutable
 import breeze.linalg.svd.SVD
 import breeze.stats._
-import clustering4ever.clustering.ClusteringAlgorithms
+import clustering4ever.clustering.LocalClusteringAlgorithm
 /**
  *
  */
-class ThIndFibers(val k1: Int, val k2: Int, val tensor: mutable.ListBuffer[DenseMatrix[Double]]) extends ClusteringAlgorithms {
-  
-  	def run() = {
+class ThIndFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ListBuffer[DenseMatrix[Double]]] {
+	/**
+	 *
+	 */
+  	def run(data: mutable.ListBuffer[DenseMatrix[Double]]) = {
 
-	    val m = tensor.length
-	    val n1 = tensor.head.rows
-	    val n2 = tensor.head.cols
+	    val m = data.length
+	    val n1 = data.head.rows
+	    val n2 = data.head.cols
 
 	    // Build a matrix D such that each element is the norm of trajectories
 	    @annotation.tailrec
-		def indiceFiber(tensor: mutable.ListBuffer[DenseMatrix[Double]], v: DenseVector[Double], d: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
-			if( i < tensor.head.rows && j < tensor.head.cols && k < tensor.length ) {
-				v(k) = tensor(k)(i, j)
-				indiceFiber(tensor,v, d, i, j, k + 1)
+		def indiceFiber(data: mutable.ListBuffer[DenseMatrix[Double]], v: DenseVector[Double], d: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
+			if( i < data.head.rows && j < data.head.cols && k < data.length ) {
+				v(k) = data(k)(i, j)
+				indiceFiber(data,v, d, i, j, k + 1)
 			}
-			else if( k == tensor.length && i < tensor.head.rows && j < tensor(0).cols ) {
+			else if( k == data.length && i < data.head.rows && j < data(0).cols ) {
 				d(i, j) = norm(v)
-				indiceFiber(tensor, v, d, i + 1, j , 0)
+				indiceFiber(data, v, d, i + 1, j , 0)
 			}
-			else if( j < tensor(0).cols - 1 ) {
-				indiceFiber(tensor, v, d, 0, j + 1, 0)
+			else if( j < data(0).cols - 1 ) {
+				indiceFiber(data, v, d, 0, j + 1, 0)
 			}
 			else {
 				d
@@ -40,7 +42,7 @@ class ThIndFibers(val k1: Int, val k2: Int, val tensor: mutable.ListBuffer[Dense
 	    }
 
 	    val traj = DenseVector.zeros[Double](m)
-	    val matrixnorm = indiceFiber(tensor, traj, DenseMatrix.zeros[Double](n1, n2), 0, 0, 0)
+	    val matrixnorm = indiceFiber(data, traj, DenseMatrix.zeros[Double](n1, n2), 0, 0, 0)
 
 	    // Build a binary matrix to remplace the high trajectories in our matrix
 	    @annotation.tailrec
@@ -79,7 +81,7 @@ class ThIndFibers(val k1: Int, val k2: Int, val tensor: mutable.ListBuffer[Dense
  */
 object ThIndFibers {
 
-    def train(k1: Int, k2: Int, T: mutable.ListBuffer[DenseMatrix[Double]]) = (new ThIndFibers(k1,k2,T)).run()
+    def train(k1: Int, k2: Int, data: mutable.ListBuffer[DenseMatrix[Double]]) = (new ThIndFibers(k1, k2)).run(data)
 
 }
 

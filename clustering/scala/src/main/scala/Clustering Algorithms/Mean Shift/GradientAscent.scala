@@ -3,51 +3,44 @@ package clustering4ever.scala.clustering.meanshift
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import scala.reflect.ClassTag
-import scala.util.Random
 import scala.math.{min, max}
-import scala.collection.{immutable, mutable, GenSeq}
-import scala.util.Random
-import clustering4ever.math.distances.{ContinuousDistance, Distance}
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.util.SumVectors
-import clustering4ever.scala.kernels.KernelNature._
-import clustering4ever.scala.kernels.KernelNature
+import scala.collection.GenSeq
+import clustering4ever.math.distances.ContinuousDistance
 import clustering4ever.scala.clusterizables.RealClusterizable
-import clustering4ever.scala.vectorizables.RealVectorizable
-import clustering4ever.scala.kernels.{Kernel, KernelSeq, KernelArgs}//, KernelArgsKnnVec, KnnKernelReal}
+import clustering4ever.scala.kernels.{Kernel, KernelArgs}
+import clustering4ever.scala.basicenum.AlternativeVectorNature._
 /**
  * Mean Shift gradient ascent
- * @param kernelArgs defines the nature of kernel and its parameters used in the gradient ascent, provide a Left[KernelArgs] or Right[KernelArgs] depending on this fact
- *  * Right[KernelArgs] if KNN or EuclideanKNN kernel
- *  * Left[KernelArgs] else
+ * @param kernel defines the nature of kernel and its parameters used in the gradient ascent
  */
 class GradientAscent[
   @specialized(Int, Long) ID: Numeric,
   O,
-  V[Double] <: Seq[Double],
+  V <: Seq[Double],
   Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-  D <: ContinuousDistance[V[Double]],
-  K <: Kernel[V[Double], KernelArgs]
+  D <: ContinuousDistance[V],
+  KArgs <: KernelArgs,
+  K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]
 ](
-  data: GenSeq[Cz[ID, O, V[Double]]],
+  data: GenSeq[Cz[ID, O, V]],
   epsilon: Double,
   maxIterations: Int,
-  kernel: K,
-  metric: D
+  kernel: K[V, KArgs],
+  metric: D,
+  altVectName: AlternativeVector = Gradient_Ascent
 ) {
 
   def run() = {
 
     val haveNotConverged = false
     val kernelLocality = data.map(_.vector)
-    var gradientAscentData: GenSeq[(Cz[ID, O, V[Double]], Boolean)] = data.map( obj => (obj.setV2(obj.vector), haveNotConverged) )
+    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = data.map( obj => (obj.setAltVector(altVectName, obj.vector), haveNotConverged) )
 
-    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V[Double]], Boolean)]) = {
+    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
 
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
-        val mode = obj.v2.get
+        val mode = obj.altVectors.get(altVectName)
         val updatedMode = if( haveConverged ) mode else kernel.obtainMode(mode, kernelLocality)
         val modeShift = metric.d(updatedMode, mode)
         val hasConverged = if( modeShift <= epsilon ) {
@@ -57,7 +50,7 @@ class GradientAscent[
         else {
           false
         }
-        (obj.setV2(updatedMode), hasConverged)
+        (obj.setAltVector(altVectName, updatedMode), hasConverged)
       }
 
       (convergingData, cptConvergedPoints)
@@ -87,15 +80,17 @@ object GradientAscent {
   def run[
     ID: Numeric,
     O,
-    V[Double] <: Seq[Double],
+    V <: Seq[Double],
     Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
-    D <: ContinuousDistance[V[Double]],
-    K <: Kernel[V[Double], KernelArgs]
+    D <: ContinuousDistance[V],
+    KArgs <: KernelArgs,
+    K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]
   ](
-    data: GenSeq[Cz[ID, O, V[Double]]],
+    data: GenSeq[Cz[ID, O, V]],
     epsilon: Double,
     maxIterations: Int,
-    kernel: K,
-    metric: D
-    ) = (new GradientAscent(data, epsilon, maxIterations, kernel, metric)).run()
+    kernel: K[V, KArgs],
+    metric: D,
+    altVectName: AlternativeVector = Gradient_Ascent
+    ) = (new GradientAscent(data, epsilon, maxIterations, kernel, metric, altVectName)).run()
 }

@@ -24,7 +24,7 @@ class ClusterwiseModel[V[Double] <: Seq[Double]](
 	type IDXtest = Seq[(Long, Xvector)]
 	type IDXYtest = ParSeq[(Int, (Xvector, Yvector))]
 
-	private[this] def knn(v: V[Double], neighbors: Seq[(V[Double], Int)], k:Int) = neighbors.sortBy{ case (v2, clusterID) => metric.d(v, v2) }.take(k)
+	private[this] def knn(v: V[Double], neighbors: Seq[(V[Double], Int)], k:Int) = neighbors.sortBy{ case (altVectors, clusterID) => metric.d(v, altVectors) }.take(k)
 
 	private[this] def obtainNearestClass(x: V[Double], k: Int, g: Int, withY: Boolean) = {
 		val neighbours = if( withY ) xyTrain.map{ case (_, (x2, y2, label2)) => ((x2 ++ y2).asInstanceOf[V[Double]], label2) } else xyTrain.map{ case (_, (x2, _, label2)) => (x2, label2) }

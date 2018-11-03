@@ -24,37 +24,6 @@ object PatchWorkUtils {
   type Epsilon = Array[Double]
 }
 import PatchWorkUtils._
-
-/**
- * A cluster is defined by the list of cells within.
- * @param id
- */
-class PatchWorkCluster(private var id: Int) extends Serializable {
-  def getID: Int = this.id
-  val cellsList: ListBuffer[PatchWorkCellKey] = new ListBuffer[PatchWorkCellKey]
-}
-
-/**
- *  //TODO http://stackoverflow.com/questions/30785615/reducebykey-with-a-byte-array-as-the-key
- * @param cellNumber
- * @param cellArray
- * @param cluster
- */
-class PatchWorkCellKey(var cellNumber: String, var cellArray: Array[Int], var cluster: Option[PatchWorkCluster]) extends Serializable {
-  def this(p: Array[Int]) {
-    this(p.mkString(",").trim, p, None)
-  }
-
-  def this(p: String) {
-    this(p, p.split(",").map(_.toInt), None)
-  }
-
-  override def equals(o: Any) = o match {
-    case that: PatchWorkCellKey => that.cellNumber.equals(this.cellNumber)
-    case _ => false
-  }
-}
-
 /**
  * A cell (or hypercube) in the n-dimensional feature space
  * @param cellNumber The ID of the cell. Array of size n.
@@ -79,7 +48,37 @@ class PatchWorkCell(val cellNumber: Array[Int]) extends Serializable {
     case _ => false
   }
 }
+/**
+ *  //TODO http://stackoverflow.com/questions/30785615/reducebykey-with-a-byte-array-as-the-key
+ * @param cellNumber
+ * @param cellArray
+ * @param cluster
+ */
+class PatchWorkCellKey(var cellNumber: String, var cellArray: Array[Int], var cluster: Option[PatchWorkCluster]) extends Serializable {
+  def this(p: Array[Int]) {
+    this(p.mkString(",").trim, p, None)
+  }
 
+  def this(p: String) {
+    this(p, p.split(",").map(_.toInt), None)
+  }
+
+  override def equals(o: Any) = o match {
+    case that: PatchWorkCellKey => that.cellNumber.equals(this.cellNumber)
+    case _ => false
+  }
+}
+/**
+ * A cluster is defined by the list of cells within.
+ * @param id
+ */
+class PatchWorkCluster(private var id: Int) extends Serializable {
+  def getID: Int = this.id
+  val cellsList: ListBuffer[PatchWorkCellKey] = new ListBuffer[PatchWorkCellKey]
+}
+/**
+ *
+ */
 class PatchWorkModel(private var epsilon: Epsilon,
     var cardinalsPatchwork: RDD[(String, Int)],
     var clusters: List[PatchWorkCluster]) extends Serializable {

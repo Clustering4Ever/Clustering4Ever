@@ -2,14 +2,19 @@ package clustering4ever.clustering
 /**
  * @author Beck Gaël
  */
-import clustering4ever.math.distances.Distance
+import clustering4ever.math.distances.{Distance, ClusterizableDistance}
 import scala.collection.{mutable, GenSeq}
 /**
  *
  */
-trait CentersBasedModel[V, D <: Distance[V]] extends ClusteringModel {
-
-	val centers: mutable.HashMap[Int, V]
+trait CenterOrientedModel[V, D <: Distance[V]] extends ClusteringModel {
+	/**
+	 *
+	 */
+	val centers: mutable.HashMap[ClusterID, V]
+	/**
+	 *
+	 */
 	val metric: D
 	/**
 	 * Time complexity O(c) with c the number of clusters
@@ -31,4 +36,5 @@ trait CentersBasedModel[V, D <: Distance[V]] extends ClusteringModel {
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
 	def knnPredict(data: GenSeq[V], k: Int, trainDS: Seq[(ClusterID, V)]): GenSeq[(ClusterID, V)] = data.map( v => (knnPredict(v, k, trainDS), v) )
+
 }

@@ -3,32 +3,58 @@ package clustering4ever.scala.clusteranalysis
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import scala.collection.{Map, mutable, GenSeq}
-import clustering4ever.scala.clusterizables.{ClusterizableExt, RealClusterizable, BinaryClusterizable}
-import clustering4ever.math.distances.{ClusterizableDistance, Distance, ContinuousDistance, BinaryDistance}
+import scala.reflect.ClassTag
+import scala.collection.{Map, GenMap, mutable, GenSeq}
+import spire.math.{Numeric => SNumeric}
+import clustering4ever.scala.clusterizables.{Clusterizable, RealClusterizable, BinaryClusterizable}
+import clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.math.distances.binary.Hamming
 import clustering4ever.util.ClusterBasicOperations
+import clustering4ever.util.SumVectors
 import clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
 /**
  *
  */
-abstract class ClustersAnalysis[
+abstract class ClustersAnalysisCommons[
     @specialized(Int, Long) ID: Numeric,
     O,
     V,
-    Cz <: ClusterizableExt[ID, V, Cz]
-](clusterized: GenSeq[Cz]) {
+    Cz <: Clusterizable[ID, O, V, Cz]
+] {
 
-    lazy val groupByClusterID = clusterized.groupBy(_.clusterID)
+    val datasetSize: Long
 
-    lazy val cardinalities: Map[Int, Int] = groupByClusterID.map{ case (clusterIDOption, aggregate) => (clusterIDOption.get, aggregate.size) }.seq
+    val cardinalities: Map[Int, Int]
 
-    def obtainCentroids: Map[Int, V]
+    val clustersProportions: Map[Int, Double]
+
+    val centroids: Map[Int, V]
+}
+/**
+ *
+ */
+abstract class ClustersAnalysis[
+    ID: Numeric,
+    O,
+    V,
+    Cz <: Clusterizable[ID, O, V, Cz],
+    D <: Distance[V]
+](clusterized: GenSeq[Cz], metric: D) extends ClustersAnalysisCommons[ID, O, V, Cz] {
+
+    val datasetSize: Long = clusterized.size.toLong
+
+    lazy val groupedByClusterID: GenMap[Int, GenSeq[Cz]] = clusterized.groupBy(_.clusterID.get)
+
+    lazy val cardinalities: Map[Int, Int] = groupedByClusterID.map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.seq
+
+    lazy val clustersProportions: Map[Int, Double] = cardinalities.map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+
+    lazy val centroids: Map[Int, V] = groupedByClusterID.map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.vector), metric)) }.seq
 
 }
 /**
- * Be cautious with other distance than Euclidean, looking for minimized medoid as centroid has a quadratic complexity  
+ *
  */
 class RealClustersAnalysis[
     ID: Numeric,
@@ -36,17 +62,16 @@ class RealClustersAnalysis[
     V[Double] <: Seq[Double],
     Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
     D <: ContinuousDistance[V[Double]]
-](clusterized: GenSeq[Cz[ID, O, V[Double]]], metric: D) extends ClustersAnalysis[ID, O, V[Double], Cz[ID, O, V[Double]]](clusterized) {
+](clusterized: GenSeq[Cz[ID, O, V[Double]]], metric: D)(implicit ct: ClassTag[Cz[ID, O, V[Double]]], ct2: ClassTag[V[Double]]) extends ClustersAnalysis[ID, O, V[Double], Cz[ID, O, V[Double]], D](clusterized, metric) {
 
-    def obtainCentroids: Map[Int, V[Double]] = groupByClusterID.map{ case (clusterIDOption, aggregate) =>
-        (
-            clusterIDOption.get,
-            if( metric.isInstanceOf[Euclidean[V[Double]]] ) ClusterBasicOperations.obtainMean(aggregate.map(_.vector)) else ClusterBasicOperations.obtainMedoid(aggregate.map(_.vector), metric)
-        )
-    }.seq
+    /**
+     * TO DO
+     * - distributions of each features
+     */
+
 }
 /**
- * Be cautious with other distance than Hamming, looking for minimized medoid as centroid has a quadratic complexity
+ *
  */
 class BinaryClustersAnalysis[
     ID: Numeric,
@@ -54,12 +79,17 @@ class BinaryClustersAnalysis[
     V[Int] <: Seq[Int],
     Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
     D <: BinaryDistance[V[Int]]
-](clusterized: GenSeq[Cz[ID, O, V[Int]]], metric: D) extends ClustersAnalysis[ID, O, V[Int], Cz[ID, O, V[Int]]](clusterized) {
+](clusterized: GenSeq[Cz[ID, O, V[Int]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]) extends ClustersAnalysis[ID, O, V[Int], Cz[ID, O, V[Int]], D](clusterized, metric) {
 
-    def obtainCentroids: Map[Int, V[Int]] = groupByClusterID.map{ case (clusterIDOption, aggregate) =>
-        (
-            clusterIDOption.get,
-            if( metric.isInstanceOf[Hamming[V[Int]]] ) ClusterBasicOperations.obtainMode(aggregate.map(_.vector)) else ClusterBasicOperations.obtainMedoid(aggregate.map(_.vector), metric)
-        )
-    }.seq
+    import clustering4ever.util.VectorsBasicOperationsImplicits._
+
+    if( vectorHeader.isDefined ) require(clusterized.head.vector.size == vectorHeader.size)
+
+    lazy val occurencesPerFeature: V[Int] = clusterized.map(_.vector).reduce(SumVectors.sumVectors(_, _))
+
+    lazy val frequencyPerFeature: Seq[Double] = occurencesPerFeature.map(_.toDouble / datasetSize)
+
+    lazy val occurencesPerFeaturePerCluster = groupedByClusterID.map{ case (clusterID, aggregate) => (clusterID, aggregate.map(_.vector).reduce(SumVectors.sumVectors(_, _))) }.toMap
+
+    lazy val frequencyPerFeaturePerCluster = occurencesPerFeaturePerCluster.map{ case (clusterID, occurences) => (clusterID, occurences.map(_.toDouble / cardinalities(clusterID))) }
 }

@@ -11,11 +11,12 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.clustering._
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.broadcast.Broadcast
-import clustering4ever.scala.clustering.kmeans.KMeans
+import clustering4ever.scala.clustering.kcenters.KMeans
 import clustering4ever.util.SumVectors
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.GenerateClusterizable
 import clustering4ever.scala.clusterizables.SimpleRealClusterizable
+import clustering4ever.util.VectorsBasicOperationsImplicits._
 
 class Clusterwise[V[Double] <: Seq[Double]](
 	@(transient @param) sc: SparkContext,

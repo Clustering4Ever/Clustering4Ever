@@ -5,6 +5,7 @@ import scala.math.{pow, sqrt => ssqrt}
 import scala.collection.{immutable, mutable, GenSeq}
 import clustering4ever.util.SumVectors
 import breeze.linalg.{DenseVector, DenseMatrix, Transpose, eigSym, svd, sum, *, diag}
+import clustering4ever.util.VectorsBasicOperationsImplicits._
 /**
  *
  */

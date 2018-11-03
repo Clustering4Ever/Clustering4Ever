@@ -8,7 +8,7 @@ import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
 import breeze.linalg.{DenseVector, DenseMatrix, sum, inv}
 import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.{Distance, DistanceSeq, ContinuousDistance}
+import clustering4ever.math.distances.{Distance, ContinuousDistance}
 import clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
 import clustering4ever.scala.kernels.KernelNature._
 /**
@@ -27,11 +27,8 @@ trait Kernel[V, +KA <: KernelArgs] extends Serializable {
 /**
  *
  */
-trait KernelSeq[N, V <: Seq[N], +KA <: KernelArgs] extends Kernel[V, KA]
-/**
- *
- */
 object KernelUtils {
+	import clustering4ever.util.VectorsBasicOperationsImplicits._
 	/**
 	 *
 	 */
@@ -45,15 +42,17 @@ object KernelUtils {
 	 */
 	def obtainPreMode[V[Double] <: Seq[Double]](vi: V[Double], kernelVal: Double) = vi.map(_ * kernelVal).asInstanceOf[V[Double]]
 }
-
-class KernelGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends KernelSeq[Double, V[Double], KernelArgsGaussian[V, D]] {
+/**
+ *
+ */
+class KernelGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends Kernel[V[Double], KernelArgsGaussian[V, D]] {
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-lambda|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - lambda is the bandwidth
 	 *  - |x<sub>1</sub>-x<sub>2</sub>| is the distance between x<sub>1</sub> and x<sub>2</sub>
 	 */
-	def gaussianKernel(v1: V[Double], v2: V[Double]) = {
-		val d = kernelArgs.metric.d(v1, v2)
+	def gaussianKernel(v1: V[Double], altVectors: V[Double]) = {
+		val d = kernelArgs.metric.d(v1, altVectors)
 		exp( - kernelArgs.bandwidth * d * d )
 	}
 	/**
@@ -72,12 +71,12 @@ class KernelGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: Continuous
 /**
  *
  */
-class KernelFlat[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends KernelSeq[Double, V[Double], KernelArgsFlat[V, D]] {
+class KernelFlat[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends Kernel[V[Double], KernelArgsFlat[V, D]] {
 	/**
 	 *
 	 */
-	def flatKernel(v1: V[Double], v2: V[Double]) = {
-		val value = kernelArgs.metric.d(v1, v2) / (kernelArgs.bandwidth * kernelArgs.bandwidth)
+	def flatKernel(v1: V[Double], altVectors: V[Double]) = {
+		val value = kernelArgs.metric.d(v1, altVectors) / (kernelArgs.bandwidth * kernelArgs.bandwidth)
 		if( value <= kernelArgs.lambda ) 1D else 0D 
 	}
 	/**
@@ -100,8 +99,8 @@ class KernelSigmoid[V[Double] <: Seq[Double]](val kernelArgs: KernelArgsSigmoid)
 	/**
 	 *
 	 */
-	def sigmoidKernel(v1: V[Double], v2: V[Double]) = {
-		val dotProd = SumVectors.dotProd(v1, v2)
+	def sigmoidKernel(v1: V[Double], altVectors: V[Double]) = {
+		val dotProd = SumVectors.dotProd(v1, altVectors)
 		tanh(kernelArgs.a * dotProd + kernelArgs.b)
 	}
 	/**
@@ -117,7 +116,9 @@ class KernelSigmoid[V[Double] <: Seq[Double]](val kernelArgs: KernelArgsSigmoid)
 		KernelUtils.computeModeAndCastIt(preMode, kernelValue)
 	}
 }
-
+/**
+ * working on GMM
+ **/
 object GmmKernels {
 	/**
 	 *
@@ -138,10 +139,10 @@ object GmmKernels {
  */
 trait KnnKernel[
 	N,
-	V <: Seq[N],
-	D <: DistanceSeq[N, V],
-	+Args <: KernelArgsKnnVec[N, V, D]
-] extends KernelSeq[N, V, Args]  {
+	V,
+	D <: Distance[V],
+	+Args <: KernelArgsKnn[V, D]
+] extends Kernel[V, Args]  {
 	/**
 	 *
 	 */
@@ -151,8 +152,7 @@ trait KnnKernel[
 	 */
 	def obtainKnn(v: V, env: Seq[V]) = env.sortBy(kernelArgs.metric.d(v, _)).take(kernelArgs.k)
 	/**
-	 * The KNN kernel for real space, it select KNN using any real measure and compute the mode of them by looking for element which minimize average pair to pair distance
-	 * @note Mean computation has a sense only for euclidean distance.
+	 * The KNN kernel for any space, it select KNN using any dissimilarity measure and compute the mode of them by looking for element which minimize average pair to pair distance
 	 */
 	def obtainMode(v: V, env: GenSeq[V]): V = {
 		val knn = obtainKnn(v, env.seq)
@@ -163,10 +163,10 @@ trait KnnKernel[
  *
  */
 trait KnnKernelRealMeta[
-	V <: Seq[Double],
-	D <: ContinuousDistance[V],
+	V[Double] <: Seq[Double],
+	D <: ContinuousDistance[V[Double]],
 	+Args <: KernelArgsKnnRealMeta[V, D]
-] extends KnnKernel[Double, V, D, Args]
+] extends KnnKernel[Double, V[Double], D, Args]
 /**
  *
  */
@@ -174,7 +174,7 @@ class KnnKernelReal[
 	V[Double] <: Seq[Double],
 	D[V <: Seq[Double]] <: ContinuousDistance[V],
 	Args[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]] <: KernelArgsKnnReal[V, D]
-](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V[Double], D[V[Double]], Args[V, D]]
+](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V, D[V[Double]], Args[V, D]]
 /**
  *
  */
@@ -182,7 +182,7 @@ class KnnKernelEuclidean[
 	V[Double] <: Seq[Double],
 	D[V <: Seq[Double]] <: Euclidean[V],
 	Args[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]] <: KernelArgsEuclideanKnn[V, D]
-](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V[Double], D[V[Double]], Args[V, D]] {
+](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V, D[V[Double]], Args[V, D]] {
 	/**
 	 * The KNN kernel for euclidean space, it select KNN using a Euclidean measure and compute the mean<sup>*</sup> of them
 	 * @note Mean computation has a sense only for euclidean distance.

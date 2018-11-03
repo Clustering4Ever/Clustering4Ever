@@ -6,6 +6,7 @@ package clustering4ever.spark.indexes
  */
 import scala.annotation.meta.param
 import scala.collection.parallel.mutable.ParArray
+import scala.collection.mutable
 import scala.math.{max, log, sqrt}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
@@ -29,7 +30,7 @@ class ExternalIndexes(@(transient @param) sc: SparkContext, groundTruthAndPred: 
     val maxOneIndices = (0 to maxX).toArray
     val maxTwoIndices = (0 to maxY).toArray
 
-    val accNmi = new NmiAccumulator(Array.fill(maxX + 1)(Array.fill(maxY + 1)(0D)), maxX + 1, maxY + 1)
+    val accNmi = new NmiAccumulator(mutable.ArrayBuffer.fill(maxX + 1)(mutable.ArrayBuffer.fill(maxY + 1)(0D)), maxX + 1, maxY + 1)
     sc.register(accNmi, "NmiAccumulator")
     groundTruthAndPred.foreach{ case (x, y) => accNmi.addOne(x, y) }
 

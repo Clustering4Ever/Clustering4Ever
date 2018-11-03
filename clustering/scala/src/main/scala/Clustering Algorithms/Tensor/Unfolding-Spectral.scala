@@ -7,23 +7,24 @@ import breeze.linalg.svd.SVD
 import breeze.stats.mean
 import breeze.linalg._
 import scala.math._
-import clustering4ever.clustering.ClusteringAlgorithms
+import clustering4ever.clustering.LocalClusteringAlgorithm
 
-class UnfoldingSpectral(val k1: Int, val k2: Int, val tensor: mutable.ListBuffer[DenseMatrix[Double]]) extends ClusteringAlgorithms {
-
-  //  Matricisation of tensor / Unfolding mode-3
+class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ListBuffer[DenseMatrix[Double]]] {
+  /**
+   * Matricisation of data / Unfolding mode-3
+   */
   @annotation.tailrec
-  private final def unfolding(tensor: mutable.ListBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
-    val n2 = tensor.head.cols
-      if( j < tensor.head.cols && k < tensor.length ) {
-        m(k, (i * n2) + j) = tensor(k)(i, j)
-        unfolding(tensor, m, i, j, k + 1)
+  private final def unfolding(data: mutable.ListBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
+    val n2 = data.head.cols
+      if( j < data.head.cols && k < data.length ) {
+        m(k, (i * n2) + j) = data(k)(i, j)
+        unfolding(data, m, i, j, k + 1)
       }
-      else if( k == tensor.length && j < tensor.head.cols ) {
-        unfolding(tensor, m, i, j + 1 , 0)
+      else if( k == data.length && j < data.head.cols ) {
+        unfolding(data, m, i, j + 1 , 0)
       }
-      else if( i < tensor(0).rows - 1 ) {
-        unfolding(tensor, m, i + 1, 0, 0)
+      else if( i < data(0).rows - 1 ) {
+        unfolding(data, m, i + 1, 0, 0)
       }
       else {
         m
@@ -53,14 +54,14 @@ class UnfoldingSpectral(val k1: Int, val k2: Int, val tensor: mutable.ListBuffer
     }
   }
 
-  def run() = {
+  def run(data: mutable.ListBuffer[DenseMatrix[Double]]) = {
 
-    val m = tensor.length
-    val n1 = tensor.head.rows
-    val n2 = tensor.head.cols
+    val m = data.length
+    val n1 = data.head.rows
+    val n2 = data.head.cols
 
     /*Creation of matrix unfolding mode-3*/
-    val tUf = unfolding(tensor, DenseMatrix.zeros[Double](m, n1 * n2), 0, 0, 0)
+    val tUf = unfolding(data, DenseMatrix.zeros[Double](m, n1 * n2), 0, 0, 0)
 
     // Take the first eigenvectors correspond of the highest eigenvalues
     val svd.SVD(u, s, v) = svd(tUf)
@@ -84,6 +85,6 @@ class UnfoldingSpectral(val k1: Int, val k2: Int, val tensor: mutable.ListBuffer
  */
 object UnfoldingSpectral{
 
-  def train(k1: Int, k2: Int, tensor: mutable.ListBuffer[DenseMatrix[Double]]) = (new UnfoldingSpectral(k1, k2, tensor)).run()
+  def train(k1: Int, k2: Int, data: mutable.ListBuffer[DenseMatrix[Double]]) = (new UnfoldingSpectral(k1, k2)).run(data)
 
 }
