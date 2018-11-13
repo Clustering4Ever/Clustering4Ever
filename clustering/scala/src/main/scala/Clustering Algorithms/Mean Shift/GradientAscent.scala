@@ -6,8 +6,9 @@ import scala.language.higherKinds
 import scala.math.{min, max}
 import scala.collection.GenSeq
 import clustering4ever.math.distances.ContinuousDistance
-import clustering4ever.scala.clusterizables.RealClusterizable
+import clustering4ever.scala.clusterizables.ClusterizableExt
 import clustering4ever.scala.kernels.{Kernel, KernelArgs}
+import clustering4ever.scala.basicenum.AlternativeVector
 import clustering4ever.scala.basicenum.AlternativeVectorNature._
 /**
  * Mean Shift gradient ascent
@@ -17,7 +18,7 @@ class GradientAscent[
   @specialized(Int, Long) ID: Numeric,
   O,
   V <: Seq[Double],
-  Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
+  Cz[ID, O, V <: Seq[Double]] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
   D <: ContinuousDistance[V],
   KArgs <: KernelArgs,
   K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]
@@ -81,7 +82,7 @@ object GradientAscent {
     ID: Numeric,
     O,
     V <: Seq[Double],
-    Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
+    Cz[ID, O, V <: Seq[Double]] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
     D <: ContinuousDistance[V],
     KArgs <: KernelArgs,
     K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]

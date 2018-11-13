@@ -60,6 +60,12 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 
 ## Miscellaneous
 
+### Implicit conversions
+
+If you have classic real or binary matrix, you can bypass transformation from **GenSeq/RDD[Vector]** to **GenSeq/RDD[Clusterizable]** by importing implicit conversions functions :
+* `clustering4ever.util.ScalaImplicits._`
+* `clustering4ever.util.SparkImplicits._`
+
 ### [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
 
 ### Incoming soon 
@@ -70,7 +76,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 * Meta heuristic
 * Rough Set Features selection
 
-### What structure is recommended for best performances
+### What data structures are recommended for best performances
 
 * ArrayBuffer as vectors are a good start
-* ArrayBuffer or ParArray as vector containers are also recommended
+* ArrayBuffer or ParArray as vectors containers are also recommended

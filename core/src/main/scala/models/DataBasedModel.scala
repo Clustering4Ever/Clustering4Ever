@@ -30,4 +30,5 @@ trait DataBasedModel[@specialized(Int, Long) ID, O, D <: Distance[O]] extends Cl
 	 * @return clusterID associate to a GenSeq of object
 	 */
 	def knnPredict(genSeq: GenSeq[O], k: Int): GenSeq[(ClusterID, O)] = genSeq.map( obj => (knnPredict(obj, k), obj) )
+
 }

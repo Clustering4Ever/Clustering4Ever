@@ -5,7 +5,7 @@ package clustering4ever.math.distances.scalar
 import scala.language.higherKinds
 import scala.collection.mutable
 import scala.math.pow
-import clustering4ever.scala.clusterizables.RealClusterizable
+import clustering4ever.scala.clusterizables.Clusterizable
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 /**
  *
@@ -41,7 +41,7 @@ class EasyMinkowski(p: Int) extends Minkowski[mutable.ArrayBuffer[Double]](p)
 /**
  *
  */
-class MinkowskiClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Minkowski[V], Cz <: RealClusterizable[ID, O, V, Cz]](final val p: Int = 2, val classicalMetric: D) extends MinkowshiMeta with RealClusterizableDistance[Cz, V, D] {
+class MinkowskiClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Minkowski[V], Cz <: Clusterizable[ID, O, V, Cz]](final val p: Int = 2, val classicalMetric: D) extends MinkowshiMeta with RealClusterizableDistance[Cz, V, D] {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2

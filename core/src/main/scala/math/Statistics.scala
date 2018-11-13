@@ -17,7 +17,7 @@ object Stats extends ClusteringCommons {
 	 */
 	def sd(vectors: GenSeq[mutable.ArrayBuffer[Double]], mean: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = {
 		val sd = mutable.ArrayBuffer.fill(vectors.head.size)(0D)
-		vectors.foreach( v => v.seq.indices.foreach{ i => 
+		vectors.foreach( v => v.indices.foreach{ i => 
 			val toPow2 = v(i) - mean(i)
 			sd(i) = sd(i) + toPow2 * toPow2
 		})

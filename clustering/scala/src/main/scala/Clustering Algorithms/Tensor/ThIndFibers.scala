@@ -12,11 +12,11 @@ import clustering4ever.clustering.LocalClusteringAlgorithm
 /**
  *
  */
-class ThIndFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ListBuffer[DenseMatrix[Double]]] {
+class ThIndFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ArrayBuffer[DenseMatrix[Double]]] {
 	/**
 	 *
 	 */
-  	def run(data: mutable.ListBuffer[DenseMatrix[Double]]) = {
+  	def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
 	    val m = data.length
 	    val n1 = data.head.rows
@@ -24,17 +24,17 @@ class ThIndFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mut
 
 	    // Build a matrix D such that each element is the norm of trajectories
 	    @annotation.tailrec
-		def indiceFiber(data: mutable.ListBuffer[DenseMatrix[Double]], v: DenseVector[Double], d: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
-			if( i < data.head.rows && j < data.head.cols && k < data.length ) {
-				v(k) = data(k)(i, j)
-				indiceFiber(data,v, d, i, j, k + 1)
+		def indiceFiber(t: mutable.ArrayBuffer[DenseMatrix[Double]], v: DenseVector[Double], d: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
+			if( i < t.head.rows && j < t.head.cols && k < t.length ) {
+				v(k) = t(k)(i, j)
+				indiceFiber(t,v, d, i, j, k + 1)
 			}
-			else if( k == data.length && i < data.head.rows && j < data(0).cols ) {
+			else if( k == t.length && i < t.head.rows && j < t(0).cols ) {
 				d(i, j) = norm(v)
-				indiceFiber(data, v, d, i + 1, j , 0)
+				indiceFiber(t, v, d, i + 1, j , 0)
 			}
-			else if( j < data(0).cols - 1 ) {
-				indiceFiber(data, v, d, 0, j + 1, 0)
+			else if( j < t(0).cols - 1 ) {
+				indiceFiber(t, v, d, 0, j + 1, 0)
 			}
 			else {
 				d
@@ -81,7 +81,7 @@ class ThIndFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mut
  */
 object ThIndFibers {
 
-    def train(k1: Int, k2: Int, data: mutable.ListBuffer[DenseMatrix[Double]]) = (new ThIndFibers(k1, k2)).run(data)
+    def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new ThIndFibers(k1, k2)).run(data)
 
 }
 

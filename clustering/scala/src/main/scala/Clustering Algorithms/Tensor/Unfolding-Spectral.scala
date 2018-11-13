@@ -9,22 +9,22 @@ import breeze.linalg._
 import scala.math._
 import clustering4ever.clustering.LocalClusteringAlgorithm
 
-class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ListBuffer[DenseMatrix[Double]]] {
+class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ArrayBuffer[DenseMatrix[Double]]] {
   /**
    * Matricisation of data / Unfolding mode-3
    */
   @annotation.tailrec
-  private final def unfolding(data: mutable.ListBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
-    val n2 = data.head.cols
-      if( j < data.head.cols && k < data.length ) {
-        m(k, (i * n2) + j) = data(k)(i, j)
-        unfolding(data, m, i, j, k + 1)
+  private final def unfolding(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
+    val n2 = t.head.cols
+      if( j < t.head.cols && k < t.length ) {
+        m(k, (i * n2) + j) = t(k)(i, j)
+        unfolding(t, m, i, j, k + 1)
       }
-      else if( k == data.length && j < data.head.cols ) {
-        unfolding(data, m, i, j + 1 , 0)
+      else if( k == t.length && j < t.head.cols ) {
+        unfolding(t, m, i, j + 1 , 0)
       }
-      else if( i < data(0).rows - 1 ) {
-        unfolding(data, m, i + 1, 0, 0)
+      else if( i < t.head.rows - 1 ) {
+        unfolding(t, m, i + 1, 0, 0)
       }
       else {
         m
@@ -54,7 +54,7 @@ class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorit
     }
   }
 
-  def run(data: mutable.ListBuffer[DenseMatrix[Double]]) = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
     val m = data.length
     val n1 = data.head.rows
@@ -85,6 +85,6 @@ class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorit
  */
 object UnfoldingSpectral{
 
-  def train(k1: Int, k2: Int, data: mutable.ListBuffer[DenseMatrix[Double]]) = (new UnfoldingSpectral(k1, k2)).run(data)
+  def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new UnfoldingSpectral(k1, k2)).run(data)
 
 }

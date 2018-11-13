@@ -7,7 +7,7 @@ import scala.math.sqrt
 import scala.collection.mutable
 import clustering4ever.util.SumVectors
 import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
-import clustering4ever.scala.clusterizables.RealClusterizable
+import clustering4ever.scala.clusterizables.Clusterizable
 /**
  *
  */
@@ -55,7 +55,7 @@ class EasyEuclidean(squareRoot: Boolean = true) extends Euclidean[mutable.ArrayB
 /**
  *
  */
-class EuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Euclidean[V], Cz <: RealClusterizable[ID, O, V, Cz]](final val squareRoot: Boolean = true, val classicalMetric: D) extends EuclideanMeta with RealClusterizableDistance[Cz, V, D] {
+class EuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Euclidean[V], Cz <: Clusterizable[ID, O, V, Cz]](final val squareRoot: Boolean = true, val classicalMetric: D) extends EuclideanMeta with RealClusterizableDistance[Cz, V, D] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2

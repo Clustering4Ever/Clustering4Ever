@@ -6,7 +6,7 @@ import scala.math.{pow, sqrt}
 import clustering4ever.math.distances.MixtDistance
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.math.distances.MixtClusterizableDistance
-import clustering4ever.scala.clusterizables.MixtClusterizable
+import clustering4ever.scala.clusterizables.Clusterizable
 /**
  *
  */
@@ -54,7 +54,7 @@ class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double =
 /**
  *
  */
-class HammingAndEuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], D <: HammingAndEuclidean[Vb, Vs], Cz <: MixtClusterizable[ID, O, Vb, Vs, Cz]](val alpha: Double = 0D, val classicalMetric: D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtClusterizableDistance[Cz, Vb, Vs, D] {
+class HammingAndEuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, Vb <: Seq[Int], Vs <: Seq[Double], D <: HammingAndEuclidean[Vb, Vs], Cz <: Clusterizable[ID, O, BinaryScalarVector[Vb, Vs], Cz]](val alpha: Double = 0D, val classicalMetric: D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtClusterizableDistance[Cz, Vb, Vs, D] {
 	/**
 	 *
 	 */

@@ -8,7 +8,7 @@ import scala.language.higherKinds
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import clustering4ever.scala.clusterizables.{Clusterizable, RealClusterizable, BinaryClusterizable}
+import clustering4ever.scala.clusterizables.Clusterizable
 import clustering4ever.math.distances.{ClusterizableDistance, Distance, ContinuousDistance, BinaryDistance}
 import clustering4ever.math.distances.scalar.Euclidean
 import clustering4ever.util.ClusterBasicOperations
@@ -47,7 +47,7 @@ class RealClustersAnalysis[
     ID: Numeric,
     O,
     V[Double] <: Seq[Double],
-    Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
+    Cz[ID, O, V <: Seq[Double]] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
     D <: ContinuousDistance[V[Double]]
 ](clusterized: RDD[Cz[ID, O, V[Double]]], metric: D)(implicit ct: ClassTag[Cz[ID, O, V[Double]]], ct2: ClassTag[V[Double]]) extends ClustersAnalysis[ID, O, V[Double], Cz[ID, O, V[Double]], D](clusterized, metric) {
 
@@ -64,7 +64,7 @@ class BinaryClustersAnalysis[
     ID: Numeric,
     O,
     V[Int] <: Seq[Int],
-    Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
+    Cz[ID, O, V <: Seq[Int]] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
     D <: BinaryDistance[V[Int]]
 ](clusterized: RDD[Cz[ID, O, V[Int]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]) extends ClustersAnalysis[ID, O, V[Int], Cz[ID, O, V[Int]], D](clusterized, metric) {
 

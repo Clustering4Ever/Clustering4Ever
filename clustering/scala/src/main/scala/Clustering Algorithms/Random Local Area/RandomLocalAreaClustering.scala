@@ -3,7 +3,7 @@ package clustering4ever.scala.clustering.rla
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import clustering4ever.clustering.{MeanShiftable}
+import clustering4ever.clustering.LocalClusteringAlgorithm
 import clustering4ever.math.distances.Distance
 import clustering4ever.util.SumVectors
 import scala.math.{min, max}
@@ -18,7 +18,7 @@ import scala.util.Random
 class RLA[O, D <: Distance[O]](
 	epsilon: Double,
 	metric: D
-) extends MeanShiftable[GenSeq[O]] {
+) extends LocalClusteringAlgorithm[GenSeq[O]] {
 	/**
 	 * Run the Random Local Clustering
 	 */

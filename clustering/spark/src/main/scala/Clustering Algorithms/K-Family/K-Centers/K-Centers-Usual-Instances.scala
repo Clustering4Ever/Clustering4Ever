@@ -13,12 +13,12 @@ import clustering4ever.math.distances.mixt.HammingAndEuclidean
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 import clustering4ever.util.ClusterBasicOperations
 import clustering4ever.stats.Stats
-import clustering4ever.scala.clusterizables.{Clusterizable, RealClusterizable, BinaryClusterizable, MixtClusterizable, SimpleRealClusterizable, SimpleBinaryClusterizable}
+import clustering4ever.scala.clusterizables.{Clusterizable, EasyClusterizable}
 import clustering4ever.util.SparkImplicits._
 import org.apache.spark.rdd.RDD
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : preferably and ArrayBuffer or ParArray of RealClusterizable descendant, the SimpleRealClusterizable is the basic reference with mutable.ArrayBuffer as vector type, they are recommendend for speed efficiency
+ * @param data : preferably and ArrayBuffer or ParArray of Clusterizable descendant, the SimpleRealClusterizable is the basic reference with mutable.ArrayBuffer as vector type, they are recommendend for speed efficiency
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param maxIterations : maximal number of iteration
@@ -32,7 +32,7 @@ object KMeans {
 		ID: Numeric,
 		O,
 		V[Double] <: Seq[Double],
-		Cz[ID, O, V <: Seq[Double]] <: RealClusterizable[ID, O, V, Cz[ID, O, V]],
+		Cz[ID, O, V <: Seq[Double]] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
 		D <: ContinuousDistance[V[Double]]
 	](
 		data: RDD[Cz[ID, O, V[Double]]],
@@ -66,8 +66,8 @@ object EasyKMeans {
 		maxIterations: Int,
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-		)(implicit ct: ClassTag[V]) : KCentersModel[Long, V, V, SimpleRealClusterizable[Long, V, V], D] = {
-		val kMeans = new KCenters[Long, V, V, SimpleRealClusterizable[Long, V, V], D](k, epsilon, maxIterations, metric, initializedCenters)
+		)(implicit ct: ClassTag[V]) : KCentersModel[Long, V, V, EasyClusterizable[Long, V, V], D] = {
+		val kMeans = new KCenters[Long, V, V, EasyClusterizable[Long, V, V], D](k, epsilon, maxIterations, metric, initializedCenters)
 		val kCentersModel = kMeans.run(data)
 		kCentersModel
 	}
@@ -83,7 +83,7 @@ object KModes {
 		ID: Numeric,
 		O,
 		V[Int] <: Seq[Int],
-		Cz[ID, O, V <: Seq[Int]] <: BinaryClusterizable[ID, O, V, Cz[ID, O, V]],
+		Cz[ID, O, V <: Seq[Int]] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
 		D <: BinaryDistance[V[Int]]
 	](
 		data: RDD[Cz[ID, O, V[Int]]],
@@ -112,8 +112,8 @@ object EasyKModes {
 		maxIterations: Int,
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	)(implicit ct: ClassTag[V]): KCentersModel[Long, V, V, SimpleBinaryClusterizable[Long, V, V], D] = {
-		val kmodes = new KCenters[Long, V, V, SimpleBinaryClusterizable[Long, V, V], D](k, epsilon, maxIterations, metric, initializedCenters)
+	)(implicit ct: ClassTag[V]): KCentersModel[Long, V, V, EasyClusterizable[Long, V, V], D] = {
+		val kmodes = new KCenters[Long, V, V, EasyClusterizable[Long, V, V], D](k, epsilon, maxIterations, metric, initializedCenters)
 		val kModesModel = kmodes.run(data)
 		kModesModel
 	}
@@ -135,17 +135,17 @@ object KPrototypes {
 		O,
 		Vb[Int] <: Seq[Int],
 		Vs[Double] <: Seq[Double],
-		Cz[ID, O, Vb <: Seq[Int], Vs <: Seq[Double]] <: MixtClusterizable[ID, O, Vb, Vs, Cz[ID, O, Vb, Vs]],
+		Cz[ID, O] <: Clusterizable[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O]],
 		D <: MixtDistance[Vb[Int], Vs[Double]]
 	](
-		data: RDD[Cz[ID, O, Vb[Int], Vs[Double]]],
+		data: RDD[Cz[ID, O]],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]]
-	)(implicit ct: ClassTag[Cz[ID, O, Vb[Int], Vs[Double]]]): KCentersModel[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O, Vb[Int], Vs[Double]], D] = {
-		val kPrototypes = new KCenters[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O, Vb[Int], Vs[Double]], D](k, epsilon, maxIterations, metric)
+	)(implicit ct: ClassTag[Cz[ID, O]]): KCentersModel[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O], D] = {
+		val kPrototypes = new KCenters[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O], D](k, epsilon, maxIterations, metric)
 		val kPrototypesModel = kPrototypes.run(data)
 		kPrototypesModel
 	}

@@ -12,6 +12,10 @@ abstract class Vectorizable[O, V](val o: O, toVector: O => V) extends Serializab
 /**
  *
  */
+class Vector[V](o: V) extends Vectorizable[V, V](o, identity)
+/**
+ *
+ */
 class RealVectorizable[O, V <: Seq[Double]](o: O, toVector: O => V = identity _) extends Vectorizable[O, V](o, toVector)
 /**
  *

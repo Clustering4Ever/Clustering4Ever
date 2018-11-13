@@ -3,7 +3,7 @@ package clustering4ever.util
  * @author Beck Gaël
  */
 import clustering4ever.scala.vectorizables.{RealVector, BinaryVector, MixtVector}
-import clustering4ever.scala.clusterizables.{SimpleRealClusterizable, SimpleBinaryClusterizable, SimpleMixtClusterizable}
+import clustering4ever.scala.clusterizables.EasyClusterizable
 import clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  *
@@ -12,13 +12,13 @@ object GenerateClusterizable {
 	/**
 	 *
 	 */
-	def obtainSimpleRealClusterizable[@specialized(Int, Long) ID: Numeric, V <: Seq[Double]](id: ID, vector: V): SimpleRealClusterizable[ID, V, V] = new SimpleRealClusterizable[ID, V, V](id, new RealVector[V](vector))
+	def obtainEasyRealClusterizable[@specialized(Int, Long) ID: Numeric, V <: Seq[Double]](id: ID, vector: V): EasyClusterizable[ID, V, V] = new EasyClusterizable[ID, V, V](id, new RealVector[V](vector))
 	/**
 	 *
 	 */
-	def obtainSimpleBinaryClusterizable[@specialized(Int, Long) ID: Numeric, V <: Seq[Int]](id: ID, vector: V): SimpleBinaryClusterizable[ID, V, V] = new SimpleBinaryClusterizable[ID, V, V](id, new BinaryVector[V](vector))
+	def obtainEasyBinaryClusterizable[@specialized(Int, Long) ID: Numeric, V <: Seq[Int]](id: ID, vector: V): EasyClusterizable[ID, V, V] = new EasyClusterizable[ID, V, V](id, new BinaryVector[V](vector))
 	/**
 	 *
 	 */
-	def obtainSimpleMixtClusterizable[@specialized(Int, Long) ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Double]](id: ID, vectors: BinaryScalarVector[Vb, Vs]): SimpleMixtClusterizable[ID, BinaryScalarVector[Vb, Vs], Vb, Vs] = new SimpleMixtClusterizable(id, new MixtVector(vectors))
+	def obtainSimpleMixtClusterizable[@specialized(Int, Long) ID: Numeric, Vb <: Seq[Int], Vs <: Seq[Double]](id: ID, vectors: BinaryScalarVector[Vb, Vs]): EasyClusterizable[ID, BinaryScalarVector[Vb, Vs], BinaryScalarVector[Vb, Vs]] = new EasyClusterizable(id, new MixtVector(vectors))
 }

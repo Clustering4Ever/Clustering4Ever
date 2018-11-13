@@ -11,9 +11,9 @@ import clustering4ever.clustering.ClusteringAlgorithm
 /**
  * Suppose that we have the matrix T_1 and T_2 from a higher data of dimension n1xn2xn3
  */
-class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm[mutable.ListBuffer[DenseMatrix[Double]]] {
+class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm[mutable.ArrayBuffer[DenseMatrix[Double]]] {
 
-  def run(data: mutable.ListBuffer[DenseMatrix[Double]]) = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
     val m = data.length
     val n1 = data.head.rows
@@ -23,10 +23,10 @@ class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm[m
 
      // function take all the lateral slice T(i,:,:)
      @annotation.tailrec
-     def matriceColumnset(t: mutable.ListBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): 
+     def matriceColumnset(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): 
         DenseMatrix[Double] = {
         if( j < t.head.cols && k < t.length ) {
-        m(k,j) = t(k)(i, j)
+        m(k, j) = t(k)(i, j)
         matriceColumnset(t, m, c, i, j, k + 1)
       }
       else if( k == t.length && j < t.head.cols ) {
@@ -45,7 +45,7 @@ class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm[m
 
     // function take all the horizontal slice T(:,j,:)
     @annotation.tailrec
-    def matriceRowset(t: mutable.ListBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): 
+    def matriceRowset(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): 
         DenseMatrix[Double] = {
         if( i < t.head.rows && k < t.length ) {
         m(k,i) = t(k)(i, j)
@@ -94,7 +94,7 @@ class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm[m
  */
 object TensorFoldSpectral {
   
-  def train(k1: Int, k2: Int, data: mutable.ListBuffer[DenseMatrix[Double]]) = (new TensorFoldSpectral(k1, k2)).run(data)
+  def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new TensorFoldSpectral(k1, k2)).run(data)
 
 }
  

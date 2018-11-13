@@ -13,7 +13,6 @@ lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 
 lazy val sparkDeps = libraryDependencies ++= Seq(
 	   	"org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-		"org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
 		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided"
 )
 
@@ -21,10 +20,6 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 	  "org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 	  "org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 	  "org.typelevel" %% "spire" % "0.14.1"
-)
-
-lazy val scalaDeps = libraryDependencies ++= Seq(
-	  // "org.apache.commons" % "commons-math3" % "3.6.1"
 )
 
 lazy val commonCredentialsAndResolvers = Seq(
@@ -60,7 +55,6 @@ lazy val core = (project in file("core"))
 lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
-	.settings(scalaDeps)
 	.dependsOn(core)
 
 lazy val clusteringSpark = (project in file("clustering/spark"))

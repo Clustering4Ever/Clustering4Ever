@@ -5,7 +5,7 @@ package clustering4ever.math.distances.binary
 import scala.language.higherKinds
 import clustering4ever.math.distances.BinaryDistance
 import scala.collection.mutable
-import clustering4ever.scala.clusterizables.BinaryClusterizable
+import clustering4ever.scala.clusterizables.Clusterizable
 import clustering4ever.math.distances.BinaryClusterizableDistance
 /**
  *
@@ -39,7 +39,7 @@ class EasyHamming extends Hamming[mutable.ArrayBuffer[Int]]
 /**
  *
  */
-class HammingClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Int], D <: Hamming[V], Cz <: BinaryClusterizable[ID, O, V, Cz]](val classicalMetric: D) extends HammingMeta with BinaryClusterizableDistance[Cz, V, D] {
+class HammingClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Int], D <: Hamming[V], Cz <: Clusterizable[ID, O, V, Cz]](val classicalMetric: D) extends HammingMeta with BinaryClusterizableDistance[Cz, V, D] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
