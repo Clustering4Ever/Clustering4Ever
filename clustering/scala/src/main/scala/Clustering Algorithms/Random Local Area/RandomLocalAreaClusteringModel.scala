@@ -1,11 +1,11 @@
-package clustering4ever.scala.clustering.rla
+package org.clustering4ever.scala.clustering.rla
 /**
  * @author Beck Gaël
  */
-import clustering4ever.clustering.ClusteringModel
+import org.clustering4ever.clustering.ClusteringModel
 import scala.collection.mutable
-import clustering4ever.math.distances.Distance
-import clustering4ever.clustering.CenterOrientedModel
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.clustering.CenterOrientedModel
 /**
  *
  */

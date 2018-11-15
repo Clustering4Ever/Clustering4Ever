@@ -1,9 +1,9 @@
-package clustering4ever.spark.clustering.mtm.utils
+package org.clustering4ever.spark.clustering.mtm.utils
 
 import org.apache.spark.mllib.linalg.DenseVector
 import java.io._
 import org.apache.spark.rdd.RDD
-import clustering4ever.spark.clustering.mtm.global.AbstractModel
+import org.clustering4ever.spark.clustering.mtm.global.AbstractModel
 
 
 object WriterClusters{

@@ -1,13 +1,13 @@
-package clustering4ever.math.distances.scalar
+package org.clustering4ever.math.distances.scalar
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.math.sqrt
 import scala.collection.mutable
-import clustering4ever.util.SumVectors
-import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
-import clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.util.SumVectors
+import org.clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
+import org.clustering4ever.scala.clusterizables.Clusterizable
 /**
  *
  */
@@ -17,16 +17,21 @@ trait EuclideanMeta extends Serializable {
 	 */
 	protected val squareRoot: Boolean
 	/**
-	 * Less elegant than recursion or zip style but much more efficient
+	 * Euclidean distance in recursion style, faster than while
 	 */
 	protected def euclidean[V <: Seq[Double]](dot1: V, dot2: V): Double = {
-		var d = 0D
-		var i = 0
-		while( i < dot1.size ) {
-			val toPow2 = dot1(i) - dot2(i)
-			d += toPow2 * toPow2
-			i += 1
+
+		@annotation.tailrec
+		def go(d: Double, i: Int): Double = {
+			if( i < dot1.size ) {
+			  val toPow2 = dot1(i) - dot2(i)
+			  go(d + toPow2 * toPow2, i + 1)
+			}
+			else d
 		}
+
+		val d = go(0D, 0)
+
 		if( squareRoot ) sqrt(d) else d
 	}
 

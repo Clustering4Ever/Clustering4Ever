@@ -1,9 +1,9 @@
-package clustering4ever.math.distances
+package org.clustering4ever.math.distances
 /**
  * @author Beck Gaël
  */
 import scala.collection.mutable
-import clustering4ever.util.{SumVectors, VectorsBasicOperationsImplicits}
+import org.clustering4ever.util.{SumVectors, VectorsBasicOperationsImplicits}
 /**
  *
  */

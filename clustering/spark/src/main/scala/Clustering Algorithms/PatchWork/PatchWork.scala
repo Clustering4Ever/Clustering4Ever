@@ -11,7 +11,7 @@
  * https://github.com/crim-ca/patchwork
  */
 
-package clustering4ever.spark.clustering.patchwork
+package org.clustering4ever.spark.clustering.patchwork
 
 import org.apache.log4j.LogManager
 import org.apache.spark.rdd.RDD

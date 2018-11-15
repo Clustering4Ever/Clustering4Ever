@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.clusterwise
+package org.clustering4ever.spark.clustering.clusterwise
 
 import scala.language.higherKinds
 import scala.util.Random
@@ -11,12 +11,12 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.clustering._
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.broadcast.Broadcast
-import clustering4ever.scala.clustering.kcenters.KMeans
-import clustering4ever.util.SumVectors
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.util.GenerateClusterizable
-import clustering4ever.scala.clusterizables.EasyClusterizable
-import clustering4ever.util.VectorsBasicOperationsImplicits._
+import org.clustering4ever.scala.clustering.kcenters.KMeans
+import org.clustering4ever.util.SumVectors
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.util.GenerateClusterizable
+import org.clustering4ever.scala.clusterizables.EasyClusterizable
+import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 
 class Clusterwise[V[Double] <: Seq[Double]](
 	@(transient @param) sc: SparkContext,

@@ -1,4 +1,4 @@
-package clustering4ever.scala.clusteranalysis
+package org.clustering4ever.scala.clusteranalysis
 /**
  * @author Beck Gaël
  */
@@ -6,13 +6,13 @@ import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{Map, GenMap, mutable, GenSeq}
 import spire.math.{Numeric => SNumeric}
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.binary.Hamming
-import clustering4ever.util.ClusterBasicOperations
-import clustering4ever.util.SumVectors
-import clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.binary.Hamming
+import org.clustering4ever.util.ClusterBasicOperations
+import org.clustering4ever.util.SumVectors
+import org.clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
 /**
  *
  */
@@ -81,7 +81,7 @@ class BinaryClustersAnalysis[
     D <: BinaryDistance[V[Int]]
 ](clusterized: GenSeq[Cz[ID, O, V[Int]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]) extends ClustersAnalysis[ID, O, V[Int], Cz[ID, O, V[Int]], D](clusterized, metric) {
 
-    import clustering4ever.util.VectorsBasicOperationsImplicits._
+    import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 
     if( vectorHeader.isDefined ) require(clusterized.head.vector.size == vectorHeader.size)
 

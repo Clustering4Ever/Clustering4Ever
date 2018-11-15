@@ -1,12 +1,12 @@
-package clustering4ever.scala.indexes
+package org.clustering4ever.scala.indexes
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
-import clustering4ever.math.distances.Distance
-import clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.clustering.ClusteringCommons
 /**
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */

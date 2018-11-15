@@ -1,11 +1,11 @@
-package clustering4ever.spark.clustering.clusterwise
+package org.clustering4ever.spark.clustering.clusterwise
 
 import scala.language.higherKinds
 import scala.math.{pow, sqrt => ssqrt}
 import scala.collection.{immutable, mutable, GenSeq}
-import clustering4ever.util.SumVectors
+import org.clustering4ever.util.SumVectors
 import breeze.linalg.{DenseVector, DenseMatrix, Transpose, eigSym, svd, sum, *, diag}
-import clustering4ever.util.VectorsBasicOperationsImplicits._
+import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 /**
  *
  */

@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering.tensor
+package org.clustering4ever.scala.clustering.tensor
 /**
  * @author ANDRIANTSIORY Dina Faneva, Beck Gaël
  */
@@ -8,7 +8,7 @@ import breeze.numerics._
 import scala.collection.mutable
 import breeze.linalg.svd.SVD
 import breeze.stats._
-import clustering4ever.clustering.LocalClusteringAlgorithm
+import org.clustering4ever.clustering.LocalClusteringAlgorithm
 /**
  *
  */
@@ -16,7 +16,7 @@ class ThIndFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mut
 	/**
 	 *
 	 */
-  	def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
+  	def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = {
 
 	    val m = data.length
 	    val n1 = data.head.rows
@@ -81,7 +81,7 @@ class ThIndFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mut
  */
 object ThIndFibers {
 
-    def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new ThIndFibers(k1, k2)).run(data)
+    def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = (new ThIndFibers(k1, k2)).run(data)(workingVector)
 
 }
 

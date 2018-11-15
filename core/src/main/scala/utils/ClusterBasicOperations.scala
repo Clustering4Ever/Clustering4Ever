@@ -1,16 +1,16 @@
-package clustering4ever.util
+package org.clustering4ever.util
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
-import clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
-import clustering4ever.math.distances.binary.Hamming
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.mixt.HammingAndEuclidean
-import clustering4ever.scala.measurableclass.BinaryScalarVector
-import clustering4ever.util.VectorsBasicOperationsImplicits._
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.math.distances.binary.Hamming
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 /**
  * Type Class is probably the solution to this casting meli melo, but it is hard to apply in such complex case without any usefull ressources
  */

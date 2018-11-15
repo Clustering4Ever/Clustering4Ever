@@ -1,4 +1,4 @@
-package clustering4ever.util
+package org.clustering4ever.util
 /**
  * @author Beck Gaël
  */

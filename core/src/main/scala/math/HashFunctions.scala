@@ -1,4 +1,4 @@
-package clustering4ever.util
+package org.clustering4ever.util
 /**
  * @author Beck Gaël
  */
@@ -26,13 +26,12 @@ class LSH[V <: Seq[Double]](val dim: Int, val w: Double = 1D) extends Hasher[V] 
    *  Generate the hash value for a given vector x depending on w, b, hashVector
    */
   def hf(x: V): Double = {
-  	var s = 0D
-    var i = 0
-    while( i < x.size ) {
-      s += x(i) * hashVector(i)
-      i += 1
+    @annotation.tailrec
+    def go(s: Double, i: Int): Double = {
+      if( i < x.size ) go(s + x(i) * hashVector(i), i + 1)
+      else s
     }
-  	( s + b ) / w
+    (go(0D, 0) + b) / w
   }
 }
 

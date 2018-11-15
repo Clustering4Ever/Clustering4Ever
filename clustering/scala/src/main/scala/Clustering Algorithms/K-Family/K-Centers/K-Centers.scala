@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering.kcenters
+package org.clustering4ever.scala.clustering.kcenters
 /**
  * @author Beck Gaël
  */
@@ -6,11 +6,11 @@ import scala.language.higherKinds
 import scala.collection.{mutable, GenSeq}
 import scala.util.Random
 import scala.reflect.ClassTag
-import clustering4ever.math.distances.Distance
-import clustering4ever.stats.Stats
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.clustering.{ClusteringCommons, LocalClusteringAlgorithm}
-import clustering4ever.util.ClusterBasicOperations
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.stats.Stats
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clustering.{ClusteringCommons, LocalClusteringAlgorithm}
+import org.clustering4ever.util.ClusterBasicOperations
 /**
  *
  */
@@ -75,7 +75,7 @@ class KCenters[
 	/**
 	 * Run the K-Centers
 	 */
-	def run(data: GenSeq[Cz]): KCentersModel[ID, O, V, Cz, D] =	{
+	def run(data: GenSeq[Cz])(implicit workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] =	{
 		/**
 		 *
 		 */
@@ -138,9 +138,10 @@ object KCenters {
 		epsilon: Double,
 		maxIterations: Int,
 		metric: D,
-		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
+		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+	)(implicit workingVector: Int = 0): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
 		val kCenter = new KCenters[ID, O, V, Cz[ID, O, V], D](k, epsilon, maxIterations, metric, initializedCenters)
-		val kCentersModel = kCenter.run(data)
+		val kCentersModel = kCenter.run(data)(workingVector)
 		kCentersModel
 	}
 }

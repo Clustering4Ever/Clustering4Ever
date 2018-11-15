@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.BatchStream
+package org.clustering4ever.spark.clustering.BatchStream
 	 /**
 	  * Copyright: please refer to the README.md file
 	  * User: ghesmoune

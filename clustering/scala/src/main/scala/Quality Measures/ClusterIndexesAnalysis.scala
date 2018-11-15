@@ -1,16 +1,16 @@
-package clustering4ever.scala.clusteranalysis
+package org.clustering4ever.scala.clusteranalysis
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.clustering.ClusteringCommons
-import clustering4ever.math.distances.Distance
-import clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
-import clustering4ever.scala.indexes.NmiNormalizationNature
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
+import org.clustering4ever.scala.indexes.NmiNormalizationNature
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  *
  */

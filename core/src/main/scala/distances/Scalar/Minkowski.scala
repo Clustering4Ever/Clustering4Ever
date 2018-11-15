@@ -1,12 +1,12 @@
-package clustering4ever.math.distances.scalar
+package org.clustering4ever.math.distances.scalar
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.collection.mutable
 import scala.math.pow
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 /**
  *
  */

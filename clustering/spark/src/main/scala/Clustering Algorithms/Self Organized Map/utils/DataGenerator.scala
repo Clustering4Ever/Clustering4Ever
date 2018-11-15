@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.mtm.utils
+package org.clustering4ever.spark.clustering.mtm.utils
 import org.apache.spark.mllib.linalg.DenseVector
 import util.Random
 import org.apache.spark.SparkContext

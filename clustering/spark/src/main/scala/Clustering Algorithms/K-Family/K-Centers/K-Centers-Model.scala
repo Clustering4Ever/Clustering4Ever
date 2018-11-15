@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.kcenters
+package org.clustering4ever.spark.clustering.kcenters
 
 import scala.language.higherKinds
 import org.apache.commons.math3.distribution.EnumeratedDistribution
@@ -10,13 +10,13 @@ import scala.util.Random
 import scala.reflect.ClassTag
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import clustering4ever.math.distances.Distance
-import clustering4ever.stats.Stats
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.scala.clustering.kcenters.KCommons
-import clustering4ever.clustering.CenterOrientedModelDistributed
-import clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.stats.Stats
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.scala.clustering.kcenters.KCommons
+import org.clustering4ever.clustering.CenterOrientedModelDistributed
+import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 import spire.math.{Numeric => SNumeric}
 /**
  *
@@ -35,12 +35,12 @@ class KCentersModel[
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict(data: RDD[Cz])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.setClusterID(centerPredict(rc.vector)) )
+	def centerPredict(data: RDD[Cz])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(centerPredict(rc.vector)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.setClusterID(knnPredict(rc.vector, k, trainDS)) )
+	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(knnPredict(rc.vector, k, trainDS)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method

@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.clusterwise
+package org.clustering4ever.spark.clustering.clusterwise
 /**
  * @æuthor Beck Gaël
  */
@@ -7,9 +7,9 @@ import org.apache.spark.rdd.RDD
 import breeze.linalg.{DenseMatrix, DenseVector}
 import scala.collection.{immutable, GenSeq, mutable}
 import scala.collection.parallel.ParSeq
-import clustering4ever.math.distances.ContinuousDistance
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.clustering.ClusteringModel
+import org.clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.clustering.ClusteringModel
 /**
  *
  */

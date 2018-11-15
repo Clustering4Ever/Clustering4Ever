@@ -1,18 +1,18 @@
-package clustering4ever.spark.clustering.mtm
+package org.clustering4ever.spark.clustering.mtm
 
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.linalg.DenseVector
-import clustering4ever.spark.clustering.mtm.global.AbstractModel
-import clustering4ever.spark.clustering.mtm.global.AbstractPrototype
-import clustering4ever.spark.clustering.mtm.global.AbstractTrainer
-import clustering4ever.spark.clustering.mtm.utils.NamedVector
-import clustering4ever.spark.clustering.mtm.utils.DataGenerator
-import clustering4ever.spark.clustering.mtm.utils.Output
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.spark.clustering.mtm.global.AbstractModel
+import org.clustering4ever.spark.clustering.mtm.global.AbstractPrototype
+import org.clustering4ever.spark.clustering.mtm.global.AbstractTrainer
+import org.clustering4ever.spark.clustering.mtm.utils.NamedVector
+import org.clustering4ever.spark.clustering.mtm.utils.DataGenerator
+import org.clustering4ever.spark.clustering.mtm.utils.Output
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.ContinuousDistance
 /**
  * @author Sarazin Tugdual & Beck Gaël
  **/

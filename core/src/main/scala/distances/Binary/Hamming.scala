@@ -1,25 +1,28 @@
-package clustering4ever.math.distances.binary
+package org.clustering4ever.math.distances.binary
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import clustering4ever.math.distances.BinaryDistance
+import org.clustering4ever.math.distances.BinaryDistance
 import scala.collection.mutable
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.math.distances.BinaryClusterizableDistance
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.math.distances.BinaryClusterizableDistance
 /**
  *
  */
 trait HammingMeta extends Serializable {
 
 	protected def hamming[V <: Seq[Int]](dot1: V, dot2: V): Double = {
-		var d = 0D
-		var i = 0
-		while( i < dot1.size ) {
-			d += dot1(i) ^ dot2(i)
-			i += 1
+
+		@annotation.tailrec
+		def go(d: Double, i: Int): Double = {
+			if( i < dot1.size ) {
+			  go(d + (dot1(i) ^ dot2(i)), i + 1)
+			}
+			else d
 		}
-		d
+		go(0D, 0)
+
 	}
 }
 /**

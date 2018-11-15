@@ -1,4 +1,4 @@
-package clustering4ever.util
+package org.clustering4ever.util
 /**
  * @author Beck Gaël
  */
@@ -7,7 +7,7 @@ import scala.math.sqrt
 import scala.collection.GenSeq
 import scala.language.higherKinds
 import spire.math.{Numeric => SNumeric}
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  *
  */

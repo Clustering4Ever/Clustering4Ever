@@ -1,10 +1,10 @@
-package clustering4ever.scala.clustering
+package org.clustering4ever.scala.clustering
 /**
  * @author Beck Gaël
  */
 import scala.collection.{mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
-import clustering4ever.clustering.{LocalClusteringAlgorithm, ClusteringModel}
+import org.clustering4ever.clustering.{LocalClusteringAlgorithm, ClusteringModel}
 /**
  *
  */
@@ -16,7 +16,7 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumber
    * @param desiredNumberCategories : number of breaks user desire
    * @return Indexes of breaks in data sequence
    */
-  def run(data: GenSeq[N]): JenksNaturalBreaksModel[N] = {
+  def run(data: GenSeq[N])(implicit workingVector: Int = 0): JenksNaturalBreaksModel[N] = {
 
     val nbCat = desiredNumberCategories - 1
     val nbValues = data.size
@@ -86,7 +86,7 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumber
  */
 object JenksNaturalBreaks {
 
-  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(desiredNumberCategories)).run(data)
+  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N], workingVector: Int = 0): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(desiredNumberCategories)).run(data)(workingVector)
 
 }
 /**

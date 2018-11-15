@@ -1,11 +1,11 @@
 
-package clustering4ever.spark.clustering.mtm.utils
+package org.clustering4ever.spark.clustering.mtm.utils
 import java.io._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.linalg.DenseVector
-import clustering4ever.spark.clustering.mtm.global.AbstractModel
-import clustering4ever.spark.clustering.mtm.global.AbstractPrototype
-import clustering4ever.spark.clustering.mtm.global.AbstractTrainer
+import org.clustering4ever.spark.clustering.mtm.global.AbstractModel
+import org.clustering4ever.spark.clustering.mtm.global.AbstractPrototype
+import org.clustering4ever.spark.clustering.mtm.global.AbstractTrainer
 import scala.sys.process._
 
 import java.util.Calendar

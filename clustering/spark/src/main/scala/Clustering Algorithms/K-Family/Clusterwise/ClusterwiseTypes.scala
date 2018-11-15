@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.clusterwise
+package org.clustering4ever.spark.clustering.clusterwise
 
 import scala.collection.{mutable, immutable}
 import breeze.linalg.DenseMatrix

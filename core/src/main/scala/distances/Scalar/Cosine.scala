@@ -1,11 +1,11 @@
-package clustering4ever.math.distances.scalar
+package org.clustering4ever.math.distances.scalar
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.collection.mutable
-import clustering4ever.math.distances.ContinuousDistance
-import clustering4ever.util.SumVectors
+import org.clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.util.SumVectors
 /**
  *
  */

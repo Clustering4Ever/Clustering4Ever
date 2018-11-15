@@ -1,12 +1,12 @@
-package clustering4ever.math.distances.mixt
+package org.clustering4ever.math.distances.mixt
 /**
  * @author Beck Gaël
  */
 import scala.math.{pow, sqrt}
-import clustering4ever.math.distances.MixtDistance
-import clustering4ever.scala.measurableclass.BinaryScalarVector
-import clustering4ever.math.distances.MixtClusterizableDistance
-import clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.math.distances.MixtDistance
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.math.distances.MixtClusterizableDistance
+import org.clustering4ever.scala.clusterizables.Clusterizable
 /**
  *
  */

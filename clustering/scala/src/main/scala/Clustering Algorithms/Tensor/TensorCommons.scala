@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering.tensor
+package org.clustering4ever.scala.clustering.tensor
 /**
  * @author ANDRIANTSIORY Dina Faneva, Beck Gaël
  */
