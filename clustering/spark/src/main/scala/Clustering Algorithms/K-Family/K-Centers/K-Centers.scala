@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustering.kcenters
+package org.clustering4ever.spark.clustering.kcenters
 
 import scala.language.higherKinds
 import org.apache.commons.math3.distribution.EnumeratedDistribution
@@ -11,14 +11,14 @@ import scala.reflect.ClassTag
 import spire.math.{Numeric => SNumeric}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import clustering4ever.math.distances.Distance
-import clustering4ever.stats.Stats
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.scala.clustering.kcenters.KCommons
-import clustering4ever.clustering.CenterOrientedModelDistributed
-import clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import clustering4ever.scala.measurableclass.BinaryScalarVector
-import clustering4ever.clustering.DistributedClusteringAlgorithm
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.stats.Stats
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.scala.clustering.kcenters.KCommons
+import org.clustering4ever.clustering.CenterOrientedModelDistributed
+import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.clustering.DistributedClusteringAlgorithm
 /**
  *
  */
@@ -67,7 +67,7 @@ class KCenters[
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz]): KCentersModel[ID, O, V, Cz, D] = {
+	def run(data: RDD[Cz])(implicit workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] = {
 		/**
 		 * To upgrade
 		 */

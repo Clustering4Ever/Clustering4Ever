@@ -1,7 +1,7 @@
-package clustering4ever.spark.clustering.mtm.global
+package org.clustering4ever.spark.clustering.mtm.global
 
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.ContinuousDistance
 
 /**
  * @author Sarazin Tugdual & Beck Gaël

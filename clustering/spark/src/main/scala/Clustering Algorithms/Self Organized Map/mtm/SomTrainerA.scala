@@ -1,16 +1,16 @@
-package clustering4ever.spark.clustering.mtm
+package org.clustering4ever.spark.clustering.mtm
 
 import scala.math.{abs, exp, max}
 import scala.util.Random
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext._
-import clustering4ever.spark.clustering.mtm.global.{AbstractPrototype, AbstractModel, AbstractTrainer}
-import clustering4ever.spark.clustering.mtm.utils.NamedVector
+import org.clustering4ever.spark.clustering.mtm.global.{AbstractPrototype, AbstractModel, AbstractTrainer}
+import org.clustering4ever.spark.clustering.mtm.utils.NamedVector
 import scala.concurrent.duration.{FiniteDuration, Duration}
 import org.apache.spark.mllib.linalg.DenseVector
 import scala.collection.immutable
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.ContinuousDistance
 /**
  * @author Sarazin Tugdual & Lebbah Mustapha & Beck Gaël
  **/

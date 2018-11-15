@@ -1,12 +1,12 @@
-package clustering4ever.scala.clustering
+package org.clustering4ever.scala.clustering
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.collection.{GenSeq, mutable}
 import spire.math.{Numeric => SNumeric}
-import clustering4ever.clustering.ClusteringModel
-import clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.clustering.ClusteringModel
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 /**
  *
  */

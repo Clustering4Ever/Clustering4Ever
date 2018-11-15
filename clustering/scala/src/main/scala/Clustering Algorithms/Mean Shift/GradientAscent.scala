@@ -1,15 +1,13 @@
-package clustering4ever.scala.clustering.meanshift
+package org.clustering4ever.scala.clustering.meanshift
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.math.{min, max}
 import scala.collection.GenSeq
-import clustering4ever.math.distances.ContinuousDistance
-import clustering4ever.scala.clusterizables.ClusterizableExt
-import clustering4ever.scala.kernels.{Kernel, KernelArgs}
-import clustering4ever.scala.basicenum.AlternativeVector
-import clustering4ever.scala.basicenum.AlternativeVectorNature._
+import org.clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.scala.clusterizables.ClusterizableExt
+import org.clustering4ever.scala.kernels.{Kernel, KernelArgs}
 /**
  * Mean Shift gradient ascent
  * @param kernel defines the nature of kernel and its parameters used in the gradient ascent
@@ -28,20 +26,20 @@ class GradientAscent[
   maxIterations: Int,
   kernel: K[V, KArgs],
   metric: D,
-  altVectName: AlternativeVector = Gradient_Ascent
+  altVectName: Int = Int.MaxValue
 ) {
 
-  def run() = {
+  def run(implicit workingVector: Int = 0) = {
 
     val haveNotConverged = false
     val kernelLocality = data.map(_.vector)
-    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = data.map( obj => (obj.setAltVector(altVectName, obj.vector), haveNotConverged) )
+    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = data.map( obj => (obj.addAltVector(altVectName, obj.vector), haveNotConverged) )
 
     def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
 
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
-        val mode = obj.altVectors.get(altVectName)
+        val mode = obj.altVectors(altVectName)
         val updatedMode = if( haveConverged ) mode else kernel.obtainMode(mode, kernelLocality)
         val modeShift = metric.d(updatedMode, mode)
         val hasConverged = if( modeShift <= epsilon ) {
@@ -51,7 +49,7 @@ class GradientAscent[
         else {
           false
         }
-        (obj.setAltVector(altVectName, updatedMode), hasConverged)
+        (obj.addAltVector(altVectName, updatedMode), hasConverged)
       }
 
       (convergingData, cptConvergedPoints)
@@ -92,6 +90,6 @@ object GradientAscent {
     maxIterations: Int,
     kernel: K[V, KArgs],
     metric: D,
-    altVectName: AlternativeVector = Gradient_Ascent
-    ) = (new GradientAscent(data, epsilon, maxIterations, kernel, metric, altVectName)).run()
+    altVectName: Int = Int.MaxValue
+    )(implicit workingVector: Int = 0) = (new GradientAscent(data, epsilon, maxIterations, kernel, metric, altVectName)).run(workingVector)
 }

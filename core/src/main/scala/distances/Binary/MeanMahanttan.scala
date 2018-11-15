@@ -1,8 +1,8 @@
-package clustering4ever.math.distances.binary
+package org.clustering4ever.math.distances.binary
 /**
  * @author Beck Gaël
  */
-import clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
+import org.clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
 import scala.collection.mutable
 
 class MeanMahanttan extends BinaryDistance[mutable.ArrayBuffer[Int]] {

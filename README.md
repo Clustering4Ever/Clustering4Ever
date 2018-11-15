@@ -4,13 +4,13 @@
 You will find additional contents about clustering algorithms **[here](https://github.com/PhDStudentsP13/Clustering)**.
 <p align="center"><img src ="https://media.giphy.com/media/2viYwU7kHW8uNmmKvd/giphy.gif" /></p>
 
-## [API documentation](http://clustering4ever.org/API%20Documentation/)
+## [API documentation](http://org.clustering4ever.org/API%20Documentation/)
 
 ## Include it in your project
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.1"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.2"` to your `libraryDependencies`
 
 Eventually add this resolver :
 
@@ -63,8 +63,8 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 ### Implicit conversions
 
 If you have classic real or binary matrix, you can bypass transformation from **GenSeq/RDD[Vector]** to **GenSeq/RDD[Clusterizable]** by importing implicit conversions functions :
-* `clustering4ever.util.ScalaImplicits._`
-* `clustering4ever.util.SparkImplicits._`
+* `org.clustering4ever.util.ScalaImplicits._`
+* `org.clustering4ever.util.SparkImplicits._`
 
 ### [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
 
@@ -78,5 +78,5 @@ If you have classic real or binary matrix, you can bypass transformation from **
 
 ### What data structures are recommended for best performances
 
-* ArrayBuffer as vectors are a good start
-* ArrayBuffer or ParArray as vectors containers are also recommended
+* ArrayBuffer as vector are a good start
+* ArrayBuffer or ParArray as vector containers are also recommended

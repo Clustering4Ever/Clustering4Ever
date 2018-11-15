@@ -1,4 +1,4 @@
-package clustering4ever.clustering
+package org.clustering4ever.clustering
 /**
  * @author Beck Gaël
  */
@@ -21,9 +21,13 @@ trait ClusteringAlgorithm[DataType] extends ClusteringCommons {
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
 	 */
-	def run(data: DataType): ClusteringModel
+	def run(data: DataType)(implicit workingVector: Int = 0): ClusteringModel
 }
 /**
  * The basic trait shared by all local clustering algorithms
  */
 trait LocalClusteringAlgorithm[DataType <: GenSeq[_]] extends ClusteringAlgorithm[DataType]
+/**
+ *
+ */
+trait ClusteringArgs extends Serializable

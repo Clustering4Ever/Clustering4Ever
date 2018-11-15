@@ -1,9 +1,9 @@
-package clustering4ever.math.distances
+package org.clustering4ever.math.distances
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  * Most general notion of Distance, taking two object of type O and returning a Double
  */

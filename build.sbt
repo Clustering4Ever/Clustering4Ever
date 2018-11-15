@@ -20,6 +20,7 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 	  "org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 	  "org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 	  "org.typelevel" %% "spire" % "0.14.1"
+	  // "com.beachape" %% "enumeratum" % "1.5.13"
 )
 
 lazy val commonCredentialsAndResolvers = Seq(
@@ -37,7 +38,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.7.2-SNAPSHOT",
+	 	version := "0.7.2",
 		scalaVersion := "2.11.12",
 		conflictManager := ConflictManager.all,
 		autoAPIMappings := true,
@@ -94,7 +95,7 @@ ThisBuild / developers := List(
   )
 )
 
-ThisBuild / description := "Let's clustered everything."
+ThisBuild / description := "Let's cluster the univers !"
 ThisBuild / licenses := List("Apache-2.0" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / homepage := Some(url("https://github.com/Clustering4Ever/Clustering4Ever"))
 

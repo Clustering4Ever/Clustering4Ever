@@ -1,4 +1,4 @@
-package clustering4ever.spark.indexes
+package org.clustering4ever.spark.indexes
 /**
  * @author Beck Gaël
  *
@@ -11,8 +11,8 @@ import scala.math.{max, log, sqrt}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel
-import clustering4ever.scala.indexes.NmiNormalizationNature._
-import clustering4ever.util.ClusteringIndexesCommons
+import org.clustering4ever.scala.indexes.NmiNormalizationNature._
+import org.clustering4ever.util.ClusteringIndexesCommons
 /**
  *
  */

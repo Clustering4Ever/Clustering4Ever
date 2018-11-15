@@ -1,4 +1,4 @@
-package clustering4ever.spark.clustersanalysis
+package org.clustering4ever.spark.clustersanalysis
 /**
  * @author Beck Gaël
  */
@@ -8,12 +8,12 @@ import scala.language.higherKinds
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.math.distances.{ClusterizableDistance, Distance, ContinuousDistance, BinaryDistance}
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.util.ClusterBasicOperations
-import clustering4ever.util.SumVectors
-import clustering4ever.scala.clusteranalysis.ClustersAnalysisCommons
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.math.distances.{ClusterizableDistance, Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.util.ClusterBasicOperations
+import org.clustering4ever.util.SumVectors
+import org.clustering4ever.scala.clusteranalysis.ClustersAnalysisCommons
 /**
  *
  */
@@ -68,7 +68,7 @@ class BinaryClustersAnalysis[
     D <: BinaryDistance[V[Int]]
 ](clusterized: RDD[Cz[ID, O, V[Int]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]) extends ClustersAnalysis[ID, O, V[Int], Cz[ID, O, V[Int]], D](clusterized, metric) {
 
-    import clustering4ever.util.VectorsBasicOperationsImplicits._
+    import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 
     if( vectorHeader.isDefined ) require(clusterized.first.vector.size == vectorHeader.size)
 

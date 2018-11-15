@@ -1,4 +1,4 @@
-package clustering4ever.scala.indexes
+package org.clustering4ever.scala.indexes
 /**
  * @author Beck Gaël
  */

@@ -1,4 +1,4 @@
-package clustering4ever.scala.clustering.tensor
+package org.clustering4ever.scala.clustering.tensor
 /**
  * @author ANDRIANTSIORY Dina Faneva, Beck Gaël
  */
@@ -7,13 +7,13 @@ import breeze.linalg.svd.SVD
 import breeze.stats.mean
 import breeze.linalg._
 import scala.math._
-import clustering4ever.clustering.ClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithm
 /**
  * Suppose that we have the matrix T_1 and T_2 from a higher data of dimension n1xn2xn3
  */
 class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm[mutable.ArrayBuffer[DenseMatrix[Double]]] {
 
-  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = {
 
     val m = data.length
     val n1 = data.head.rows
@@ -94,7 +94,7 @@ class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm[m
  */
 object TensorFoldSpectral {
   
-  def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new TensorFoldSpectral(k1, k2)).run(data)
+  def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = (new TensorFoldSpectral(k1, k2)).run(data)(workingVector)
 
 }
  

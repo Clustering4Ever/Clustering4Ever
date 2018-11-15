@@ -1,8 +1,8 @@
-package clustering4ever.scala.clustering.tensor
+package org.clustering4ever.scala.clustering.tensor
 /**
  * @author Beck Gaël
  */
-import clustering4ever.clustering.ClusteringModel
+import org.clustering4ever.clustering.ClusteringModel
 /**
  *
  */

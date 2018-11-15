@@ -1,13 +1,13 @@
-package clustering4ever.stats
+package org.clustering4ever.stats
 /**
  * @author Beck Gaël
  */
 import scala.math.{sqrt, pow, min, max, Pi}
 import scala.collection.{mutable, GenSeq}
-import clustering4ever.util.SumVectors
-import clustering4ever.math.distances.ContinuousDistance
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.util.SumVectors
+import org.clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.clustering.ClusteringCommons
 /**
  *
  */

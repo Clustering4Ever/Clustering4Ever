@@ -1,11 +1,11 @@
-package clustering4ever.scala.clustering.rla
+package org.clustering4ever.scala.clustering.rla
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import clustering4ever.clustering.LocalClusteringAlgorithm
-import clustering4ever.math.distances.Distance
-import clustering4ever.util.SumVectors
+import org.clustering4ever.clustering.LocalClusteringAlgorithm
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.util.SumVectors
 import scala.math.{min, max}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
@@ -22,7 +22,7 @@ class RLA[O, D <: Distance[O]](
 	/**
 	 * Run the Random Local Clustering
 	 */
-	def run(data: GenSeq[O]): RLAModel[O, D] = {
+	def run(data: GenSeq[O])(implicit workingVector: Int = 0): RLAModel[O, D] = {
 
 		@annotation.tailrec
 		def go(data: GenSeq[O], medoids: mutable.HashMap[Int, O], clusterID: Int): mutable.HashMap[Int, O] = {
@@ -48,9 +48,9 @@ object RLA {
 	/**
 	 * Run the RLA
 	 */
-	def run[O, D <: Distance[O]](data: GenSeq[O], epsilon: Double, metric: D): RLAModel[O, D] = {
+	def run[O, D <: Distance[O]](data: GenSeq[O], epsilon: Double, metric: D)(implicit workingVector: Int = 0): RLAModel[O, D] = {
 		val rlc = new RLA[O, D](epsilon, metric)
-		val rlcModel = rlc.run(data)
+		val rlcModel = rlc.run(data)(workingVector)
 		rlcModel
 	}
 }

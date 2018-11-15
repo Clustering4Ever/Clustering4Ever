@@ -1,4 +1,4 @@
-package clustering4ever.spark.indexes
+package org.clustering4ever.spark.indexes
 /**
  * @author Beck Gaël
  */
@@ -8,10 +8,10 @@ import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
-import clustering4ever.clustering.ClusteringCommons
-import clustering4ever.util.ClusterBasicOperations
-import clustering4ever.scala.indexes.InternalIndexesCommons
-import clustering4ever.math.distances.Distance
+import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.util.ClusterBasicOperations
+import org.clustering4ever.scala.indexes.InternalIndexesCommons
+import org.clustering4ever.math.distances.Distance
 /**
  * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
  */

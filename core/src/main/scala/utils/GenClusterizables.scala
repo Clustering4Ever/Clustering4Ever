@@ -1,10 +1,10 @@
-package clustering4ever.util
+package org.clustering4ever.util
 /**
  * @author Beck Gaël
  */
-import clustering4ever.scala.vectorizables.{RealVector, BinaryVector, MixtVector}
-import clustering4ever.scala.clusterizables.EasyClusterizable
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.scala.vectorizables.{RealVector, BinaryVector, MixtVector}
+import org.clustering4ever.scala.clusterizables.EasyClusterizable
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  *
  */

@@ -1,4 +1,4 @@
-package clustering4ever.scala.indexes
+package org.clustering4ever.scala.indexes
 /**
  * @author Beck Gaël
  */
@@ -6,11 +6,11 @@ import scala.language.higherKinds
 import scala.math.{max, min}
 import scala.collection.{GenSeq, mutable}
 import scala.language.higherKinds
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.binary.Hamming
-import clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
-import clustering4ever.clustering.ClusteringCommons
-import clustering4ever.util.ClusterBasicOperations
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.binary.Hamming
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.util.ClusterBasicOperations
 /**
  *
  */

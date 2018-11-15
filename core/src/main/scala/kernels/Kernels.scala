@@ -1,4 +1,4 @@
-package clustering4ever.scala.kernels
+package org.clustering4ever.scala.kernels
 /**
  * @author Beck Gaël
  */
@@ -7,10 +7,10 @@ import scala.math.{exp, tanh, sqrt, Pi, log}
 import scala.collection.GenSeq
 import spire.math.{Numeric => SNumeric}
 import breeze.linalg.{DenseVector, DenseMatrix, sum, inv}
-import clustering4ever.math.distances.scalar.Euclidean
-import clustering4ever.math.distances.{Distance, ContinuousDistance}
-import clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
-import clustering4ever.scala.kernels.KernelNature._
+import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
+import org.clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
+import org.clustering4ever.scala.kernels.KernelNature._
 /**
  *
  */
@@ -28,7 +28,7 @@ trait Kernel[V, +KA <: KernelArgs] extends Serializable {
  *
  */
 object KernelUtils {
-	import clustering4ever.util.VectorsBasicOperationsImplicits._
+	import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 	/**
 	 *
 	 */
@@ -45,7 +45,7 @@ object KernelUtils {
 /**
  *
  */
-class KernelGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends Kernel[V[Double], KernelArgsGaussian[V, D]] {
+case class KernelGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends Kernel[V[Double], KernelArgsGaussian[V, D]] {
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-lambda|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - lambda is the bandwidth
@@ -71,7 +71,7 @@ class KernelGaussian[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: Continuous
 /**
  *
  */
-class KernelFlat[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends Kernel[V[Double], KernelArgsFlat[V, D]] {
+case class KernelFlat[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends Kernel[V[Double], KernelArgsFlat[V, D]] {
 	/**
 	 *
 	 */
@@ -95,7 +95,7 @@ class KernelFlat[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDist
 /**
  *
  */
-class KernelSigmoid[V[Double] <: Seq[Double]](val kernelArgs: KernelArgsSigmoid) extends Kernel[V[Double], KernelArgsSigmoid] {
+case class KernelSigmoid[V[Double] <: Seq[Double]](val kernelArgs: KernelArgsSigmoid) extends Kernel[V[Double], KernelArgsSigmoid] {
 	/**
 	 *
 	 */
@@ -170,7 +170,7 @@ trait KnnKernelRealMeta[
 /**
  *
  */
-class KnnKernelReal[
+case class KnnKernelReal[
 	V[Double] <: Seq[Double],
 	D[V <: Seq[Double]] <: ContinuousDistance[V],
 	Args[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]] <: KernelArgsKnnReal[V, D]
@@ -178,7 +178,7 @@ class KnnKernelReal[
 /**
  *
  */
-class KnnKernelEuclidean[
+case class KnnKernelEuclidean[
 	V[Double] <: Seq[Double],
 	D[V <: Seq[Double]] <: Euclidean[V],
 	Args[V[Double] <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]] <: KernelArgsEuclideanKnn[V, D]

@@ -1,8 +1,8 @@
-package clustering4ever.scala.vectorizables
+package org.clustering4ever.scala.vectorizables
 /**
  * @author Beck Gaël
  */
-import clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  *
  */
@@ -16,19 +16,19 @@ class Vector[V](o: V) extends Vectorizable[V, V](o, identity)
 /**
  *
  */
-class RealVectorizable[O, V <: Seq[Double]](o: O, toVector: O => V = identity _) extends Vectorizable[O, V](o, toVector)
+class RealVectorizable[O, V <: Seq[Double]](override val o: O, toVector: O => V = identity _) extends Vectorizable[O, V](o, toVector)
 /**
  *
  */
-class RealVector[V <: Seq[Double]](vector: V) extends RealVectorizable[V, V](vector, identity)
+case class RealVector[V <: Seq[Double]](vector: V) extends RealVectorizable[V, V](vector, identity)
 /**
  *
  */
-class BinaryVectorizable[O, V <: Seq[Int]](o: O, toVector: O => V = identity _) extends Vectorizable[O, V](o, toVector)
+class BinaryVectorizable[O, V <: Seq[Int]](override val o: O, toVector: O => V = identity _) extends Vectorizable[O, V](o, toVector)
 /**
  *
  */
-class BinaryVector[V <: Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector, identity)
+case class BinaryVector[V <: Seq[Int]](vector: V) extends BinaryVectorizable[V, V](vector, identity)
 /**
  *
  */
@@ -36,4 +36,4 @@ class MixtVectorizable[O, Vb <: Seq[Int], Vs <: Seq[Double]](o: O, toVector: O =
 /**
  *
  */
-class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](o: BinaryScalarVector[Vb, Vs]) extends MixtVectorizable[BinaryScalarVector[Vb, Vs], Vb, Vs](o, identity)
+case class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](override val o: BinaryScalarVector[Vb, Vs]) extends MixtVectorizable[BinaryScalarVector[Vb, Vs], Vb, Vs](o, identity)

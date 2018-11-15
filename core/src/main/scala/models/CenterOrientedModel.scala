@@ -1,8 +1,8 @@
-package clustering4ever.clustering
+package org.clustering4ever.clustering
 /**
  * @author Beck Gaël
  */
-import clustering4ever.math.distances.{Distance, ClusterizableDistance}
+import org.clustering4ever.math.distances.{Distance, ClusterizableDistance}
 import scala.collection.{mutable, GenSeq}
 /**
  *

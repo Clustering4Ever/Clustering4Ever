@@ -1,11 +1,11 @@
-package clustering4ever.scala.clustering.kcenters
+package org.clustering4ever.scala.clustering.kcenters
 /**
  * @author Beck Gaël
  */
 import scala.collection.{mutable, GenSeq}
-import clustering4ever.math.distances.Distance
-import clustering4ever.scala.clusterizables.Clusterizable
-import clustering4ever.clustering.CenterOrientedModel
+import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clustering.CenterOrientedModel
 /**
  *
  */
@@ -23,7 +23,7 @@ class KCentersModel[
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict(data: GenSeq[Cz])(implicit i: DummyImplicit): GenSeq[Cz] = data.map( rc => rc.setClusterID(centerPredict(rc.vector)) )
+	def centerPredict(data: GenSeq[Cz])(implicit i: DummyImplicit): GenSeq[Cz] = data.map( rc => rc.addClusterID(centerPredict(rc.vector)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
@@ -33,5 +33,5 @@ class KCentersModel[
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredict(data: GenSeq[Cz], k: Int, trainDS: Seq[(ClusterID, V)]): GenSeq[Cz] = data.map( rc => rc.setClusterID(knnPredict(rc.vector, k, trainDS)) )
+	def knnPredict(data: GenSeq[Cz], k: Int, trainDS: Seq[(ClusterID, V)]): GenSeq[Cz] = data.map( rc => rc.addClusterID(knnPredict(rc.vector, k, trainDS)) )
 }

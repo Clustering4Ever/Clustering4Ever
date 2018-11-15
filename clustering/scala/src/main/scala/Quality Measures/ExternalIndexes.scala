@@ -1,11 +1,11 @@
-package clustering4ever.scala.indexes
+package org.clustering4ever.scala.indexes
 /**
  * @author Beck Gaël
  */
 import scala.math.{max, log, sqrt}
 import scala.collection.GenSeq
-import clustering4ever.util.ClusteringIndexesCommons
-import clustering4ever.scala.indexes.NmiNormalizationNature._
+import org.clustering4ever.util.ClusteringIndexesCommons
+import org.clustering4ever.scala.indexes.NmiNormalizationNature._
 import scala.collection.mutable
 /**
  *

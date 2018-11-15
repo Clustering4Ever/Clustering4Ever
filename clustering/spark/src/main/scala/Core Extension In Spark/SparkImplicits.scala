@@ -1,10 +1,10 @@
-package clustering4ever.util
+package org.clustering4ever.util
 /**
  * @author Beck Gaël
  */
 import scala.language.implicitConversions
 import org.apache.spark.rdd.RDD
-import clustering4ever.scala.clusterizables.EasyClusterizable
+import org.clustering4ever.scala.clusterizables.EasyClusterizable
 /**
  *
  */
