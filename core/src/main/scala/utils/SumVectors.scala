@@ -8,6 +8,7 @@ import scala.collection.GenSeq
 import scala.language.higherKinds
 import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.scala.measurableclass.BinaryScalarVector
+import scala.collection.mutable
 /**
  *
  */
@@ -15,13 +16,18 @@ object VectorsBasicOperationsImplicits {
 	/**
 	 *
 	 */
-	implicit def addClassicVectors[@specialized(Int, Double) N, V[N] <: Seq[N]](v1: V[N], altVectors: V[N])(implicit num: SNumeric[N]): V[N] = v1.zip(altVectors).map{ case (a, b) => num.plus(a, b) }.asInstanceOf[V[N]]
+	implicit def addClassicVectors[@specialized(Int, Double) N, V[X] <: Seq[X]](v1: V[N], v2: V[N])(implicit num: SNumeric[N]): V[N] = {
+		val builder = v1.genericBuilder.asInstanceOf[mutable.Builder[N, V[N]]]
+		builder.sizeHint(v1.size)
+		(0 until v1.size).foreach( i => builder += num.plus(v1(i), v2(i)) )
+		builder.result
+	}
 	/**
 	 *
 	 */
-	implicit def addMixtVectors[Vb[Int] <: Seq[Int], Vs[Double] <: Seq[Double]](v1: BinaryScalarVector[Vb[Int], Vs[Double]], altVectors: BinaryScalarVector[Vb[Int], Vs[Double]]): BinaryScalarVector[Vb[Int], Vs[Double]] = {	
-		val binaryPart = addClassicVectors(v1.binary, altVectors.binary)
-		val scalarPart = addClassicVectors(v1.scalar, altVectors.scalar)
+	implicit def addMixtVectors[Vb[Int] <: Seq[Int], Vs[Double] <: Seq[Double]](v1: BinaryScalarVector[Vb[Int], Vs[Double]], v2: BinaryScalarVector[Vb[Int], Vs[Double]]): BinaryScalarVector[Vb[Int], Vs[Double]] = {
+		val binaryPart = addClassicVectors(v1.binary, v2.binary)
+		val scalarPart = addClassicVectors(v1.scalar, v2.scalar)
 		new BinaryScalarVector(binaryPart, scalarPart)
 	}
 }
@@ -34,7 +40,7 @@ object SumVectors {
 	/**
 	 * add two vector no mather their types
 	 */
-	def sumVectors[V](v1: V, altVectors: V)(implicit f: (V, V) => V): V = f.apply(v1, altVectors)
+	def sumVectors[V](v1: V, v2: V)(implicit f: (V, V) => V): V = f(v1, v2)
 	/**
 	 * Reduce an Array[Array[N]] into an Array[N]
 	 */
@@ -42,7 +48,7 @@ object SumVectors {
 	/**
 	 * Reduce Array of multiple vectors
 	 */
-	def reduceMultipleVectorsMatrice[V[Double] <: Seq[Double], It[V] <: Seq[V]](a: It[V[Double]], b: It[V[Double]]) = a.zip(b).map{ case (c, d) => sumVectors(c, d) }.asInstanceOf[It[V[Double]]]
+	def reduceMultipleVectorsMatrice[V <: Seq[Double], It[X] <: Seq[X]](a: It[V], b: It[V])(implicit f: (V, V) => V) = a.zip(b).map{ case (c, d) => sumVectors(c, d) }.asInstanceOf[It[V]]
 	/**
 	 *
 	 */

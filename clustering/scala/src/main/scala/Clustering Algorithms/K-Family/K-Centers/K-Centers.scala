@@ -31,8 +31,8 @@ abstract class KCommons[
 	 * Check if there are empty centers and remove them
 	 */
 	protected def removeEmptyClusters(centers: mutable.HashMap[Int, V], kCentersBeforeUpdate: mutable.HashMap[Int, V], centersCardinality: mutable.HashMap[Int, Int]): Unit = {
-		val emptyCenterIDs = centersCardinality.collect{ case (clusterID, cardinality) if( cardinality == 0 ) => clusterID }
-		if( ! emptyCenterIDs.isEmpty ) {
+		val emptyCenterIDs = centersCardinality.collect{ case (clusterID, cardinality) if(cardinality == 0) => clusterID }
+		if(!emptyCenterIDs.isEmpty) {
 			centers --= emptyCenterIDs
 			kCentersBeforeUpdate --= emptyCenterIDs
 		}
@@ -75,18 +75,18 @@ class KCenters[
 	/**
 	 * Run the K-Centers
 	 */
-	def run(data: GenSeq[Cz])(implicit workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] =	{
+	def run(data: GenSeq[Cz])(workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] =	{
 		/**
 		 *
 		 */
-		val centers: mutable.HashMap[Int, V] = if( initializedCenters.isEmpty ) {
+		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) {
 			def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 			
-			val centersBuff = mutable.ArrayBuffer(data(Random.nextInt(data.size)).vector)
+			val centersBuff = mutable.ArrayBuffer(data(Random.nextInt(data.size)).vector(workingVector))
 
 			(1 until k).foreach( i => centersBuff += Stats.obtainCenterFollowingWeightedDistribution[V](data.map{ cz =>
-				val toPow2 = metric.d(cz.vector, obtainNearestCenter(cz.vector, centersBuff))
-				(cz.vector, toPow2 * toPow2)
+				val toPow2 = metric.d(cz.vector(workingVector), obtainNearestCenter(cz.vector(workingVector), centersBuff))
+				(cz.vector(workingVector), toPow2 * toPow2)
 			}.toBuffer) )
 
 			val centers = mutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
@@ -103,7 +103,7 @@ class KCenters[
 		var allCentersHaveConverged = false
 		while( cpt < maxIterations && ! allCentersHaveConverged ) {
 			// Allocation to nearest centroid
-			val clusterized = data.map( cz => (obtainNearestCenterID(cz.vector, centers), cz.vector) )
+			val clusterized = data.map( cz => (obtainNearestCenterID(cz.vector(workingVector), centers), cz.vector(workingVector)) )
 			// Keep old position of centroids
 			val kCentersBeforeUpdate = centers.clone
 			// Compute centers and cardinality of each cluster
@@ -116,7 +116,7 @@ class KCenters[
 			allCentersHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon)
 			cpt += 1
 		}
-		new KCentersModel[ID, O, V, Cz, D](centers, metric)
+		new KCentersModel[ID, O, V, Cz, D](centers, metric, workingVector)
 	}
 }
 /**
@@ -138,8 +138,9 @@ object KCenters {
 		epsilon: Double,
 		maxIterations: Int,
 		metric: D,
+		workingVector: Int = 0,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	)(implicit workingVector: Int = 0): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
+	): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
 		val kCenter = new KCenters[ID, O, V, Cz[ID, O, V], D](k, epsilon, maxIterations, metric, initializedCenters)
 		val kCentersModel = kCenter.run(data)(workingVector)
 		kCentersModel

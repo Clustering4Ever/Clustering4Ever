@@ -7,11 +7,11 @@ import breeze.linalg.svd.SVD
 import breeze.stats.mean
 import breeze.linalg._
 import scala.math._
-import org.clustering4ever.clustering.LocalClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithm
 /**
  *
  */
-class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ArrayBuffer[DenseMatrix[Double]]] {
+class UnfoldingSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
   /**
    * Matricisation of data / Unfolding mode-3
    */
@@ -56,7 +56,7 @@ class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorit
     }
   }
 
-  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
     val m = data.length
     val n1 = data.head.rows
@@ -87,6 +87,6 @@ class UnfoldingSpectral(val k1: Int, val k2: Int) extends LocalClusteringAlgorit
  */
 object UnfoldingSpectral{
 
-  def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = (new UnfoldingSpectral(k1, k2)).run(data)(workingVector)
+  def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new UnfoldingSpectral(k1, k2)).run(data)
 
 }

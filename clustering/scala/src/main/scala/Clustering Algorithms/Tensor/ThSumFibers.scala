@@ -7,15 +7,15 @@ import breeze.math._
 import breeze.numerics._
 import scala.collection.mutable
 import breeze.stats.mean
-import org.clustering4ever.clustering.LocalClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithm
 /**
  *
  */
-class ThSumFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mutable.ArrayBuffer[DenseMatrix[Double]]] {
+class ThSumFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
 	/**
 	 *
 	 */
-  	def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = {
+  	def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
 		val m = data.length
 		val n1 = data.head.rows
@@ -58,6 +58,6 @@ class ThSumFibers(val k1: Int, val k2: Int) extends LocalClusteringAlgorithm[mut
  */
 object ThSumFibers {
 
-    def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]])(implicit workingVector: Int = 0) = (new ThSumFibers(k1, k2)).run(data)(workingVector)
+    def train(k1: Int, k2: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new ThSumFibers(k1, k2)).run(data)
 
 }

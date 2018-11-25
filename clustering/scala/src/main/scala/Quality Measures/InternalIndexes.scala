@@ -18,13 +18,13 @@ class InternalIndexes[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric
   /**
    *
    */
-  lazy val clustersIDs = if( clustersIDsOp.isDefined ) clustersIDsOp.get else mutable.ArraySeq(clusterized.map(_._1).distinct.seq:_*).sorted
+  lazy val clustersIDs = if(clustersIDsOp.isDefined) clustersIDsOp.get else mutable.ArraySeq(clusterized.map(_._1).distinct.seq:_*).sorted
   /**
    *
    */
   lazy val daviesBouldin: Double = {
 
-    if( clustersIDs.size == 1 ) {
+    if(clustersIDs.size == 1) {
       println(" One Cluster found")
       0D
     }
@@ -39,9 +39,9 @@ class InternalIndexes[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric
           val agg = aggregate.map(_._2)
           val a = agg.head
           val b = agg.last
-          if( a._1.isDefined ) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get))
+          if(a._1.isDefined) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get))
         }
-      val cart = for( i <- clustersWithCenterandScatters; j <- clustersWithCenterandScatters if( i._1 != j._1 ) ) yield (i, j)
+      val cart = for( i <- clustersWithCenterandScatters; j <- clustersWithCenterandScatters if i._1 != j._1 ) yield (i, j)
       val rijList = cart.map{ case ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) => (idClust1, good(centroid1, centroid2, scatter1, scatter2, metric)) }
       val di = rijList.groupBy(_._1).map{ case (_, goods) => goods.map(_._2).reduce(max(_,_)) }
       val numCluster = clustersIDs.size
@@ -73,7 +73,7 @@ class InternalIndexes[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric
      * Return index of point and the corresponding a(i) Array[(Int, Double)]
      */
     def aiList(cluster: Seq[(Int, V)]): Map[Int, Double] = {
-      val pointPairs = for( i <- cluster; j <- cluster if( i._1 != j._1 ) ) yield (i,j)
+      val pointPairs = for( i <- cluster; j <- cluster if i._1 != j._1 ) yield (i, j)
       val allPointsDistances = pointPairs.map( pp => ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2)) )
       val totalDistanceList = allPointsDistances.map(v => (v._1._1, v._2)).groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).sum) }
       val count = totalDistanceList.size
@@ -100,7 +100,7 @@ class InternalIndexes[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric
           val agg = aggregate.map(_._2)
           val a = agg.head
           val b = agg.last
-          if( a._1.isDefined ) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get))
+          if(a._1.isDefined) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get))
         }
         .map( x => (x._2._1 - x._2._2) / max(x._2._2, x._2._1) )
       val sk = si.sum / si.size

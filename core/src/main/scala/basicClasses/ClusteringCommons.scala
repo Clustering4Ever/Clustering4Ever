@@ -16,17 +16,21 @@ trait ClusteringModel extends ClusteringCommons
 /**
  * The basic trait shared by all clustering algorithms
  */
-trait ClusteringAlgorithm[DataType] extends ClusteringCommons {
+trait ClusteringAlgorithm extends ClusteringCommons
+/**
+ * The basic trait shared by all clustering algorithms
+ */
+trait ClusteringAlgorithmExt[DataType] extends ClusteringAlgorithm {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
 	 */
-	def run(data: DataType)(implicit workingVector: Int = 0): ClusteringModel
+	def run(data: DataType)(workingVector: Int = 0): ClusteringModel
 }
 /**
  * The basic trait shared by all local clustering algorithms
  */
-trait LocalClusteringAlgorithm[DataType <: GenSeq[_]] extends ClusteringAlgorithm[DataType]
+trait LocalClusteringAlgorithm[DataType <: GenSeq[_]] extends ClusteringAlgorithmExt[DataType]
 /**
  *
  */

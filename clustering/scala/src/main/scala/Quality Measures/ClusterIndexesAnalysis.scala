@@ -45,9 +45,9 @@ abstract class ClustersIndexesAnalysis[
     /**
      *
      */
-    def computeExternalsIndexes[D <: Distance[V]](metric: D, indexes: InternalsIndexesType*): Seq[(InternalsIndexesType, Double)] = {
+    def computeInternalsIndexes[D <: Distance[V]](metric: D, indexes: InternalsIndexesType*)(workingVector: Int = 0, clusteringNumber: Int = 0): Seq[(InternalsIndexesType, Double)] = {
         
-        val idAndVector: GenSeq[(ClusterID, V)] = clusterized.map( cz => (cz.clusterID.get, cz.vector) )
+        val idAndVector: GenSeq[(ClusterID, V)] = clusterized.map( cz => (cz.clusterID(clusteringNumber), cz.vector(workingVector)) )
 
         val internalIndexes = new InternalIndexes(idAndVector, metric)
 
@@ -63,9 +63,9 @@ abstract class ClustersIndexesAnalysis[
     /**
      *
      */
-    def computeInternalsIndexes(groundTruth: GenSeq[ClusterID], indexes: ExternalsIndexesType*): Seq[(ExternalsIndexesType, Double)] = {
+    def computeExternalsIndexes(groundTruth: GenSeq[ClusterID], indexes: ExternalsIndexesType*)(clusteringNumber: Int = 0): Seq[(ExternalsIndexesType, Double)] = {
 
-        val onlyClusterIDs = clusterized.map(_.clusterID.get)
+        val onlyClusterIDs = clusterized.map(_.clusterID(clusteringNumber))
 
         indexes.par.map{ index =>
             index match {

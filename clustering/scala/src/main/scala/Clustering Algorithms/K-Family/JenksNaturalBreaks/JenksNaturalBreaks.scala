@@ -4,11 +4,11 @@ package org.clustering4ever.scala.clustering
  */
 import scala.collection.{mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
-import org.clustering4ever.clustering.{LocalClusteringAlgorithm, ClusteringModel}
+import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel}
 /**
  *
  */
-class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumberCategories: Int)(implicit num: Numeric[N]) extends LocalClusteringAlgorithm[GenSeq[N]] {
+class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumberCategories: Int)(implicit num: Numeric[N]) extends ClusteringAlgorithm {
   /**
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
    * Return breaks position in the sorted GenSeq
@@ -16,7 +16,7 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumber
    * @param desiredNumberCategories : number of breaks user desire
    * @return Indexes of breaks in data sequence
    */
-  def run(data: GenSeq[N])(implicit workingVector: Int = 0): JenksNaturalBreaksModel[N] = {
+  def run(data: GenSeq[N]): JenksNaturalBreaksModel[N] = {
 
     val nbCat = desiredNumberCategories - 1
     val nbValues = data.size
@@ -40,9 +40,9 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumber
         w += 1
         v = s2 - (s1 * s1) / w
         i4 = i3 - 1
-        if( i4 != 0 ) {
+        if(i4 != 0) {
           (2 to nbCat).foreach{ j =>
-            if( mat2(l - 1)(j - 1) >= (v + mat2(i4 - 1)(j - 2)) ) {
+            if(mat2(l - 1)(j - 1) >= (v + mat2(i4 - 1)(j - 2))) {
               mat1(l - 1)(j - 1) = i3
               mat2(l - 1)(j - 1) = v + mat2(i4 - 1)(j - 2)
             }
@@ -54,18 +54,18 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumber
       mat2(l - 1)(0) = v
     }
           
-    val kclass = (1 to nbCat).map(_.toDouble).toArray
+    val kclass = (1 to nbCat).map(_.toDouble).toBuffer
 
     kclass(nbCat - 1) = nbValues
 
-    def update(j: Int, k: Int, kclass: Array[Double]) = {
+    def update(j: Int, k: Int, kclass: mutable.Buffer[Double]) = {
       val id = (mat1(k - 1)(j - 1)).toInt - 1
       kclass(j - 2) = id
       (id, kclass)      
     }
 
     @annotation.tailrec
-    def go(n: Int, k: Int, kclass: Array[Double]): (Int, Array[Double]) = {
+    def go(n: Int, k: Int, kclass: mutable.Buffer[Double]): (Int, mutable.Buffer[Double]) = {
       val (kUpdt, kclassUpdt) = update(n, k, kclass)
       if( n > 2 ) go(n - 1, kUpdt, kclassUpdt)
       else (kUpdt, kclassUpdt)
@@ -86,7 +86,7 @@ class JenksNaturalBreaks[@specialized(Int, Double, Long, Float) N](desiredNumber
  */
 object JenksNaturalBreaks {
 
-  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N], workingVector: Int = 0): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(desiredNumberCategories)).run(data)(workingVector)
+  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(desiredNumberCategories)).run(data)
 
 }
 /**

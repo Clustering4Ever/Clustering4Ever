@@ -10,7 +10,7 @@ You will find additional contents about clustering algorithms **[here](https://g
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.2"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.3"` to your `libraryDependencies`
 
 Eventually add this resolver :
 
@@ -54,17 +54,19 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 * _Silhouette_
 * **_Ball Hall_**
 
+### Features selection
+
+* **_Rough Set_**
+
 ## C4E-Notebook examples
 
 Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
 
 ## Miscellaneous
 
-### Implicit conversions
+### Helper functions to generate Clusterizable collections 
 
-If you have classic real or binary matrix, you can bypass transformation from **GenSeq/RDD[Vector]** to **GenSeq/RDD[Clusterizable]** by importing implicit conversions functions :
-* `org.clustering4ever.util.ScalaImplicits._`
-* `org.clustering4ever.util.SparkImplicits._`
+You can generate your collections with basic Clusterizable using helpers in `org.clustering4ever.util.{ClusterizableGenerator, ScalaImplicits, SparkImplicits}`
 
 ### [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/References)
 
@@ -74,7 +76,6 @@ If you have classic real or binary matrix, you can bypass transformation from **
 * new scalable clustering algorithms
 * Gaussian Mixture Models
 * Meta heuristic
-* Rough Set Features selection
 
 ### What data structures are recommended for best performances
 

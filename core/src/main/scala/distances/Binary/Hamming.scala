@@ -42,10 +42,10 @@ class EasyHamming extends Hamming[mutable.ArrayBuffer[Int]]
 /**
  *
  */
-class HammingClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Int], D <: Hamming[V], Cz <: Clusterizable[ID, O, V, Cz]](val classicalMetric: D) extends HammingMeta with BinaryClusterizableDistance[Cz, V, D] {
+class HammingClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Int], D <: Hamming[V], Cz <: Clusterizable[ID, O, V, Cz]](val classicalMetric: D, workingVector: Int = 0) extends HammingMeta with BinaryClusterizableDistance[Cz, V, D] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
 	  */
-	def d(dot1: Cz, dot2: Cz): Double = hamming(dot1.vector, dot2.vector)
+	def d(dot1: Cz, dot2: Cz): Double = hamming(dot1.vector(workingVector), dot2.vector(workingVector))
 }

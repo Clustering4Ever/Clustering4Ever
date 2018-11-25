@@ -30,7 +30,7 @@ trait CenterOrientedModel[V, D <: Distance[V]] extends ClusteringModel {
 	 * Time complexity O(n<sub>trainDS</sub>)
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors
 	 */
-	def knnPredict(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): ClusterID = trainDS.sortBy{ case (_, vTrain) => metric.d(vTrain, v) }.take(k).map(_._1).groupBy(identity).maxBy(_._2.size)._1
+	def knnPredict(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): ClusterID = trainDS.sortBy{ case (_, vTrain) => metric.d(vTrain, v) }.take(k).groupBy(_._1).maxBy(_._2.size)._1
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method

@@ -5,8 +5,7 @@ import scala.collection.mutable
 /**
  *
  */
-case class NmiAccumulator(initialValue: mutable.ArrayBuffer[mutable.ArrayBuffer[Double]], x: Int, y: Int) extends AccumulatorV2[mutable.ArrayBuffer[mutable.ArrayBuffer[Double]], mutable.ArrayBuffer[mutable.ArrayBuffer[Double]]]
-{
+case class NmiAccumulator(initialValue: mutable.ArrayBuffer[mutable.ArrayBuffer[Double]], x: Int, y: Int) extends AccumulatorV2[mutable.ArrayBuffer[mutable.ArrayBuffer[Double]], mutable.ArrayBuffer[mutable.ArrayBuffer[Double]]] {
   /**
    *
    */

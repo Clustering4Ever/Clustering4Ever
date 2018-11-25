@@ -22,15 +22,15 @@ class RLA[O, D <: Distance[O]](
 	/**
 	 * Run the Random Local Clustering
 	 */
-	def run(data: GenSeq[O])(implicit workingVector: Int = 0): RLAModel[O, D] = {
+	def run(data: GenSeq[O])(workingVector: Int = 0): RLAModel[O, D] = {
 
 		@annotation.tailrec
 		def go(data: GenSeq[O], medoids: mutable.HashMap[Int, O], clusterID: Int): mutable.HashMap[Int, O] = {
-			if( ! data.isEmpty ) {
+			if(!data.isEmpty) {
 				val randomMedoid = data.head
 				val toTreat = data.filterNot( v => metric.d(randomMedoid, v) <= epsilon )
 				medoids += ((clusterID, randomMedoid))
-				if( ! data.isEmpty ) go(toTreat, medoids, clusterID + 1)
+				if(!data.isEmpty) go(toTreat, medoids, clusterID + 1)
 				else medoids	
 			}
 			else medoids
@@ -48,7 +48,7 @@ object RLA {
 	/**
 	 * Run the RLA
 	 */
-	def run[O, D <: Distance[O]](data: GenSeq[O], epsilon: Double, metric: D)(implicit workingVector: Int = 0): RLAModel[O, D] = {
+	def run[O, D <: Distance[O]](data: GenSeq[O], epsilon: Double, metric: D, workingVector: Int = 0): RLAModel[O, D] = {
 		val rlc = new RLA[O, D](epsilon, metric)
 		val rlcModel = rlc.run(data)(workingVector)
 		rlcModel

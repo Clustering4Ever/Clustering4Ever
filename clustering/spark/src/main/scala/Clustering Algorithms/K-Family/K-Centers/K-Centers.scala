@@ -67,11 +67,11 @@ class KCenters[
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz])(implicit workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] = {
+	def run(data: RDD[Cz])(workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] = {
 		/**
 		 * To upgrade
 		 */
-		val centers: mutable.HashMap[Int, V] = if( initializedCenters.isEmpty ) kmppInitializationRDD(data.map(_.vector).persist(persistanceLVL), k) else initializedCenters
+		val centers: mutable.HashMap[Int, V] = if( initializedCenters.isEmpty ) kmppInitializationRDD(data.map(_.vector(workingVector)).persist(persistanceLVL), k) else initializedCenters
 		val kCentersBeforeUpdate: mutable.HashMap[Int, V] = centers.clone
 		val clustersCardinality: mutable.HashMap[Int, Long] = centers.map{ case (clusterID, _) => (clusterID, 0L) }
 		
@@ -89,7 +89,7 @@ class KCenters[
 			allModHaveConverged
 		}
 		def obtainCentersInfo = {
-				data.map( cz => (obtainNearestCenterID(cz.vector, centers), cz.vector) ).aggregateByKey(emptyValue)(mergeValue, mergeCombiners)
+				data.map( cz => (obtainNearestCenterID(cz.vector(workingVector), centers), cz.vector(workingVector)) ).aggregateByKey(emptyValue)(mergeValue, mergeCombiners)
 					.map{ case (clusterID, aggregate) => 
 						(
 							clusterID,

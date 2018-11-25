@@ -2,7 +2,7 @@ package org.clustering4ever.scala.clusterizables
 /**
  * @author Beck Gaël
  */
-import scala.collection.immutable
+import scala.collection.{immutable, mutable}
 import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.scala.vectorizables.{Vectorizable, Vector, MixtVectorizable, RealVectorizable, BinaryVectorizable}
 import org.clustering4ever.scala.measurableclass.BinaryScalarVector
@@ -52,7 +52,7 @@ case class IdentifiedVector[ID: Numeric, V](
 	/**
 	 *
 	 */
-	def addAltVector(idx: Int, altVector: V) = this.copy(altVectors = if( ! altVectors.isEmpty ) altVectors + ((idx, altVector)) else immutable.HashMap(idx -> altVector))
+	def addAltVector(idx: Int, altVector: V) = this.copy(altVectors = if(!altVectors.isEmpty) altVectors + ((idx, altVector)) else immutable.HashMap(idx -> altVector))
 	/**
 	 *
 	 */
@@ -70,27 +70,20 @@ case class IdentifiedVector[ID: Numeric, V](
 abstract class Clusterizable[ID: Numeric, O, V, Self <: Clusterizable[ID, O, V, Self]](
 	id: ID, 
 	vectorizable: Vectorizable[O, V],
-	val clusterID: Option[Int] = None
+	val clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int]
 ) extends IdentifiedVectorizable[ID, O, V](id, vectorizable) {
 	/**
 	 *
 	 */
-	def vector(implicit workingVector: Int = 0): V = originalVector
+	def vector(workingVector: Int = 0): V = originalVector
 	/**
 	 *
 	 */
-	def addClusterID(newCID: Int): Self
+	def addClusterID(clusterID: Int): Self
 	/**
 	 *
 	 */
-	override def hashCode(): Int = {
-		val prime = 31
-		var result = 1
-		result = prime * result + id.hashCode
-		result = prime * result + originalVector.hashCode
-		result = prime * result + clusterID.hashCode
-		result
-	}
+	override def hashCode(): Int = id.hashCode
 
 }
 /**
@@ -99,25 +92,17 @@ abstract class Clusterizable[ID: Numeric, O, V, Self <: Clusterizable[ID, O, V, 
 abstract class ClusterizableExt[ID: Numeric, O, V, Self <: ClusterizableExt[ID, O, V, Self]](
 	id: ID, 
 	vectorizable: Vectorizable[O, V],
-	clusterID: Option[Int] = None,
+	clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int],
 	val altVectors: immutable.HashMap[Int, V] = immutable.HashMap.empty[Int, V]
 ) extends Clusterizable[ID, O, V, Self](id, vectorizable, clusterID) with ComplementaryVectors[V, Self] {
 	/**
 	 *
 	 */
-	override def vector(implicit workingVector: Int = 0): V = if( workingVector == 0 ) originalVector else altVectors(workingVector)
+	override def vector(workingVector: Int = 0): V = if(workingVector == 0) originalVector else altVectors(workingVector)
 	/**
 	 *
 	 */
-	override def hashCode(): Int = {
-		val prime = 31
-		var result = 1
-		result = prime * result + id.hashCode
-		result = prime * result + originalVector.hashCode
-		result = prime * result + clusterID.hashCode
-		result = prime * result + altVectors.hashCode
-		result
-	}
+	override def hashCode(): Int = id.hashCode
 
 }
 /**
@@ -126,7 +111,7 @@ abstract class ClusterizableExt[ID: Numeric, O, V, Self <: ClusterizableExt[ID, 
 case class EasyClusterizable[ID: Numeric, O, V](
 	override val id: ID,
 	override val vectorizable: Vectorizable[O, V],
-	override val clusterID: Option[Int] = None
+	override val clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int]
 ) extends Clusterizable[ID, O, V, EasyClusterizable[ID, O, V]](id, vectorizable, clusterID) {
 	/**
 	 *
@@ -144,7 +129,7 @@ case class EasyClusterizable[ID: Numeric, O, V](
 	/**
 	 *
 	 */
-	def addClusterID(newCID: Int): EasyClusterizable[ID, O, V] = this.copy(clusterID = Some(newCID))
+	def addClusterID(newClusterID: Int): EasyClusterizable[ID, O, V] = this.copy(clusterID = clusterID += newClusterID)
 }
 /**
  *
@@ -152,7 +137,7 @@ case class EasyClusterizable[ID: Numeric, O, V](
 case class EasyClusterizableExt[ID: Numeric, O, V](
 	override val id: ID,
 	override val vectorizable: Vectorizable[O, V],
-	override val clusterID: Option[Int] = None,
+	override val clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int],
 	override val altVectors: immutable.HashMap[Int, V] = immutable.HashMap.empty[Int, V]
 ) extends ClusterizableExt[ID, O, V, EasyClusterizableExt[ID, O, V]](id, vectorizable, clusterID, altVectors/*, altClusterIDs*/) {
 	/**
@@ -171,9 +156,9 @@ case class EasyClusterizableExt[ID: Numeric, O, V](
 	/**
 	 *
 	 */
-	def addClusterID(newCID: Int): EasyClusterizableExt[ID, O, V] = this.copy(clusterID = Some(newCID))
+	def addClusterID(newClusterID: Int): EasyClusterizableExt[ID, O, V] = this.copy(clusterID = clusterID += newClusterID)
 	/**
 	 *
 	 */
-	def addAltVector(idx: Int, altVector: V): EasyClusterizableExt[ID, O, V] = this.copy(altVectors = if( ! altVectors.isEmpty ) altVectors + ((idx, altVector)) else immutable.HashMap(idx -> altVector))
+	def addAltVector(idx: Int, altVector: V): EasyClusterizableExt[ID, O, V] = this.copy(altVectors = if(!altVectors.isEmpty) altVectors + ((idx, altVector)) else immutable.HashMap(idx -> altVector))
 }

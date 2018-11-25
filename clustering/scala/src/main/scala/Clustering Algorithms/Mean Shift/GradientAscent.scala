@@ -16,7 +16,7 @@ class GradientAscent[
   @specialized(Int, Long) ID: Numeric,
   O,
   V <: Seq[Double],
-  Cz[ID, O, V <: Seq[Double]] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
+  Cz[ID, O, V] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
   D <: ContinuousDistance[V],
   KArgs <: KernelArgs,
   K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]
@@ -29,20 +29,20 @@ class GradientAscent[
   altVectName: Int = Int.MaxValue
 ) {
 
-  def run(implicit workingVector: Int = 0) = {
+  def run(workingVector: Int = 0) = {
 
     val haveNotConverged = false
-    val kernelLocality = data.map(_.vector)
-    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = data.map( obj => (obj.addAltVector(altVectName, obj.vector), haveNotConverged) )
+    val kernelLocality = data.map(_.vector(workingVector))
+    var gradientAscentData: GenSeq[(Cz[ID, O, V], Boolean)] = data.map( obj => (obj.addAltVector(altVectName, obj.vector(workingVector)), haveNotConverged) )
 
     def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, V], Boolean)]) = {
 
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
         val mode = obj.altVectors(altVectName)
-        val updatedMode = if( haveConverged ) mode else kernel.obtainMode(mode, kernelLocality)
+        val updatedMode = if(haveConverged) mode else kernel.obtainMode(mode, kernelLocality)
         val modeShift = metric.d(updatedMode, mode)
-        val hasConverged = if( modeShift <= epsilon ) {
+        val hasConverged = if(modeShift <= epsilon) {
           cptConvergedPoints += 1
           true
         }
@@ -80,7 +80,7 @@ object GradientAscent {
     ID: Numeric,
     O,
     V <: Seq[Double],
-    Cz[ID, O, V <: Seq[Double]] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
+    Cz[ID, O, V] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
     D <: ContinuousDistance[V],
     KArgs <: KernelArgs,
     K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]

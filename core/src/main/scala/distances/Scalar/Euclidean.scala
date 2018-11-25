@@ -60,10 +60,10 @@ class EasyEuclidean(squareRoot: Boolean = true) extends Euclidean[mutable.ArrayB
 /**
  *
  */
-class EuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Euclidean[V], Cz <: Clusterizable[ID, O, V, Cz]](final val squareRoot: Boolean = true, val classicalMetric: D) extends EuclideanMeta with RealClusterizableDistance[Cz, V, D] {
+class EuclideanClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Euclidean[V], Cz <: Clusterizable[ID, O, V, Cz]](final val squareRoot: Boolean = true, val classicalMetric: D, workingVector: Int = 0) extends EuclideanMeta with RealClusterizableDistance[Cz, V, D] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
 	  */
-	def d(dot1: Cz, dot2: Cz): Double = euclidean(dot1.vector, dot2.vector)
+	def d(dot1: Cz, dot2: Cz): Double = euclidean(dot1.vector(workingVector), dot2.vector(workingVector))
 }

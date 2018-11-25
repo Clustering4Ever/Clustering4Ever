@@ -29,21 +29,22 @@ class KCentersModel[
 	D <: Distance[V]
 	](
 	val centers: mutable.HashMap[Int, V],
-	val metric: D
+	val metric: D,
+	var workingVector: Int = 0
 ) extends CenterOrientedModelDistributed[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict(data: RDD[Cz])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(centerPredict(rc.vector)) )
+	def centerPredict(data: RDD[Cz])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(centerPredict(rc.vector(workingVector))) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(knnPredict(rc.vector, k, trainDS)) )
+	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(knnPredict(rc.vector(workingVector), k, trainDS)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[Cz]): RDD[Cz] = knnPredict(data, k, trainDS.map( rc => (rc.clusterID.get, rc.vector) ))
+	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[Cz], clusteringNumber: Int = 0): RDD[Cz] = knnPredict(data, k, trainDS.map( rc => (rc.clusterID(clusteringNumber), rc.vector(workingVector)) ))
 }

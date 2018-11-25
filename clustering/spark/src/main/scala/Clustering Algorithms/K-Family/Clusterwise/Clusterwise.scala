@@ -11,10 +11,10 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.clustering._
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.broadcast.Broadcast
-import org.clustering4ever.scala.clustering.kcenters.KMeans
+import org.clustering4ever.scala.clustering.kmeans.KMeans
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.util.GenerateClusterizable
+import org.clustering4ever.util.ClusterizableGenerator
 import org.clustering4ever.scala.clusterizables.EasyClusterizable
 import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 
@@ -79,8 +79,8 @@ class Clusterwise[V[Double] <: Seq[Double]](
   		else dataXY
 
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 ) {
-	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => GenerateClusterizable.obtainEasyRealClusterizable[Int, V[Double]](id, (x ++ y).asInstanceOf[V[Double]]) }
-	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, epsilonKmeans, iterMaxKmeans, new Euclidean[V[Double]](squareRoot = true))
+	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) => ClusterizableGenerator.obtainEasyClusterizable(id, (x ++ y).asInstanceOf[V[Double]]) }
+	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, new Euclidean[V[Double]](squareRoot = true), iterMaxKmeans, epsilonKmeans)
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
 	  	  	val microClusterNumbers = kmeansModel.centers.size
 	  	  	val clusterizedData = centerReductRDD.map{ case (id, (x, y)) => (id, unregularClusterIdsByStandardClusterIDs(kmeansModel.centerPredict((x ++ y).asInstanceOf[V[Double]]))) }.seq
