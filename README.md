@@ -4,7 +4,7 @@
 You will find additional contents about clustering algorithms **[here](https://github.com/PhDStudentsP13/Clustering)**.
 <p align="center"><img src ="https://media.giphy.com/media/2viYwU7kHW8uNmmKvd/giphy.gif" /></p>
 
-## [API documentation](http://org.clustering4ever.org/API%20Documentation/)
+## [API documentation](http://www.clustering4ever.org/API%20Documentation/)
 
 ## Include it in your project
 
