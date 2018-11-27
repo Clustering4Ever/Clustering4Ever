@@ -39,7 +39,7 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 * **_K-Means_**
 * **_K-Modes_**
 * **_K-Prototypes_**
-* _Tensor Biclustering_
+* _Tensor Biclustering algorithms (Folding-Spectral, TensorBiclusteringModel, Unfolding-Spectral)_
 * _Mean Shift Gradient Ascent_
 * **[Self Organizing Maps](https://github.com/TugdualSarazin/spark-clustering)**
 * **[G-Stream](https://github.com/Spark-clustering-notebook/G-stream)**
