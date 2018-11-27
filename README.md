@@ -45,6 +45,7 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 * **[G-Stream](https://github.com/Spark-clustering-notebook/G-stream)**
 * **[PatchWork](https://github.com/crim-ca/patchwork)**
 * _Random Local Area_
+* **Clusterwize** 
 
 ### Quality indexes
 
