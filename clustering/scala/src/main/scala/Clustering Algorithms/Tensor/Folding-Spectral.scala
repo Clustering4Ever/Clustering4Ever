@@ -34,11 +34,11 @@ class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
       }
 
       else if( i < t.head.rows - 1 ) {
-        c += (m.t * m)
+        c += cov(m)   // the covariance matrix of m
         matriceColumnset(t, m, c, i + 1, 0, 0)
       }
       else {
-        c += (m.t * m)
+        c += cov(m)
       }
     }
     
@@ -56,11 +56,11 @@ class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
       }
 
       else if( j < t.head.cols - 1 ) {
-        c += (m.t * m)
+        c += cov(m)
         matriceRowset(t, m, c, 0, j + 1, 0)
       }
       else {
-        c += (m.t * m)
+        c += cov(m)
       }
     }
 

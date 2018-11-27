@@ -13,7 +13,8 @@ import org.clustering4ever.clustering.ClusteringAlgorithm
  */
 class UnfoldingSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
   /**
-   * Matricisation of data / Unfolding mode-3
+   * This function compute the ufolding mode-3 of the principal tensor
+   * By a bijection map between the set of trajectory and the column of a new matrix
    */
   @annotation.tailrec
   private final def unfolding(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
@@ -33,7 +34,9 @@ class UnfoldingSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
       }
   }
 
-  //Binary matrix
+  /*Binary matrix: by applying the inverse of the bijection map between the set of  trajectory 
+  * and the column of the matrix
+  */
   @annotation.tailrec
   private final def matrixBinary(m: DenseMatrix[Int], l: Array[Int], i: Int): DenseMatrix[Int] = {
     val n2 = m.cols.toDouble
