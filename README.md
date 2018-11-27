@@ -36,24 +36,36 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 ### Clustering algorithms
 
 * _Jenks Natural Breaks_
-* **_K-Means_**
-* **_K-Modes_**
-* **_K-Prototypes_**
-* _Tensor Biclustering_
+* **_K-Centers_**
+  * **_K-Means_**
+  * **_K-Modes_**
+  * **_K-Prototypes_**
+* _Tensor Biclustering algorithms_
+  * Folding-Spectral
+  * Unfolding-Spectral
+  * Thresholding Sum Of Squared Trajectory Length
+  * Thresholding Individuals Trajectory Length
+  * Recursive Biclustering
+  * Multiple Biclustering
 * _Mean Shift Gradient Ascent_
-* **[Self Organizing Maps](https://github.com/TugdualSarazin/spark-clustering)**
-* **[G-Stream](https://github.com/Spark-clustering-notebook/G-stream)**
-* **[PatchWork](https://github.com/crim-ca/patchwork)**
+* **Self Organizing Maps**
+  * [Original project](https://github.com/TugdualSarazin/spark-clustering)
+* **G-Stream**
+  * [Original project](https://github.com/Spark-clustering-notebook/G-stream)
+* **PatchWork**
+  * [Original project](https://github.com/crim-ca/patchwork)
 * _Random Local Area_
 * **Clusterwize** 
 
-### Quality indexes
+### Quality Indexes
 
-* **_Mutual Information_**
-* **_Normalized Mutual Information_**
-* **_Davies Bouldin_**
-* _Silhouette_
-* **_Ball Hall_**
+* External Indexes
+  * **_Mutual Information_**
+  * **_Normalized Mutual Information_**
+* Internal Indexes
+  * **_Davies Bouldin_**
+  * **_Ball Hall_**
+  * _Silhouette_
 
 ### Features selection
 

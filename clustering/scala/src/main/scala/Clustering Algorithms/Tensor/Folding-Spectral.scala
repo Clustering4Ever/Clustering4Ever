@@ -23,44 +23,40 @@ class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
 
      // function take all the lateral slice T(i,:,:)
      @annotation.tailrec
-     def matriceColumnset(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): 
-        DenseMatrix[Double] = {
-        if( j < t.head.cols && k < t.length ) {
+     def matriceColumnset(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
+      if(j < t.head.cols && k < t.length) {
         m(k, j) = t(k)(i, j)
         matriceColumnset(t, m, c, i, j, k + 1)
       }
-      else if( k == t.length && j < t.head.cols ) {
+      else if(k == t.length && j < t.head.cols) {
         matriceColumnset(t, m, c, i, j + 1, 0)
       }
-
-      else if( i < t.head.rows - 1 ) {
-        c += (m.t * m)
+      else if(i < t.head.rows - 1) {
+        c += cov(m)   // the covariance matrix of m
         matriceColumnset(t, m, c, i + 1, 0, 0)
       }
       else {
-        c += (m.t * m)
+        c += cov(m)
       }
     }
     
 
     // function take all the horizontal slice T(:,j,:)
     @annotation.tailrec
-    def matriceRowset(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): 
-        DenseMatrix[Double] = {
-        if( i < t.head.rows && k < t.length ) {
+    def matriceRowset(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
+      if(i < t.head.rows && k < t.length) {
         m(k,i) = t(k)(i, j)
         matriceRowset(t,m, c, i, j, k + 1)
       }
-      else if( k == t.length && i < t.head.rows ) {
+      else if(k == t.length && i < t.head.rows) {
         matriceRowset(t, m, c, i + 1, j, 0)
       }
-
       else if( j < t.head.cols - 1 ) {
-        c += (m.t * m)
+        c += cov(m)
         matriceRowset(t, m, c, 0, j + 1, 0)
       }
       else {
-        c += (m.t * m)
+        c += cov(m)
       }
     }
 

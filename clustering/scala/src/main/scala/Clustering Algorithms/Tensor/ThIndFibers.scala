@@ -22,18 +22,18 @@ class ThIndFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
 	    val n1 = data.head.rows
 	    val n2 = data.head.cols
 
-	    // Build a matrix D such that each element is the norm of trajectories
+        //This function build a n1 by n2 matrix D such that each element of D is the euclidean norm of the corresponding trajectory
 	    @annotation.tailrec
 		def indiceFiber(t: mutable.ArrayBuffer[DenseMatrix[Double]], v: DenseVector[Double], d: DenseMatrix[Double], i: Int, j: Int, k: Int): DenseMatrix[Double] = {
 			if( i < t.head.rows && j < t.head.cols && k < t.length ) {
 				v(k) = t(k)(i, j)
 				indiceFiber(t,v, d, i, j, k + 1)
 			}
-			else if( k == t.length && i < t.head.rows && j < t(0).cols ) {
+			else if( k == t.length && i < t.head.rows && j < t.head.cols ) {
 				d(i, j) = norm(v)
 				indiceFiber(t, v, d, i + 1, j , 0)
 			}
-			else if( j < t(0).cols - 1 ) {
+			else if( j < t.head.cols - 1 ) {
 				indiceFiber(t, v, d, 0, j + 1, 0)
 			}
 			else {
@@ -44,7 +44,7 @@ class ThIndFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
 	    val traj = DenseVector.zeros[Double](m)
 	    val matrixnorm = indiceFiber(data, traj, DenseMatrix.zeros[Double](n1, n2), 0, 0, 0)
 
-	    // Build a binary matrix to remplace the high trajectories in our matrix
+        //This function build a binary matrix from the matrix D such that the top k1*k2 elements return to 1 and zero the remainsaccording to  the cardinality of the index sets k1 and k2
 	    @annotation.tailrec
 	    def hightvalue(normMatrix: DenseMatrix[Double], binMatrix: DenseMatrix[Int], nbr: Int, i: Int, j: Int): DenseMatrix[Int] = {
 
