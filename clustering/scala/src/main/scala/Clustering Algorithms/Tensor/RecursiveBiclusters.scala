@@ -2,13 +2,11 @@
 /**
  * @author ANDRIANTSIORY Dina Faneva, Beck Gaël
  */
-  import scala.collection.mutable.ListBuffer
-  import scala.collection.mutable
-  import breeze.linalg.svd.SVD
-  import breeze.stats.mean
-  import breeze.linalg._
-  import scala.math._
-
+import scala.collection.mutable
+import breeze.linalg.svd.SVD
+import breeze.stats.mean
+import breeze.linalg._
+import scala.math._
 
 class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
 
@@ -93,9 +91,9 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
   }
   
 
-  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]): ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]): mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = {
 
-    val r1 = ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]](data)
+    val r1 = mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]](data)
     
     for(nombre <- 0 until l1.size) {
        r1 += oneBicluster(l1(nombre), l2(nombre), r1(nombre))
@@ -110,6 +108,6 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
  */
 object RecursiveBiclusters {
   
-  def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]): ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = (new RecursiveBiclusters(k1, k2)).run(data)
+  def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]): mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = (new RecursiveBiclusters(k1, k2)).run(data)
 
 }

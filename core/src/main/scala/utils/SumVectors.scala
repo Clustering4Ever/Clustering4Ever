@@ -48,7 +48,15 @@ object SumVectors {
 	/**
 	 * Reduce Array of multiple vectors
 	 */
-	def reduceMultipleVectorsMatrice[V <: Seq[Double], It[X] <: Seq[X]](a: It[V], b: It[V])(implicit f: (V, V) => V) = a.zip(b).map{ case (c, d) => sumVectors(c, d) }.asInstanceOf[It[V]]
+	def reduceMultipleVectorsMatrice[V <: Seq[Double], It[X] <: Seq[X]](a: It[V], b: It[V])(implicit f: (V, V) => V) = {	
+		val range = (0 until a.size)
+		val builder = a.genericBuilder.asInstanceOf[mutable.Builder[V, It[V]]]
+		builder.sizeHint(a.size)
+		range.foreach{ i =>
+			builder += sumVectors(a(i), b(i))
+		}
+		builder.result
+	}
 	/**
 	 *
 	 */

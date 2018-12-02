@@ -2,6 +2,7 @@ package org.clustering4ever.stats
 /**
  * @author Beck Gaël
  */
+import scala.language.higherKinds
 import scala.math.{sqrt, pow, min, max, Pi}
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.util.SumVectors
@@ -26,7 +27,7 @@ object Stats extends ClusteringCommons {
 	/**
 	 * @return min and max for the ith component in reduce style
 	 */
-	def obtainIthMinMax(idx: Int, vminMax1: (mutable.Buffer[Double], mutable.Buffer[Double]), vminMax2: (mutable.Buffer[Double], mutable.Buffer[Double])) = {
+	def obtainIthMinMax[V <: Seq[Double]](idx: Int, vminMax1: (V, V), vminMax2: (V, V)): (Double, Double) = {
 		(
 			min(vminMax1._1(idx), vminMax2._1(idx)),
 			max(vminMax1._2(idx), vminMax2._2(idx))
@@ -35,26 +36,34 @@ object Stats extends ClusteringCommons {
 	/**
 	 *
 	 */
-	def obtainMinAndMax[S <: Seq[Double]](data: GenSeq[S]): (mutable.Buffer[Double], mutable.Buffer[Double]) = {
+	def obtainMinAndMax[V <: Seq[Double]](data: GenSeq[V]): (V, V) = {
 		val dim = data.head.size
-		val vectorRange = (0 until dim).toBuffer
-		val (minValues, maxValues) = data.map{ v => 
-			val buff = v.toBuffer
-			(buff, buff) 
-		}.reduce( (minMaxa, minMaxb) => vectorRange.map( i => obtainIthMinMax(i, minMaxa, minMaxb) ).unzip )
+		val range = (0 until dim)
+		val (minValues, maxValues) = data.map( v => (v, v) ).reduce{ (minMaxa, minMaxb) =>
+			val builderMin = data.head.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
+			val builderMax = data.head.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
+			builderMin.sizeHint(dim)
+			builderMax.sizeHint(dim)
+			range.foreach{ i => 
+				val (min, max) = obtainIthMinMax(i, minMaxa, minMaxb)
+				builderMin += min
+				builderMax += max
+			}
+			(builderMin.result, builderMax.result)
+		}
 		(minValues, maxValues)
 	}
 	/**
 	 *
 	 */
-	def obtainCenterFollowingWeightedDistribution[V](distribution: mutable.Buffer[(V, Double)]): V = {
+	def obtainCenterFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
 		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
-		var cpt = 0
-		var accum = 0D
-		while ( accum < p ) {
-			accum += distribution(cpt)._2
-			cpt += 1
+		@annotation.tailrec
+		def go(accum: Double, i: Int): Int = {
+			if(accum < p) go(accum + distribution(i)._2, i + 1)
+			else i
 		}
-		if( cpt == 0 ) distribution.head._1 else distribution(cpt - 1)._1
+		val cpt = go(0D, 0)
+		if(cpt == 0) distribution.head._1 else distribution(cpt - 1)._1
 	}
 }
