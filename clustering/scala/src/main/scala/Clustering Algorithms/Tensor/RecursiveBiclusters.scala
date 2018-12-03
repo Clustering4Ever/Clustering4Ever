@@ -19,18 +19,18 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
     val timeRow = DenseMatrix.zeros[Double](m, n1)
 
     @annotation.tailrec
-    def matrice1(t:mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
+    def matriceColumnSet(t:mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
       if(j < t.head.cols && k < t.length) {
         m(k,j) = t(k)(i,j)
-        matrice1(t, m, c, i, j, k + 1)
+        matriceColumnSet(t, m, c, i, j, k + 1)
       }
       else if(k == t.length && j < t.head.cols) {
-        matrice1(t, m, c, i, j + 1, 0)
+        matriceColumnSet(t, m, c, i, j + 1, 0)
       }
 
       else if(i < t.head.rows - 1) {
         c += cov(m)
-        matrice1(t, m, c, i + 1, 0, 0)
+        matriceColumnSet(t, m, c, i + 1, 0, 0)
       }
       else {
         c += cov(m)
@@ -38,30 +38,30 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
     }
 
     @annotation.tailrec
-    def matrice2(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
+    def matriceRowSet(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
       if(i < t.head.rows && k < t.length) {
         m(k,i) = t(k)(i,j)
-        matrice2(t, m, c, i, j, k + 1)
+        matriceRowSet(t, m, c, i, j, k + 1)
       }
       else if(k == t.length && i < t.head.rows) {
-        matrice2(t, m, c, i + 1, j, 0)
+        matriceRowSet(t, m, c, i + 1, j, 0)
       }
       else if(j < t.head.cols - 1) {
         c += cov(m)
-        matrice2(t, m, c, 0, j + 1, 0)
+        matriceRowSet(t, m, c, 0, j + 1, 0)
       }
       else {
         c += cov(m)
       }
     }
 
-    val columnMatrix = matrice1(tensor1, timeColumn, DenseMatrix.zeros[Double](n2, n2), 0, 0, 0 )
+    val columnMatrix = matriceColumnSet(tensor1, timeColumn, DenseMatrix.zeros[Double](n2, n2), 0, 0, 0 )
     val svd.SVD(u1, eigValue, eigVector) = svd(columnMatrix)
     val columnEigvalue = eigValue.toArray
     val columnEigvector = eigVector.t
          
  
-    val rowMatrix = matrice2(tensor1, timeRow, DenseMatrix.zeros[Double](n1, n1), 0, 0, 0 )
+    val rowMatrix = matriceRowSet(tensor1, timeRow, DenseMatrix.zeros[Double](n1, n1), 0, 0, 0 )
     val svd.SVD(u2,eigValue2,eigVector2) = svd(rowMatrix)
     val rowEigvalue = eigValue2.toArray
     val rowEigvector = eigVector2.t
@@ -93,13 +93,13 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
 
   def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]): mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = {
 
-    val r1 = mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]](data)
+    val result = mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]](data)
     
     for(nombre <- 0 until l1.size) {
-       r1 += oneBicluster(l1(nombre), l2(nombre), r1(nombre))
+       result += oneBicluster(l1(nombre), l2(nombre), result(nombre))
     }
 
-    r1
+    result
   }
 }  
 
@@ -109,5 +109,5 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
 object RecursiveBiclusters {
   
   def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]): mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = (new RecursiveBiclusters(k1, k2)).run(data)
-
+  
 }
