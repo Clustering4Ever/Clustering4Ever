@@ -2,7 +2,7 @@
 /**
  * @author ANDRIANTSIORY Dina Faneva, Beck Gaël
  */
-import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import breeze.linalg.svd.SVD
 import breeze.stats.mean
 import breeze.linalg._
@@ -19,7 +19,7 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
     val timeRow = DenseMatrix.zeros[Double](m, n1)
 
     @annotation.tailrec
-    def matriceColumnSet(t:mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
+    def matriceColumnSet(t: mutable.ArrayBuffer[DenseMatrix[Double]], m: DenseMatrix[Double], c: DenseMatrix[Double], i: Int, j: Int , k: Int): DenseMatrix[Double] = {
       if(j < t.head.cols && k < t.length) {
         m(k,j) = t(k)(i,j)
         matriceColumnSet(t, m, c, i, j, k + 1)
@@ -87,27 +87,32 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
     }
 
     val tensorRemain = annulation(tensor1, row, column)
-    tensorRemain
+
+    (tensor_remain, Array(row, column) )
   }
   
 
-  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]): mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
-    val result = mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]](data)
+    var r1 = ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]]()
+    r1 += data
+    var result = ListBuffer[Array[Array[Int]]]()
+
     
-    for(nombre <- 0 until l1.size) {
-       result += oneBicluster(l1(nombre), l2(nombre), result(nombre))
+    for(nombre <- 0 until l1.length) {
+      val (t1, re1) = oneBicluster(l1(nombre), l2(nombre), r1(nombre))
+      r1 += t1
+      result += re1
     }
 
     result
   }
 }  
-
 /**
  *
  */
 object RecursiveBiclusters {
   
-  def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]): mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]] = (new RecursiveBiclusters(k1, k2)).run(data)
+  def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new RecursiveBiclusters(k1, k2)).run(data)
   
 }
