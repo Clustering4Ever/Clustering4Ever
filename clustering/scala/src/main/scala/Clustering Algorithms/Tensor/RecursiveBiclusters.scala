@@ -2,7 +2,7 @@
 /**
  * @author ANDRIANTSIORY Dina Faneva, Beck Gaël
  */
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
 import breeze.linalg.svd.SVD
 import breeze.stats.mean
 import breeze.linalg._
@@ -88,15 +88,15 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
 
     val tensorRemain = annulation(tensor1, row, column)
 
-    (tensor_remain, Array(row, column) )
+    (tensorRemain, Array(row, column) )
   }
   
 
   def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
-    var r1 = ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]]()
+    var r1 = mutable.ListBuffer[mutable.ArrayBuffer[DenseMatrix[Double]]]()
     r1 += data
-    var result = ListBuffer[Array[Array[Int]]]()
+    var result = mutable.ListBuffer[Array[Array[Int]]]()
 
     
     for(nombre <- 0 until l1.length) {
