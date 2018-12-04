@@ -94,30 +94,20 @@ class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends Cluster
     val column = obtainTopkIndicesDM(columnEigvector, k2, ww, 0)
 
     @annotation.tailrec
-    def intersection(intRow: Array[Int], a: ListBuffer[Array[Int]], intColumn: Array[Int], b: ListBuffer[Array[Int]], i: Int):  Array[Array[Int]] ={
-      if (i < a.length){
-       val intRow2 = intRow.intersect(a(i))      // Intersection is a decreasing function
-       val intCol = intColumn.intersect(b(i))
-        println("\n\n Bicluster number "+ i +": \n individuals "+ row(i).toSet + "\n features "+ column(i).toSet )
-        intersection(intRow2, a, intCol, b, i+1)
-      }
-      else {
-       Array(intRow, intColumn) 
-      }
-    }
+     def intersection(int_row:Array[Int], a: ListBuffer[Array[Int]], int_column:Array[Int], b: ListBuffer[Array[Int]], i: Int):
+        Array[Array[Int]] ={
+          if (i < a.length){
+           val intRow = int_row.intersect(a(i))      // Intersection is a decreasing function
+           val intCol = int_column.intersect(b(i))
+           intersection(intRow, a, intCol, b, i+1)
+          }
+          else {
+           Array(int_row, int_column) 
+          }
+        }
           
-    val Array(rowIndexes, columnIndexes) = intersection(row.head, row, column.head, column, 0)
-    // println("\n Individuals intersection  is :"+ intersections(0).toSet + " \n length = "+ intersections(0).length + "\n Features  intersection :" + intersections(1).toSet +" \n length = "+ intersections(1).length )
+    val Array(rowIntersection, columnIntersection) = intersection(row.head, row, column.head, column, 0)
    
-    //The top five of eigenvalues 
-    // println("\n Top five eigenvalues of the matrix C1: "+ rowEigvalue.take(5).toList + "\n Top five Eigenvalues of the matrix C2: "+ columnEigvalue.take(5).toList)
-    
-
-           
-    //println("\n Individuals intersection  is :"+ intersections(0).toSet + " \n length = "+ intersections(0).length+"\n Features  intersection :" + intersections(1).toSet +" \n length = "+ intersections(1).length )
-   
-    //The top five of eigenvalues 
-    //println("\n Top five eigenvalues of the matrix C1: "+ row_eigvalue.take(5).toList+"\n Top five Eigenvalues of the matrix C2: "+ column_eigvalue.take(5).toList)
     @annotation.tailrec
     def result(r: mutable.ListBuffer[Array[Int]], c: mutable.ListBuffer[Array[Int]], rc:mutable.ListBuffer[Array[Array[Int]]], i:Int, l: Int ): mutable.ListBuffer[Array[Array[Int]]] = {
       if (i < l){
@@ -131,10 +121,12 @@ class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends Cluster
     val fin = mutable.ListBuffer[Array[Array[Int]]]()
 
     val resultats = result(row, column, fin, 0, k1.length)
-    new TensorBiclusteringModel(rowIndexes, columnIndexes)
-  
 
-    Unit
+    //new TensorBiclusteringModel(rowIndexes, columnIndexes)
+
+    (resultats, (rowIntersection, columnIntersection) ) 
+
+    //Unit
   }
 }  
  
