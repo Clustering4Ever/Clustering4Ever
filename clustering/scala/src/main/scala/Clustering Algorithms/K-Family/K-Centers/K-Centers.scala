@@ -15,10 +15,7 @@ import org.clustering4ever.util.ClusterBasicOperations
  *
  */
 abstract class KCommons[
-	@specialized(Int, Long) ID: Numeric,
-	O,
 	V: ClassTag,
-	Cz <: Clusterizable[ID, O, V, Cz],
 	D <: Distance[V]
 ](
 	k: Int,
@@ -71,7 +68,7 @@ class KCenters[
 	maxIterations: Int,
 	metric: D,
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-) extends KCommons[ID, O, V, Cz, D](k, epsilon, maxIterations, metric, initializedCenters) with LocalClusteringAlgorithm[GenSeq[Cz]] {
+) extends KCommons[V, D](k, epsilon, maxIterations, metric, initializedCenters) with LocalClusteringAlgorithm[GenSeq[Cz]] {
 	/**
 	 * Run the K-Centers
 	 */
@@ -79,44 +76,33 @@ class KCenters[
 		/**
 		 *
 		 */
-		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) {
-			def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
-			
-			val centersBuff = mutable.ArrayBuffer(data(Random.nextInt(data.size)).vector(workingVector))
-
-			(1 until k).foreach( i => centersBuff += Stats.obtainCenterFollowingWeightedDistribution[V](data.map{ cz =>
-				val toPow2 = metric.d(cz.vector(workingVector), obtainNearestCenter(cz.vector(workingVector), centersBuff))
-				(cz.vector(workingVector), toPow2 * toPow2)
-			}.toBuffer) )
-
-			val centers = mutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
-			centers
-		}
-		else {
-			initializedCenters
-		}
+		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, metric, k)(workingVector) else initializedCenters
 		/**
 		 *
 		 */
 		val centersCardinality: mutable.HashMap[Int, Int] = centers.map{ case (clusterID, _) => (clusterID, 0) }
-		var cpt = 0
-		var allCentersHaveConverged = false
-		while( cpt < maxIterations && ! allCentersHaveConverged ) {
-			// Allocation to nearest centroid
-			val clusterized = data.map( cz => (obtainNearestCenterID(cz.vector(workingVector), centers), cz.vector(workingVector)) )
-			// Keep old position of centroids
-			val kCentersBeforeUpdate = centers.clone
-			// Compute centers and cardinality of each cluster
-			clusterized.groupBy{ case (clusterID, _) => clusterID }.foreach{ case (clusterID, aggregate) =>
-				centers(clusterID) = ClusterBasicOperations.obtainCenter(aggregate.map(_._2), metric)
-				centersCardinality(clusterID) = aggregate.size
+		/**
+		 * KMeans heart in tailrec style
+		 */
+		@annotation.tailrec
+		def go(cpt: Int, allCentersHaveConverged: Boolean): mutable.HashMap[Int, V] = {
+			if(cpt < maxIterations && ! allCentersHaveConverged) {
+				// Keep old position of centroids
+				val kCentersBeforeUpdate = centers.clone
+				// Compute centers and cardinality of each cluster
+				data.groupBy( cz => obtainNearestCenterID(cz.vector(workingVector), centers) ).foreach{ case (clusterID, aggregate) =>
+					centers(clusterID) = ClusterBasicOperations.obtainCenter(aggregate.map(_.vector(workingVector)), metric)
+					centersCardinality(clusterID) = aggregate.size
+				}
+				removeEmptyClusters(centers, kCentersBeforeUpdate, centersCardinality)
+
+				go(cpt + 1, areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon))
 			}
-			removeEmptyClusters(centers, kCentersBeforeUpdate, centersCardinality)
-			// Check if all Centers Have Converged
-			allCentersHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon)
-			cpt += 1
+			else {
+				centers
+			}
 		}
-		new KCentersModel[ID, O, V, Cz, D](centers, metric, workingVector)
+		new KCentersModel[ID, O, V, Cz, D](go(0, false), metric, workingVector)
 	}
 }
 /**

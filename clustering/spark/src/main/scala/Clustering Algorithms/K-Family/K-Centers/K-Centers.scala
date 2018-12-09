@@ -5,7 +5,7 @@ import org.apache.commons.math3.distribution.EnumeratedDistribution
 import org.apache.commons.math3.util.Pair
 import scala.collection.JavaConverters._
 import scala.math.pow
-import scala.collection.{immutable, mutable, parallel}
+import scala.collection.mutable
 import scala.util.Random
 import scala.reflect.ClassTag
 import spire.math.{Numeric => SNumeric}
@@ -35,7 +35,7 @@ class KCenters[
 	metric: D,
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommons[ID, O, V, Cz, D](k, epsilon, maxIterations, metric, initializedCenters) with DistributedClusteringAlgorithm[RDD[Cz]] {
+) extends KCommons[V, D](k, epsilon, maxIterations, metric, initializedCenters) with DistributedClusteringAlgorithm[RDD[Cz]] {
 
 	private val emptyValue = mutable.ArrayBuffer.empty[V]
 	private def mergeValue(combiner: mutable.ArrayBuffer[V], comb: V): mutable.ArrayBuffer[V] = combiner += comb
@@ -100,7 +100,7 @@ class KCenters[
 			}
 		var cpt = 0
 		var allModHaveConverged = false
-		while( cpt < maxIterations && ! allModHaveConverged ) {
+		while(cpt < maxIterations && ! allModHaveConverged) {
 			val centersInfo = obtainCentersInfo
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
