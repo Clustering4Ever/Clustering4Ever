@@ -30,20 +30,20 @@ object KPrototypes {
 	def run[
 		ID: Numeric,
 		O,
-		Vb[Int] <: Seq[Int],
-		Vs[Double] <: Seq[Double],
+		Vb <: Seq[Int],
+		Vs <: Seq[Double],
 		Cz[ID, O, V] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
-		D <: MixtDistance[Vb[Int], Vs[Double]]
+		D <: MixtDistance[Vb, Vs]
 	](
-		data: RDD[Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]]],
+		data: RDD[Cz[ID, O, BinaryScalarVector[Vb, Vs]]],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,
 		metric: D,
 		workingVector: Int = 0,
-		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]]
-	)(implicit ct: ClassTag[Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]]]): KCentersModel[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]], D] = {
-		val kPrototypes = new KCenters[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]], D](k, epsilon, maxIterations, metric)
+		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
+	)(implicit ct: ClassTag[Cz[ID, O, BinaryScalarVector[Vb, Vs]]]): KCentersModel[ID, O, BinaryScalarVector[Vb, Vs], Cz[ID, O, BinaryScalarVector[Vb, Vs]], D] = {
+		val kPrototypes = new KCenters[BinaryScalarVector[Vb, Vs], D](k, epsilon, maxIterations, metric)
 		val kPrototypesModel = kPrototypes.run(data)(workingVector)
 		kPrototypesModel
 	}

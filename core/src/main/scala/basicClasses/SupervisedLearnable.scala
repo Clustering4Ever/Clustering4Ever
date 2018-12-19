@@ -13,7 +13,7 @@ class DFCLG[ID: Numeric, O, V <: Seq[_]](id: ID, vectorizable: Vectorizable[O, V
 	/**
 	 * Transform from DFCL to HDFCL by applying bucketing of bucketsOfFeats argument 
 	 */
-	def bucketizedFeatures[T[Int] <: Seq[Int], U[T] <: Seq[T]](bucketsOfFeats: U[T[Int]]): HDFCL[ID, Int, T, U] = {
+	def bucketizedFeatures[T[X] <: Seq[X], U[Y] <: Seq[Y]](bucketsOfFeats: U[T[Int]]): HDFCL[ID, Int, T, U] = {
 		val bucketizedVector = new Vector(bucketsOfFeats.map(_.map(originalVector(_))).asInstanceOf[U[T[Int]]])
 		new HDFCL(id, bucketizedVector, label)
 	}
@@ -25,7 +25,7 @@ class DFCL[ID: Numeric, V <: Seq[_]](id: ID, vectorizable: Vector[V], label: Int
 /**
  * Special class for Rough Set heuristic
  */
-class HDFCL[ID: Numeric, U, T[U] <: Seq[U], V[T] <: Seq[T]](id: ID, vectorizable: Vector[V[T[U]]], label: Int) extends DFCL(id, vectorizable, label) {
+class HDFCL[ID: Numeric, U, T[U] <: Seq[U], V[X] <: Seq[X]](id: ID, vectorizable: Vector[V[T[U]]], label: Int) extends DFCL(id, vectorizable, label) {
 	/**
 	 * @return DFCL with a specific column of features changing features value by 0..n-1
 	 */

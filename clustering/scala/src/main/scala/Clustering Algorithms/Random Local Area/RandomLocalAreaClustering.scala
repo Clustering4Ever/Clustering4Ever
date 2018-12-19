@@ -3,7 +3,7 @@ package org.clustering4ever.scala.clustering.rla
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.clustering.LocalClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithm
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.util.SumVectors
 import scala.math.{min, max}
@@ -18,7 +18,7 @@ import scala.util.Random
 class RLA[O, D <: Distance[O]](
 	epsilon: Double,
 	metric: D
-) extends LocalClusteringAlgorithm[GenSeq[O]] {
+) extends ClusteringAlgorithm {
 	/**
 	 * Run the Random Local Clustering
 	 */

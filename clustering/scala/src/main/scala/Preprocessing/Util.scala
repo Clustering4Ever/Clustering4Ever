@@ -11,8 +11,6 @@ import org.clustering4ever.scala.vectorizables.Vector
  * Theses functions are used to preprocess raw data                    
  */
 object Util extends Serializable {
-
-
   /**
    * Determine in which interval falls a value given a specific range.
    * @return i if smaller or equal than ith value (starting at 0) and range.size +1 if bigger than the last range value 
@@ -59,7 +57,7 @@ object Util extends Serializable {
   /**
    *
    */
-  def prepareGsForRoughSet[ID: Numeric, T, V[T] <: Seq[T]](gs: GenSeq[DFCL[ID, V[T]]]): GenSeq[DFCL[ID, V[T]]] = {
+  def prepareGsForRoughSet[ID: Numeric, T, V[X] <: Seq[X]](gs: GenSeq[DFCL[ID, V[T]]]): GenSeq[DFCL[ID, V[T]]] = {
     
     val occurPerFeat = obtainOccurencePerFeature(gs)
 
@@ -72,7 +70,7 @@ object Util extends Serializable {
   /**
    *
    */
-  def prepareGsForRoughSetHeuristic[ID: Numeric, T, V[T] <: Seq[T]](gs: GenSeq[DFCL[ID, V[T]]], numberOfBucket: Int): (GenSeq[HDFCL[ID, Int, mutable.Buffer, mutable.Buffer]], mutable.Buffer[mutable.Buffer[Int]]) = {
+  def prepareGsForRoughSetHeuristic[ID: Numeric, T, V[X] <: Seq[X]](gs: GenSeq[DFCL[ID, V[T]]], numberOfBucket: Int): (GenSeq[HDFCL[ID, Int, mutable.Buffer, mutable.Buffer]], mutable.Buffer[mutable.Buffer[Int]]) = {
     
     val bucketizedFeats = obtainRandomlyBucketizedFeatures(gs.head.originalVector.size, numberOfBucket)
     

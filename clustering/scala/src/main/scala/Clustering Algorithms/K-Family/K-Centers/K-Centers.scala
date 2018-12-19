@@ -15,7 +15,7 @@ import org.clustering4ever.util.ClusterBasicOperations
  *
  */
 abstract class KCommons[
-	V: ClassTag,
+	V : ClassTag,
 	D <: Distance[V]
 ](
 	k: Int,
@@ -56,23 +56,22 @@ abstract class KCommons[
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-class KCenters[
-	ID: Numeric,
-	O,
-	V: ClassTag,
-	Cz <: Clusterizable[ID, O, V, Cz],
-	D <: Distance[V]
-](
+class KCenters[V: ClassTag, D <: Distance[V]](
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
 	metric: D,
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-) extends KCommons[V, D](k, epsilon, maxIterations, metric, initializedCenters) with LocalClusteringAlgorithm[GenSeq[Cz]] {
+) extends KCommons[V, D](k, epsilon, maxIterations, metric, initializedCenters) with LocalClusteringAlgorithm[V] {
 	/**
 	 * Run the K-Centers
 	 */
-	def run(data: GenSeq[Cz])(workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] =	{
+	def run[
+		ID: Numeric,
+		O,
+		Cz[ID, O, V] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
+		GS[X] <: GenSeq[X]
+	](data: GS[Cz[ID, O, V]])(workingVector: Int = 0): KCentersModel[ID, O, V, Cz[ID, O, V], D] =	{
 		/**
 		 *
 		 */
@@ -102,7 +101,7 @@ class KCenters[
 				centers
 			}
 		}
-		new KCentersModel[ID, O, V, Cz, D](go(0, false), metric, workingVector)
+		new KCentersModel[ID, O, V, Cz[ID, O, V], D](go(0, false), metric, workingVector)
 	}
 }
 /**
@@ -127,7 +126,7 @@ object KCenters {
 		workingVector: Int = 0,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 	): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
-		val kCenter = new KCenters[ID, O, V, Cz[ID, O, V], D](k, epsilon, maxIterations, metric, initializedCenters)
+		val kCenter = new KCenters[V, D](k, epsilon, maxIterations, metric, initializedCenters)
 		val kCentersModel = kCenter.run(data)(workingVector)
 		kCentersModel
 	}

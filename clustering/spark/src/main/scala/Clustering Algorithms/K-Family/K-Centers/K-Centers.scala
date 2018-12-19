@@ -22,20 +22,14 @@ import org.clustering4ever.clustering.DistributedClusteringAlgorithm
 /**
  *
  */
-class KCenters[
-	ID: Numeric,
-	O,
-	V: ClassTag,
-	Cz <: Clusterizable[ID, O, V, Cz] : ClassTag,
-	D <: Distance[V]
-	](
+class KCenters[V: ClassTag, D <: Distance[V]](
 	k: Int,
 	epsilon: Double,
 	maxIterations: Int,
 	metric: D,
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommons[V, D](k, epsilon, maxIterations, metric, initializedCenters) with DistributedClusteringAlgorithm[RDD[Cz]] {
+) extends KCommons[V, D](k, epsilon, maxIterations, metric, initializedCenters) with DistributedClusteringAlgorithm[V] {
 
 	private val emptyValue = mutable.ArrayBuffer.empty[V]
 	private def mergeValue(combiner: mutable.ArrayBuffer[V], comb: V): mutable.ArrayBuffer[V] = combiner += comb
@@ -67,7 +61,11 @@ class KCenters[
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz])(workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] = {
+	def run[
+		ID: Numeric,
+		O,
+		Cz[ID, O, V] <: Clusterizable[ID, O, V, Cz[ID, O, V]]
+	](data: RDD[Cz[ID, O, V]])(workingVector: Int = 0)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
 		/**
 		 * To upgrade
 		 */
@@ -105,6 +103,6 @@ class KCenters[
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KCentersModel[ID, O, V, Cz, D](centers, metric)
+		new KCentersModel[ID, O, V, Cz[ID, O, V], D](centers, metric)
 	}
 }

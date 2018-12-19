@@ -28,7 +28,7 @@ object ScalaImplicits {
 	/**
 	 *
 	 */
-	implicit def prepareToVectorsClustering[N, V[N] <: Seq[N], GS[X] <: GenSeq[X]](genSeq: GS[V[N]]): GS[EasyClusterizable[Long, V[N], V[N]]] = genSeq.zipWithIndex.asInstanceOf[GS[(V[N], Int)]]
+	implicit def prepareToVectorsClustering[N, V[X] <: Seq[X], GS[Y] <: GenSeq[Y]](genSeq: GS[V[N]]): GS[EasyClusterizable[Long, V[N], V[N]]] = genSeq.zipWithIndex.asInstanceOf[GS[(V[N], Int)]]
 	/**
 	 *
 	 */

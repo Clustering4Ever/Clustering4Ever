@@ -2,6 +2,7 @@ package org.clustering4ever.scala.clustering.kcenters
 /**
  * @author Beck Gaël
  */
+import scala.language.higherKinds
 import scala.collection.{mutable, GenSeq}
 import scala.util.Random
 import scala.reflect.ClassTag
@@ -19,9 +20,9 @@ object KPPInitializer {
 		ID: Numeric,
 		O,
 		V: ClassTag,
-		Cz <: Clusterizable[ID, O, V, Cz],
+		Cz[ID, O, V] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
 		D <: Distance[V]
-	](data: GenSeq[Cz], metric: D, k: Int)(workingVector: Int = 0) = {
+	](data: GenSeq[Cz[ID, O, V]], metric: D, k: Int)(workingVector: Int = 0) = {
 
 		def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 		

@@ -75,6 +75,6 @@ class EigenVector(val k1: Array[Int], val k2: Array[Int]) {
  
 object EigenVector {
   
-  def train(k1:Array[Int], k2:Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new EigenVector(k1, k2)).run(data)
+  def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new EigenVector(k1, k2)).run(data)
 
 }

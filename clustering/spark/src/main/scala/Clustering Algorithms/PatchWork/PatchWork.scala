@@ -91,7 +91,7 @@ class PatchWorkModel(private var epsilon: Epsilon,
    * @return The cluster the data point belongs to
    */
   def predict(point: DataPoint): PatchWorkCluster = {
-    val cellKey = new PatchWorkCellKey(point.zipWithIndex.map(x => math.ceil(x._1 / this.epsilon(x._2)).toInt))
+    val cellKey = new PatchWorkCellKey(point.zipWithIndex.map( x => math.ceil(x._1 / this.epsilon(x._2)).toInt ))
     val cl = this.clusters.filter(cluster => cluster.cellsList.contains(cellKey))
     if (cl.isEmpty) {
       // point is noise
@@ -187,7 +187,8 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
   def innerCells(cell: Array[Int]): List[Array[Int]] = {
     if (cell.length < 3) {
       getNearCell(cell)
-    } else {
+    }
+    else {
       nearCells(cell)
     }
   }
@@ -236,7 +237,7 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
     val clusterList: ListBuffer[PatchWorkCluster] = new ListBuffer[PatchWorkCluster]
     var id = 1
     // for each cells in the set of cells
-    cardinalsPatchwork.sortBy(_._2).foreach { cell =>
+    cardinalsPatchwork.sortBy(_._2).foreach{ cell =>
       //if this cell has enough points
       if (cell._2 >= minPts) {
         val cellKey = new PatchWorkCellKey(cell._1)
@@ -244,7 +245,7 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
         if (clusterList.filter(cluster => cluster.cellsList.contains(cellKey)).isEmpty) {
           // we create a new cluster and expand it
           val cluster = new PatchWorkCluster(id)
-          id = id + 1
+          id += 1
           cluster.cellsList.append(cellKey)
           expandCluster(cardinalsPatchwork, cluster, cell._1, cell._2)
           // once the cluster is expanded we add it to the list

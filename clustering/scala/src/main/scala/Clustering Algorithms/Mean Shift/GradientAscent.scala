@@ -19,7 +19,7 @@ class GradientAscent[
   Cz[ID, O, V] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
   D <: ContinuousDistance[V],
   KArgs <: KernelArgs,
-  K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]
+  K[X, Y <: KernelArgs] <: Kernel[X, Y]
 ](
   data: GenSeq[Cz[ID, O, V]],
   epsilon: Double,
@@ -57,7 +57,7 @@ class GradientAscent[
 
     var ind = 0
     var everyPointsHaveConverged = false
-    while( ind < maxIterations && ! everyPointsHaveConverged ) {
+    while(ind < maxIterations && !everyPointsHaveConverged) {
       val (gradientAscentData0, cptConvergedPoints) = kernelGradientAscent(gradientAscentData)
       gradientAscentData = gradientAscentData0
       everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
@@ -83,7 +83,7 @@ object GradientAscent {
     Cz[ID, O, V] <: ClusterizableExt[ID, O, V, Cz[ID, O, V]],
     D <: ContinuousDistance[V],
     KArgs <: KernelArgs,
-    K[V, KArgs <: KernelArgs] <: Kernel[V, KArgs]
+    K[X, Y <: KernelArgs] <: Kernel[X, Y]
   ](
     data: GenSeq[Cz[ID, O, V]],
     epsilon: Double,

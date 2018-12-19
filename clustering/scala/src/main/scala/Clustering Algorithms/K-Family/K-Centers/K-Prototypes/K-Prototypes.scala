@@ -7,6 +7,7 @@ import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import scala.util.Random
 import org.clustering4ever.math.distances.MixtDistance
+import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
@@ -39,7 +40,7 @@ object KPrototypes {
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
 	)(implicit workingVector: Int = 0): KCentersModel[ID, O, BinaryScalarVector[Vb, Vs], Cz[ID, O, BinaryScalarVector[Vb, Vs]], D] = {
-		val kPrototypes = new KCenters[ID, O, BinaryScalarVector[Vb, Vs], Cz[ID, O, BinaryScalarVector[Vb, Vs]], D](k, epsilon, maxIterations, metric)
+		val kPrototypes = new KCenters[BinaryScalarVector[Vb, Vs], D](k, epsilon, maxIterations, metric)
 		val kPrototypesModel = kPrototypes.run(data)(workingVector)
 		kPrototypesModel
 	}

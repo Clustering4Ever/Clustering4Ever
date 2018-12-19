@@ -36,19 +36,14 @@ object KModes {
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]]
 	)(implicit ct1: ClassTag[V[Int]], ct2: ClassTag[Cz[ID, O, V[Int]]], workingVector: Int = 0): KCentersModel[ID, O, V[Int], Cz[ID, O, V[Int]], D] = {
-		val kmodes = new KCenters[ID, O, V[Int], Cz[ID, O, V[Int]], D](k, epsilon, maxIterations, metric, initializedCenters)
+		val kmodes = new KCenters(k, epsilon, maxIterations, metric, initializedCenters)
 		val kModesModel = kmodes.run(data)(workingVector)
 		kModesModel
 	}
-}
-/**
- *
- */
-object EasyKModes {
 	/**
 	 * Run the K-Modes with any binary distance
 	 */
-	def run[V[Int] <: Seq[Int], D <: BinaryDistance[V[Int]]](
+	def runRawData[V[X] <: Seq[X], D <: BinaryDistance[V[Int]]](
 		data: RDD[V[Int]],
 		k: Int,
 		epsilon: Double,
@@ -56,8 +51,8 @@ object EasyKModes {
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, V[Int]] = mutable.HashMap.empty[Int, V[Int]]
 	)(implicit ct: ClassTag[V[Int]], workingVector: Int = 0): KCentersModel[Long, V[Int], V[Int], EasyClusterizable[Long, V[Int], V[Int]], D] = {
-		val kmodes = new KCenters[Long, V[Int], V[Int], EasyClusterizable[Long, V[Int], V[Int]], D](k, epsilon, maxIterations, metric, initializedCenters)
-		val kModesModel = kmodes.run(data)(workingVector)
+		val kmodes = new KCenters(k, epsilon, maxIterations, metric, initializedCenters)
+		val kModesModel = kmodes.run(binaryVectorRDDToBinaryClusterizable(data))(workingVector)
 		kModesModel
 	}
 }

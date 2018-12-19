@@ -41,24 +41,14 @@ object KMeans {
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 		)(implicit ct: ClassTag[V], ct2: ClassTag[Cz[ID, O, V]], workingVector: Int = 0): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
-		val kMeans = new KCenters[ID, O, V, Cz[ID, O, V], D](k, epsilon, maxIterations, metric, initializedCenters)
+		val kMeans = new KCenters(k, epsilon, maxIterations, metric, initializedCenters)
 		val kCentersModel = kMeans.run(data)(workingVector)
 		kCentersModel
 	}
-}
-/**
- * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : preferably and ArrayBuffer or ParArray of any sequence type mutable.ArrayBuffer are recommendend for speed efficiency
- * @param k : number of clusters
- * @param epsilon : minimal threshold under which we consider a centroid has converged
- * @param maxIterations : maximal number of iteration
- * @param metric : a defined dissimilarity measure
- */
-object EasyKMeans {
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
-	def run[V[Double] <: Seq[Double], D <: ContinuousDistance[V[Double]]](
+	def runRawData[V[X] <: Seq[X], D <: ContinuousDistance[V[Double]]](
 		data: RDD[V[Double]],
 		k: Int,
 		epsilon: Double,
@@ -66,8 +56,8 @@ object EasyKMeans {
 		metric: D,
 		initializedCenters: mutable.HashMap[Int, V[Double]] = mutable.HashMap.empty[Int, V[Double]]
 		)(implicit ct: ClassTag[V[Double]], workingVector: Int = 0) : KCentersModel[Long, V[Double], V[Double], EasyClusterizable[Long, V[Double], V[Double]], D] = {
-		val kMeans = new KCenters[Long, V[Double], V[Double], EasyClusterizable[Long, V[Double], V[Double]], D](k, epsilon, maxIterations, metric, initializedCenters)
-		val kCentersModel = kMeans.run(data)(workingVector)
+		val kMeans = new KCenters(k, epsilon, maxIterations, metric, initializedCenters)
+		val kCentersModel = kMeans.run(realVectorRDDToRealClusterizable(data))(workingVector)
 		kCentersModel
 	}
 }
