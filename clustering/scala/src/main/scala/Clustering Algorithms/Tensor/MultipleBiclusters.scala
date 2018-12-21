@@ -15,7 +15,7 @@ import org.clustering4ever.clustering.ClusteringAlgorithm
  */
 class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends ClusteringAlgorithm {
 
-  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]): Unit = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])/*: Unit*/ = {
 
     val m = data.size
     val n1 = data.head.rows
@@ -132,6 +132,7 @@ class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends Cluster
  
 object MultipleBiclusters {
   
-  //def train(k1:Array[Int], k2:Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]): TensorBiclusteringModel = (new MultipleBiclusters(k1, k2)).run(data)
+  def train(k1:Array[Int], k2:Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]])/*:
+   TensorBiclusteringModel */= (new MultipleBiclusters(k1, k2)).run(data)
 
 }
