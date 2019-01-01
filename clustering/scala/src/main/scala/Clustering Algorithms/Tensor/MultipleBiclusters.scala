@@ -15,7 +15,7 @@ import org.clustering4ever.clustering.ClusteringAlgorithm
  */
 class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends ClusteringAlgorithm {
 
-  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]): Unit = {
+  def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])/*: Unit*/ = {
 
     val m = data.size
     val n1 = data.head.rows
@@ -95,18 +95,19 @@ class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends Cluster
 
     @annotation.tailrec
      def intersection(int_row:Array[Int], a: ListBuffer[Array[Int]], int_column:Array[Int], b: ListBuffer[Array[Int]], i: Int):
-        Array[Array[Int]] ={
+        (Array[Int],Array[Int]) ={
           if (i < a.length){
            val intRow = int_row.intersect(a(i))      // Intersection is a decreasing function
            val intCol = int_column.intersect(b(i))
            intersection(intRow, a, intCol, b, i+1)
           }
           else {
-           Array(int_row, int_column) 
+           (int_row, int_column)
           }
         }
           
-    val Array(rowIntersection, columnIntersection) = intersection(row.head, row, column.head, column, 0)
+   // val Array(rowIntersection, columnIntersection) = intersection(row.head, row, column.head, column, 0)
+   val rowColsIntersection = intersection(row.head, row, column.head, column, 0)
    
     @annotation.tailrec
     def result(r: mutable.ListBuffer[Array[Int]], c: mutable.ListBuffer[Array[Int]], rc:mutable.ListBuffer[Array[Array[Int]]], i:Int, l: Int ): mutable.ListBuffer[Array[Array[Int]]] = {
@@ -124,14 +125,15 @@ class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends Cluster
 
     //new TensorBiclusteringModel(rowIndexes, columnIndexes)
 
-    (resultats, (rowIntersection, columnIntersection) ) 
-
+   // (resultats, Array(rowIntersection, columnIntersection) ) 
+    (resultats, rowColsIntersection) 
     //Unit
   }
 }  
  
 object MultipleBiclusters {
   
-  //def train(k1:Array[Int], k2:Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]): TensorBiclusteringModel = (new MultipleBiclusters(k1, k2)).run(data)
+  def train(k1:Array[Int], k2:Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]])/*:
+   TensorBiclusteringModel */= (new MultipleBiclusters(k1, k2)).run(data)
 
 }

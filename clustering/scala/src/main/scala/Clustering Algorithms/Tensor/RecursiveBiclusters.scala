@@ -76,7 +76,7 @@ class RecursiveBiclusters(val l1: Array[Int], val l2: Array[Int]) {
     // println("\n\n bicluster number "+": \n rows "+ row.toList + "\n column "+ column.toList )
 
     def annulation(t: mutable.ArrayBuffer[DenseMatrix[Double]], jf: Array[Int], js: Array[Int]): mutable.ArrayBuffer[DenseMatrix[Double]] = { 
-      for (k <- 0 until 4) {
+      for (k <- 0 until t.length) {
         for (i <- jf) {
           for (j <- js) {
                 t(k)(i, j) = 0 

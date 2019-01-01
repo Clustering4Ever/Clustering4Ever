@@ -81,6 +81,8 @@ class UnfoldingSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
     val indiceColumn = TensorCommons.obtainTopkIndices[Double](sc, k2)
 
     new TensorBiclusteringModel(indiceRow.distinct.sorted, indiceColumn.distinct.sorted)
+    
+    Array(indiceRow, indiceColumn)
   }
 }
 /**

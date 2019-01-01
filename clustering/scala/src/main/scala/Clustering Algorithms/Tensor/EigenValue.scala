@@ -10,9 +10,10 @@ import scala.collection.mutable
 import breeze.linalg.svd.SVD
 import breeze.stats._
 /**
- *
+ *This function return eigenvalues( not eigenvector )
  */
-class EigenVector(val k1: Array[Int], val k2: Array[Int]) {
+class EigenValue(val k: Int) {
+// class EigenVector(val k1: Array[Int], val k2: Array[Int]) {
 
   def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 
@@ -73,8 +74,9 @@ class EigenVector(val k1: Array[Int], val k2: Array[Int]) {
   }
 }  
  
-object EigenVector {
+object EigenValue {
   
-  def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new EigenVector(k1, k2)).run(data)
+  //def train(k1: Array[Int], k2: Array[Int], data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new EigenVector(k1, k2)).run(data)
+  def train(k: Int, data: mutable.ArrayBuffer[DenseMatrix[Double]]) = (new EigenValue(k)).run(data)
 
 }
