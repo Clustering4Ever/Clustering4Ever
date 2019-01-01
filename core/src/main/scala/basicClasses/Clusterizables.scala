@@ -2,117 +2,100 @@ package org.clustering4ever.scala.clusterizables
 /**
  * @author Beck Gaël
  */
+import scala.language.higherKinds
 import scala.collection.{immutable, mutable}
 import spire.math.{Numeric => SNumeric}
-import org.clustering4ever.scala.vectorizables.{Vectorizable, Vector, MixtVectorizable, RealVectorizable, BinaryVectorizable}
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
+import shapeless.HMap
+import org.clustering4ever.shapelesslinked.VMapping
+import org.clustering4ever.scala.vectorizables.Vectorizable
 import org.clustering4ever.clustering.ClusteringArgs
+import org.clustering4ever.scala.vectors.{GVector, BinaryVector, ScalarVector, MixtVector}
 /**
- * Trait defining methods that returns a new object with vector appended
+ * Identified Raw Object
  */
-trait ComplementaryVectors[V, Self <: ComplementaryVectors[V, Self]] {
+trait IdentifiedRawObject[ID, O] extends Serializable {
 	/**
 	 *
 	 */
-	def addAltVector(idx: Int, altVector: V): Self
+	val id: ID
 	/**
 	 *
 	 */
-	val altVectors: immutable.HashMap[Int, V]
+	val vectorizable: Vectorizable[O]
+	/**
+	 *
+	 */
+	override def hashCode(): Int = id.hashCode
+	/**
+	 *
+	 */
+	// def toEasyClusterizable[V <: GVector](towardVector: (Int, O => V)) = new EasyClusterizable(id, vectorizable, vectorizable.toVector(towardVector._2))
 }
 /**
- * Identified Object
+ *
  */
-abstract class IdentifiedVectorizable[@specialized(Int, Long) ID: Numeric, O, V](
+trait IdentifiedVectorGen[ID, O, V] extends IdentifiedRawObject[ID, O] {
+	/**
+	 *
+	 */
+	val workingVector: V
+}
+/**
+ *
+ */
+trait IdentifiedGVector[ID, O, V <: GVector] extends IdentifiedVectorGen[ID, O, V]
+/**
+ *
+ */
+trait IdentifiedVectorized[ID, O, V <: GVector] extends IdentifiedGVector[ID, O, V] {
+	/**
+	 *
+	 */
+	val vectorized: HMap[VMapping]
+}
+/**
+ *
+ */
+case class EasyIdentifiedVector[ID, O, V <: GVector](
 	val id: ID,
-	val vectorizable: Vectorizable[O, V]
-) extends Serializable {
-	/**
-	 *
-	 */
-	final lazy val originalVector: V = vectorizable.toVector
-	/**
-	 *
-	 */
-	override def hashCode(): Int = {
-		val prime = 31
-		var result = 1
-		result = prime * result + id.hashCode
-		result
-	}
-}
+	val vectorizable: Vectorizable[O],
+	val workingVector: V,
+	val vectorized: HMap[VMapping] = HMap.empty[VMapping]
+) extends IdentifiedVectorized[ID, O, V]
 /**
  *
  */
-case class IdentifiedVector[ID: Numeric, V](
-	override val id: ID,
-	override val vectorizable: Vector[V],
-	override val altVectors: immutable.HashMap[Int, V] = immutable.HashMap.empty[Int, V]
-) extends IdentifiedVectorizable[ID, V, V](id, vectorizable) with ComplementaryVectors[V, IdentifiedVector[ID, V]] {
+trait Clusterizable[ID, O, V <: GVector, Self[A, B, C <: GVector] <: Clusterizable[A, B, C, Self]] extends IdentifiedVectorized[ID, O, V] {
 	/**
 	 *
 	 */
-	def addAltVector(idx: Int, altVector: V) = this.copy(altVectors = if(!altVectors.isEmpty) altVectors + ((idx, altVector)) else immutable.HashMap(idx -> altVector))
-	/**
-	 *
-	 */
-	override def hashCode(): Int = {
-		val prime = 31
-		var result = 1
-		result = prime * result + id.hashCode
-		result = prime * result + altVectors.hashCode
-		result
-	}
-}
-/**
- *
- */
-abstract class Clusterizable[ID: Numeric, O, V, Self <: Clusterizable[ID, O, V, Self]](
-	id: ID, 
-	vectorizable: Vectorizable[O, V],
 	val clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int]
-) extends IdentifiedVectorizable[ID, O, V](id, vectorizable) {
 	/**
 	 *
 	 */
-	def vector(workingVector: Int = 0): V = originalVector
+	def addClusterID(newClusterID: Int): Self[ID, O, V]
 	/**
 	 *
 	 */
-	def addClusterID(clusterID: Int): Self
+	def addVectorized[GV <: GVector](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): Self[ID, O, V]
 	/**
 	 *
 	 */
-	override def hashCode(): Int = id.hashCode
-
+	def addAltVector[GV <: GVector](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): Self[ID, O, V]
+	/**
+	 *
+	 */
+	def updtWorkingVector[GV <: GVector](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): Self[ID, O, GV]
 }
 /**
  *
  */
-abstract class ClusterizableExt[ID: Numeric, O, V, Self <: ClusterizableExt[ID, O, V, Self]](
-	id: ID, 
-	vectorizable: Vectorizable[O, V],
-	clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int],
-	val altVectors: immutable.HashMap[Int, V] = immutable.HashMap.empty[Int, V]
-) extends Clusterizable[ID, O, V, Self](id, vectorizable, clusterID) with ComplementaryVectors[V, Self] {
-	/**
-	 *
-	 */
-	override def vector(workingVector: Int = 0): V = if(workingVector == 0) originalVector else altVectors(workingVector)
-	/**
-	 *
-	 */
-	override def hashCode(): Int = id.hashCode
-
-}
-/**
- *
- **/
-case class EasyClusterizable[ID: Numeric, O, V](
-	override val id: ID,
-	override val vectorizable: Vectorizable[O, V],
-	override val clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int]
-) extends Clusterizable[ID, O, V, EasyClusterizable[ID, O, V]](id, vectorizable, clusterID) {
+case class EasyClusterizable[ID, O, V <: GVector](
+	val id: ID,
+	val vectorizable: Vectorizable[O],
+	val workingVector: V,
+	val vectorized: HMap[VMapping] = HMap.empty[VMapping]
+) extends Clusterizable[ID, O, V, EasyClusterizable] {
 	/**
 	 *
 	 */
@@ -129,36 +112,26 @@ case class EasyClusterizable[ID: Numeric, O, V](
 	/**
 	 *
 	 */
-	def addClusterID(newClusterID: Int): EasyClusterizable[ID, O, V] = this.copy(clusterID = clusterID += newClusterID)
-}
-/**
- *
- **/
-case class EasyClusterizableExt[ID: Numeric, O, V](
-	override val id: ID,
-	override val vectorizable: Vectorizable[O, V],
-	override val clusterID: mutable.ArrayBuffer[Int] = mutable.ArrayBuffer.empty[Int],
-	override val altVectors: immutable.HashMap[Int, V] = immutable.HashMap.empty[Int, V]
-) extends ClusterizableExt[ID, O, V, EasyClusterizableExt[ID, O, V]](id, vectorizable, clusterID, altVectors/*, altClusterIDs*/) {
-	/**
-	 *
-	 */
-	override def canEqual(a: Any): Boolean = a.isInstanceOf[EasyClusterizableExt[ID, O, V]]
-	/**
-	 *
-	 */
-	override def equals(that: Any): Boolean = {
-		that match {
-		  case that: EasyClusterizableExt[ID, O, V] => that.canEqual(this) && that.hashCode == this.hashCode
-		  case _ => false
-		}
+	def addClusterID(newClusterID: Int): EasyClusterizable[ID, O, V] = {
+		clusterID += newClusterID
+		this
 	}
 	/**
 	 *
 	 */
-	def addClusterID(newClusterID: Int): EasyClusterizableExt[ID, O, V] = this.copy(clusterID = clusterID += newClusterID)
+	def addVectorized[GV <: GVector](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasyClusterizable[ID, O, V] = {
+		this.copy(vectorized = vectorized + ((vectorizationID, vectorizable.toVector(towardNewVector))))
+	}
 	/**
 	 *
 	 */
-	def addAltVector(idx: Int, altVector: V): EasyClusterizableExt[ID, O, V] = this.copy(altVectors = if(!altVectors.isEmpty) altVectors + ((idx, altVector)) else immutable.HashMap(idx -> altVector))
+	def addAltVector[GV <: GVector](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasyClusterizable[ID, O, V] = {
+		this.copy(vectorized = vectorized + ((vectorizationID, newAltVector)))
+	}
+	/**
+	 *
+	 */
+	def updtWorkingVector[GV <: GVector](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasyClusterizable[ID, O, GV] = {
+		new EasyClusterizable(id, vectorizable, vectorized.get(vectorizationID).get.asInstanceOf[GV], vectorized)
+	}
 }

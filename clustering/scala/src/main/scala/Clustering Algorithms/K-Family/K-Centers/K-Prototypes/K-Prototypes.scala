@@ -9,10 +9,10 @@ import scala.util.Random
 import org.clustering4ever.math.distances.MixtDistance
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
 import org.clustering4ever.scala.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaImplicits._
+import org.clustering4ever.scala.vectors.{GVector, MixtVector}
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :
@@ -26,22 +26,21 @@ object KPrototypes {
 	 * Run the K-Prototypes with any mixt distance
 	 */
 	def run[
-		ID: Numeric,
+		ID,
 		O,
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
-		Cz[ID, O, V] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
+		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
 		D <: MixtDistance[Vb, Vs]
 	](
-		data: GenSeq[Cz[ID, O, BinaryScalarVector[Vb, Vs]]],
+		data: GenSeq[Cz[ID, O, MixtVector[Vb, Vs]]],
 		k: Int,
-		epsilon: Double,
-		maxIterations: Int,
 		metric: D,
-		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb, Vs]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb, Vs]]
-	)(implicit workingVector: Int = 0): KCentersModel[ID, O, BinaryScalarVector[Vb, Vs], Cz[ID, O, BinaryScalarVector[Vb, Vs]], D] = {
-		val kPrototypes = new KCenters[BinaryScalarVector[Vb, Vs], D](k, epsilon, maxIterations, metric)
-		val kPrototypesModel = kPrototypes.run(data)(workingVector)
+		maxIterations: Int,
+		epsilon: Double,
+		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
+	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D] = {
+		val kPrototypesModel = KCenters.run(data, k, metric, epsilon, maxIterations, initializedCenters)
 		kPrototypesModel
 	}
 }

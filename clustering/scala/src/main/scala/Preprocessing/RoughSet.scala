@@ -21,7 +21,7 @@ trait RoughSet extends RoughSetCommons {
   /**
    *
    */
-  private def obtainReductSet[ID: Numeric, T, V[T] <: Seq[T]](data: GenSeq[DFCL[ID, V[T]]], indDecisionClasses: Iterable[Seq[ID]], everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]]): parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = {
+  private def obtainReductSet[ID, T, V[X] <: Seq[X]](data: GenSeq[DFCL[ID, V[T]]], indDecisionClasses: Iterable[Seq[ID]], everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]]): parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = {
     
     val indEveryCombinations = everyCombinations.map( f => (f, obtainIndecability(f, data)) )
     val dependencyAll = indEveryCombinations.map{ case (features, indecability) => (features, dependency(indecability, indDecisionClasses)) }
@@ -47,16 +47,16 @@ trait RoughSet extends RoughSetCommons {
   /**
    * Rought Set feature selection classical algorithm
    */
-  protected def roughSet[ID: Numeric, T, V[T] <: Seq[T]](data: GenSeq[DFCL[ID, V[T]]]): GenSeq[mutable.ArrayBuffer[Int]] = {
+  protected def roughSet[ID, T, V[X] <: Seq[X]](data: GenSeq[DFCL[ID, V[T]]]): GenSeq[mutable.ArrayBuffer[Int]] = {
     val indDecisionClasses: Iterable[Seq[ID]] = generateIndecidabilityDecisionClasses(data)
-    val everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = obtainEveryFeaturesCombinations(data.head.originalVector.size)
+    val everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = obtainEveryFeaturesCombinations(data.head.workingVector.size)
     val allReductSet = obtainReductSet(data, indDecisionClasses, everyCombinations)
     allReductSet    
   }
   /**
    * Pure scala functions to apply on each node locally
    */
-  protected def roughSetPerBucketOfFeatures[ID: Numeric, U, T[U] <: Seq[U], V[T] <: Seq[T]](data: GenSeq[HDFCL[ID, U, T, V]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = {
+  protected def roughSetPerBucketOfFeatures[ID, U, T[U] <: Seq[U], V[X] <: Seq[X]](data: GenSeq[HDFCL[ID, U, T, V]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = {
     
     val computedColumns: GenSeq[Int] = if( columnToCompute.isDefined ) columnToCompute.get else parallel.mutable.ParArray.range(0, columnsOfFeats.size)
 
@@ -96,19 +96,19 @@ object RoughSet extends RoughSet {
   /**
    * Rought Set feature selection classical algorithm
    */
-  def run[ID: Numeric, T, V[T] <: Seq[T]](data: GenSeq[DFCL[ID, V[T]]]): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
+  def run[T, V[X] <: Seq[X]](data: GenSeq[(V[T], Int)]): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
   /**
    * Rought Set feature selection classical algorithm
    */
-  def run[T, V[T] <: Seq[T]](data: GenSeq[(V[T], Int)]): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
+  def run[ID, T, V[X] <: Seq[X]](data: GenSeq[DFCL[ID, V[T]]])(implicit di: DummyImplicit): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
   /**
    *
    */
-  def runHeuristic[ID: Numeric, U, T[U] <: Seq[U], V[T] <: Seq[T]](data: GenSeq[HDFCL[ID, U, T, V]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = roughSetPerBucketOfFeatures(data, columnsOfFeats, columnToCompute)
+  def runHeuristic[ID, U, T[U] <: Seq[U], V[X] <: Seq[X]](data: GenSeq[HDFCL[ID, U, T, V]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = roughSetPerBucketOfFeatures(data, columnsOfFeats, columnToCompute)
   /**
    *
    */
-  def easyRunHeuristic[T, V[T] <: Seq[T]](data: GenSeq[(V[T], Int)], numberOfBucket: Int = 0): GenSeq[Int] = {
+  def easyRunHeuristic[T, V[X] <: Seq[X]](data: GenSeq[(V[T], Int)], numberOfBucket: Int = 0): GenSeq[Int] = {
     val autoBucket = if( numberOfBucket <= 1 ) data.head._1.size / 8 + 1 else numberOfBucket
     val (readyToLearn, columnsOfFeats) = Util.prepareGsForRoughSetHeuristic(data, autoBucket)
     roughSetPerBucketOfFeatures(readyToLearn, columnsOfFeats)

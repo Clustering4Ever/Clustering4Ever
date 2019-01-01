@@ -14,37 +14,37 @@ import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
 import org.clustering4ever.scala.clusterizables.Clusterizable
 import org.clustering4ever.scala.clustering.kcenters.KCommons
-import org.clustering4ever.clustering.CenterOrientedModelDistributed
+import org.clustering4ever.clustering.FusionedModelsDistributed
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
-import spire.math.{Numeric => SNumeric}
-/**
+import org.clustering4ever.clustering.ClusteringArgs
+import org.clustering4ever.scala.vectors.GVector
+/**metric
  *
  */
 class KCentersModel[
-	ID: Numeric,
+	ID,
 	O,
-	V,
-	Cz <: Clusterizable[ID, O, V, Cz] : ClassTag,
+	V <: GVector,
+	Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz],
 	D <: Distance[V]
 	](
 	val centers: mutable.HashMap[Int, V],
 	val metric: D,
-	var workingVector: Int = 0
-) extends CenterOrientedModelDistributed[V, D] {
+	val kCentersArgs: Option[ClusteringArgs] = None
+)(implicit ct: ClassTag[Cz[ID, O, V]]) extends FusionedModelsDistributed[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict(data: RDD[Cz])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(centerPredict(rc.vector(workingVector))) )
+	def centerPredict(data: RDD[Cz[ID, O, V]])(implicit i: DummyImplicit): RDD[Cz[ID, O, V]] = data.map( rc => rc.addClusterID(centerPredict(rc.workingVector)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(knnPredict(rc.vector(workingVector), k, trainDS)) )
+	def knnPredict(data: RDD[Cz[ID, O, V]], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): RDD[Cz[ID, O, V]] = data.map( rc => rc.addClusterID(knnPredict(rc.workingVector, k, trainDS)) )
 	/**
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[Cz], clusteringNumber: Int = 0): RDD[Cz] = knnPredict(data, k, trainDS.map( rc => (rc.clusterID(clusteringNumber), rc.vector(workingVector)) ))
+	def knnPredict(data: RDD[Cz[ID, O, V]], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int = 0): RDD[Cz[ID, O, V]] = knnPredict(data, k, trainDS.map( rc => (rc.clusterID(clusteringNumber), rc.workingVector) ))
 }

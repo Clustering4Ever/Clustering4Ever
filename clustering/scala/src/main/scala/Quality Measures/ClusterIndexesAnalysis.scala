@@ -10,7 +10,6 @@ import org.clustering4ever.clustering.ClusteringCommons
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
 import org.clustering4ever.scala.indexes.NmiNormalizationNature
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 /**
  *
  */
@@ -33,21 +32,22 @@ import InternalsIndexes.InternalsIndexesType
 import InternalsIndexes._
 import ExternalsIndexes.ExternalsIndexesType
 import ExternalsIndexes._
+import org.clustering4ever.scala.vectors.GVector
 /**
  *
  */
-abstract class ClustersIndexesAnalysis[
+class ClustersIndexesAnalysis[
     @specialized(Int, Long) ID: Numeric,
     O,
-    V,
-    Cz <: Clusterizable[ID, O, V, Cz]
-](clusterized: GenSeq[Cz]) extends ClusteringCommons {
+    V <: GVector,
+    Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz]
+](clusterized: GenSeq[Cz[ID, O, V]]) extends ClusteringCommons {
     /**
      *
      */
     def computeInternalsIndexes[D <: Distance[V]](metric: D, indexes: InternalsIndexesType*)(workingVector: Int = 0, clusteringNumber: Int = 0): Seq[(InternalsIndexesType, Double)] = {
         
-        val idAndVector: GenSeq[(ClusterID, V)] = clusterized.map( cz => (cz.clusterID(clusteringNumber), cz.vector(workingVector)) )
+        val idAndVector: GenSeq[(ClusterID, V)] = clusterized.map( cz => (cz.clusterID(clusteringNumber), cz.workingVector) )
 
         val internalIndexes = new InternalIndexes(idAndVector, metric)
 

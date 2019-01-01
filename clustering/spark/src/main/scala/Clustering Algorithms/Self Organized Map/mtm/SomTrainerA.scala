@@ -9,12 +9,12 @@ import org.clustering4ever.spark.clustering.mtm.utils.NamedVector
 import scala.concurrent.duration.{FiniteDuration, Duration}
 import org.apache.spark.mllib.linalg.DenseVector
 import scala.collection.immutable
-import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.math.distances.scalar.RawEuclidean
+import org.clustering4ever.math.distances.RawContinuousDistance
 /**
  * @author Sarazin Tugdual & Lebbah Mustapha & Beck Gaël
  **/
-class SomTrainerA(metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true)) extends AbstractTrainer
+class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[Seq[Double]](true)) extends AbstractTrainer
 {
   val DEFAULT_SOM_ROW = 10
   val DEFAULT_SOM_COL = 10

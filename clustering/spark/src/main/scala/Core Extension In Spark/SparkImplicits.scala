@@ -6,6 +6,8 @@ import scala.language.higherKinds
 import scala.language.implicitConversions
 import org.apache.spark.rdd.RDD
 import org.clustering4ever.scala.clusterizables.EasyClusterizable
+import org.clustering4ever.scala.vectors.{BinaryVector, ScalarVector}
+import org.clustering4ever.scala.vectors.GSimpleVector
 /**
  *
  */
@@ -13,21 +15,27 @@ object SparkImplicits {
 	/**
 	 *
 	 */
-	implicit def realVectorWithIndexRDDToRealClusterizable[ID: Numeric, V[Double] <: Seq[Double]](rdd: RDD[(V[Double], ID)]): RDD[EasyClusterizable[ID, V[Double], V[Double]]] = {
-		rdd.map{ case (vector, id) => ClusterizableGenerator.obtainEasyClusterizable(id, vector) }
+	implicit def scalarDataWithIDToClusterizable[ID, V <: Seq[Double]](rdd: RDD[(V, ID)]): RDD[EasyClusterizable[ID, ScalarVector[V], ScalarVector[V]]] = {
+		rdd.map{ case (vector, id) => ClusterizableGenerator.obtainEasyClusterizable(id, new ScalarVector(vector)) }
+	}
+
+	/**
+	 *
+	 */
+	implicit def binaryDataWithIDToClusterizable[ID, V <: Seq[Int]](rdd: RDD[(V, ID)]): RDD[EasyClusterizable[ID, BinaryVector[V], BinaryVector[V]]] = {
+		rdd.map{ case (vector, id) => ClusterizableGenerator.obtainEasyClusterizable(id, new BinaryVector(vector)) }
 	}
 	/**
 	 *
 	 */
-	implicit def binaryVectorWithIndexRDDToBinaryClusterizable[ID: Numeric, V[Int] <: Seq[Int]](rdd: RDD[(V[Int], ID)]): RDD[EasyClusterizable[ID, V[Int], V[Int]]] = {
-		rdd.map{ case (vector, id) => ClusterizableGenerator.obtainEasyClusterizable(id, vector) }
+	implicit def scalarDataToClusterizable[V <: Seq[Double]](rdd: RDD[V]): RDD[EasyClusterizable[Long, ScalarVector[V], ScalarVector[V]]] = {
+		rdd.zipWithIndex
 	}
+
 	/**
 	 *
 	 */
-	implicit def realVectorRDDToRealClusterizable[V[Double] <: Seq[Double]](rdd: RDD[V[Double]]): RDD[EasyClusterizable[Long, V[Double], V[Double]]] = rdd.zipWithIndex
-	/**
-	 *
-	 */
-	implicit def binaryVectorRDDToBinaryClusterizable[V[Int] <: Seq[Int]](rdd: RDD[V[Int]]): RDD[EasyClusterizable[Long, V[Int], V[Int]]] = rdd.zipWithIndex
+	implicit def binaryDataToClusterizable[V <: Seq[Int]](rdd: RDD[V]): RDD[EasyClusterizable[Long, BinaryVector[V], BinaryVector[V]]] = {
+		rdd.zipWithIndex
+	}
 }

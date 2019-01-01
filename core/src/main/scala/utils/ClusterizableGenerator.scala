@@ -3,9 +3,11 @@ package org.clustering4ever.util
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.scala.vectorizables.{Vector, MixtVector}
-import org.clustering4ever.scala.clusterizables.{EasyClusterizable, EasyClusterizableExt}
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
+import scala.collection.{mutable, immutable}
+import org.clustering4ever.scala.vectorizables.Vectorizable
+import org.clustering4ever.scala.clusterizables.EasyClusterizable
+import org.clustering4ever.clustering.ClusteringArgs
+import org.clustering4ever.scala.vectors.GVector
 /**
  *
  */
@@ -13,9 +15,5 @@ object ClusterizableGenerator {
 	/**
 	 *
 	 */
-	def obtainEasyClusterizable[@specialized(Int, Long) ID: Numeric, V](id: ID, vector: V): EasyClusterizable[ID, V, V] = new EasyClusterizable(id, new Vector(vector))
-	/**
-	 *
-	 */
-	def obtainEasyClusterizableExt[@specialized(Int, Long) ID: Numeric, N, V](id: ID, vector: V): EasyClusterizableExt[ID, V, V] = new EasyClusterizableExt[ID, V, V](id, new Vector[V](vector))
+	def obtainEasyClusterizable[ID, V <: GVector](id: ID, vector: V): EasyClusterizable[ID, V, V] = new EasyClusterizable(id, new Vectorizable(vector), vector)
 }
