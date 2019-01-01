@@ -71,7 +71,7 @@ abstract class ClustersAnalysisDistributed[
 
 //     private val originalVector = 0
 
-//     import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+//     import org.clustering4ever.util.VectorsAddOperationsImplicits._
 
 //     if(vectorHeader.isDefined) require(clusterized.first.workingVector.vector.size == vectorHeader.size)
 

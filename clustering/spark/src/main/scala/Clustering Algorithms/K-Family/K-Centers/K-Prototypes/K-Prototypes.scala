@@ -43,9 +43,9 @@ object KPrototypes {
 		metric: D,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
-	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[ID, O, MixtVector[Vb, Vs], Cz, D] = {
-		val kPrototypes = new KCenters(k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters)
-		val kPrototypesModel = kPrototypes.run(data)
+	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D] = {
+		val kPrototypes = new KCenters(k, epsilon, maxIterations, persistanceLVL, initializedCenters)
+		val kPrototypesModel = kPrototypes.run(data, Some(metric))
 		kPrototypesModel
 	}
 }

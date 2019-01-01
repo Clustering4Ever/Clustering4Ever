@@ -15,7 +15,7 @@ import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
  * @param kernel defines the nature of kernel and its parameters used in the gradient ascent
  */
 class GradientAscent[
-  @specialized(Int, Long) ID: Numeric,
+  ID,
   O,
   V <: Seq[Double],
   Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
@@ -83,7 +83,7 @@ object GradientAscent {
    * @param maxIterations : Number of iteration for modes search
    */
   def run[
-    ID: Numeric,
+    ID,
     O,
     V <: Seq[Double],
     Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],

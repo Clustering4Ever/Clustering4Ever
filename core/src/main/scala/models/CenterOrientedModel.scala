@@ -7,7 +7,6 @@ import org.clustering4ever.math.distances.{Distance, ClusterizableDistance}
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.scala.vectors.GVector
 import org.clustering4ever.scala.clusterizables.Clusterizable
-import org.clustering4ever.math.distances.ClusterizableDistanceBuilder
 /**
  *
  */

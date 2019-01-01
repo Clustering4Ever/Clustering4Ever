@@ -40,9 +40,9 @@ object KMeans {
 		maxIterations: Int,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
-		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ID, O, ScalarVector[V], Cz, D] = {
-		val kMeans = new KCenters(k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters)
-		val kCentersModel = kMeans.run(data)
+		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D] = {
+		val kMeans = new KCenters(k, epsilon, maxIterations, persistanceLVL, initializedCenters)
+		val kCentersModel = kMeans.run(data, Some(metric))
 		kCentersModel
 	}
 	/**
@@ -55,7 +55,7 @@ object KMeans {
 		epsilon: Double,
 		maxIterations: Int,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-		): KCentersModel[Long, ScalarVector[V], ScalarVector[V], EasyClusterizable, D] = {
+		): KCentersModel[ScalarVector[V], D] = {
 		val kCentersModel = run(scalarDataWithIDToClusterizable(data.zipWithIndex), k, metric, epsilon, maxIterations, persistanceLVL)
 		kCentersModel
 	}

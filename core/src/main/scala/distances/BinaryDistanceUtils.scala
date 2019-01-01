@@ -45,7 +45,7 @@ object BinaryDistanceUtil {
 	 * @return Array[(numberOf0, numberOf1)]
 	 */
 	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] = {
-		import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+		import org.clustering4ever.util.VectorsAddOperationsImplicits._
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumVectors.sumVectors(_, _))
 		val nbZero = nbOne.map(nbTotData - _)

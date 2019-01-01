@@ -58,13 +58,8 @@ trait KCommons[V <: GVector] extends ClusteringCommons {
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-class KCenters[
-	V <: GVector : ClassTag,
-	D <: Distance[V],
-	GS[X] <: GenSeq[X]
-](
+class KCenters[V <: GVector : ClassTag, GS[X] <: GenSeq[X]](
 	val k: Int,
-	metric: D,
 	val epsilon: Double,
 	maxIterations: Int,
 	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
@@ -75,12 +70,13 @@ class KCenters[
 	def run[
 		ID,
 		O,
+		D <: Distance[V],
 		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz]
-	](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = {
+	](data: GS[Cz[ID, O, V]], metric: Option[D] = None, args: Option[ClusteringArgs] = None)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = {
 		/**
 		 *
 		 */
-		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, metric, k) else initializedCenters
+		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, metric.get, k) else initializedCenters
 		/**
 		 *
 		 */
@@ -94,13 +90,13 @@ class KCenters[
 				// Keep old position of centroids
 				val kCentersBeforeUpdate = centers.clone
 				// Compute centers and cardinality of each cluster
-				data.groupBy( cz => obtainNearestCenterID(cz.workingVector, centers, metric) ).foreach{ case (clusterID, aggregate) =>
-					centers(clusterID) = ClusterBasicOperations.obtainCenter(aggregate.map(_.workingVector), metric)
+				data.groupBy( cz => obtainNearestCenterID(cz.workingVector, centers, metric.get) ).foreach{ case (clusterID, aggregate) =>
+					centers(clusterID) = ClusterBasicOperations.obtainCenter(aggregate.map(_.workingVector), metric.get)
 					centersCardinality(clusterID) = aggregate.size
 				}
 				removeEmptyClusters(centers, kCentersBeforeUpdate, centersCardinality)
 
-				go(cpt + 1, areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon, metric))
+				go(cpt + 1, areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon, metric.get))
 			}
 			else {
 				centers
@@ -111,10 +107,10 @@ class KCenters[
 			val kValue = k
 			val epsilonValue = epsilon
 			val maxIterationsValue = maxIterations
-			val metricValue = metric.toString
+			val metricValue = metric.get.toString
 		}
 
-		new KCentersModel[V, D](go(0, false), metric, KCentersArgs)
+		new KCentersModel[V, D](go(0, false), metric.get, KCentersArgs)
 	}
 }
 /**
@@ -139,8 +135,8 @@ object KCenters {
 		maxIterations: Int,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 	)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = {
-		val kCenter = new KCenters[V, D, GS](k, metric, epsilon, maxIterations, initializedCenters)
-		val kCentersModel = kCenter.run(data)
+		val kCenter = new KCenters[V, GS](k, epsilon, maxIterations, initializedCenters)
+		val kCentersModel = kCenter.run(data, Some(metric), None)
 		kCentersModel
 	}
 }

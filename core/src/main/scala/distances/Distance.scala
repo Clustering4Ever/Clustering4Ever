@@ -21,31 +21,20 @@ trait Distance[O] extends Serializable {
 /**
  *
  */
-trait DistanceV[V <: GVector] extends Serializable {
-	
-	def dV(o1: V, o2: V): Double
-
-}
-/**
- *
- */
-trait DoubleDistance[O, V <: GVector] extends Distance[O] with DistanceV[V]
-/**
- *
- */
 trait ClusterizableDistance[ID, O, V <: GVector, Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]] extends Distance[Cz[ID, O, V]]
 /**
- *
+ * Clusterizable Distance Builder void trait
+ * It is used to optionalize obtention of a metric on Clusterizable for clustering algorithms
  */
-trait ClusterizableDistanceBuilder[V <: GVector] extends Serializable {
-
-	def obtainClusterizableMetric[ID: Numeric, O, Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]](clusterizable: Cz[ID, O, V]): ClusterizableDistance[ID, O, V, Cz]
-
-}
+trait CDB extends Serializable
 /**
  *
  */
-trait DoubleDistanceClusterizable[ID, O, V <: GVector, Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]] extends DoubleDistance[Cz[ID, O, V], V]
+trait ClusterizableDistanceBuilder[V <: GVector] extends CDB {
+
+	def obtainClusterizableMetric[ID, O, Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]](clusterizable: Cz[ID, O, V]): ClusterizableDistance[ID, O, V, Cz]
+
+}
 /**
  *
  */

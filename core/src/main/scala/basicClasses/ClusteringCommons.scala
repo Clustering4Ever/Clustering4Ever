@@ -9,7 +9,7 @@ import shapeless._
 import org.clustering4ever.scala.clusterizables.{Clusterizable, IdentifiedRawObject}
 import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.shapelesslinked.VMapping
-import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.math.distances.{Distance, CDB}
 /**
  * Commons properties of all clustering linked class
  */
@@ -37,8 +37,11 @@ trait ClusteringAlgorithmGen[V <: GVector, Collection[_]] extends ClusteringAlgo
 	def run[
 		ID,
 		O,
+		D <: Distance[V],
+		// D <: Distance[V] with CDB,
 		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz]
-	](data: Collection[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringModel
+	](data: Collection[Cz[ID, O, V]], metric: Option[D] = None, args: Option[ClusteringArgs] = None)(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringModel
+
 }
 /**
  * The basic trait shared by all local clustering algorithms

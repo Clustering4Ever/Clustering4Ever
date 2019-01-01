@@ -37,7 +37,7 @@ import org.clustering4ever.scala.vectors.GVector
  *
  */
 class ClustersIndexesAnalysis[
-    @specialized(Int, Long) ID: Numeric,
+    ID,
     O,
     V <: GVector,
     Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz]

@@ -35,9 +35,9 @@ object KModes {
 		maxIterations: Int,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]
-	)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KCentersModel[ID, O, BinaryVector[V], Cz, D] = {
-		val kmodes = new KCenters(k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters)
-		val kModesModel = kmodes.run(data)
+	)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KCentersModel[BinaryVector[V], D] = {
+		val kmodes = new KCenters(k, epsilon, maxIterations, persistanceLVL, initializedCenters)
+		val kModesModel = kmodes.run(data, Some(metric))
 		kModesModel
 	}
 	/**
@@ -50,7 +50,7 @@ object KModes {
 		maxIterations: Int,
 		metric: D,
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-	): KCentersModel[Long, BinaryVector[V], BinaryVector[V], EasyClusterizable, D] = {
+	): KCentersModel[BinaryVector[V], D] = {
 		val kModesModel = run(binaryDataWithIDToClusterizable(data.zipWithIndex), k, metric, epsilon, maxIterations, persistanceLVL)
 		kModesModel
 	}

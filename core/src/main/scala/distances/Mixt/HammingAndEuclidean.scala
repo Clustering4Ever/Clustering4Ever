@@ -6,7 +6,6 @@ import scala.language.higherKinds
 import scala.math.{pow, sqrt}
 import org.clustering4ever.math.distances.MixtDistance
 import org.clustering4ever.scala.vectors.MixtVector
-// import org.clustering4ever.math.distances.MixtClusterizableDistance
 import org.clustering4ever.scala.clusterizables.Clusterizable
 /**
  *
@@ -64,5 +63,5 @@ class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double =
 // 	/**
 // 	 *
 // 	 */
-// 	def d[@specialized(Int, Long) ID: Numeric, O, Cz[X, Y, Z] <: Clusterizable[X, Y, Z, Cz[X, Y, Z]]](dot1: Cz[ID, O, MixtVector[Vb, Vs]], dot2: Cz[ID, O, MixtVector[Vb, Vs]]): Double = hammingAndEuclidean(dot1.vector(workingVector), dot2.vector(workingVector))
+// 	def d[@specialized(Int, Long) ID, O, Cz[X, Y, Z] <: Clusterizable[X, Y, Z, Cz[X, Y, Z]]](dot1: Cz[ID, O, MixtVector[Vb, Vs]], dot2: Cz[ID, O, MixtVector[Vb, Vs]]): Double = hammingAndEuclidean(dot1.vector(workingVector), dot2.vector(workingVector))
 // }

@@ -5,7 +5,6 @@ package org.clustering4ever.scala.clusteranalysis
 import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{Map, GenMap, mutable, GenSeq}
-import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.scala.clusterizables.Clusterizable
 import org.clustering4ever.clustering.ClustersAnalysis
 import org.clustering4ever.shapelesslinked.VMapping
@@ -103,7 +102,7 @@ class BinaryClustersAnalysis[
 
     // private val originalVector = 0
 
-    // import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+    // import org.clustering4ever.util.VectorsAddOperationsImplicits._
 
     // if(vectorHeader.isDefined) require(data.head.workingVector.vector.size == vectorHeader.size)
 

@@ -6,13 +6,12 @@ import scala.reflect.ClassTag
 import scala.math.sqrt
 import scala.collection.GenSeq
 import scala.language.higherKinds
-import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.scala.vectors.{GVector, BinaryVector, ScalarVector, MixtVector}
 import scala.collection.mutable
 /**
  *
  */
-object VectorsBasicOperationsImplicits {
+object VectorsAddOperationsImplicits {
 	/**
 	 *
 	 */
@@ -63,7 +62,7 @@ object VectorsBasicOperationsImplicits {
  */
 object SumVectors {
 
-	import VectorsBasicOperationsImplicits._
+	import VectorsAddOperationsImplicits._
 	/**
 	 * add two vector no mather their types
 	 */
@@ -73,50 +72,37 @@ object SumVectors {
 	 */
 	def sumColumnMatrix[V](cluster: GenSeq[V])(implicit f: (V, V) => V): V = cluster.reduce(sumVectors(_, _))
 	/**
-	 * Reduce Array of multiple vectors
+	 * Reduce Seq of multiple vectors
 	 */
-	def reduceMultipleVectorsMatrice[V <: Seq[Double], It[X] <: Seq[X]](a: It[V], b: It[V])(implicit f: (V, V) => V) = {	
+	def sumAlignedVectorsMatrice[V <: Seq[Double], S[X] <: Seq[X]](a: S[V], b: S[V])(implicit f: (V, V) => V) = {	
 		val range = (0 until a.size)
-		val builder = a.genericBuilder.asInstanceOf[mutable.Builder[V, It[V]]]
+		val builder = a.genericBuilder.asInstanceOf[mutable.Builder[V, S[V]]]
 		builder.sizeHint(a.size)
 		range.foreach{ i => builder += sumVectors(a(i), b(i)) }
 		builder.result
 	}
 	/**
-	 * to tailrec
+	 *
 	 */
-	def norm[V <: Seq[Double]](dot: V): Double = {
-	  var s = 0D
-	  var i = 0
-	  while(i < dot.size) {
-	    val v = dot(i)
-	    s += v * v
-	    i += 1
-	  }
-	  sqrt(s)
+	def dotProduct[V <: Seq[Double]](dot1: V, dot2: V): Double = {
+		@annotation.tailrec
+		def go(i: Int, sum: Double): Double = {
+			val res = sum + dot1(i) * dot2(i)
+			if(i < dot1.size - 1) go(i + 1, res)
+			else res
+		}
+		go(0, 0D)
 	}
 	/**
-	 * to tailrec
+	 *
 	 */
-	def dotProd[V <: Seq[Double]](dot1: V, dot2: V): Double = {
-		var dp = 0D
-		var i = 0
-		while(i < dot1.size) {
-			dp += dot1(i) * dot2(i)
-			i += 1
-		}
-		dp
-	}
+	def dotProduct[V <: Seq[Double]](dot1: ScalarVector[V], dot2: ScalarVector[V]): Double = dotProduct(dot1.vector, dot2.vector)
 	/**
-	 * to tailrec
+	 *
 	 */
-	def dotProd[V <: Seq[Double]](dot1: ScalarVector[V], dot2: ScalarVector[V]): Double = {
-		var dp = 0D
-		var i = 0
-		while(i < dot1.vector.size) {
-			dp += dot1.vector(i) * dot2.vector(i)
-			i += 1
-		}
-		dp
-	}
+	def euclideanNorm[V <: Seq[Double]](dot: V): Double = sqrt(dotProduct(dot, dot))
+	/**
+	 *
+	 */
+	def euclideanNorm[V <: Seq[Double]](dot: ScalarVector[V]): Double = euclideanNorm(dot.vector)
 }

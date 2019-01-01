@@ -15,7 +15,7 @@ import org.clustering4ever.scala.vectors.{GVector, GBinaryVector, GScalarVector,
 /**
  *
  */
-trait Kernel[V <: GVector, +KA <: KernelArgs] extends Serializable {
+trait Kernel[V <: GVector, KA <: KernelArgs] extends Serializable {
 	/**
 	 *
 	 */
@@ -29,7 +29,7 @@ trait Kernel[V <: GVector, +KA <: KernelArgs] extends Serializable {
  *
  */
 object KernelUtils {
-	import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+	import org.clustering4ever.util.VectorsAddOperationsImplicits._
 	/**
 	 *
 	 */
@@ -101,8 +101,8 @@ case class KernelSigmoid[V <: Seq[Double]](val kernelArgs: KernelArgsSigmoid) ex
 	 *
 	 */
 	def sigmoidKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
-		val dotProd = SumVectors.dotProd(v1, altVectors)
-		tanh(kernelArgs.a * dotProd + kernelArgs.b)
+		val dotProduct = SumVectors.dotProduct(v1, altVectors)
+		tanh(kernelArgs.a * dotProduct + kernelArgs.b)
 	}
 	/**
 	 *
@@ -141,7 +141,7 @@ object GmmKernels {
 trait KnnKernel[
 	V <: GVector,
 	D <: Distance[V],
-	+Args <: KernelArgsKnn[V, D]
+	Args <: KernelArgsKnn[V, D]
 ] extends Kernel[V, Args]  {
 	/**
 	 *
@@ -165,7 +165,7 @@ trait KnnKernel[
 trait KnnKernelRealMeta[
 	V <: Seq[Double],
 	D <: ContinuousDistance[V],
-	+Args <: KernelArgsKnnRealMeta[V, D]
+	Args <: KernelArgsKnnRealMeta[V, D]
 ] extends KnnKernel[ScalarVector[V], D, Args]
 /**
  *

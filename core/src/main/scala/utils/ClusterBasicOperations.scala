@@ -9,7 +9,7 @@ import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
-import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+import org.clustering4ever.util.VectorsAddOperationsImplicits._
 import org.clustering4ever.scala.vectors.{GVector, MixtVector, ScalarVector, BinaryVector}
 /**
  * Type Class is probably the solution to this casting meli melo, but it is hard to apply in such complex case without any usefull ressources

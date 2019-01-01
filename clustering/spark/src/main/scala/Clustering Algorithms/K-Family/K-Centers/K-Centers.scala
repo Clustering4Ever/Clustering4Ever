@@ -19,15 +19,12 @@ import org.clustering4ever.clustering.FusionedModelsDistributed
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
 import org.clustering4ever.clustering.DistributedClusteringAlgorithm
 import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.clustering.ClusteringArgs
 /**
  *
  */
-class KCenters[
-	V <: GVector : ClassTag,
-	D <: Distance[V]
-](
+class KCenters[V <: GVector : ClassTag](
 	val k: Int,
-	metric: D,
 	val epsilon: Double,
 	maxIterations: Int,
 	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
@@ -50,7 +47,7 @@ class KCenters[
 	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
 	 * </ol>
 	 */
-	private def kmppInitializationRDD(vectorizedDataset: RDD[V], k: Int): mutable.HashMap[Int, V] = {
+	private def kmppInitializationRDD[D <: Distance[V]](vectorizedDataset: RDD[V], k: Int, metric: D): mutable.HashMap[Int, V] = {
 
 		def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 		
@@ -74,14 +71,15 @@ class KCenters[
 	def run[
 		ID,
 		O,
+		D <: Distance[V],
 		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz]
-	](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D] = {
+	](data: RDD[Cz[ID, O, V]], metric: Option[D] = None, args: Option[ClusteringArgs] = None)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = {
 		
 		data.persist(persistanceLVL)
 		/**
 		 * To upgrade
 		 */
-		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) kmppInitializationRDD(data.map(_.workingVector), k) else initializedCenters
+		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) kmppInitializationRDD(data.map(_.workingVector), k, metric.get) else initializedCenters
 		val kCentersBeforeUpdate: mutable.HashMap[Int, V] = centers.clone
 		val clustersCardinality: mutable.HashMap[Int, Long] = centers.map{ case (clusterID, _) => (clusterID, 0L) }
 		
@@ -94,19 +92,19 @@ class KCenters[
 
 		def checkIfConvergenceAndUpdateCenters(centersInfo: Iterable[(Int, Long, V)], epsilon: Double) = {
 			updateCentersAndCardinalities(centersInfo)
-			val allModHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon, metric)
+			val allModHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon, metric.get)
 			kCentersBeforeUpdate.foreach{ case (clusterID, mode) => centers(clusterID) = mode }	
 			allModHaveConverged
 		}
 		@deprecated("surely slower", "surely slower")
 		def obtainCentersInfo = {
-			data.map( cz => (obtainNearestCenterID(cz.workingVector, centers, metric), cz.workingVector) )
+			data.map( cz => (obtainNearestCenterID(cz.workingVector, centers, metric.get), cz.workingVector) )
 				.aggregateByKey(emptyValue)(mergeValue, mergeCombiners)
 				.map{ case (clusterID, aggregate) => 
 					(
 						clusterID,
 						aggregate.size.toLong,
-						ClusterBasicOperations.obtainCenter(aggregate.par, metric)
+						ClusterBasicOperations.obtainCenter(aggregate.par, metric.get)
 					)
 				}.collect
 			}
@@ -114,14 +112,14 @@ class KCenters[
 		var allModHaveConverged = false
 		while(cpt < maxIterations && !allModHaveConverged) {
 			// val centersInfo = obtainCentersInfo
-			val centersInfo = data.map( cz => (obtainNearestCenterID(cz.workingVector, centers, metric), (1L, cz.workingVector)) )
-				.reduceByKeyLocally{ case ((card1, v1), (card2, v2)) => ((card1 + card2), ClusterBasicOperations.obtainCenter(List(v1, v2), metric)) }
+			val centersInfo = data.map( cz => (obtainNearestCenterID(cz.workingVector, centers, metric.get), (1L, cz.workingVector)) )
+				.reduceByKeyLocally{ case ((card1, v1), (card2, v2)) => ((card1 + card2), ClusterBasicOperations.obtainCenter(List(v1, v2), metric.get)) }
 				.map{ case (clusterID, (cardinality, center)) => (clusterID, cardinality, center) }
 				.toArray
 
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
 			cpt += 1
 		}
-		new KCentersModel[ID, O, V, Cz, D](centers, metric)
+		new KCentersModel[V, D](centers, metric.get)
 	}
 }

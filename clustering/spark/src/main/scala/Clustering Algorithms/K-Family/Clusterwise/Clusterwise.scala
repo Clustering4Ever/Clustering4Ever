@@ -8,14 +8,13 @@ import scala.math.{pow, sqrt}
 import scala.annotation.meta.param
 import org.apache.spark.{SparkContext, SparkConf, HashPartitioner}
 import org.apache.spark.rdd.RDD
-// import org.apache.spark.mllib.clustering._
 import org.apache.spark.broadcast.Broadcast
 import org.clustering4ever.scala.clustering.kmeans.KMeans
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.scalar.{Euclidean, RawEuclidean}
 import org.clustering4ever.util.ClusterizableGenerator
 import org.clustering4ever.scala.clusterizables.EasyClusterizable
-import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+import org.clustering4ever.util.VectorsAddOperationsImplicits._
 import org.clustering4ever.scala.vectors.{ScalarVector, GScalarVector}
 /**
  *

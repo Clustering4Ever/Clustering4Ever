@@ -42,7 +42,7 @@ class EasyMinkowski(p: Int) extends Minkowski[mutable.ArrayBuffer[Double]](p)
 /**
  *
  */
-// class MinkowskiClusterizable[@specialized(Int, Long) ID: Numeric, O, V <: Seq[Double], D <: Minkowski[V], Cz <: Clusterizable[ID, O, ScalarVector[V], Cz]](final val p: Int = 2, val classicalMetric: D, workingVector: Int = 0) extends MinkowshiMeta with RealClusterizableDistance[Cz, V, D] {
+// class MinkowskiClusterizable[@specialized(Int, Long) ID, O, V <: Seq[Double], D <: Minkowski[V], Cz <: Clusterizable[ID, O, ScalarVector[V], Cz]](final val p: Int = 2, val classicalMetric: D, workingVector: Int = 0) extends MinkowshiMeta with RealClusterizableDistance[Cz, V, D] {
 // 	/**
 // 	  * The Minkowski distance
 // 	  * @return The Minkowski distance between dot1 and dot2
