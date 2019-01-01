@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.collection.{mutable, immutable, GenSeq}
 import org.clustering4ever.preprocessing.{DFCL, HDFCL}
 import scala.util.Random
-import org.clustering4ever.scala.vectorizables.Vector
+import org.clustering4ever.scala.vectorizables.Vectorizable
 /**
  * Theses functions are used to preprocess raw data                    
  */
@@ -41,7 +41,7 @@ object Util extends Serializable {
   /**
    *
    */
-  def obtainOccurencePerFeature[ID: Numeric, T, V[T] <: Seq[T]](gs: GenSeq[DFCL[ID, V[T]]]): Seq[mutable.HashSet[T]] = reduceOccFeaturesGs(gs.map(_.originalVector.map(mutable.HashSet(_))))
+  def obtainOccurencePerFeature[ID, T, V[T] <: Seq[T]](gs: GenSeq[DFCL[ID, V[T]]]): Seq[mutable.HashSet[T]] = reduceOccFeaturesGs(gs.map(_.workingVector.map(mutable.HashSet(_))))
   /**
    *
    */
@@ -57,22 +57,25 @@ object Util extends Serializable {
   /**
    *
    */
-  def prepareGsForRoughSet[ID: Numeric, T, V[X] <: Seq[X]](gs: GenSeq[DFCL[ID, V[T]]]): GenSeq[DFCL[ID, V[T]]] = {
+  def prepareGsForRoughSet[ID, T, V[X] <: Seq[X]](gs: GenSeq[DFCL[ID, V[T]]]): GenSeq[DFCL[ID, V[T]]] = {
     
     val occurPerFeat = obtainOccurencePerFeature(gs)
 
     val idxByValueByFeatIdx = obtainIdxByValueByFeatIdx(occurPerFeat)
 
-    val learnableGs = gs.map( dfcl => new DFCL(dfcl.id, new Vector(dfcl.originalVector.zipWithIndex.map{ case (value, idxF) => idxByValueByFeatIdx(idxF)(value) }.asInstanceOf[V[T]]), dfcl.label) )
+    val learnableGs = gs.map{ dfcl => 
+      val newWorkingVector = dfcl.workingVector.zipWithIndex.map{ case (value, idxF) => idxByValueByFeatIdx(idxF)(value) }.asInstanceOf[V[T]]
+      new DFCL(dfcl.id, dfcl.label, newWorkingVector)
+    }
 
     learnableGs
   }
   /**
    *
    */
-  def prepareGsForRoughSetHeuristic[ID: Numeric, T, V[X] <: Seq[X]](gs: GenSeq[DFCL[ID, V[T]]], numberOfBucket: Int): (GenSeq[HDFCL[ID, Int, mutable.Buffer, mutable.Buffer]], mutable.Buffer[mutable.Buffer[Int]]) = {
+  def prepareGsForRoughSetHeuristic[ID, T, V[X] <: Seq[X]](gs: GenSeq[DFCL[ID, V[T]]], numberOfBucket: Int): (GenSeq[HDFCL[ID, Int, mutable.Buffer, mutable.Buffer]], mutable.Buffer[mutable.Buffer[Int]]) = {
     
-    val bucketizedFeats = obtainRandomlyBucketizedFeatures(gs.head.originalVector.size, numberOfBucket)
+    val bucketizedFeats = obtainRandomlyBucketizedFeatures(gs.head.workingVector.size, numberOfBucket)
     
     (
       prepareGsForRoughSet(gs).map( dfcl => dfcl.bucketizedFeatures(bucketizedFeats) ),

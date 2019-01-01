@@ -3,7 +3,8 @@ package org.clustering4ever.math.distances
  * @author Beck Gaël
  */
 import scala.collection.mutable
-import org.clustering4ever.util.{SumVectors, VectorsBasicOperationsImplicits}
+import org.clustering4ever.util.SumVectors
+import org.clustering4ever.scala.vectors.BinaryVector
 /**
  *
  */
@@ -15,24 +16,24 @@ object BinaryDistanceUtil {
 	 *   - c is incremented if i = 0, j = 1
 	 *   - d is incremented if i = 0, j = 0
 	 */
-	def contingencyTable[V <: Seq[Int]](vector1: V, vector2: V) = {
+	def contingencyTable[V <: Seq[Int]](vector1: BinaryVector[V], vector2: BinaryVector[V]) = {
 
 		val oneBite = 1
 		val zeroBite = 0
 
 		def incrementValues(n: Int, a: Int, b: Int, c: Int, d: Int): (Int, Int, Int, Int) = {
-			if( vector1(n) == oneBite ) {
-				if( vector2(n) == oneBite ) (a + 1, b, c, d)
+			if(vector1.vector(n) == oneBite) {
+				if(vector2.vector(n) == oneBite) (a + 1, b, c, d)
 				else (a, b + 1, c, d)
 			}
-			else if( vector2(n) == zeroBite ) (a, b, c, d + 1)
+			else if(vector2.vector(n) == zeroBite) (a, b, c, d + 1)
 			else (a, b, c + 1, d)
 		}
 
 		@annotation.tailrec
 		def go(n: Int, a: Int, b: Int, c: Int, d: Int): (Int, Int, Int, Int) = {
 			val (a2, b2, c2, d2) = incrementValues(n, a, b, c, d)
-			if( n < vector1.size - 1 ) go(n + 1, a2, b2, c2, d2)
+			if(n < vector1.vector.size - 1) go(n + 1, a2, b2, c2, d2)
 			else (a2, b2, c2, d2)
 		}
 
@@ -44,7 +45,7 @@ object BinaryDistanceUtil {
 	 * @return Array[(numberOf0, numberOf1)]
 	 */
 	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] = {
-		import VectorsBasicOperationsImplicits._
+		import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumVectors.sumVectors(_, _))
 		val nbZero = nbOne.map(nbTotData - _)

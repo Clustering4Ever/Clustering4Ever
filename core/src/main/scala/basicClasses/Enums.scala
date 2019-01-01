@@ -1,11 +1,13 @@
-package org.clustering4ever.scala.enums
+package org.clustering4ever.enums
 /**
  * @author Beck Gaël
  */
-object ClusteringAlgorithm extends Enumeration {
+object ClusteringAlgorithmEnum extends Enumeration {
 
-	type ClusteringAlgorithm = Value
-    val KCenter,
-      RLA = Value
+	type ClusteringAlgorithmEnum = Value
+    val KMeans,
+    	KModes,
+    	KPrototypes,
+    	RLA = Value
 
 }

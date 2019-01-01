@@ -13,72 +13,73 @@ import org.clustering4ever.math.distances.{ClusterizableDistance, Distance, Cont
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.util.SumVectors
-import org.clustering4ever.scala.clusteranalysis.ClustersAnalysisCommons
+import org.clustering4ever.clustering.ClustersAnalysis
+import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector}
 /**
  *
  */
-abstract class ClustersAnalysis[
-    ID: Numeric,
+abstract class ClustersAnalysisDistributed[
+    ID,
     O,
-    V: ClassTag,
-    Cz <: Clusterizable[ID, O, V, Cz],
+    V <: GVector : ClassTag,
+    Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
     D <: Distance[V]
-](clusterized: RDD[Cz], metric: D, clusteringNumber: Int = 0)(implicit ct: ClassTag[Cz]) extends ClustersAnalysisCommons[ID, O, V, Cz] {
+](val clusterized: RDD[Cz[ID, O, V]], val metric: D, clusteringNumber: Int = 0)(implicit ct: ClassTag[Cz[ID, O, V]]) extends ClustersAnalysis[ID, O, V, Cz, D, RDD] {
 
-    private val neutralElement = mutable.ArrayBuffer.empty[Cz]
-    def addToBuffer(buff: mutable.ArrayBuffer[Cz], elem: Cz) = buff += elem
-    def aggregateBuff(buff1: mutable.ArrayBuffer[Cz], buff2: mutable.ArrayBuffer[Cz]) = buff1 ++= buff2
+    private val neutralElement = mutable.ArrayBuffer.empty[Cz[ID, O, V]]
+    def addToBuffer(buff: mutable.ArrayBuffer[Cz[ID, O, V]], elem: Cz[ID, O, V]) = buff += elem
+    def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[ID, O, V]], buff2: mutable.ArrayBuffer[Cz[ID, O, V]]) = buff1 ++= buff2
 
     lazy val datasetSize = clusterized.count
 
-    lazy val groupedByClusterID = clusterized.map( cz => (cz.clusterID(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
+    def groupedByClusterID(clusteringNumber: Int): RDD[(Int, mutable.ArrayBuffer[Cz[ID,O,V]])] = clusterized.map( cz => (cz.clusterID(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
 
-    lazy val cardinalities: Map[Int, Int] = groupedByClusterID.map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collectAsMap
+    // def cardinalities(clusteringNumber: Int): Map[Int, Int] = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collectAsMap
 
-    lazy val clustersProportions: Map[Int, Double] = cardinalities.map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+    // def clustersProportions(clusteringNumber: Int): Map[Int, Double] = cardinalities(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
 
-    def centroids(workingVector: Int  = 0): Map[Int, V] = groupedByClusterID.map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.vector(workingVector)), metric)) }.collectAsMap
-
-}
-/**
- *
- */
-class RealClustersAnalysis[
-    ID: Numeric,
-    O,
-    V[Double] <: Seq[Double],
-    Cz[ID, O, V <: Seq[Double]] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
-    D <: ContinuousDistance[V[Double]]
-](clusterized: RDD[Cz[ID, O, V[Double]]], metric: D)(implicit ct: ClassTag[Cz[ID, O, V[Double]]], ct2: ClassTag[V[Double]]) extends ClustersAnalysis[ID, O, V[Double], Cz[ID, O, V[Double]], D](clusterized, metric) {
-
-    /**
-     * TO DO
-     * - distributions of each features
-     */
+    // def centroids: Map[Int, V] = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.workingVector), metric)) }.collectAsMap
 
 }
 /**
  *
  */
-class BinaryClustersAnalysis[
-    ID: Numeric,
-    O,
-    V[Int] <: Seq[Int],
-    Cz[ID, O, V <: Seq[Int]] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
-    D <: BinaryDistance[V[Int]]
-](clusterized: RDD[Cz[ID, O, V[Int]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, V[Int]]], ct2: ClassTag[V[Int]]) extends ClustersAnalysis[ID, O, V[Int], Cz[ID, O, V[Int]], D](clusterized, metric) {
+// class RealClustersAnalysis[
+//     ID,
+//     O,
+//     V <: Seq[Double],
+//     Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+//     D <: ContinuousDistance[V]
+// ](clusterized: RDD[Cz[ID, O, ScalarVector[V]]], metric: D)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, ScalarVector[V], Cz, D](clusterized, metric) {
 
-    private val originalVector = 0
+//     /**
+//      * TO DO
+//      * - distributions of each features
+//      */
 
-    import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+// }
+/**
+ *
+ */
+// class BinaryClustersAnalysis[
+//     ID,
+//     O,
+//     V <: Seq[Int],
+//     Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+//     D <: BinaryDistance[V]
+// ](clusterized: RDD[Cz[ID, O, BinaryVector[V]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, BinaryVector[V], Cz, D](clusterized, metric) {
 
-    if( vectorHeader.isDefined ) require(clusterized.first.vector(originalVector).size == vectorHeader.size)
+//     private val originalVector = 0
 
-    lazy val occurencesPerFeature: V[Int] = clusterized.map(_.vector(originalVector)).reduce(SumVectors.sumVectors(_, _))
+//     import org.clustering4ever.util.VectorsBasicOperationsImplicits._
 
-    lazy val frequencyPerFeature: Seq[Double] = occurencesPerFeature.map(_.toDouble / datasetSize)
+//     if(vectorHeader.isDefined) require(clusterized.first.workingVector.vector.size == vectorHeader.size)
 
-    lazy val occurencesPerFeaturePerCluster = groupedByClusterID.map{ case (clusterID, aggregate) => (clusterID, aggregate.map(_.vector(originalVector)).reduce(SumVectors.sumVectors(_, _))) }.collectAsMap
+//     lazy val occurencesPerFeature: V = clusterized.map(_.workingVector.vector).reduce(SumVectors.sumVectors(_, _))
 
-    lazy val frequencyPerFeaturePerCluster = occurencesPerFeaturePerCluster.map{ case (clusterID, occurences) => (clusterID, occurences.map(_.toDouble / cardinalities(clusterID))) }
-}
+//     lazy val frequencyPerFeature: Seq[Double] = occurencesPerFeature.map(_.toDouble / datasetSize)
+
+//     def occurencesPerFeaturePerCluster(clusteringNumber: Int) = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.map(_.workingVector.vector).reduce(SumVectors.sumVectors(_, _))) }.collectAsMap
+
+//     def frequencyPerFeaturePerCluster(clusteringNumber: Int) = occurencesPerFeaturePerCluster(clusteringNumber).map{ case (clusterID, occurences) => (clusterID, occurences.map(_.toDouble / cardinalities(clusterID))) }
+// }

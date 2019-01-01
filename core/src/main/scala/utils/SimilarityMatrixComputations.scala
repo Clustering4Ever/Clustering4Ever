@@ -28,7 +28,7 @@ object SimilarityMatrix {
 	/**
 	 *
 	 */
-	def sortedSimilarityMatrixWithVector[ID: Numeric, O, D[O] <: Distance[O]](data: GenSeq[(ID, O)], metric: D[O]): scala.collection.GenMap[ID, Seq[(ID, O, Double)]] = {
+	def sortedSimilarityMatrixWithVector[ID: Numeric, O, D <: Distance[O]](data: GenSeq[(ID, O)], metric: D): scala.collection.GenMap[ID, Seq[(ID, O, Double)]] = {
 		similarityMatrixWithVector(data, metric).map{ case (id, dist) => (id, dist.seq.sortBy(_._3)) }
 	}
 }

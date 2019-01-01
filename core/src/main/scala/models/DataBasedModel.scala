@@ -10,7 +10,7 @@ import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryD
 /**
  *
  */
-trait DataBasedModel[@specialized(Int, Long) ID, O, D <: Distance[O]] extends ClusteringModel {
+trait DataBasedModel[ID, O, D <: Distance[O]] extends ClusteringModel {
 
 	val data: scala.collection.Map[ClusterID, scala.collection.Traversable[(ID, O)]]
 	val metric: D

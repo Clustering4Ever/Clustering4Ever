@@ -16,18 +16,18 @@ trait DistributedRoughSetCommons extends RoughSetCommons {
   /**
    * Define a function to calculate the IND of each element in the list indDecisionClasses
    */
-  protected def obtainIndecabilityD[ID: Numeric : ClassTag, T: ClassTag, V[T] <: Seq[T]](f: mutable.ArrayBuffer[Int], data: RDD[DFCL[ID, V[T]]])(implicit ct: ClassTag[V[T]]) = {
+  protected def obtainIndecabilityD[ID: ClassTag, T: ClassTag, V[X] <: Seq[X]](f: mutable.ArrayBuffer[Int], data: RDD[DFCL[ID, V[T]]])(implicit ct: ClassTag[V[T]]) = {
 
     val neutralElement = mutable.ArrayBuffer.empty[ID]
     def addToBuffer(buff: mutable.ArrayBuffer[ID], elem: ID) = buff += elem
     def aggregateBuff(buff1: mutable.ArrayBuffer[ID], buff2: mutable.ArrayBuffer[ID]) = buff1 ++= buff2
     
-    data.map{ case dfcl => (keyValueExtract(f, dfcl.originalVector), dfcl.id) }.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).map{ case (listValues, objectsId) => objectsId }.collect
+    data.map{ case dfcl => (keyValueExtract(f, dfcl.workingVector), dfcl.id) }.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).map{ case (listValues, objectsId) => objectsId }.collect
   }
   /**
    *
    */
-  protected def generateIndecidabilityDecisionClassesD[ID: Numeric : ClassTag, T: ClassTag, V[T] <: Seq[T]](data: RDD[DFCL[ID, V[T]]]): mutable.Buffer[mutable.ArrayBuffer[ID]] = {
+  protected def generateIndecidabilityDecisionClassesD[ID: ClassTag, T: ClassTag, V[X] <: Seq[X]](data: RDD[DFCL[ID, V[T]]]): mutable.Buffer[mutable.ArrayBuffer[ID]] = {
 
     val neutralElement = mutable.ArrayBuffer.empty[ID]
     def addToBuffer(buff: mutable.ArrayBuffer[ID], elem: ID) = buff += elem

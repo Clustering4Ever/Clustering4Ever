@@ -5,12 +5,11 @@ package org.clustering4ever.scala.clustering.kmeans
 import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
-import scala.util.Random
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
-import org.clustering4ever.math.distances.scalar.Euclidean
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.scala.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
 import org.clustering4ever.util.ScalaImplicits._
+import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of RealClusterizable descendant, the SimpleRealClusterizable is the basic reference with mutable.ArrayBuffer as vector type, they are recommendend for speed efficiency
@@ -24,35 +23,36 @@ object KMeans {
 	 * Run the K-Means with any continuous distance
 	 */
 	def run[
-		ID: Numeric,
+		ID,
 		O,
-		V <: Seq[Double] : ClassTag,
-		Cz[ID, O, V] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
+		V <: Seq[Double],
+		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
 		D <: ContinuousDistance[V]
 	](
-		data: GenSeq[Cz[ID, O, V]],
+		data: GenSeq[Cz[ID, O, ScalarVector[V]]],
 		k: Int,
 		metric: D,
 		maxIterations: Int,
 		epsilon: Double,
-		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
-		workingVector: Int = 0
-		): KCentersModel[ID, O, V, Cz[ID, O, V], D] = {
-		val kMeansModel = KCenters.run(data, k, epsilon, maxIterations, metric, workingVector, initializedCenters)
+		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
+		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D] = {
+		val kMeansModel = KCenters.run(data, k, metric, epsilon, maxIterations, initializedCenters)
 		kMeansModel
 	}
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
-	def runRawData[V[X] <: Seq[X], D <: ContinuousDistance[V[Double]], GS[Y] <: GenSeq[Y]](
-		data: GS[V[Double]],
+	def runRawData[V <: Seq[Double], D <: ContinuousDistance[V]](
+		data: GenSeq[V],
 		k: Int,
 		metric: D,
 		maxIterations: Int,
-		epsilon: Double = 0.001,
-		initializedCenters: mutable.HashMap[Int, V[Double]] = mutable.HashMap.empty[Int, V[Double]]
-		)(implicit ct: ClassTag[V[Double]]) : KCentersModel[Long, V[Double], V[Double], EasyClusterizable[Long, V[Double], V[Double]], D] = {
-		val kMeansModel = KCenters.run(prepareToVectorsClustering(data), k, epsilon, maxIterations, metric, 0, initializedCenters)
+		epsilon: Double = 0.0001
+		): KCentersModel[ScalarVector[V], D] = {
+		val kMeansModel = run(scalarToClusterizable(data), k, metric, maxIterations, epsilon)
 		kMeansModel
 	}
 }
+
+
+		
