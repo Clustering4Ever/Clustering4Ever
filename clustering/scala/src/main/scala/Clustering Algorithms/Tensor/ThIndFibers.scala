@@ -75,7 +75,7 @@ class ThIndFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
     
 		new TensorBiclusteringModel(indiceRow.distinct.sorted, indiceColumn.distinct.sorted)
 
-		(indiceRow, indiceColumn)
+		Array(indiceRow, indiceColumn)
     }
 }
 /**
