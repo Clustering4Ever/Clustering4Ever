@@ -5,9 +5,9 @@ package org.clustering4ever.scala.clustering.meanshift
 import scala.language.higherKinds
 import scala.math.{min, max}
 import scala.collection.GenSeq
-import org.clustering4ever.shapelesslinked.VMapping
+import org.clustering4ever.shapeless.VMapping
 import org.clustering4ever.math.distances.ContinuousDistance
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.preprocessables.Preprocessable
 import org.clustering4ever.scala.kernels.{Kernel, KernelArgs}
 import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
 /**
@@ -18,13 +18,13 @@ class GradientAscent[
   ID,
   O,
   V <: Seq[Double],
-  Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+  Pz[X, Y, Z <: GVector[Z]] <: Preprocessable[X, Y, Z, Pz],
   D <: ContinuousDistance[V],
   KArgs <: KernelArgs,
-  K[X <: GVector, Y <: KernelArgs] <: Kernel[X, Y],
+  K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y],
   GS[X] <: GenSeq[X]
 ](
-  data: GS[Cz[ID, O, ScalarVector[V]]],
+  data: GS[Pz[ID, O, ScalarVector[V]]],
   epsilon: Double,
   maxIterations: Int,
   kernel: K[ScalarVector[V], KArgs],
@@ -37,10 +37,10 @@ class GradientAscent[
     implicit val vMapping = new VMapping[Int, ScalarVector[V]]
 
     val haveNotConverged = false
-    val kernelLocality = data.map(_.workingVector)
-    var gradientAscentData: GenSeq[(Cz[ID, O, ScalarVector[V]], Boolean)] = data.map( obj => (obj.addAltVector(altVectName, obj.workingVector), haveNotConverged) )
+    val kernelLocality = data.map(_.v)
+    var gradientAscentData: GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)] = data.map( obj => (obj.addAltVector(altVectName, obj.v), haveNotConverged) )
 
-    def kernelGradientAscent(toExplore: GenSeq[(Cz[ID, O, ScalarVector[V]], Boolean)]) = {
+    def kernelGradientAscent(toExplore: GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)]) = {
 
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
@@ -70,7 +70,7 @@ class GradientAscent[
       ind += 1
     }
 
-    gradientAscentData.map(_._1).asInstanceOf[GS[Cz[ID, O, ScalarVector[V]]]]
+    gradientAscentData.map(_._1).asInstanceOf[GS[Pz[ID, O, ScalarVector[V]]]]
   }
 }
 /**
@@ -78,7 +78,7 @@ class GradientAscent[
  */
 object GradientAscent {
   /**
-   * @param dataCz[ID, O, ScalarVector[V]]
+   * @param dataPz[ID, O, ScalarVector[V]]
    * @param epsilon : threshold under which we stop iteration in gradient ascent
    * @param maxIterations : Number of iteration for modes search
    */
@@ -86,13 +86,13 @@ object GradientAscent {
     ID,
     O,
     V <: Seq[Double],
-    Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+    Pz[X, Y, Z <: GVector[Z]] <: Preprocessable[X, Y, Z, Pz],
     D <: ContinuousDistance[V],
     KArgs <: KernelArgs,
-    K[X <: GVector, Y <: KernelArgs] <: Kernel[X, Y],
+    K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y],
     GS[X] <: GenSeq[X]
   ](
-    data: GS[Cz[ID, O, ScalarVector[V]]],
+    data: GS[Pz[ID, O, ScalarVector[V]]],
     epsilon: Double,
     maxIterations: Int,
     kernel: K[ScalarVector[V], KArgs],

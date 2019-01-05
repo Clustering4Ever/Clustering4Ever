@@ -13,7 +13,7 @@ import org.clustering4ever.scala.clustering.kmeans.KMeans
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.scalar.{Euclidean, RawEuclidean}
 import org.clustering4ever.util.ClusterizableGenerator
-import org.clustering4ever.scala.clusterizables.EasyClusterizable
+import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
 import org.clustering4ever.scala.vectors.{ScalarVector, GScalarVector}
 /**
@@ -84,7 +84,7 @@ class Clusterwise[V <: Seq[Double]](
 	  	  		val vector = new ScalarVector[V]((x ++ y).asInstanceOf[V])
 	  	  		ClusterizableGenerator.obtainEasyClusterizable(id, vector)
 	  	  	}
-	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, new Euclidean[V](squareRoot = false), iterMaxKmeans, epsilonKmeans)//, mutable.HashMap.empty[Int, GScalarVector[V]])
+	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, new Euclidean[V](squareRoot = false), iterMaxKmeans, epsilonKmeans, mutable.HashMap.empty[Int, ScalarVector[V]])
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap
 	  	  	val microClusterNumbers = kmeansModel.centers.size
 	  	  	val clusterizedData = centerReductRDD.map{ case (id, (x, y)) => (id, unregularClusterIdsByStandardClusterIDs(kmeansModel.centerPredict(new ScalarVector[V]((x ++ y).asInstanceOf[V])))) }.seq

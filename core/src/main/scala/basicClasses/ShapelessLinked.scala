@@ -1,8 +1,7 @@
-package org.clustering4ever.shapelesslinked
+package org.clustering4ever.shapeless
 /**
  * @author Beck Gaël
  */
-import org.clustering4ever.scala.vectors.GVector
 /**
  *
  */

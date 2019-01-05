@@ -3,7 +3,7 @@ package org.clustering4ever.math.distances
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 /**
  *
@@ -19,9 +19,21 @@ trait Distance[O] extends Serializable {
 	def d(o1: O, o2: O): Double
 }
 /**
- *
+ * The EmptyDistance for algorithm which doesn't require any distances
  */
-trait ClusterizableDistance[ID, O, V <: GVector, Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]] extends Distance[Cz[ID, O, V]]
+object EmptyDistance extends Distance[Nothing] {
+	def d(o1: Nothing, o2: Nothing): Double = 0D
+}
+/**
+ * Clusterizable Distance Builder void trait
+ * It is used to optionalize obtention of a metric on Clusterizable for clustering algorithms
+ */
+trait ClusterizableDistance[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends Distance[Cz[ID, O, V]] {
+	/**
+	 *
+	 */
+	val gvMetricIntern: Distance[V]
+}
 /**
  * Clusterizable Distance Builder void trait
  * It is used to optionalize obtention of a metric on Clusterizable for clustering algorithms
@@ -30,9 +42,11 @@ trait CDB extends Serializable
 /**
  *
  */
-trait ClusterizableDistanceBuilder[V <: GVector] extends CDB {
-
-	def obtainClusterizableMetric[ID, O, Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]](clusterizable: Cz[ID, O, V]): ClusterizableDistance[ID, O, V, Cz]
+trait ClusterizableDistanceBuilder[V <: GVector[V]] extends CDB {
+	/**
+	 *
+	 */
+	def obtainClusterizableMetric[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](clusterizable: Cz[ID, O, V]): ClusterizableDistance[ID, O, V, Cz]
 
 }
 /**
@@ -58,12 +72,12 @@ trait RawBinaryDistance[V <: Seq[Int]] extends Distance[V]
 /**
  *
  */
-trait RealClusterizableDistance[ID, O, V <: Seq[Double], Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, ScalarVector[V], Cz]
+trait RealClusterizableDistance[ID, O, V <: Seq[Double], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, ScalarVector[V], Cz]
 /**
  *
  */
-trait BinaryClusterizableDistance[ID, O, V <: Seq[Int], Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, BinaryVector[V], Cz]
+trait BinaryClusterizableDistance[ID, O, V <: Seq[Int], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, BinaryVector[V], Cz]
 /**
  *
  */
-trait MixtClusterizableDistance[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[A, B, C <: GVector] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, MixtVector[Vb, Vs], Cz]
+trait MixtClusterizableDistance[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, MixtVector[Vb, Vs], Cz]

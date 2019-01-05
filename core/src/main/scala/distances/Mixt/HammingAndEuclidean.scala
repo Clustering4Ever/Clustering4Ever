@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.math.{pow, sqrt}
 import org.clustering4ever.math.distances.MixtDistance
 import org.clustering4ever.scala.vectors.MixtVector
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */

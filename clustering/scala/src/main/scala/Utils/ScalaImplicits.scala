@@ -5,10 +5,11 @@ package org.clustering4ever.util
 import scala.language.higherKinds
 import scala.language.implicitConversions
 import scala.collection.GenSeq
-import org.clustering4ever.scala.clusterizables.EasyClusterizable
-import org.clustering4ever.preprocessing.DFCL
+import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.scala.vectorizables.Vectorizable
 import org.clustering4ever.scala.vectors.{BinaryVector, ScalarVector, MixtVector}
+import org.clustering4ever.supervizables.EasySupervizable
+import org.clustering4ever.scala.vectors.SupervizedVector
 /**
  *
  */
@@ -46,5 +47,7 @@ object ScalaImplicits {
 	/**
 	 *
 	 */
-	implicit def rawDataToDFCL[T, V[X] <: Seq[X], GS[Y] <: GenSeq[Y]](gs: GS[(V[T], Int)]): GS[DFCL[Int, V[T]]] = gs.zipWithIndex.map{ case ((v, l), id) => new DFCL(id, l, v) }.asInstanceOf[GS[DFCL[Int, V[T]]]]
+	implicit def rawDataToSupervizable[T, V[X] <: Seq[X], GS[Y] <: GenSeq[Y]](gs: GS[(V[Int], Int)]): GS[EasySupervizable[Int, Vectorizable[SupervizedVector[T, V]], SupervizedVector[T, V]]] = {
+		gs.zipWithIndex.map{ case ((v, l), id) => new EasySupervizable(id, new Vectorizable(new SupervizedVector(v)), l, new SupervizedVector(v)) }.asInstanceOf[GS[EasySupervizable[Int, Vectorizable[SupervizedVector[T, V]], SupervizedVector[T, V]]]]
+	}
 }

@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
-import org.clustering4ever.scala.clusterizables.{Clusterizable, EasyClusterizable}
+import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
 import org.clustering4ever.util.ScalaImplicits._
 import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
@@ -26,30 +26,31 @@ object KMeans {
 		ID,
 		O,
 		V <: Seq[Double],
-		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
-		D <: ContinuousDistance[V]
+		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+		D <: ContinuousDistance[V],
+		GS[Y] <: GenSeq[Y]
 	](
-		data: GenSeq[Cz[ID, O, ScalarVector[V]]],
+		data: GS[Cz[ID, O, ScalarVector[V]]],
 		k: Int,
 		metric: D,
 		maxIterations: Int,
 		epsilon: Double,
 		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
-		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D] = {
+		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D, GS] = {
 		val kMeansModel = KCenters.run(data, k, metric, epsilon, maxIterations, initializedCenters)
 		kMeansModel
 	}
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
-	def runRawData[V <: Seq[Double], D <: ContinuousDistance[V]](
-		data: GenSeq[V],
+	def run[V <: Seq[Double], D <: ContinuousDistance[V], GS[Y] <: GenSeq[Y]](
+		data: GS[V],
 		k: Int,
 		metric: D,
 		maxIterations: Int,
-		epsilon: Double = 0.0001
-		): KCentersModel[ScalarVector[V], D] = {
-		val kMeansModel = run(scalarToClusterizable(data), k, metric, maxIterations, epsilon)
+		epsilon: Double
+	): KCentersModel[ScalarVector[V], D, GS] = {
+		val kMeansModel = run(scalarToClusterizable(data), k, metric, maxIterations, epsilon, mutable.HashMap.empty[Int, ScalarVector[V]])
 		kMeansModel
 	}
 }

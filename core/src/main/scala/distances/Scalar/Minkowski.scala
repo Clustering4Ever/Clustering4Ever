@@ -5,7 +5,7 @@ package org.clustering4ever.math.distances.scalar
 import scala.language.higherKinds
 import scala.collection.mutable
 import scala.math.pow
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 import org.clustering4ever.scala.vectors.ScalarVector
 /**

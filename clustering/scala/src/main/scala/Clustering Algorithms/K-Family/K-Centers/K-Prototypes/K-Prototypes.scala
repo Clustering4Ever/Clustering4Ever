@@ -6,11 +6,10 @@ import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import scala.util.Random
-import org.clustering4ever.math.distances.MixtDistance
-import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.math.distances.{MixtDistance, Distance}
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
-import org.clustering4ever.scala.clusterizables.{Clusterizable, EasyClusterizable}
+import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaImplicits._
 import org.clustering4ever.scala.vectors.{GVector, MixtVector}
 /**
@@ -30,7 +29,7 @@ object KPrototypes {
 		O,
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
-		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 		D <: MixtDistance[Vb, Vs]
 	](
 		data: GenSeq[Cz[ID, O, MixtVector[Vb, Vs]]],
@@ -39,7 +38,7 @@ object KPrototypes {
 		maxIterations: Int,
 		epsilon: Double,
 		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
-	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D] = {
+	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D, GenSeq] = {
 		val kPrototypesModel = KCenters.run(data, k, metric, epsilon, maxIterations, initializedCenters)
 		kPrototypesModel
 	}

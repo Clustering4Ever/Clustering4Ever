@@ -3,7 +3,6 @@ package org.clustering4ever.util
  * @author Beck Gaël
  */
 import scala.collection.GenSeq
-import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import scala.language.higherKinds

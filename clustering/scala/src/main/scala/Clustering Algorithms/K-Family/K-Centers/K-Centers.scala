@@ -9,7 +9,7 @@ import scala.reflect.ClassTag
 import shapeless._
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.{ClusteringCommons, LocalClusteringAlgorithm}
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.clustering.ClusteringArgs
@@ -17,15 +17,7 @@ import org.clustering4ever.scala.vectors.GVector
 /**
  *
  */
-trait KCommons[V <: GVector] extends ClusteringCommons {
-	/**
-	 *
-	 */
-	val k: Int
-	/**
-	 *
-	 */
-	val epsilon: Double
+trait KCommons[V <: GVector[V]] extends ClusteringCommons {
 	/**
 	 * Check if there are empty centers and remove them
 	 */
@@ -37,10 +29,6 @@ trait KCommons[V <: GVector] extends ClusteringCommons {
 		}
 	}
 	/**
-	 * Reinitialization of cardinalities
-	 */
-	protected def resetCentersCardinality(centersCardinality: mutable.HashMap[Int, Int]) = (0 until k).foreach( clusterID => centersCardinality(clusterID) = 0 )
-	/**
 	 *
 	 */
 	protected def obtainNearestCenterID[D <: Distance[V]](v: V, centers: mutable.HashMap[Int, V], metric: D): ClusterID = centers.minBy{ case (clusterID, center) => metric.d(center, v) }._1
@@ -51,6 +39,10 @@ trait KCommons[V <: GVector] extends ClusteringCommons {
 	protected def areCentersMovingEnough[D <: Distance[V]](kCentersBeforeUpdate: mutable.HashMap[Int, V], centers: mutable.HashMap[Int, V], epsilon: Double, metric: D) = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
 }
 /**
+ *
+ */
+case class KCentersArgs[V <: GVector[V], D <: Distance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]) extends ClusteringArgs
+/**
  * The famous K-Centers using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of Clusterizable
  * @param k : number of clusters
@@ -58,25 +50,19 @@ trait KCommons[V <: GVector] extends ClusteringCommons {
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-class KCenters[V <: GVector : ClassTag, GS[X] <: GenSeq[X]](
-	val k: Int,
-	val epsilon: Double,
-	maxIterations: Int,
-	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-) extends KCommons[V] with LocalClusteringAlgorithm[V, GS] {
+class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V], GS[X] <: GenSeq[X]](val args: KCentersArgs[V, D]) extends KCommons[V] with LocalClusteringAlgorithm[V, GS, KCentersArgs[V, D], KCentersModel[V, D, GS]] {
 	/**
 	 * Run the K-Centers
 	 */
 	def run[
 		ID,
 		O,
-		D <: Distance[V],
-		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz]
-	](data: GS[Cz[ID, O, V]], metric: Option[D] = None, args: Option[ClusteringArgs] = None)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = {
+		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
+	](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D, GS] = {
 		/**
 		 *
 		 */
-		val centers: mutable.HashMap[Int, V] = if(initializedCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, metric.get, k) else initializedCenters
+		val centers: mutable.HashMap[Int, V] = if(args.initializedCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, args.metric, args.k) else args.initializedCenters
 		/**
 		 *
 		 */
@@ -86,17 +72,17 @@ class KCenters[V <: GVector : ClassTag, GS[X] <: GenSeq[X]](
 		 */
 		@annotation.tailrec
 		def go(cpt: Int, allCentersHaveConverged: Boolean): mutable.HashMap[Int, V] = {
-			if(cpt < maxIterations && !allCentersHaveConverged) {
+			if(cpt < args.maxIterations && !allCentersHaveConverged) {
 				// Keep old position of centroids
 				val kCentersBeforeUpdate = centers.clone
 				// Compute centers and cardinality of each cluster
-				data.groupBy( cz => obtainNearestCenterID(cz.workingVector, centers, metric.get) ).foreach{ case (clusterID, aggregate) =>
-					centers(clusterID) = ClusterBasicOperations.obtainCenter(aggregate.map(_.workingVector), metric.get)
+				data.groupBy( cz => obtainNearestCenterID(cz.v, centers, args.metric) ).foreach{ case (clusterID, aggregate) =>
+					centers(clusterID) = ClusterBasicOperations.obtainCenter(aggregate.map(_.v), args.metric)
 					centersCardinality(clusterID) = aggregate.size
 				}
 				removeEmptyClusters(centers, kCentersBeforeUpdate, centersCardinality)
 
-				go(cpt + 1, areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon, metric.get))
+				go(cpt + 1, areCentersMovingEnough(kCentersBeforeUpdate, centers, args.epsilon, args.metric))
 			}
 			else {
 				centers
@@ -104,13 +90,13 @@ class KCenters[V <: GVector : ClassTag, GS[X] <: GenSeq[X]](
 		}
 
 		object KCentersArgs extends ClusteringArgs {
-			val kValue = k
-			val epsilonValue = epsilon
-			val maxIterationsValue = maxIterations
-			val metricValue = metric.get.toString
+			val kValue = args.k
+			val epsilonValue = args.epsilon
+			val maxIterationsValue = args.maxIterations
+			val metricValue = args.metric.toString
 		}
 
-		new KCentersModel[V, D](go(0, false), metric.get, KCentersArgs)
+		new KCentersModel[V, D, GS](go(0, false), args.metric, KCentersArgs)
 	}
 }
 /**
@@ -123,8 +109,8 @@ object KCenters {
 	def run[
 		ID,
 		O,
-		V <: GVector : ClassTag,
-		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+		V <: GVector[V] : ClassTag,
+		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 		D <: Distance[V],
 		GS[X] <: GenSeq[X]
 	](
@@ -134,9 +120,7 @@ object KCenters {
 		epsilon: Double,
 		maxIterations: Int,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = {
-		val kCenter = new KCenters[V, GS](k, epsilon, maxIterations, initializedCenters)
-		val kCentersModel = kCenter.run(data, Some(metric), None)
-		kCentersModel
+	)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D, GS] = {
+		(new KCenters[V, D, GS](new KCentersArgs(k, metric, epsilon, maxIterations, initializedCenters))).run(data)
 	}
 }

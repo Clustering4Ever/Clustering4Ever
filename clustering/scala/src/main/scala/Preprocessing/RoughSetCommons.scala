@@ -5,7 +5,8 @@ package org.clustering4ever.scala.preprocessing.rst
 import scala.language.higherKinds
 import scala.collection.{immutable, mutable, GenSeq, GenIterable, Iterable}
 import scala.reflect.ClassTag
-import org.clustering4ever.preprocessing.{DFCL, HDFCL}
+import org.clustering4ever.supervizables.Supervizable
+import org.clustering4ever.scala.vectors.{SupervizedVector, GVector}
 /**
  *
  */
@@ -25,13 +26,13 @@ trait RoughSetCommons extends Serializable {
   /**
    * Define a function to calculate the Indecability of each element in the list indDecisionClasses
    */
-  protected def obtainIndecability[ID, T, V[X] <: Seq[X]](f: mutable.ArrayBuffer[Int], data: GenSeq[DFCL[ID, V[T]]]): GenIterable[Seq[ID]] = {
-    data.groupBy( l => keyValueExtract(f, l.workingVector) ).map{ case (listValues, aggregates) => aggregates.map(_.id).seq }
+  protected def obtainIndecability[ID, O, T, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](f: mutable.ArrayBuffer[Int], data: GenSeq[Sz[ID, O, SupervizedVector[T, V]]]): GenIterable[Seq[ID]] = {
+    data.groupBy( l => keyValueExtract(f, l.v.vector) ).map{ case (listValues, aggregates) => aggregates.map(_.id).seq }
   }
   /**
    *
    */
-  protected def generateIndecidabilityDecisionClasses[ID, T, V[X] <: Seq[X]](data: GenSeq[DFCL[ID, V[T]]]): Iterable[Seq[ID]] = {
+  protected def generateIndecidabilityDecisionClasses[ID, O, T, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: GenSeq[Sz[ID, O, SupervizedVector[T, V]]]): Iterable[Seq[ID]] = {
     data.groupBy(_.label).map{ case (label, aggregate) => aggregate.map(_.id).seq }.seq
   }
 

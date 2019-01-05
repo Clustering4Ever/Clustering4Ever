@@ -5,7 +5,7 @@ package org.clustering4ever.scala.indexes
 import scala.math.{max, log, sqrt}
 import scala.collection.GenSeq
 import org.clustering4ever.util.ClusteringIndexesCommons
-import org.clustering4ever.scala.indexes.NmiNormalizationNature._
+import org.clustering4ever.enums.NmiNormalizationNature._
 import scala.collection.mutable
 /**
  *

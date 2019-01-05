@@ -9,8 +9,9 @@ import org.apache.spark.rdd.RDD
 import scala.collection.{immutable, mutable, parallel}
 import scala.util.Random
 import scala.annotation.meta.param
-import org.clustering4ever.preprocessing.{DFCL, HDFCL}
 import org.clustering4ever.scala.preprocessing.rst.RoughSet
+import org.clustering4ever.supervizables.Supervizable
+import org.clustering4ever.scala.vectors.{SupervizedVector, GVector}
 /**
  *
  */
@@ -19,9 +20,9 @@ class DistributedRoughSet(@(transient @param) sc: SparkContext) extends RoughSet
    * RoughSet distributed classic version
    * Don't forget complexity is in O(F!) with F the number of Features, distributed system won't help enough facing this kind of complexity
    */
-  def run[ID: ClassTag, T: ClassTag, V[X] <: Seq[X]](data: RDD[DFCL[ID, V[T]]], everyCombinationsO: Option[mutable.ArraySeq[mutable.ArrayBuffer[Int]]] = None)(implicit ct: ClassTag[V[T]]) = {
+  def run[ID : ClassTag, O, T : ClassTag, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: RDD[Sz[ID, O, SupervizedVector[T, V]]], everyCombinationsO: Option[mutable.ArraySeq[mutable.ArrayBuffer[Int]]] = None)(implicit ct: ClassTag[V[T]]) = {
    
-    val everyCombinations = if(everyCombinationsO.isDefined) everyCombinationsO.get else obtainEveryFeaturesCombinations(data.first.workingVector.size).seq
+    val everyCombinations = if(everyCombinationsO.isDefined) everyCombinationsO.get else obtainEveryFeaturesCombinations(data.first.v.vector.size).seq
 
     val indDecisionClasses = sc.broadcast(generateIndecidabilityDecisionClassesD(data))
     val indAllCombinations = sc.parallelize(everyCombinations).map( f => (f, obtainIndecabilityD(f, data)) )
@@ -38,13 +39,13 @@ class DistributedRoughSet(@(transient @param) sc: SparkContext) extends RoughSet
   /*
    *  RoughSet working by range of features
    */
-  def runHeuristic[ID: ClassTag, U: ClassTag, T[X] <: Seq[X], V[Y] <: Seq[Y]](data: RDD[HDFCL[ID, U, T, V]], columnsOfFeats: Seq[Seq[Int]])(implicit ct1: ClassTag[T[U]], ct2: ClassTag[V[T[U]]]): mutable.Buffer[Int] = {
+  def runHeuristic[ID : ClassTag, O, T : ClassTag, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: RDD[Sz[ID, O, SupervizedVector[T, V]]], columnsOfFeats: Seq[Seq[Int]]): mutable.Buffer[Int] = {
 
     val nbColumns = columnsOfFeats.size
     val dataBC = sc.broadcast(data.collect.par)
     
     sc.parallelize(0 until 8888, nbColumns).mapPartitionsWithIndex{ (idxp, _) =>
-      val dataPerFeat = dataBC.value.map(_.getOneFeaturesBucket(idxp))
+      val dataPerFeat = dataBC.value.map(_.obtainOneBucket(idxp))
       val originalFeatures = columnsOfFeats(idxp)
       val originalFeatIdByTmpFeatId = originalFeatures.zipWithIndex.map(_.swap).toMap      
       val allReductSet = roughSet(dataPerFeat)

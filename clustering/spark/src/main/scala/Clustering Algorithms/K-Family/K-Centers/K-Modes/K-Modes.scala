@@ -10,9 +10,9 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.math.distances.{Distance, BinaryDistance}
 import org.clustering4ever.math.distances.binary.Hamming
-import org.clustering4ever.scala.clusterizables.{Clusterizable, EasyClusterizable}
+import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
-import org.clustering4ever.spark.clustering.kcenters.{KCentersModel, KCenters}
+import org.clustering4ever.spark.clustering.kcenters.{KCentersArgs, KCentersModel, KCenters}
 import org.clustering4ever.scala.vectors.{GVector, BinaryVector}
 /**
  *
@@ -25,7 +25,7 @@ object KModes {
 		ID,
 		O,
 		V <: Seq[Int],
-		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 		D <: BinaryDistance[V]
 	](
 		data: RDD[Cz[ID, O, BinaryVector[V]]],
@@ -33,23 +33,23 @@ object KModes {
 		metric: D,
 		epsilon: Double,
 		maxIterations: Int,
-		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
+		persistanceLVL: StorageLevel,
 		initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]
 	)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KCentersModel[BinaryVector[V], D] = {
-		val kmodes = new KCenters(k, epsilon, maxIterations, persistanceLVL, initializedCenters)
-		val kModesModel = kmodes.run(data, Some(metric))
+		val kmodes = new KCenters[BinaryVector[V], D](new KCentersArgs[BinaryVector[V], D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		val kModesModel = kmodes.run(data)
 		kModesModel
 	}
 	/**
 	 * Run the K-Modes with any binary distance
 	 */
-	def runRawData[V <: Seq[Int], D <: BinaryDistance[V]](
+	def run[V <: Seq[Int], D <: BinaryDistance[V]](
 		data: RDD[V],
 		k: Int,
+		metric: D,
 		epsilon: Double,
 		maxIterations: Int,
-		metric: D,
-		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
+		persistanceLVL: StorageLevel
 	): KCentersModel[BinaryVector[V], D] = {
 		val kModesModel = run(binaryDataWithIDToClusterizable(data.zipWithIndex), k, metric, epsilon, maxIterations, persistanceLVL)
 		kModesModel

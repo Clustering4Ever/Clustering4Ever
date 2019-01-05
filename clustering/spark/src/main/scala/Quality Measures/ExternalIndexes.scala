@@ -11,7 +11,7 @@ import scala.math.{max, log, sqrt}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel
-import org.clustering4ever.scala.indexes.NmiNormalizationNature._
+import org.clustering4ever.enums.NmiNormalizationNature._
 import org.clustering4ever.util.ClusteringIndexesCommons
 /**
  *

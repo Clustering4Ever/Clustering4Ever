@@ -8,7 +8,7 @@ import scala.language.higherKinds
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{ClusterizableDistance, Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.util.ClusterBasicOperations
@@ -21,8 +21,8 @@ import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector}
 abstract class ClustersAnalysisDistributed[
     ID,
     O,
-    V <: GVector : ClassTag,
-    Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+    V <: GVector[V] : ClassTag,
+    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     D <: Distance[V]
 ](val clusterized: RDD[Cz[ID, O, V]], val metric: D, clusteringNumber: Int = 0)(implicit ct: ClassTag[Cz[ID, O, V]]) extends ClustersAnalysis[ID, O, V, Cz, D, RDD] {
 
@@ -32,7 +32,7 @@ abstract class ClustersAnalysisDistributed[
 
     lazy val datasetSize = clusterized.count
 
-    def groupedByClusterID(clusteringNumber: Int): RDD[(Int, mutable.ArrayBuffer[Cz[ID,O,V]])] = clusterized.map( cz => (cz.clusterID(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
+    def groupedByClusterID(clusteringNumber: Int): RDD[(Int, mutable.ArrayBuffer[Cz[ID,O,V]])] = clusterized.map( cz => (cz.clusterIDs(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
 
     // def cardinalities(clusteringNumber: Int): Map[Int, Int] = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collectAsMap
 
@@ -48,7 +48,7 @@ abstract class ClustersAnalysisDistributed[
 //     ID,
 //     O,
 //     V <: Seq[Double],
-//     Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+//     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 //     D <: ContinuousDistance[V]
 // ](clusterized: RDD[Cz[ID, O, ScalarVector[V]]], metric: D)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, ScalarVector[V], Cz, D](clusterized, metric) {
 
@@ -65,7 +65,7 @@ abstract class ClustersAnalysisDistributed[
 //     ID,
 //     O,
 //     V <: Seq[Int],
-//     Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz],
+//     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 //     D <: BinaryDistance[V]
 // ](clusterized: RDD[Cz[ID, O, BinaryVector[V]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, BinaryVector[V], Cz, D](clusterized, metric) {
 

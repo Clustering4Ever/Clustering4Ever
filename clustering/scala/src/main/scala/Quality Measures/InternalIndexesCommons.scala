@@ -4,7 +4,6 @@ package org.clustering4ever.scala.indexes
  */
 import scala.language.higherKinds
 import scala.collection.GenSeq
-import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.clustering.ClusteringCommons
 /**

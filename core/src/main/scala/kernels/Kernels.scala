@@ -5,17 +5,16 @@ package org.clustering4ever.scala.kernels
 import scala.language.higherKinds
 import scala.math.{exp, tanh, sqrt, Pi, log}
 import scala.collection.GenSeq
-import spire.math.{Numeric => SNumeric}
 import breeze.linalg.{DenseVector, DenseMatrix, sum, inv}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
-import org.clustering4ever.scala.kernels.KernelNature._
+import org.clustering4ever.enums.KernelNature._
 import org.clustering4ever.scala.vectors.{GVector, GBinaryVector, GScalarVector, GMixtVector, ScalarVector}
 /**
  *
  */
-trait Kernel[V <: GVector, KA <: KernelArgs] extends Serializable {
+trait Kernel[V <: GVector[V], KA <: KernelArgs] extends Serializable {
 	/**
 	 *
 	 */
@@ -139,14 +138,10 @@ object GmmKernels {
  * Investigate why specialization with Spire Numeric prevent compilations
  */
 trait KnnKernel[
-	V <: GVector,
+	V <: GVector[V],
 	D <: Distance[V],
 	Args <: KernelArgsKnn[V, D]
-] extends Kernel[V, Args]  {
-	/**
-	 *
-	 */
-	val kernelArgs: Args
+] extends Kernel[V, Args] {
 	/**
 	 * @return knn
 	 */

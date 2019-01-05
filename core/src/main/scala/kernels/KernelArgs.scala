@@ -7,22 +7,8 @@ import scala.reflect.ClassTag
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.math.distances.scalar.{Euclidean}
 import org.clustering4ever.math.distances.binary.Hamming
-import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector, GMixtVector}
-/**
- * ENUM of different kernel types
- */
-object KernelNature extends Enumeration {
-    type KernelType = Value
-    val Flat,
-    	KNN,
-    	KNN_Real,
-    	KNN_Euclidean,
-        KNN_Hamming,
-    	Gaussian,
-    	Sigmoid = Value
-}
-import org.clustering4ever.scala.kernels.KernelNature._
+import org.clustering4ever.enums.KernelNature._
 /**
  * Class regrouping arguments value for a specific kernel type
  */

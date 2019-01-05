@@ -4,14 +4,15 @@ package org.clustering4ever.clustering
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.scala.vectors.GVector
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait DistributedClusteringAlgorithm[V <: GVector] extends ClusteringAlgorithmGen[V, RDD] {
+trait DistributedClusteringAlgorithm[V <: GVector[V], +CA <: ClusteringArgs, +CM <: ClusteringModelCz[V, RDD]] extends ClusteringAlgorithmCz[V, RDD, CA, CM] {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
@@ -19,7 +20,6 @@ trait DistributedClusteringAlgorithm[V <: GVector] extends ClusteringAlgorithmGe
 	def run[
 		ID,
 		O,
-		D <: Distance[V],
-		Cz[X, Y, Z <: GVector] <: Clusterizable[X, Y, Z, Cz]
-	](data: RDD[Cz[ID, O, V]], metric: Option[D] = None, args: Option[ClusteringArgs] = None)(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringModel
+		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
+	](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CM
 }
