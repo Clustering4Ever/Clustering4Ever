@@ -5,7 +5,7 @@ package org.clustering4ever.clustering.models
 import scala.language.higherKinds
 import org.clustering4ever.math.distances.{Distance, ClusterizableDistance}
 import scala.collection.{mutable, GenSeq}
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
@@ -63,6 +63,6 @@ trait KnnOrientedModelLocalClusterizable[
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
 	def knnPredictCz[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int): GS[Cz[ID, O, V]] = {
-		data.map( cz => cz.addClusterID(knnPredictCz(cz, k, trainDS, clusteringNumber)) ).asInstanceOf[GS[Cz[ID, O, V]]]
+		data.map( cz => cz.addClusterIDs(knnPredictCz(cz, k, trainDS, clusteringNumber)) ).asInstanceOf[GS[Cz[ID, O, V]]]
 	}
 }

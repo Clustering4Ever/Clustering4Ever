@@ -6,10 +6,10 @@ import scala.language.higherKinds
 import scala.language.implicitConversions
 import scala.collection.GenSeq
 import org.clustering4ever.clusterizables.EasyClusterizable
-import org.clustering4ever.scala.vectorizables.Vectorizable
-import org.clustering4ever.scala.vectors.{BinaryVector, ScalarVector, MixtVector}
+import org.clustering4ever.vectorizables.Vectorizable
+import org.clustering4ever.vectors.{BinaryVector, ScalarVector, MixtVector}
 import org.clustering4ever.supervizables.EasySupervizable
-import org.clustering4ever.scala.vectors.SupervizedVector
+import org.clustering4ever.vectors.SupervizedVector
 /**
  *
  */

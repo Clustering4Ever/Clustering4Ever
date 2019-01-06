@@ -13,7 +13,7 @@ import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.spark.clustering.kcenters.{KCentersArgs, KCentersModel, KCenters}
-import org.clustering4ever.scala.vectors.{GVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, BinaryVector}
 /**
  *
  */

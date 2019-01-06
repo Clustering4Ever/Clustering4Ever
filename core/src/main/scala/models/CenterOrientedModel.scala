@@ -5,7 +5,7 @@ package org.clustering4ever.clustering.models
 import scala.language.higherKinds
 import org.clustering4ever.math.distances.{Distance, ClusterizableDistance}
 import scala.collection.{mutable, GenSeq}
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
@@ -50,5 +50,5 @@ trait CenterOrientedModelLocalClusterizable[V <: GVector[V], D <: Distance[V]] e
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredictCz[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = data.map( cz => cz.addClusterID(centerPredictCz(cz)) ).asInstanceOf[GS[Cz[ID, O, V]]]
+	def centerPredictCz[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = data.map( cz => cz.addClusterIDs(centerPredictCz(cz)) ).asInstanceOf[GS[Cz[ID, O, V]]]
 }

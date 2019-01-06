@@ -4,13 +4,15 @@ package org.clustering4ever.clustering
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import scala.collection.{GenSeq, mutable, Map}
-import shapeless._
+import scala.collection.{GenSeq, mutable, immutable, Map}
+import shapeless.HMap
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector}
-import org.clustering4ever.shapeless.VMapping
-import org.clustering4ever.scala.vectorizables.Vectorizable
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
+import org.clustering4ever.shapeless.{VMapping, VectorizationMapping}
+import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.math.distances.{Distance, CDB}
+import org.clustering4ever.enums.ClusteringAlgorithmEnum
+import org.clustering4ever.enums.ClusteringAlgorithmEnum._
 /**
  * Commons properties of all clustering linked class
  */
@@ -49,6 +51,10 @@ trait ClusteringAlgorithmCz[V <: GVector[V], Collection[_], +CA <: ClusteringArg
 	 * @return ClusteringModel
 	 */
 	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Collection[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CM
+	/**
+	 *
+	 */
+	// def convertTowardNewVectorization[NV <: GVector[NV]]: ClusteringAlgorithmCz[NV, Collection, CA, CM]
 
 }
 /**
@@ -62,11 +68,15 @@ trait ClusteringStats extends ClusteringCommons
 /**
  * Neccessary clustering algorithm arguments to launch it 
  */
-trait ClusteringArgs extends Serializable
+trait ClusteringArgs extends Serializable {
+	val algorithm: ClusteringAlgorithmEnum
+}
 /**
  *
  */
-object NoClusteringArgs extends ClusteringArgs
+object NoClusteringArgs extends ClusteringArgs {
+	val algorithm = AnAlgoWithoutArgs
+}
 /**
  * Generic concept of data which is a Collection (distributed or not) of Clusterizable
  */
@@ -94,38 +104,82 @@ trait Preprocessing[Collection[_]] extends Serializable {
 /**
  *
  */
+sealed trait EmployedVectorization extends Serializable
+/**
+ *
+ */
+class DefaultWorkingVector extends EmployedVectorization
+/**
+ *
+ */
+class IthVectorization[O, V <: GVector[V]](val vectorizationID: Int, val vectorization: O => V) extends EmployedVectorization {
+
+}
+/**
+ *
+ */
 trait ClusteringChaining[
 	ID,
 	O,
 	V <: GVector[V],
 	Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 	Collection[_],
-	Self <: ClusteringChaining[ID, O, _, Cz, Collection, Self]
+	AlgRestrictions <: ClusteringAlgorithmCz[V, Collection, ClusteringArgs, ClusteringModelCz[V, Collection]],
+	Same <: ClusteringChaining[ID, O, V, Cz, Collection, _, _, _],
+	Self <: ClusteringChaining[ID, O, _, Cz, Collection, _, _, Self]
 ] extends DataExplorator[ID, O, V, Cz, Collection] {
 	/**
-	 *
+	 * A securty value in order to allow proper reduce of Chaining models
 	 */
-	val clusteringInfo = mutable.ArrayBuffer.empty[(ClusteringArgs, ClusteringModelCz[V, Collection])]
+	val securityReduce: Int = -1
 	/**
 	 *
 	 */
-	// def runPreprocessing(preprocessingAlgo: Preprocessing)(implicit ct: ClassTag[Cz[ID, O, V]]): Collection[Cz[ID, O, V]] = {
-	// 	preprocessingAlgo.preprocess(data)
-	// }
+	type ClusteringRunNumberOnASeries = Int
 	/**
 	 *
 	 */
-	def runAlgorithm(algorithm: ClusteringAlgorithmCz[V, Collection, ClusteringArgs, ClusteringModelCz[V, Collection]])(implicit ct: ClassTag[Cz[ID, O, V]]): Collection[Cz[ID, O, V]] = {
-		algorithm.run(data).obtainClustering(data)
-	}
+	type GlobalClusteringRunNumber = Int
 	/**
 	 *
 	 */
-	def newVectorization[NV <: GVector[NV]](vectorizationID: Int, towardNewVector: O => NV): Self
+    def fusionChainable(anotherClusterChaining: Same): Same
 	/**
 	 *
 	 */
-	def updtV[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): Self
+	val currentVectorization: EmployedVectorization
+	/**
+	 *
+	 */
+	val vectorizations: HMap[VectorizationMapping]
+	/**
+	 *
+	 */
+	val clusteringInfo: immutable.Vector[((GlobalClusteringRunNumber, ClusteringRunNumberOnASeries), EmployedVectorization, ClusteringArgs, ClusteringModelCz[_, Collection])]
+	/**
+	 *
+	 */
+	val globalClusteringRunNumber: GlobalClusteringRunNumber
+	/**
+	 *
+	 */
+	def runAlgorithm(algorithm: AlgRestrictions, specificRunID: Int = -1)(implicit ct: ClassTag[Cz[ID, O, V]]): Self
+    /**
+     *
+     */
+    def runAlgorithms(algorithms: AlgRestrictions*)(implicit ct: ClassTag[Cz[ID, O, V]]): Self
+   	/**
+	 *
+	 */
+	def newVectorization[NV <: GVector[NV]](vectorizationID: Int, towardNewVector: O => NV)(implicit vMapping: VectorizationMapping[Int, IthVectorization[O, NV]] = new VectorizationMapping[Int, IthVectorization[O, NV]]): Self
+	/**
+	 *
+	 */
+    def updtV[NV <: GVector[NV]](vectorizationID: Int, vMapping: VMapping[Int, NV] = new VMapping[Int, NV])(implicit ct: ClassTag[Cz[ID, O, NV]]): Self
+    /**
+     *
+     */
+    def runAlgorithmsOnVectorizationEqualToDefaultVectorNature(vectorizationIDs: Seq[Int], algorithms: AlgRestrictions*)(implicit ct: ClassTag[Cz[ID, O, V]]): Self
 
 }
 /**
@@ -223,6 +277,6 @@ trait ClustersIndexesAnalysis[
     /**
      *
      */
-    def computeExternalsIndexesForEveryClusteringNumber[D <: Distance[V]](groundTruth: Collection[ClusterID], indexes: ExternalsIndexesType*): Seq[Map[ExternalsIndexesType, Double]]
+    def computeExternalsIndexesForEveryClusteringNumber(groundTruth: Collection[ClusterID], indexes: ExternalsIndexesType*): Seq[Map[ExternalsIndexesType, Double]]
 
 }

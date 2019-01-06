@@ -15,7 +15,7 @@ import org.clustering4ever.math.distances.scalar.{Euclidean, RawEuclidean}
 import org.clustering4ever.util.ClusterizableGenerator
 import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
-import org.clustering4ever.scala.vectors.{ScalarVector, GScalarVector}
+import org.clustering4ever.vectors.{ScalarVector, GScalarVector}
 /**
  *
  */

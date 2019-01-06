@@ -6,8 +6,8 @@ import scala.language.higherKinds
 import scala.collection.{mutable, immutable, GenSeq}
 import org.clustering4ever.supervizables.Supervizable
 import scala.util.Random
-import org.clustering4ever.scala.vectorizables.Vectorizable
-import org.clustering4ever.scala.vectors.{SupervizedVector, GVector}
+import org.clustering4ever.vectorizables.Vectorizable
+import org.clustering4ever.vectors.{SupervizedVector, GVector}
 import org.clustering4ever.supervizables.EasySupervizable
 /**
  * Theses functions are used to preprocess raw data                    

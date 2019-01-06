@@ -7,7 +7,7 @@ import scala.collection.{immutable, mutable, parallel, GenSeq}
 import scala.util.Random
 import org.clustering4ever.scala.preprocessing.util.Util
 import org.clustering4ever.supervizables.Supervizable
-import org.clustering4ever.scala.vectors.{SupervizedVector, GVector}
+import org.clustering4ever.vectors.{SupervizedVector, GVector}
 /**
  *
  */

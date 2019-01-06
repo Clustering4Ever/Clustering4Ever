@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import org.clustering4ever.math.distances.{Distance, BinaryDistance, RawBinaryDistance}
 import scala.collection.mutable
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.scala.vectors.{BinaryVector, GVector}
+import org.clustering4ever.vectors.{BinaryVector, GVector}
 /**
  *
  */

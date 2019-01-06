@@ -4,7 +4,7 @@ package org.clustering4ever.math.distances.binary
  */
 import scala.collection.mutable
 import org.clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
-import org.clustering4ever.scala.vectors.BinaryVector
+import org.clustering4ever.vectors.BinaryVector
 /**
  *
  **/

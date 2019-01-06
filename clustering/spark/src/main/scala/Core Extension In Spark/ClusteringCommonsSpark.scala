@@ -8,7 +8,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.Distance
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 /**
  * The basic trait shared by all distributed clustering algorithms
  */

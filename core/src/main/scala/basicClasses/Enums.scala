@@ -8,9 +8,11 @@ package org.clustering4ever.enums
 object ClusteringAlgorithmEnum extends Enumeration {
 
 	type ClusteringAlgorithmEnum = Value
-    val KMeans,
+    val KCenters,
+        KMeans,
     	KModes,
     	KPrototypes,
+        AnAlgoWithoutArgs,
     	RLA = Value
 
 }

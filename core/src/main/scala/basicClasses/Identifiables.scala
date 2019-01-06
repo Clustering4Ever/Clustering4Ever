@@ -5,8 +5,8 @@ package org.clustering4ever.identifiables
 import scala.language.higherKinds
 import shapeless.HMap
 import org.clustering4ever.shapeless.VMapping
-import org.clustering4ever.scala.vectorizables.Vectorizable
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectorizables.Vectorizable
+import org.clustering4ever.vectors.GVector
 /**
  *
  */

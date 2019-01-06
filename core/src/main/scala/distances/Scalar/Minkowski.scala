@@ -7,7 +7,7 @@ import scala.collection.mutable
 import scala.math.pow
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
-import org.clustering4ever.scala.vectors.ScalarVector
+import org.clustering4ever.vectors.ScalarVector
 /**
  *
  */

@@ -9,7 +9,7 @@ import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.models.{CenterOrientedModelLocal, KnnOrientedModelLocal, CenterOrientedModelLocalClusterizable, KnnOrientedModelLocalClusterizable}
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clustering.ClusteringModelCz
 /**
  *

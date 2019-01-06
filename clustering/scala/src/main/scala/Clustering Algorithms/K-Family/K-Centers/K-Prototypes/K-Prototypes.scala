@@ -8,10 +8,16 @@ import scala.collection.{mutable, GenSeq}
 import scala.util.Random
 import org.clustering4ever.math.distances.{MixtDistance, Distance}
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
-import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
+import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters, KCentersArgs}
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaImplicits._
-import org.clustering4ever.scala.vectors.{GVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, MixtVector}
+/**
+ *
+ */
+case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgs[MixtVector[Vb, Vs], D] {
+	override val algorithm = org.clustering4ever.enums.ClusteringAlgorithmEnum.KPrototypes
+}
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :
@@ -30,16 +36,19 @@ object KPrototypes {
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
 		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-		D <: MixtDistance[Vb, Vs]
+		D <: MixtDistance[Vb, Vs],
+		GS[X] <: GenSeq[X]
 	](
-		data: GenSeq[Cz[ID, O, MixtVector[Vb, Vs]]],
+		data: GS[Cz[ID, O, MixtVector[Vb, Vs]]],
 		k: Int,
 		metric: D,
 		maxIterations: Int,
 		epsilon: Double,
 		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
-	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D, GenSeq] = {
-		val kPrototypesModel = KCenters.run(data, k, metric, epsilon, maxIterations, initializedCenters)
-		kPrototypesModel
+	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D, GS] = {
+		
+		val kPrototypesAlgorithm = new KCenters[MixtVector[Vb, Vs], D, GS](new KPrototypesArgs(k, metric, epsilon, maxIterations, initializedCenters))
+		kPrototypesAlgorithm.run(data)
+	
 	}
 }

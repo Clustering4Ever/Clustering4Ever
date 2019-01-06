@@ -10,7 +10,7 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.models.CenterOrientedModelDistributedCz
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.clustering.ClusteringModelCz
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 /**
  *
  */

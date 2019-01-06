@@ -4,10 +4,10 @@ package org.clustering4ever.util
  */
 import scala.language.higherKinds
 import scala.collection.{mutable, immutable}
-import org.clustering4ever.scala.vectorizables.Vectorizable
+import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.clustering.ClusteringArgs
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 /**
  *
  */

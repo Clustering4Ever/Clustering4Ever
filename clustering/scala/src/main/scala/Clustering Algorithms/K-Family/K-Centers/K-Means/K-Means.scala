@@ -7,9 +7,15 @@ import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
-import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
+import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters, KCentersArgs}
 import org.clustering4ever.util.ScalaImplicits._
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector}
+/**
+ *
+ */
+case class KMeansArgs[V <: Seq[Double], D <: ContinuousDistance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgs[ScalarVector[V], D] {
+	override val algorithm = org.clustering4ever.enums.ClusteringAlgorithmEnum.KMeans
+}
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of RealClusterizable descendant, the SimpleRealClusterizable is the basic reference with mutable.ArrayBuffer as vector type, they are recommendend for speed efficiency
@@ -37,8 +43,10 @@ object KMeans {
 		epsilon: Double,
 		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
 		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D, GS] = {
-		val kMeansModel = KCenters.run(data, k, metric, epsilon, maxIterations, initializedCenters)
-		kMeansModel
+		
+		val kmeansAlgorithm = new KCenters[ScalarVector[V], D, GS](new KMeansArgs(k, metric, epsilon, maxIterations, initializedCenters))
+		kmeansAlgorithm.run(data)
+	
 	}
 	/**
 	 * Run the K-Means with any continuous distance

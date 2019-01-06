@@ -1,5 +1,7 @@
 package org.clustering4ever.structures
-
+/**
+ * @author Beck Gaël
+ */
 import scala.collection.mutable
 /**
  * Basic generic definition of a Tree
@@ -45,6 +47,6 @@ object Tree {
         case Node(id, childrens) :: ls => go(childrens ::: ls, ids += id)
       }
     }
-    go(List(t), mutable.Buffer.empty[Int])
+    go(List(t), mutable.ArrayBuffer.empty[Int])
   }
 }

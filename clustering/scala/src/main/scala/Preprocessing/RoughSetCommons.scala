@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.collection.{immutable, mutable, GenSeq, GenIterable, Iterable}
 import scala.reflect.ClassTag
 import org.clustering4ever.supervizables.Supervizable
-import org.clustering4ever.scala.vectors.{SupervizedVector, GVector}
+import org.clustering4ever.vectors.{SupervizedVector, GVector}
 /**
  *
  */

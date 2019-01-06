@@ -13,7 +13,7 @@ import org.clustering4ever.enums.InternalsIndexes.InternalsIndexesType
 import org.clustering4ever.enums.InternalsIndexes._
 import org.clustering4ever.enums.ExternalsIndexes.ExternalsIndexesType
 import org.clustering4ever.enums.ExternalsIndexes._
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 /**
  *
  */
@@ -77,7 +77,7 @@ class ClustersIndexesAnalysisLocal[
     /**
      *
      */
-    def computeExternalsIndexesForEveryClusteringNumber[D <: Distance[V]](groundTruth: GS[ClusterID], indexes: ExternalsIndexesType*): Seq[Map[ExternalsIndexesType, Double]] = {
+    def computeExternalsIndexesForEveryClusteringNumber(groundTruth: GS[ClusterID], indexes: ExternalsIndexesType*): Seq[Map[ExternalsIndexesType, Double]] = {
         (0 until data.head.clusterIDs.size).par.map( cn => computeExternalsIndexes(groundTruth, indexes:_*)(cn) ).seq
     }
 }

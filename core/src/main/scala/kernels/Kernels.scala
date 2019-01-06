@@ -10,7 +10,7 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
 import org.clustering4ever.enums.KernelNature._
-import org.clustering4ever.scala.vectors.{GVector, GBinaryVector, GScalarVector, GMixtVector, ScalarVector}
+import org.clustering4ever.vectors.{GVector, GBinaryVector, GScalarVector, GMixtVector, ScalarVector}
 /**
  *
  */

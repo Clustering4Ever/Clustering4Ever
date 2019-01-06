@@ -10,13 +10,15 @@ import org.clustering4ever.util.SumVectors
 import scala.math.{min, max}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.ClusteringArgs
 /**
  *
  */
-case class RLAArgs[V <: GVector[V], D <: Distance[V]](val metric: D, val epsilon: Double) extends ClusteringArgs
+case class RLAArgs[V <: GVector[V], D <: Distance[V]](val metric: D, val epsilon: Double) extends ClusteringArgs {
+	override val algorithm = org.clustering4ever.enums.ClusteringAlgorithmEnum.RLA
+}
 /**
  * The random Local Area clustering algorithm introduce at https://ieeexplore.ieee.org/document/7727595
  * @param data : a GenSeq of any type

@@ -7,9 +7,15 @@ import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, BinaryDistance}
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
-import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters}
+import org.clustering4ever.scala.clustering.kcenters.{KCentersModel, KCenters, KCentersArgs}
 import org.clustering4ever.util.ScalaImplicits._
-import org.clustering4ever.scala.vectors.{GVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, BinaryVector}
+/**
+ *
+ */
+case class KModesArgs[V <: Seq[Int], D <: BinaryDistance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersArgs[BinaryVector[V], D] {
+	override val algorithm = org.clustering4ever.enums.ClusteringAlgorithmEnum.KModes
+}
 /**
  *
  */
@@ -32,8 +38,10 @@ object KModes {
 		epsilon: Double,
 		initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]
 	)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KCentersModel[BinaryVector[V], D, GS] = {
-		val kModesModel = KCenters.run(data, k, metric, epsilon, maxIterations, initializedCenters)
-		kModesModel
+		
+		val kmodesAlgorithm = new KCenters[BinaryVector[V], D, GS](new KModesArgs(k, metric, epsilon, maxIterations, initializedCenters))
+		kmodesAlgorithm.run(data)
+	
 	}
 	/**
 	 * Run the K-Modes with any binary distance

@@ -15,12 +15,14 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.scala.clustering.kcenters.KCommons
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
 import org.clustering4ever.clustering.DistributedClusteringAlgorithm
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clustering.ClusteringArgs
 /**
  *
  */
-case class KCentersArgs[V <: GVector[V], D <: Distance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]) extends ClusteringArgs
+case class KCentersArgs[V <: GVector[V], D <: Distance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]) extends ClusteringArgs {
+	val algorithm = org.clustering4ever.enums.ClusteringAlgorithmEnum.KCenters
+}
 /**
  *
  */

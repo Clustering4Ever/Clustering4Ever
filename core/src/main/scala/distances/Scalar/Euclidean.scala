@@ -8,7 +8,7 @@ import scala.collection.mutable
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance, RawContinuousDistance, Distance, ClusterizableDistanceBuilder}
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector}
 /**
  *
  */

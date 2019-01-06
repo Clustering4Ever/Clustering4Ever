@@ -6,7 +6,7 @@ import scala.reflect.ClassTag
 import scala.math.sqrt
 import scala.collection.GenSeq
 import scala.language.higherKinds
-import org.clustering4ever.scala.vectors.{GVector, BinaryVector, ScalarVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, MixtVector}
 import scala.collection.mutable
 /**
  *

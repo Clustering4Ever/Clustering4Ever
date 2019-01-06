@@ -7,7 +7,7 @@ import scala.collection.mutable
 import shapeless.HMap
 import org.clustering4ever.identifiables.IdentifiedVectorized
 import org.clustering4ever.shapeless.VMapping
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 import org.clustering4ever.supervizables.Supervizable
 /**
  * Common trait for object than can be preprocessed to obtain new vectorization

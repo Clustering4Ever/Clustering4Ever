@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.collection.mutable
 import org.clustering4ever.math.distances.ContinuousDistance
 import org.clustering4ever.util.SumVectors
-import org.clustering4ever.scala.vectors.ScalarVector
+import org.clustering4ever.vectors.ScalarVector
 /**
  *
  */

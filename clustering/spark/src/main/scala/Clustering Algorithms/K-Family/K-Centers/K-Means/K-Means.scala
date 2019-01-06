@@ -13,7 +13,7 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.spark.clustering.kcenters.{KCentersArgs, KCentersModel, KCenters}
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector}
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of Clusterizable descendant, the SimpleRealClusterizable is the basic reference with mutable.ArrayBuffer as vector type, they are recommendend for speed efficiency

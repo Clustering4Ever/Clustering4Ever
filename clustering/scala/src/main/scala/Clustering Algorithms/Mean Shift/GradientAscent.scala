@@ -9,7 +9,7 @@ import org.clustering4ever.shapeless.VMapping
 import org.clustering4ever.math.distances.ContinuousDistance
 import org.clustering4ever.preprocessables.Preprocessable
 import org.clustering4ever.scala.kernels.{Kernel, KernelArgs}
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector}
 /**
  * Mean Shift gradient ascent
  * @param kernel defines the nature of kernel and its parameters used in the gradient ascent

@@ -15,7 +15,7 @@ import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.spark.clustering.kcenters.{KCentersArgs, KCentersModel, KCenters}
-import org.clustering4ever.scala.vectors.{GVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, MixtVector}
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :

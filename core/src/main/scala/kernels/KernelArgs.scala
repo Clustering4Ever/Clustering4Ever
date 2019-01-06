@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.math.distances.scalar.{Euclidean}
 import org.clustering4ever.math.distances.binary.Hamming
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector, GMixtVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, GMixtVector}
 import org.clustering4ever.enums.KernelNature._
 /**
  * Class regrouping arguments value for a specific kernel type

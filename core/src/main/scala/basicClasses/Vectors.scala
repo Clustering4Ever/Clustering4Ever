@@ -1,4 +1,4 @@
-package org.clustering4ever.scala.vectors
+package org.clustering4ever.vectors
 /**
  * @author Beck Gaël
  */

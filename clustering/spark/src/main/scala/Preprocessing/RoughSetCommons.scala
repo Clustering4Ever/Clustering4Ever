@@ -9,7 +9,7 @@ import org.apache.spark.rdd.RDD
 import scala.reflect.ClassTag
 import org.clustering4ever.scala.preprocessing.rst.RoughSetCommons
 import org.clustering4ever.supervizables.Supervizable
-import org.clustering4ever.scala.vectors.{SupervizedVector, GVector}
+import org.clustering4ever.vectors.{SupervizedVector, GVector}
 /**
  *
  */

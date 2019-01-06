@@ -1,4 +1,4 @@
-package org.clustering4ever.scala.vectorizables
+package org.clustering4ever.vectorizables
 /**
  * @author Beck Gaël
  */

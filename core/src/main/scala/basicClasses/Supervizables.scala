@@ -4,11 +4,11 @@ package org.clustering4ever.supervizables
  */
 import scala.language.higherKinds
 import scala.collection.mutable
-import org.clustering4ever.scala.vectorizables.Vectorizable
+import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.preprocessables.Preprocessable
 import org.clustering4ever.shapeless.VMapping
 import shapeless.HMap
-import org.clustering4ever.scala.vectors.GVector
+import org.clustering4ever.vectors.GVector
 /**
  *
  */

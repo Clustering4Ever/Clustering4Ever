@@ -11,7 +11,7 @@ import scala.util.Random
 import scala.annotation.meta.param
 import org.clustering4ever.scala.preprocessing.rst.RoughSet
 import org.clustering4ever.supervizables.Supervizable
-import org.clustering4ever.scala.vectors.{SupervizedVector, GVector}
+import org.clustering4ever.vectors.{SupervizedVector, GVector}
 /**
  *
  */

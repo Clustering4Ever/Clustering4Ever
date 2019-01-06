@@ -14,7 +14,7 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.clustering.ClustersAnalysis
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 /**
  *
  */

@@ -4,7 +4,7 @@ package org.clustering4ever.math.distances
  */
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.scala.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 /**
  *
  */
