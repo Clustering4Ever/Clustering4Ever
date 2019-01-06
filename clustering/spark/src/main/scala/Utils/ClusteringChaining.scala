@@ -42,29 +42,40 @@ class ClusteringChainingDistributed[
 
         require(currentVectorization == ccl.currentVectorization && vectorizations == ccl.vectorizations)
         
+        def ltr(sr: Int) = {
+            (            
+                clusteringInfo ++ ccl.clusteringInfo.takeRight(sr),
+                data.zip(ccl.data).map{ case (cz1, cz2) => cz1.addClusterIDs(cz2.clusterIDs.takeRight(sr):_*) }
+            )
+        }
 
-
-        val (newData, newSecurityReduce) = if(securityReduce == -1 && ccl.securityReduce == -1) {
+        val (newData, newClusteringInfo, newSecurityReduce) = if(securityReduce == -1 && ccl.securityReduce == -1) {
             (
                 data.zip(ccl.data).map{ case (cz1, cz2) => cz1.addClusterIDs(cz2.clusterIDs:_*) },
+                clusteringInfo ++ ccl.clusteringInfo,
                 data.first.clusterIDs.size + ccl.data.first.clusterIDs.size
             )
         }
         else if(securityReduce == -1 && ccl.securityReduce != -1) {
+            val (newSec, ndata) = ltr(ccl.securityReduce)
             (
-                data.zip(ccl.data).map{ case (cz1, cz2) => cz1.addClusterIDs(cz2.clusterIDs.takeRight(ccl.securityReduce):_*) },
+                ndata,
+                newSec,
                 data.first.clusterIDs.size + ccl.securityReduce
             )
         }
         else if(securityReduce != -1 && ccl.securityReduce == -1) {
             (
                 ccl.data.zip(data).map{ case (cz2, cz1) => cz2.addClusterIDs(cz1.clusterIDs.takeRight(securityReduce):_*) },
+                ccl.clusteringInfo ++ clusteringInfo.takeRight(securityReduce),
                 ccl.data.first.clusterIDs.size + securityReduce
             )
         }
         else {
+            val (newSec, ndata) = ltr(ccl.securityReduce)
             (
-                data.zip(ccl.data).map{ case (cz1, cz2) => cz1.addClusterIDs(cz2.clusterIDs.takeRight(ccl.securityReduce):_*) },
+                ndata,
+                newSec,
                 securityReduce + ccl.securityReduce
             )
         }
@@ -73,7 +84,7 @@ class ClusteringChainingDistributed[
             newData.asInstanceOf[RDD[Cz[ID, O, V]]],
             currentVectorization,
             vectorizations,
-            clusteringInfo ++ ccl.clusteringInfo,
+            newClusteringInfo,
             scala.math.max(globalClusteringRunNumber, ccl.globalClusteringRunNumber)
         ) { override val securityReduce = newSecurityReduce }
     }
