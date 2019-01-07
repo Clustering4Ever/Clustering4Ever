@@ -1,4 +1,4 @@
-package org.clustering4ever.scala.kernels
+package org.clustering4ever.kernels
 /**
  * @author Beck Gaël
  */

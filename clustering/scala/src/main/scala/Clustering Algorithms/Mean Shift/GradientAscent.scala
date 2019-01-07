@@ -7,70 +7,56 @@ import scala.math.{min, max}
 import scala.collection.GenSeq
 import org.clustering4ever.shapeless.VMapping
 import org.clustering4ever.math.distances.ContinuousDistance
-import org.clustering4ever.preprocessables.Preprocessable
-import org.clustering4ever.scala.kernels.{Kernel, KernelArgs}
+import org.clustering4ever.preprocessing.Preprocessable
+import org.clustering4ever.kernels.{Kernel, KernelArgs}
 import org.clustering4ever.vectors.{GVector, ScalarVector}
+import org.clustering4ever.preprocessing.PreprocessingArgs
+/**
+ *
+ */
+case class GradientAscentArgs[V <: Seq[Double], D <: ContinuousDistance[V], KArgs <: KernelArgs, K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y]](val epsilon: Double, val maxIterations: Int, val kernel: K[ScalarVector[V], KArgs], val metric: D, val altVectName: Int = Int.MaxValue) extends PreprocessingArgs {
+  val algorithm = org.clustering4ever.extensibleAlgorithmNature.GradientAscent
+}
 /**
  * Mean Shift gradient ascent
  * @param kernel defines the nature of kernel and its parameters used in the gradient ascent
  */
-class GradientAscent[
-  ID,
-  O,
-  V <: Seq[Double],
-  Pz[X, Y, Z <: GVector[Z]] <: Preprocessable[X, Y, Z, Pz],
-  D <: ContinuousDistance[V],
-  KArgs <: KernelArgs,
-  K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y],
-  GS[X] <: GenSeq[X]
-](
-  data: GS[Pz[ID, O, ScalarVector[V]]],
-  epsilon: Double,
-  maxIterations: Int,
-  kernel: K[ScalarVector[V], KArgs],
-  metric: D,
-  altVectName: Int = Int.MaxValue
-) {
+class GradientAscent[V <: Seq[Double], D <: ContinuousDistance[V], KArgs <: KernelArgs, K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y], GS[X] <: GenSeq[X]](args: GradientAscentArgs[V, D, KArgs, K]) {
+  
+  val vMapping = new VMapping[Int, ScalarVector[V]]
 
-  def run() = {
-
-    implicit val vMapping = new VMapping[Int, ScalarVector[V]]
+  def run[ID, O, Pz[X, Y, Z <: GVector[Z]] <: Preprocessable[X, Y, Z, Pz]](data: GS[Pz[ID, O, ScalarVector[V]]]) = {
 
     val haveNotConverged = false
     val kernelLocality = data.map(_.v)
-    var gradientAscentData: GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)] = data.map( obj => (obj.addAltVector(altVectName, obj.v), haveNotConverged) )
+    val gradientAscentData: GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)] = data.map( obj => (obj.addAltVector(args.altVectName, obj.v), haveNotConverged) )
 
-    def kernelGradientAscent(toExplore: GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)]) = {
-
+    def kernelGradientAscent(toExplore: GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)]): (GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)], Int) = {
       var cptConvergedPoints = 0
       val convergingData = toExplore.map{ case (obj, haveConverged) =>
-        val mode = obj.vectorized.get(altVectName).get
-        val updatedMode = if(haveConverged) mode else kernel.obtainMode(mode, kernelLocality)
-        val modeShift = metric.d(updatedMode, mode)
-        val hasConverged = 
-          if(modeShift <= epsilon) {
+        val mode = obj.vectorized.get(args.altVectName)(vMapping).get
+        val updatedMode = if(haveConverged) mode else args.kernel.obtainMode(mode, kernelLocality)
+        val modeShift = args.metric.d(updatedMode, mode)
+        val hasConverged = if(modeShift <= args.epsilon) {
             cptConvergedPoints += 1
             true
           }
-          else {
-            false
-          }
-        (obj.addAltVector(altVectName, updatedMode), hasConverged)
+          else false
+        (obj.addAltVector(args.altVectName, updatedMode), hasConverged)
       }
-
       (convergingData, cptConvergedPoints)
     }
 
-    var ind = 0
-    var everyPointsHaveConverged = false
-    while(ind < maxIterations && !everyPointsHaveConverged) {
-      val (gradientAscentData0, cptConvergedPoints) = kernelGradientAscent(gradientAscentData)
-      gradientAscentData = gradientAscentData0
-      everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
-      ind += 1
+    @annotation.tailrec
+    def go(i: Int, data: GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)]): GenSeq[(Pz[ID, O, ScalarVector[V]], Boolean)] = {
+      val (ascendedData, cptConvergedPoints) = kernelGradientAscent(data)
+      val everyPointsHaveConverged = cptConvergedPoints == gradientAscentData.size
+      if(i < args.maxIterations && !everyPointsHaveConverged) go(i + 1, ascendedData)
+      else ascendedData
     }
 
-    gradientAscentData.map(_._1).asInstanceOf[GS[Pz[ID, O, ScalarVector[V]]]]
+    go(0, gradientAscentData).map(_._1).asInstanceOf[GS[Pz[ID, O, ScalarVector[V]]]]
+
   }
 }
 /**
@@ -86,7 +72,7 @@ object GradientAscent {
     ID,
     O,
     V <: Seq[Double],
-    Pz[X, Y, Z <: GVector[Z]] <: Preprocessable[X, Y, Z, Pz],
+    Pz[A, B, C <: GVector[C]] <: Preprocessable[A, B, C, Pz],
     D <: ContinuousDistance[V],
     KArgs <: KernelArgs,
     K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y],
@@ -98,5 +84,5 @@ object GradientAscent {
     kernel: K[ScalarVector[V], KArgs],
     metric: D,
     altVectName: Int = Int.MaxValue
-    ) = (new GradientAscent(data, epsilon, maxIterations, kernel, metric, altVectName)).run()
+  ) = (new GradientAscent[V, D, KArgs, K, GS](GradientAscentArgs(epsilon, maxIterations, kernel, metric, altVectName))).run(data)
 }

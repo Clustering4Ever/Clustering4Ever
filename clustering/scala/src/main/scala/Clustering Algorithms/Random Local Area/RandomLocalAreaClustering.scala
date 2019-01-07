@@ -17,7 +17,7 @@ import org.clustering4ever.clustering.ClusteringArgs
  *
  */
 case class RLAArgs[V <: GVector[V], D <: Distance[V]](val metric: D, val epsilon: Double) extends ClusteringArgs {
-	override val algorithm = org.clustering4ever.enums.ClusteringAlgorithmEnum.RLA
+	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.RLA
 }
 /**
  * The random Local Area clustering algorithm introduce at https://ieeexplore.ieee.org/document/7727595

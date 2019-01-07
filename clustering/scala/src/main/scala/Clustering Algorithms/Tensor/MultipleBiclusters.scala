@@ -123,7 +123,7 @@ class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends Cluster
 
     val resultats = result(row, column, fin, 0, k1.length)
 
-    //new TensorBiclusteringModel(rowIndexes, columnIndexes)
+    //new TensorBiclusteringModel(rowIndices, columnIndices)
 
    // (resultats, Array(rowIntersection, columnIntersection) ) 
     (resultats, rowColsIntersection) 

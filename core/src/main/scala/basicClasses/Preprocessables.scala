@@ -1,4 +1,4 @@
-package org.clustering4ever.preprocessables
+package org.clustering4ever.preprocessing
 /**
  * @author Beck Gaël
  */

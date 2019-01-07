@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.indexes
+package org.clustering4ever.spark.indices
 /**
  * @author Beck Gaël
  *
@@ -12,11 +12,11 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.enums.NmiNormalizationNature._
-import org.clustering4ever.util.ClusteringIndexesCommons
+import org.clustering4ever.util.ClusteringIndicesCommons
 /**
  *
  */
-class ExternalIndexes(@(transient @param) sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends Serializable  {
+class ExternalIndices(@(transient @param) sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends Serializable  {
 
   groundTruthAndPred.persist(persistanceLVL)
   /**
@@ -36,14 +36,14 @@ class ExternalIndexes(@(transient @param) sc: SparkContext, groundTruthAndPred: 
 
     val count = accNmi.value
 
-    val ai = ClusteringIndexesCommons.nmiObtainAi(new Array[Double](maxX + 1), maxOneIndices, maxTwoIndices, count)
-    val bj = ClusteringIndexesCommons.nmiObtainBj(new Array[Double](maxY + 1), maxTwoIndices, maxOneIndices, count)
+    val ai = ClusteringIndicesCommons.nmiObtainAi(new Array[Double](maxX + 1), maxOneIndices, maxTwoIndices, count)
+    val bj = ClusteringIndicesCommons.nmiObtainBj(new Array[Double](maxY + 1), maxTwoIndices, maxOneIndices, count)
 
     val aiSum = ai.sum
 
-    val hu = ClusteringIndexesCommons.nmiIn1(ai, aiSum)
-    val hv = ClusteringIndexesCommons.nmiIn1(bj, aiSum)
-    val huStrichV = ClusteringIndexesCommons.nmiIn2(maxOneIndices, maxTwoIndices, count, aiSum, bj)
+    val hu = ClusteringIndicesCommons.nmiIn1(ai, aiSum)
+    val hv = ClusteringIndicesCommons.nmiIn1(bj, aiSum)
+    val huStrichV = ClusteringIndicesCommons.nmiIn2(maxOneIndices, maxTwoIndices, count, aiSum, bj)
     val mi = hu - huStrichV
 
     (mi, hu, hv)
@@ -65,7 +65,7 @@ class ExternalIndexes(@(transient @param) sc: SparkContext, groundTruthAndPred: 
   }
 }
 
-object ExternalIndexes {
+object ExternalIndices {
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 */
@@ -79,7 +79,7 @@ object ExternalIndexes {
    * @return (Mutual Information, entropy x, entropy y)
    */
   def mutualInformation(sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndexes(sc, groundTruthAndPred, persistanceLVL)).mutualInformation
+    (new ExternalIndices(sc, groundTruthAndPred, persistanceLVL)).mutualInformation
   /**
    * Compute the normalize mutual entropy
    * It is advise to cache groundTruthAndPred before passing it to this method.
@@ -87,5 +87,5 @@ object ExternalIndexes {
    * @return Normalize Mutual Information
    */
   def nmi(sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndexes(sc, groundTruthAndPred, persistanceLVL)).nmi(normalization)
+    (new ExternalIndices(sc, groundTruthAndPred, persistanceLVL)).nmi(normalization)
 }

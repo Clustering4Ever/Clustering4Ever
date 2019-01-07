@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.kmeans
+package org.clustering4ever.spark.clustering.kcenters
 /**
  * @author Beck Gaël
  */
@@ -12,7 +12,6 @@ import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryD
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
-import org.clustering4ever.spark.clustering.kcenters.{KCentersArgs, KCentersModel, KCenters}
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 /**
  * The famous K-Means using a user-defined dissmilarity measure.

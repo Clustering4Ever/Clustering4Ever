@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.indexes
+package org.clustering4ever.spark.indices
 
 import org.apache.spark.util.AccumulatorV2
 import scala.collection.mutable

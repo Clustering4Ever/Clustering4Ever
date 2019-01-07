@@ -14,7 +14,7 @@ class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorit
    * Return breaks position in the sorted GenSeq
    * @param data : a sorted GenSeq
    * @param desiredNumberCategories : number of breaks user desire
-   * @return Indexes of breaks in data sequence
+   * @return Indices of breaks in data sequence
    */
   def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N])(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = {
 
@@ -87,6 +87,8 @@ class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorit
 object JenksNaturalBreaks {
 
   def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(desiredNumberCategories)).run(data)
+
+  def apply[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = run(data, desiredNumberCategories)
 
 }
 /**

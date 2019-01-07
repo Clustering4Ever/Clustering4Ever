@@ -78,11 +78,11 @@ class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends 
 /**
  * The easy to use Euclidean distance with or without squareRoot for vectors =:= mutable.ArrayBuffer[Double]
  */
-class EasyEuclidean(squareRoot: Boolean = false) extends Euclidean[mutable.ArrayBuffer[Double]](squareRoot)
+// class EasyEuclidean(squareRoot: Boolean = false) extends Euclidean[mutable.ArrayBuffer[Double]](squareRoot)
 /**
  *
  */
-class EasyFastestEuclidean extends EasyEuclidean(false)
+// class EasyFastestEuclidean extends EasyEuclidean(false)
 /**
  *
  */

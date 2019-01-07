@@ -45,7 +45,7 @@ trait KCentersArgs[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
 	/**
 	 *
 	 */
-	val algorithm = org.clustering4ever.enums.ClusteringAlgorithmEnum.KCenters
+	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KCenters
 	/**
 	 *
 	 */

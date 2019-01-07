@@ -1,4 +1,4 @@
-package org.clustering4ever.scala.indexes
+package org.clustering4ever.scala.indices
 /**
  * @author Beck Gaël
  */
@@ -14,7 +14,7 @@ import org.clustering4ever.util.ClusterBasicOperations
 /**
  *
  */
-class InternalIndexes[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndexesCommons[V, D] {
+class InternalIndices[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndicesCommons[V, D] {
   /**
    *
    */
@@ -113,7 +113,7 @@ class InternalIndexes[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric
 /**
  *
  */
-object InternalIndexes extends ClusteringCommons {
+object InternalIndices extends ClusteringCommons {
   /**
    * Davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with:
@@ -121,21 +121,21 @@ object InternalIndexes extends ClusteringCommons {
    *   * c number of clusters
    */
   def daviesBouldin[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
-    val internalIndexes = new InternalIndexes(clusterized, metric)
-    internalIndexes.daviesBouldin
+    val internalIndices = new InternalIndices(clusterized, metric)
+    internalIndices.daviesBouldin
   }
   /**
    *
    */
   def silhouette[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
-    val internalIndexes = new InternalIndexes(clusterized, metric)
-    internalIndexes.silhouette
+    val internalIndices = new InternalIndices(clusterized, metric)
+    internalIndices.silhouette
   }
   /**
    *
    */
   def ballHall[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D) = {
-    (new InternalIndexes(clusterized, metric)).ballHall
+    (new InternalIndices(clusterized, metric)).ballHall
   }
 
 }

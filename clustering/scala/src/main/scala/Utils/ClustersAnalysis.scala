@@ -13,7 +13,7 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.util.SumVectors
-import org.clustering4ever.scala.indexes.{ExternalIndexes, InternalIndexes}
+import org.clustering4ever.scala.indices.{ExternalIndices, InternalIndices}
 import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, GMixtVector}
 /**
  *

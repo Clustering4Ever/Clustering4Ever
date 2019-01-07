@@ -9,10 +9,9 @@ import scala.annotation.meta.param
 import org.apache.spark.{SparkContext, SparkConf, HashPartitioner}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.broadcast.Broadcast
-import org.clustering4ever.scala.clustering.kmeans.KMeans
+import org.clustering4ever.scala.clustering.kcenters.KMeans
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.scalar.{Euclidean, RawEuclidean}
-import org.clustering4ever.util.ClusterizableGenerator
 import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
 import org.clustering4ever.vectors.{ScalarVector, GScalarVector}
@@ -82,7 +81,7 @@ class Clusterwise[V <: Seq[Double]](
   	  	val microClusterByIdAndNumbers = if( sizeBloc != 1 ) {
 	  	  	val kmData = centerReductRDD.map{ case (id, (x, y)) =>
 	  	  		val vector = new ScalarVector[V]((x ++ y).asInstanceOf[V])
-	  	  		ClusterizableGenerator.obtainEasyClusterizable(id, vector)
+	  	  		EasyClusterizable(id, vector)
 	  	  	}
 	  	  	val kmeansModel = KMeans.run(kmData, kmeansKValue, new Euclidean[V](squareRoot = false), iterMaxKmeans, epsilonKmeans, mutable.HashMap.empty[Int, ScalarVector[V]])
 	  	  	val unregularClusterIdsByStandardClusterIDs = kmeansModel.centers.keys.zipWithIndex.toMap

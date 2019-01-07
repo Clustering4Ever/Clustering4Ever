@@ -18,19 +18,19 @@ object ScalaImplicits {
 	 *
 	 */
 	implicit def scalarDataWithIDToClusterizable[ID, V <: Seq[Double], GS[Y] <: GenSeq[Y]](genSeq: GS[(V, ID)]): GS[EasyClusterizable[ID, ScalarVector[V], ScalarVector[V]]] = {
-		genSeq.map{ case (vector, id) => ClusterizableGenerator.obtainEasyClusterizable(id, new ScalarVector(vector)) }.asInstanceOf[GS[EasyClusterizable[ID, ScalarVector[V], ScalarVector[V]]]]
+		genSeq.map{ case (vector, id) => EasyClusterizable(id, ScalarVector(vector)) }.asInstanceOf[GS[EasyClusterizable[ID, ScalarVector[V], ScalarVector[V]]]]
 	}
 	/**
 	 *
 	 */
 	implicit def binaryDataWithIDToClusterizable[ID, V <: Seq[Int], GS[Y] <: GenSeq[Y]](genSeq: GS[(V, ID)]): GS[EasyClusterizable[ID, BinaryVector[V], BinaryVector[V]]] = {
-		genSeq.map{ case (vector, id) => ClusterizableGenerator.obtainEasyClusterizable(id, new BinaryVector(vector)) }.asInstanceOf[GS[EasyClusterizable[ID, BinaryVector[V], BinaryVector[V]]]]
+		genSeq.map{ case (vector, id) => EasyClusterizable(id, BinaryVector(vector)) }.asInstanceOf[GS[EasyClusterizable[ID, BinaryVector[V], BinaryVector[V]]]]
 	}
 	/**
 	 *
 	 */
 	implicit def mixtDataWithIDToClusterizable[ID, Vb <: Seq[Int], Vs <: Seq[Double], GS[X] <: GenSeq[X]](genSeq: GS[((Vb, Vs), ID)]): GS[EasyClusterizable[ID, MixtVector[Vb, Vs], MixtVector[Vb, Vs]]] = {
-		genSeq.map{ case ((binary, scalar), id) => ClusterizableGenerator.obtainEasyClusterizable(id, new MixtVector(binary, scalar)) }.asInstanceOf[GS[EasyClusterizable[ID, MixtVector[Vb, Vs], MixtVector[Vb, Vs]]]]
+		genSeq.map{ case ((binary, scalar), id) => EasyClusterizable(id, MixtVector(binary, scalar)) }.asInstanceOf[GS[EasyClusterizable[ID, MixtVector[Vb, Vs], MixtVector[Vb, Vs]]]]
 	}
 	/**
 	 *
@@ -48,6 +48,6 @@ object ScalaImplicits {
 	 *
 	 */
 	implicit def rawDataToSupervizable[T, V[X] <: Seq[X], GS[Y] <: GenSeq[Y]](gs: GS[(V[Int], Int)]): GS[EasySupervizable[Int, Vectorizable[SupervizedVector[T, V]], SupervizedVector[T, V]]] = {
-		gs.zipWithIndex.map{ case ((v, l), id) => new EasySupervizable(id, new Vectorizable(new SupervizedVector(v)), l, new SupervizedVector(v)) }.asInstanceOf[GS[EasySupervizable[Int, Vectorizable[SupervizedVector[T, V]], SupervizedVector[T, V]]]]
+		gs.zipWithIndex.map{ case ((v, l), id) => EasySupervizable(id, Vectorizable(SupervizedVector(v)), l, SupervizedVector(v)) }.asInstanceOf[GS[EasySupervizable[Int, Vectorizable[SupervizedVector[T, V]], SupervizedVector[T, V]]]]
 	}
 }

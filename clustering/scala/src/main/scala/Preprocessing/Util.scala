@@ -17,7 +17,7 @@ object Util extends Serializable {
    * Determine in which interval falls a value given a specific range.
    * @return i if smaller or equal than ith value (starting at 0) and range.size +1 if bigger than the last range value 
    */
-  def whichInterval[N](d: N, range: Seq[N])(implicit num: Numeric[N])  = {
+  def whichInterval[N](d: N, range: Seq[N])(implicit num: Numeric[N]): Int  = {
     @annotation.tailrec
     def go(i: Int): Int = {
       if(num.lteq(d, range(i))) i
@@ -26,6 +26,9 @@ object Util extends Serializable {
     }
     go(0)
   }
+  /**
+   *
+   */
   private def obtainIdxByValueByFeatIdx[T](occurPerFeat: Seq[mutable.HashSet[T]]) = { 
     immutable.HashMap(
       occurPerFeat.map( values => immutable.HashMap(values.toSeq.zipWithIndex:_*) )

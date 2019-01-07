@@ -49,16 +49,15 @@ trait IdentifiedVector[ID, O, V] extends IdentifiedRawObject[ID, Vectorizable[O]
 	 *
 	 */
 	val v: V
-}
-/**
- *
- */
-trait IdentifiedGVector[ID, O, V <: GVector[V]] extends IdentifiedVector[ID, O, V] {
 	/**
 	 * Second hashCode just in case if IDs are more than 2^32
 	 */
 	final val hashCode2: Int = v.hashCode
 }
+/**
+ *
+ */
+trait IdentifiedGVector[ID, O, V <: GVector[V]] extends IdentifiedVector[ID, O, V]
 /**
  *
  */

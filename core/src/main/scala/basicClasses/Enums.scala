@@ -5,22 +5,8 @@ package org.clustering4ever.enums
 /**
  *
  */
-object ClusteringAlgorithmEnum extends Enumeration {
-
-	type ClusteringAlgorithmEnum = Value
-    val KCenters,
-        KMeans,
-    	KModes,
-    	KPrototypes,
-        AnAlgoWithoutArgs,
-    	RLA = Value
-
-}
-/**
- *
- */
-object InternalsIndexes extends Enumeration {
-    type InternalsIndexesType = Value
+object InternalsIndices extends Enumeration {
+    type InternalsIndicesType = Value
     val DaviesBouldin,
         BallHall,
         Silhouette = Value
@@ -28,8 +14,8 @@ object InternalsIndexes extends Enumeration {
 /**
  *
  */
-object ExternalsIndexes extends Enumeration {
-    type ExternalsIndexesType = Value
+object ExternalsIndices extends Enumeration {
+    type ExternalsIndicesType = Value
     val MI,
         NMI_Sqrt,
         NMI_Max = Value

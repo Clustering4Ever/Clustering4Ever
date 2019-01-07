@@ -63,9 +63,9 @@ class ClusterwiseCore[V <: Seq[Double]](
 	}
 
 
-	private[this] def elseCaseWhenComputingError(errorsIndexes: Array[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) = {
+	private[this] def elseCaseWhenComputingError(errorsIndices: Array[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) = {
 		var b = true
-		errorsIndexes.map{ case ((err1, err2), idx) =>
+		errorsIndices.map{ case ((err1, err2), idx) =>
 			if( idx == currentClass ) err2
 			else {
 	  			if( boolTab(idx) && b ) {
@@ -127,9 +127,9 @@ class ClusterwiseCore[V <: Seq[Double]](
 
 					  	val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
-					  	val errorsIndexes = error1.zip(error2).zipWithIndex
+					  	val errorsIndices = error1.zip(error2).zipWithIndex
 					  	boolTab(currentDotClass) = false
-					  	val errors = rangeOverClasses.map( i => (if( i == currentDotClass ) errorsIndexes.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndexes, boolTab, currentDotClass)).sum )
+					  	val errors = rangeOverClasses.map( i => (if( i == currentDotClass ) errorsIndices.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndices, boolTab, currentDotClass)).sum )
 					  	val minError = errors.min
 					  	val classToMovePointInto = errors.indexOf(minError)
 					  	val (pointID, (pointX, pointY, _)) = classedDS(currentDotIdx)
@@ -244,10 +244,10 @@ class ClusterwiseCore[V <: Seq[Double]](
 					  	if( regPerClass2.isEmpty ) break
 			  	  		val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
-					  	val errorsIndexes = error1.zip(error2).zipWithIndex
+					  	val errorsIndices = error1.zip(error2).zipWithIndex
 
 					  	boolTab(currentclusterID) = false
-					  	val errors = rangeOverClasses.map( i => (if( i == currentclusterID ) errorsIndexes.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndexes, boolTab, currentclusterID)).sum )
+					  	val errors = rangeOverClasses.map( i => (if( i == currentclusterID ) errorsIndices.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndices, boolTab, currentclusterID)).sum )
 					  	val minError = errors.min
 					  	val classToMoveGroupInto = errors.indexOf(minError)
 					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, classlimits)

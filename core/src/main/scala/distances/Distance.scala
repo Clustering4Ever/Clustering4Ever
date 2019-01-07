@@ -35,14 +35,9 @@ trait ClusterizableDistance[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <:
 	val gvMetricIntern: Distance[V]
 }
 /**
- * Clusterizable Distance Builder void trait
- * It is used to optionalize obtention of a metric on Clusterizable for clustering algorithms
- */
-trait CDB extends Serializable
-/**
  *
  */
-trait ClusterizableDistanceBuilder[V <: GVector[V]] extends CDB {
+trait ClusterizableDistanceBuilder[V <: GVector[V]] extends Serializable {
 	/**
 	 *
 	 */

@@ -1,6 +1,6 @@
 # Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22)
 
-**Welcome** to Big Data Clustering Library gathering clustering algorithms and quality indexes. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
+**Welcome** to Big Data Clustering Library gathering clustering algorithms and quality indices. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
 
 ## [API documentation](http://www.clustering4ever.org/API%20Documentation/)
 
@@ -8,7 +8,7 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.7.3"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.0"` to your `libraryDependencies`
 
 Eventually add this resolver :
 
@@ -29,10 +29,10 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 ### Clustering algorithms
 
 * _Jenks Natural Breaks_
-* **_K-Centers_**
-  * **_K-Means_**
-  * **_K-Modes_**
-  * **_K-Prototypes_**
+* **_K-Centers_** *
+  * **_K-Means_** *
+  * **_K-Modes_** *
+  * **_K-Prototypes_** *
 * _Tensor Biclustering algorithms_
   * Folding-Spectral
   * Unfolding-Spectral
@@ -43,15 +43,19 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 * **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
 * **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
 * **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
-* _Random Local Area_
+* _Random Local Area_ *
 * **Clusterwize** 
 
-### Quality Indexes
+Algorithm followed with a * implement _ClusteringAlgorithmCz_ trait and can be run by benchmarking classes.
 
-* External Indexes
+### Quality Indices
+
+Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ allow you to test following indices on every realized clustering.
+
+* External Indices
   * **_Mutual Information_**
   * **_Normalized Mutual Information_**
-* Internal Indexes
+* Internal Indices
   * **_Davies Bouldin_**
   * **_Ball Hall_**
   * _Silhouette_
@@ -61,14 +65,18 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 * _Gradient Ascent_
 * **_Rough Set Features Selection_**
 
+### Clustering benchmark
 
-### Incoming soon 
+Using classes _ClusteringChainingLocal_ and _ClusteringChainingDistributed_ you have the possibility to run multiple clustering algorithms in **parallel**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**. 
+
+### Incoming soon
 
 * **Improved Spark Gradient Ascent**
 * **new scalable clustering algorithms**
 * **_Gaussian Mixture Models_**
 * _Meta heuristic_
-* **More clustering indexes**
+* **More clustering indices**
+
 
 ## Citation
 
@@ -83,7 +91,7 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 
 ### Helper functions to generate Clusterizable collections 
 
-You can generate your collections with basic Clusterizable using helpers in `org.clustering4ever.util.{ClusterizableGenerator, ScalaImplicits, SparkImplicits}`
+You can generate your collections with basic Clusterizable using helpers in `org.clustering4ever.util.{ScalaImplicits, SparkImplicits}`
 
 ### [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/5.-References)
 

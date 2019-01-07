@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-val sparkVersion = "2.1.1"
+val sparkVersion = "2.3.0"
 
 lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 	case PathList("org", "xmlpull", xs @ _*) => MergeStrategy.last
@@ -40,7 +40,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.7.4-SNAPSHOT",
+	 	version := "0.8.0",
 		scalaVersion := "2.11.12",
 		conflictManager := ConflictManager.all,
 		autoAPIMappings := true,

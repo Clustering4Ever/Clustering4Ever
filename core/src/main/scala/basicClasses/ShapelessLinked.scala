@@ -10,4 +10,4 @@ class VMapping[K, V] extends Serializable
 /**
  *
  */
-class VectorizationMapping[K, V] extends Serializable
+class VectorizationMapping[K, +V] extends Serializable

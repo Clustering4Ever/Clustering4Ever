@@ -17,9 +17,6 @@ trait DistributedClusteringAlgorithm[V <: GVector[V], +CA <: ClusteringArgs, +CM
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
 	 */
-	def run[
-		ID,
-		O,
-		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
-	](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CM
+	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CM
+
 }

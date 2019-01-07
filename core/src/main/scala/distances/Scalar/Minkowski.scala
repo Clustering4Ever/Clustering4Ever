@@ -38,7 +38,7 @@ class Minkowski[V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta wi
 /**
  *
  */
-class EasyMinkowski(p: Int) extends Minkowski[mutable.ArrayBuffer[Double]](p)
+// class EasyMinkowski(p: Int) extends Minkowski[mutable.ArrayBuffer[Double]](p)
 /**
  *
  */
