@@ -103,6 +103,6 @@ case class EasyClusterizable[ID, O, V <: GVector[V]](
 	 *
 	 */
 	final def updtV[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasyClusterizable[ID, O, GV] = {
-		this.copy(v = vectorized.get(vectorizationID).get.asInstanceOf[GV])
+		this.copy(v = vectorized.get(vectorizationID).get)
 	}
 }

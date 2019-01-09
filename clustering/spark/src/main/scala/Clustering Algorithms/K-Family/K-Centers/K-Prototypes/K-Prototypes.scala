@@ -16,6 +16,12 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.vectors.{GVector, MixtVector}
 /**
+ *
+ */
+case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgs[MixtVector[Vb, Vs], D] {
+	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.KMeans
+}
+/**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :
  * @param k : number of clusters
@@ -43,7 +49,7 @@ object KPrototypes {
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
 	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D] = {
-		val kPrototypes = new KCenters[MixtVector[Vb, Vs], D](new KCentersArgs[MixtVector[Vb, Vs], D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		val kPrototypes = new KCenters[MixtVector[Vb, Vs], D](new KPrototypesArgs[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
 		val kPrototypesModel = kPrototypes.run(data)
 		kPrototypesModel
 	}

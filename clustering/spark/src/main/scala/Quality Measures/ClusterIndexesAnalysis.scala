@@ -4,6 +4,7 @@ package org.clustering4ever.scala.clusteranalysis
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
+import scala.collection.{immutable, mutable}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel
@@ -17,6 +18,8 @@ import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices.ExternalsIndicesType
 import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.vectors.GVector
+import org.clustering4ever.shapeless.DistancesMapping
+import shapeless.HMap
 /**
  *
  */
@@ -25,35 +28,57 @@ class ClustersIndicesAnalysisDistributed[
     O,
     V <: GVector[V] : ClassTag,
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
-](val data: RDD[Cz[ID, O, V]], val sc: SparkContext, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends ClustersIndicesAnalysis[ID, O, V, Cz, RDD] {
+](val data: RDD[Cz[ID, O, V]], val sc: SparkContext, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, override val internalsIndicesByClusteringNumber: mutable.HashMap[(Int, Int, InternalsIndicesType), Double] = mutable.HashMap.empty[(Int, Int, InternalsIndicesType), Double]) extends ClustersIndicesAnalysis[ID, O, V, Cz, RDD] {
+    /**
+     *
+     */
+    type Self = ClustersIndicesAnalysisDistributed[ID, O, V, Cz]
     /**
      * Compute given internals indices and add result to internalsIndicesByClusteringNumber
      * @return A Map which link internal indices to its associate value 
      */
-    def computeInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: Int = 0): Map[InternalsIndicesType, Double] = {
+    def obtainInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: Int = 0): Map[InternalsIndicesType, Double] = {
         
         val idAndVector: RDD[(ClusterID, V)] = data.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) ).persist(persistanceLVL)
 
         val internalIndices = new InternalIndices(idAndVector, metric)
 
-        val obtainedIndices = indices.par.map{ index =>
+        indices.map{ index =>
             index match {
                 case DaviesBouldin => (DaviesBouldin, internalIndices.daviesBouldin(sc))
                 case BallHall => (BallHall, internalIndices.ballHall)
                 case _ => throw new IllegalArgumentException("Asked index is not repertoried")
             }
         }.seq.toMap
+    }
+    /**
+     * Compute given internals indices and add result to internalsIndicesByClusteringNumber
+     * @return A Map which link internal indices to its associate value 
+     */
+    def saveInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: Int = 0): ClustersIndicesAnalysisDistributed[ID, O, V, Cz] = {
         
-        internalsIndicesByClusteringNumber += ((clusteringNumber, obtainedIndices))
+        val idAndVector: RDD[(ClusterID, V)] = data.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) )
+
+        val obtainedIndices = obtainInternalsIndices(metric, indices:_*)(clusteringNumber).seq.map{ case (indexType, v) => ((metric.id, clusteringNumber, indexType), v) }
         
-        obtainedIndices
+        new ClustersIndicesAnalysisDistributed(data, sc, persistanceLVL, internalsIndicesByClusteringNumber ++= obtainedIndices)
     }
     /**
      *
      */
     def computeInternalsIndicesForEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Seq[Map[InternalsIndicesType, Double]] = {
-        (0 until data.first.clusterIDs.size).par.map( cn => computeInternalsIndices(metric, indices:_*)(cn) ).seq
+        (0 until data.first.clusterIDs.size).par.map( cn => obtainInternalsIndices(metric, indices:_*)(cn) ).seq
     }
+    /**
+     *
+     */
+    def saveInternalsIndicesForEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): ClustersIndicesAnalysisDistributed[ID, O, V, Cz] = {
+        
+        val indicess = computeInternalsIndicesForEveryClusteringNumber(metric, indices:_*).zipWithIndex.flatMap{ case (scores, idx) => scores.map{ case (indexType, v) => ((metric.id, idx, indexType), v) } }
+
+        new ClustersIndicesAnalysisDistributed(data, sc, persistanceLVL, internalsIndicesByClusteringNumber ++= indicess)
+    }
+
     /**
      * Compute given externals indices and add result to externalsIndicesByClusteringNumber
      * @return A Map which link external indices to its associate value 

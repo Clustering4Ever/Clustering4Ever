@@ -9,12 +9,12 @@ import org.apache.spark.rdd.RDD
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.models.CenterOrientedModelDistributedCz
 import org.clustering4ever.math.distances.Distance
-import org.clustering4ever.clustering.ClusteringModelCz
+import org.clustering4ever.clustering.ClusteringModelDistributed
 import org.clustering4ever.vectors.GVector
 /**
  *
  */
-class KCentersModel[V <: GVector[V], D <: Distance[V]](val centers: mutable.HashMap[Int, V], val metric: D) extends CenterOrientedModelDistributedCz[V, D] with ClusteringModelCz[V, RDD] {
+class KCentersModel[V <: GVector[V], D <: Distance[V]](val centers: mutable.HashMap[Int, V], val metric: D) extends CenterOrientedModelDistributedCz[V, D] with ClusteringModelDistributed[V] {
 	/**
 	 *
 	 */

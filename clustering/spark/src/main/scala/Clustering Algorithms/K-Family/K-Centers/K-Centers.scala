@@ -20,20 +20,41 @@ import org.clustering4ever.clustering.ClusteringArgs
 /**
  *
  */
-case class KCentersArgs[V <: GVector[V], D <: Distance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]) extends ClusteringArgs {
+trait KCentersArgs[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
+	/**
+	 *
+	 */
+	val k: Int
+	/**
+	 *
+	 */
+	val metric: D
+	/**
+	 *
+	 */
+	val epsilon: Double
+	/**
+	 *
+	 */
+	val maxIterations: Int
+	/**
+	 *
+	 */
+	val persistanceLVL: StorageLevel
+	/**
+	 *
+	 */
+	val initializedCenters: mutable.HashMap[Int, V]
+	/**
+	 *
+	 */
 	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KCenters
+
 }
 /**
  *
  */
 class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V]](val args: KCentersArgs[V, D]) extends KCommons[V] with DistributedClusteringAlgorithm[V, KCentersArgs[V, D], KCentersModel[V, D]] {
-
-	@deprecated("surely slower", "surely slower")
-	private val emptyValue = mutable.ArrayBuffer.empty[V]
-	@deprecated("surely slower", "surely slower")
-	private def mergeValue(combiner: mutable.ArrayBuffer[V], comb: V): mutable.ArrayBuffer[V] = combiner += comb
-	@deprecated("surely slower", "surely slower")
-	private def mergeCombiners(combiner1: mutable.ArrayBuffer[V], combiner2: mutable.ArrayBuffer[V]): mutable.ArrayBuffer[V] = combiner1 ++= combiner2
 	/**
 	 * To upgrade
 	 * Kmeans++ initialization
@@ -92,22 +113,9 @@ class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V]](val args: KCentersA
 			kCentersBeforeUpdate.foreach{ case (clusterID, mode) => centers(clusterID) = mode }	
 			allModHaveConverged
 		}
-		@deprecated("surely slower", "surely slower")
-		def obtainCentersInfo = {
-			data.map( cz => (obtainNearestCenterID(cz.v, centers, args.metric), cz.v) )
-				.aggregateByKey(emptyValue)(mergeValue, mergeCombiners)
-				.map{ case (clusterID, aggregate) => 
-					(
-						clusterID,
-						aggregate.size.toLong,
-						ClusterBasicOperations.obtainCenter(aggregate.par, args.metric)
-					)
-				}.collect
-			}
 		var cpt = 0
 		var allModHaveConverged = false
 		while(cpt < args.maxIterations && !allModHaveConverged) {
-			// val centersInfo = obtainCentersInfo
 			val centersInfo = data.map( cz => (obtainNearestCenterID(cz.v, centers, args.metric), (1L, cz.v)) )
 				.reduceByKeyLocally{ case ((card1, v1), (card2, v2)) => ((card1 + card2), ClusterBasicOperations.obtainCenter(List(v1, v2), args.metric)) }
 				.map{ case (clusterID, (cardinality, center)) => (clusterID, cardinality, center) }

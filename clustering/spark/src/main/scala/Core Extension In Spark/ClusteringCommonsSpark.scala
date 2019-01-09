@@ -20,3 +20,14 @@ trait DistributedClusteringAlgorithm[V <: GVector[V], +CA <: ClusteringArgs, +CM
 	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CM
 
 }
+/**
+ *
+ */
+trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModelCz[V, RDD] {
+	/**
+	 *
+	 */
+	def obtainClusteringIDs[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[ClusterID] = {
+		obtainClustering(data).map(_.clusterIDs.last).asInstanceOf[RDD[ClusterID]]
+	}
+}

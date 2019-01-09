@@ -16,6 +16,12 @@ import org.clustering4ever.vectors.{GVector, BinaryVector}
 /**
  *
  */
+case class KModesArgs[V <: Seq[Int], D <: BinaryDistance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersArgs[BinaryVector[V], D] {
+	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.KMeans
+}
+/**
+ *
+ */
 object KModes {
 	/**
 	 * Run the K-Modes with any binary distance
@@ -35,7 +41,7 @@ object KModes {
 		persistanceLVL: StorageLevel,
 		initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]
 	)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KCentersModel[BinaryVector[V], D] = {
-		val kmodes = new KCenters[BinaryVector[V], D](new KCentersArgs[BinaryVector[V], D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		val kmodes = new KCenters[BinaryVector[V], D](new KModesArgs[V, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
 		val kModesModel = kmodes.run(data)
 		kModesModel
 	}

@@ -13,7 +13,7 @@ import org.clustering4ever.vectors.GVector
 /**
  *
  */
-object KPPInitializer {
+object KPPInitializer extends Serializable {
 	/**
 	 * K++ initialization
 	 */

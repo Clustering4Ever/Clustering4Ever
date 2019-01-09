@@ -17,6 +17,8 @@ trait Distance[O] extends Serializable {
 	// val metricArgs: MA
 
 	def d(o1: O, o2: O): Double
+
+	val id: Int = scala.util.Random.nextInt
 }
 /**
  * The EmptyDistance for algorithm which doesn't require any distances

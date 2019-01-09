@@ -18,27 +18,43 @@ import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 /**
  *
  */
-abstract class ClustersAnalysisDistributed[
+trait ClustersAnalysisDistributed[
     ID,
     O,
-    V <: GVector[V] : ClassTag,
+    V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     D <: Distance[V]
-](val clusterized: RDD[Cz[ID, O, V]], val metric: D, clusteringNumber: Int = 0)(implicit ct: ClassTag[Cz[ID, O, V]]) extends ClustersAnalysis[ID, O, V, Cz, D, RDD] {
+] extends ClustersAnalysis[ID, O, V, Cz, D, RDD] {
+    
+    val metric: D
 
     private val neutralElement = mutable.ArrayBuffer.empty[Cz[ID, O, V]]
     def addToBuffer(buff: mutable.ArrayBuffer[Cz[ID, O, V]], elem: Cz[ID, O, V]) = buff += elem
     def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[ID, O, V]], buff2: mutable.ArrayBuffer[Cz[ID, O, V]]) = buff1 ++= buff2
 
-    lazy val datasetSize = clusterized.count
+    lazy val datasetSize = data.count
 
-    def groupedByClusterID(clusteringNumber: Int): RDD[(Int, mutable.ArrayBuffer[Cz[ID,O,V]])] = clusterized.map( cz => (cz.clusterIDs(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
+    def groupedByClusterID(clusteringNumber: Int)(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[(Int, mutable.ArrayBuffer[Cz[ID,O,V]])] = data.map( cz => (cz.clusterIDs(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
 
     // def cardinalities(clusteringNumber: Int): Map[Int, Int] = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collectAsMap
 
     // def clustersProportions(clusteringNumber: Int): Map[Int, Double] = cardinalities(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
 
     // def centroids: Map[Int, V] = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.workingVector), metric)) }.collectAsMap
+
+    // def cardinalities(clusteringNumber: Int): Map[Int, Long]
+
+    // val cardinalitiesByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, Long]]
+
+    // def clustersProportions(clusteringNumber: Int): Map[Int, Double]
+
+    // val clustersProportionsByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, Double]]
+
+    // val metric: D    
+
+    // def centroids(clusteringNumber: Int): Map[Int, V]
+
+    // val centroidsByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, V]]
 
 }
 /**
