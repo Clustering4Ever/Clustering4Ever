@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.indices
+package org.clustering4ever.indices
 /**
  * @author Beck Gaël
  *
@@ -16,7 +16,7 @@ import org.clustering4ever.util.ClusteringIndicesCommons
 /**
  *
  */
-class ExternalIndices(@(transient @param) sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends Serializable  {
+class ExternalIndicesDistributed(@(transient @param) sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends Serializable  {
 
   groundTruthAndPred.persist(persistanceLVL)
   /**
@@ -65,7 +65,7 @@ class ExternalIndices(@(transient @param) sc: SparkContext, groundTruthAndPred: 
   }
 }
 
-object ExternalIndices {
+object ExternalIndicesDistributed {
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 */
@@ -79,7 +79,7 @@ object ExternalIndices {
    * @return (Mutual Information, entropy x, entropy y)
    */
   def mutualInformation(sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndices(sc, groundTruthAndPred, persistanceLVL)).mutualInformation
+    (new ExternalIndicesDistributed(sc, groundTruthAndPred, persistanceLVL)).mutualInformation
   /**
    * Compute the normalize mutual entropy
    * It is advise to cache groundTruthAndPred before passing it to this method.
@@ -87,5 +87,5 @@ object ExternalIndices {
    * @return Normalize Mutual Information
    */
   def nmi(sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndices(sc, groundTruthAndPred, persistanceLVL)).nmi(normalization)
+    (new ExternalIndicesDistributed(sc, groundTruthAndPred, persistanceLVL)).nmi(normalization)
 }

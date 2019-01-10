@@ -28,9 +28,10 @@ object ClusterBasicOperations {
 	      case hammingAndEuclidean if(hammingAndEuclidean.isInstanceOf[HammingAndEuclidean[_, _]]) => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixtVector[Seq[Int], Seq[Double]]]]).asInstanceOf[O]
 	      // Look for point which minimize its distance to all others points
 	      case _ => cluster.minBy{ v1 =>
-				var sum = 0D
-				cluster.foreach( altVector => sum += metric.d(v1, altVector) )
-				sum
+				// var sum = 0D
+				// cluster.seq.foreach( altVector => sum += metric.d(v1, altVector) )
+				// sum
+				cluster.par.map(metric.d(v1, _)).sum
 			}
 	    }
 	}

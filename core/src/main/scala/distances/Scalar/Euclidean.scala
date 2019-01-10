@@ -9,6 +9,7 @@ import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance, RawContinuousDistance, Distance, ClusterizableDistanceBuilder}
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{GVector, ScalarVector}
+import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
@@ -44,7 +45,7 @@ trait EuclideanMeta[V <: Seq[Double]] extends Serializable {
 /**
  * The Euclidean distance with or without squareRoot
  */
-class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta[V] with RawContinuousDistance[V] {
+class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, val id: MetricID = 0) extends EuclideanMeta[V] with RawContinuousDistance[V] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
@@ -58,7 +59,7 @@ class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) exten
 /**
  * The Euclidean distance with or without squareRoot
  */
-class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends EuclideanMeta[V] with ContinuousDistance[V] with ClusterizableDistanceBuilder[ScalarVector[V]] {
+class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, val id: MetricID = 0) extends EuclideanMeta[V] with ContinuousDistance[V] with ClusterizableDistanceBuilder[ScalarVector[V]] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2
@@ -86,7 +87,7 @@ class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true) extends 
 /**
  *
  */
-class EuclideanClusterizable[ID, O, V <: Seq[Double], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](final val squareRoot: Boolean = true) extends EuclideanMeta[V] with RealClusterizableDistance[ID, O, V, Cz] {
+class EuclideanClusterizable[ID, O, V <: Seq[Double], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](final val squareRoot: Boolean = true, val id: MetricID = 0) extends EuclideanMeta[V] with RealClusterizableDistance[ID, O, V, Cz] {
 	/**
 	 *
 	 */
@@ -96,12 +97,14 @@ class EuclideanClusterizable[ID, O, V <: Seq[Double], Cz[A, B, C <: GVector[C]] 
 	 */
 	lazy val gvMetricIntern = new Euclidean[V](squareRoot)
 	/**
-	 *
-	 */
+	  * The Euclidean distance with or without squareRoot
+	  * @return The Euclidean distance between dot1 and dot2
+	  */
 	def d(v1: V, v2: V): Double = rawMetricIntern.d(v1, v2)
 	/**
-	 *
-	 */
+	  * The Euclidean distance with or without squareRoot
+	  * @return The Euclidean distance between dot1 and dot2
+	  */
 	def d(v1: ScalarVector[V], v2: ScalarVector[V]): Double = gvMetricIntern.d(v1, v2)
 	/**
 	  * The Euclidean distance with or without squareRoot

@@ -8,6 +8,7 @@ import scala.math.pow
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{RealClusterizableDistance, ContinuousDistance}
 import org.clustering4ever.vectors.ScalarVector
+import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
@@ -28,7 +29,7 @@ trait MinkowshiMeta extends Serializable {
 /**
  *
  */
-class Minkowski[V <: Seq[Double]](final val p: Int = 2) extends MinkowshiMeta with ContinuousDistance[V] {
+class Minkowski[V <: Seq[Double]](final val p: Int = 2, val id: MetricID = 3) extends MinkowshiMeta with ContinuousDistance[V] {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2

@@ -12,6 +12,7 @@ import org.clustering4ever.clustering.ClusteringArgs
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.supervizables.Supervizable
 import org.clustering4ever.preprocessing.Preprocessable
+import org.clustering4ever.types.VectorizationIDTypes._
 /**
  * Basic trait for Clusterizable objects
  */
@@ -90,19 +91,19 @@ case class EasyClusterizable[ID, O, V <: GVector[V]](
 	/**
 	 *
 	 */
-	final def addVectorized[GV <: GVector[GV]](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasyClusterizable[ID, O, V] = {
+	final def addVectorized[GV <: GVector[GV]](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): EasyClusterizable[ID, O, V] = {
 		this.copy(vectorized = vectorized + ((vectorizationID, o.toVector(towardNewVector))))
 	}
 	/**
 	 *
 	 */
-	final def addAltVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasyClusterizable[ID, O, V] = {
+	final def addAltVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): EasyClusterizable[ID, O, V] = {
 		this.copy(vectorized = vectorized + ((vectorizationID, newAltVector)))
 	}
 	/**
 	 *
 	 */
-	final def updtV[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasyClusterizable[ID, O, GV] = {
+	final def updtV[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): EasyClusterizable[ID, O, GV] = {
 		this.copy(v = vectorized.get(vectorizationID).get)
 	}
 }

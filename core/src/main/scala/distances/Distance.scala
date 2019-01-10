@@ -5,6 +5,7 @@ package org.clustering4ever.math.distances
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
@@ -15,16 +16,27 @@ trait MetricArgs extends Serializable
 trait Distance[O] extends Serializable {
 // trait Distance[O, MA <: MetricArgs] extends Serializable {
 	// val metricArgs: MA
-
+	/**
+	 *
+	 */
 	def d(o1: O, o2: O): Double
-
-	val id: Int = scala.util.Random.nextInt
+	/**
+	 *
+	 */
+	val id: MetricID
 }
 /**
  * The EmptyDistance for algorithm which doesn't require any distances
  */
 object EmptyDistance extends Distance[Nothing] {
+	/**
+	 *
+	 */
 	def d(o1: Nothing, o2: Nothing): Double = 0D
+	/**
+	 *
+	 */
+	val id = 0
 }
 /**
  * Clusterizable Distance Builder void trait

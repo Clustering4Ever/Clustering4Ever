@@ -1,4 +1,4 @@
-package org.clustering4ever.scala.indices
+package org.clustering4ever.indices
 /**
  * @author Beck Gaël
  */
@@ -10,7 +10,7 @@ import scala.collection.mutable
 /**
  *
  */
-class ExternalIndices {
+class ExternalIndicesLocal {
 
 	def mutualInformationInternal[S <: GenSeq[Int]](x: S, y: S) = {
 		require( x.size == y.size )
@@ -39,19 +39,19 @@ class ExternalIndices {
 /**
  *
  */
-object ExternalIndices {
+object ExternalIndicesLocal {
 	/**
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 */
-	def mutualInformation[S <: GenSeq[Int]](x: S, y: S): Double = (new ExternalIndices).mutualInformationInternal(x, y)._1
+	def mutualInformation[S <: GenSeq[Int]](x: S, y: S): Double = (new ExternalIndicesLocal).mutualInformationInternal(x, y)._1
 	/**
 	 * Compute the normalize mutual entropy
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 */
 	def nmi[S <: GenSeq[Int]](x: S, y: S, normalization: Normalization = SQRT) = {
-		val (mi, hu, hv) = (new ExternalIndices).mutualInformationInternal(x, y)
+		val (mi, hu, hv) = (new ExternalIndicesLocal).mutualInformationInternal(x, y)
 		val nmi = normalization match {
 			case SQRT => mi / sqrt(hu * hv)
 			case MAX => mi / max(hu, hv)

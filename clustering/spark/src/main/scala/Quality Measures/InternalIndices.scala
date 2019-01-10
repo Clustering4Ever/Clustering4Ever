@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.indices
+package org.clustering4ever.indices
 /**
  * @author Beck Gaël
  */
@@ -10,12 +10,11 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.clustering4ever.clustering.ClusteringCommons
 import org.clustering4ever.util.ClusterBasicOperations
-import org.clustering4ever.scala.indices.InternalIndicesCommons
 import org.clustering4ever.math.distances.Distance
 /**
  * This object is used to compute internals clustering indices as Davies Bouldin or Silhouette
  */
-class InternalIndices[V: ClassTag, D <: Distance[V]](clusterized: RDD[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndicesCommons[V, D] {
+class InternalIndicesDistributed[V: ClassTag, D <: Distance[V]](clusterized: RDD[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndicesCommons[V, D] {
   /**
    *
    */
@@ -76,20 +75,20 @@ class InternalIndices[V: ClassTag, D <: Distance[V]](clusterized: RDD[(Int, V)],
 /**
  *
  */
-object InternalIndices extends ClusteringCommons {
+object InternalIndicesDistributed extends ClusteringCommons {
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    */
   def daviesBouldin[V: ClassTag, D <: Distance[V]](sc: SparkContext, clusterized: RDD[(ClusterID, V)], metric: D): Double = { 
-    val internalIndices = new InternalIndices(clusterized, metric)
+    val internalIndices = new InternalIndicesDistributed(clusterized, metric)
     internalIndices.daviesBouldin(sc)
   }
   /**
    *
    */
   def ballHall[V: ClassTag, D <: Distance[V]](clusterized: RDD[(ClusterID, V)], metric: D): Double = {
-    (new InternalIndices(clusterized, metric)).ballHall
+    (new InternalIndicesDistributed(clusterized, metric)).ballHall
   }
 
 }

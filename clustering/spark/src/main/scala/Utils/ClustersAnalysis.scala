@@ -3,7 +3,7 @@ package org.clustering4ever.spark.clustersanalysis
  * @author Beck Gaël
  */
 import scala.reflect.ClassTag
-import scala.collection.{Map, mutable}
+import scala.collection.{Map, immutable, mutable}
 import scala.language.higherKinds
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -15,6 +15,8 @@ import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.clustering.ClustersAnalysis
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
+import org.clustering4ever.types.MetricIDType._
+import org.clustering4ever.types.ClusteringNumberType._
 /**
  *
  */
@@ -22,25 +24,53 @@ trait ClustersAnalysisDistributed[
     ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-    D <: Distance[V]
-] extends ClustersAnalysis[ID, O, V, Cz, D, RDD] {
-    
-    val metric: D
+    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
+] extends ClustersAnalysis[ID, O, V, Cz, RDD] {
 
     private val neutralElement = mutable.ArrayBuffer.empty[Cz[ID, O, V]]
     def addToBuffer(buff: mutable.ArrayBuffer[Cz[ID, O, V]], elem: Cz[ID, O, V]) = buff += elem
     def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[ID, O, V]], buff2: mutable.ArrayBuffer[Cz[ID, O, V]]) = buff1 ++= buff2
-
+    /**
+     *
+     */
     lazy val datasetSize = data.count
+    /**
+     *
+     */
+    def groupedByClusterID(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[(ClusterID, mutable.ArrayBuffer[Cz[ID, O, V]])] = {
+        data.map( cz => (cz.clusterIDs(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
+    }
+    /**
+     *
+     */
+    def cardinalities(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]]): immutable.Map[ClusterID, Int] = {
+        groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collect.toMap
+    }
+    /**
+     *
+     */
+    def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, Double] = {
+        cardinalitiesByClusteringNumber(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+    }
+    /**
+     *
+     */
+    def centroids[D <: DistanceRestriction](metric: D, clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V]): immutable.Map[ClusterID, V] = {
+        groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.collect.toMap
+    }
+    // def cardinalities(clusteringNumber: Int): Map[Int, Long]
 
-    def groupedByClusterID(clusteringNumber: Int)(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[(Int, mutable.ArrayBuffer[Cz[ID,O,V]])] = data.map( cz => (cz.clusterIDs(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
+    // val cardinalitiesByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, Long]]
 
-    // def cardinalities(clusteringNumber: Int): Map[Int, Int] = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collectAsMap
+    // def clustersProportions(clusteringNumber: Int): Map[Int, Double]
 
-    // def clustersProportions(clusteringNumber: Int): Map[Int, Double] = cardinalities(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+    // val clustersProportionsByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, Double]]
 
-    // def centroids: Map[Int, V] = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.workingVector), metric)) }.collectAsMap
+    // val metric: D    
+
+    // def centroids(clusteringNumber: Int): Map[Int, V]
+
+    // val centroidsByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, V]]
 
     // def cardinalities(clusteringNumber: Int): Map[Int, Long]
 

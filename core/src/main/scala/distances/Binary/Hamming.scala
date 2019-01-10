@@ -7,6 +7,7 @@ import org.clustering4ever.math.distances.{Distance, BinaryDistance, RawBinaryDi
 import scala.collection.mutable
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{BinaryVector, GVector}
+import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
@@ -28,7 +29,7 @@ trait HammingMeta extends Serializable {
 /**
  *
  */
-class RawHamming[V <: Seq[Int]] extends HammingMeta with RawBinaryDistance[V] {
+class RawHamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with RawBinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
@@ -38,17 +39,13 @@ class RawHamming[V <: Seq[Int]] extends HammingMeta with RawBinaryDistance[V] {
 /**
  *
  */
-class Hamming[V <: Seq[Int]] extends HammingMeta with BinaryDistance[V] {
+class Hamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with BinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
 	  */
 	def d(dot1: BinaryVector[V], dot2: BinaryVector[V]): Double = hamming(dot1.vector, dot2.vector)
 }
-/**
- * The easy to use Hamminh distance for vectors =:= mutable.ArrayBuffer[Int]
- */
-class EasyHamming extends Hamming[mutable.ArrayBuffer[Int]]
 /**
  *
  */

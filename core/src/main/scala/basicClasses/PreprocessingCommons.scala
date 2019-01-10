@@ -4,10 +4,11 @@ package org.clustering4ever.preprocessing
  */
 import scala.language.higherKinds
 import org.clustering4ever.extensibleAlgorithmNature._
+import org.clustering4ever.clustering.CollectionNature
 /**
  * The basic trait shared by all clustering models
  */
-trait Preprocessing[Collection[_]] extends Serializable {
+trait Preprocessing[Collection[_]] extends CollectionNature[Collection] {
 	/**
 	 * General methods to obtain a clustering from the model in order to measure performances scores
 	 */

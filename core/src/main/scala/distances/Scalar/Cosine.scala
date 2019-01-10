@@ -7,10 +7,11 @@ import scala.collection.mutable
 import org.clustering4ever.math.distances.ContinuousDistance
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.vectors.ScalarVector
+import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-class Cosine[V <: Seq[Double]] extends ContinuousDistance[V] {
+class Cosine[V <: Seq[Double]](val id: MetricID = 2) extends ContinuousDistance[V] {
 	/**
 	  * The cosine distance
 	  * @return The cosine distance between dot1 and dot2
@@ -21,7 +22,3 @@ class Cosine[V <: Seq[Double]] extends ContinuousDistance[V] {
 		SumVectors.dotProduct(dot1.vector, dot2.vector) / (anorm * bnorm)
 	}
 }
-/**
- *
- */
-class EasyCosine extends Cosine[mutable.ArrayBuffer[Double]]

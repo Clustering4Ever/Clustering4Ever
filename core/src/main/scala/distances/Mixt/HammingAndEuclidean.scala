@@ -7,6 +7,7 @@ import scala.math.{pow, sqrt}
 import org.clustering4ever.math.distances.MixtDistance
 import org.clustering4ever.vectors.MixtVector
 import org.clustering4ever.clusterizables.Clusterizable
+import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
@@ -50,7 +51,7 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Seriali
 /**
  *
  */
-class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double = 0D) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
+class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double = 0D, val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
 	/**
 	 *	
 	 */

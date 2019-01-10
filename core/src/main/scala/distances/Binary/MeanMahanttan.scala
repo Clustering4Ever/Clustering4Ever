@@ -5,10 +5,11 @@ package org.clustering4ever.math.distances.binary
 import scala.collection.mutable
 import org.clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
 import org.clustering4ever.vectors.BinaryVector
+import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-class MeanMahanttan[V <: Seq[Int]] extends BinaryDistance[V] {
+class MeanMahanttan[V <: Seq[Int]](val id: MetricID = 5) extends BinaryDistance[V] {
 
 	def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = {
 		val (a,b,c,d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)

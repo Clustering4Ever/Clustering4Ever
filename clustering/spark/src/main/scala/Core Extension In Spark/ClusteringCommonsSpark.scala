@@ -4,11 +4,18 @@ package org.clustering4ever.clustering
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import org.apache.spark.SparkContext
+import scala.collection.immutable
 import org.apache.spark.rdd.RDD
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.vectors.GVector
+import org.clustering4ever.types.MetricIDType._
+import org.clustering4ever.types.ClusteringNumberType._
+import org.clustering4ever.types.ClusteringInformationTypes._
+import org.clustering4ever.types.VectorizationIDTypes._
+import org.clustering4ever.enums.InternalsIndices._
+import org.clustering4ever.enums.ExternalsIndices._
+import org.clustering4ever.vectorizations.EmployedVectorization
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
@@ -31,3 +38,11 @@ trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModelCz[V, R
 		obtainClustering(data).map(_.clusterIDs.last).asInstanceOf[RDD[ClusterID]]
 	}
 }
+/**
+ *
+ */
+class ClusteringInformationsDistributed(
+	val clusteringInfo: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[_, RDD])] = immutable.Vector.empty[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[_, RDD])],
+	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double] = immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
+	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double] = immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
+) extends CollectionNature[RDD]
