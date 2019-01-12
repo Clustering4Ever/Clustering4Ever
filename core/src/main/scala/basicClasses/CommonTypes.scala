@@ -26,10 +26,6 @@ object VectorizationIDTypes {
 	/**
 	 *
 	 */
-	type VectorizationNature = Int
-	/**
-	 *
-	 */
 	type VectorizationID = Int
 }
 /**

@@ -14,9 +14,9 @@ import org.clustering4ever.vectors.GVector
 /**
  *
  */
-class KCentersModel[V <: GVector[V], D <: Distance[V], GS[X] <: GenSeq[X]](val centers: mutable.HashMap[Int, V], val metric: D, val kCentersArgs: ClusteringArgs) extends CenterOrientedModelLocalClusterizable[V, D] with KnnOrientedModelLocalClusterizable[V, D] with ClusteringModelLocal[V, GS] {
+case class KCentersModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X]](val centers: mutable.HashMap[Int, V], val metric: D, val KCentersArgsTrait: ClusteringArgs)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends CenterOrientedModelLocalClusterizable[V, D] with KnnOrientedModelLocalClusterizable[V, D] with ClusteringModelLocal[ID, O, V, Cz, GS] {
 	/**
 	 *
 	 */
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = centerPredictCz(data)
+	def obtainClustering(data: GS[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = centerPredictCzCollection(data)
 }

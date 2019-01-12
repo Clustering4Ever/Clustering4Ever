@@ -30,14 +30,14 @@ trait KnnOrientedModelClusterizable[V <: GVector[V], D <: Distance[V]] extends K
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	def knnPredictCzWithNN[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](cz: Cz[ID, O, V], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int): (ClusterID, Seq[Cz[ID, O, V]]) = {
+	def knnPredictWithNN[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](cz: Cz[ID, O, V], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int): (ClusterID, Seq[Cz[ID, O, V]]) = {
 		trainDS.sortBy{ czTrain => metric.d(czTrain.v, cz.v) }.take(k).groupBy(_.clusterIDs(clusteringNumber)).maxBy(_._2.size)
 	}
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	def knnPredictCz[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](cz: Cz[ID, O, V], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int): ClusterID = knnPredictCzWithNN(cz, k, trainDS, clusteringNumber)._1
+	def knnPredict[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](cz: Cz[ID, O, V], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int): ClusterID = knnPredictWithNN(cz, k, trainDS, clusteringNumber)._1
 
 }
 /**
@@ -62,7 +62,7 @@ trait KnnOrientedModelLocalClusterizable[
 	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	def knnPredictCz[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int): GS[Cz[ID, O, V]] = {
-		data.map( cz => cz.addClusterIDs(knnPredictCz(cz, k, trainDS, clusteringNumber)) ).asInstanceOf[GS[Cz[ID, O, V]]]
+	def knnPredict[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]], k: Int, trainDS: Seq[Cz[ID, O, V]], clusteringNumber: Int): GS[Cz[ID, O, V]] = {
+		data.map( cz => cz.addClusterIDs(knnPredict(cz, k, trainDS, clusteringNumber)) ).asInstanceOf[GS[Cz[ID, O, V]]]
 	}
 }

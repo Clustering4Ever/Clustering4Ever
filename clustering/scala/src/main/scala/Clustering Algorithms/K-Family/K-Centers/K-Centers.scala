@@ -41,7 +41,7 @@ trait KCommons[V <: GVector[V]] extends ClusteringCommons {
 /**
  *
  */
-trait KCentersArgs[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
+trait KCentersArgsTrait[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
 	/**
 	 *
 	 */
@@ -68,6 +68,11 @@ trait KCentersArgs[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
 	val initializedCenters: mutable.HashMap[Int, V]
 }
 /**
+ *
+ */
+case class KCentersArgs[V <: GVector[V], D <: Distance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]) extends KCentersArgsTrait[V, D]
+
+/**
  * The famous K-Centers using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of Clusterizable
  * @param k : number of clusters
@@ -75,15 +80,11 @@ trait KCentersArgs[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V], GS[X] <: GenSeq[X]](val args: KCentersArgs[V, D]) extends KCommons[V] with LocalClusteringAlgorithm[V, GS, KCentersArgs[V, D], KCentersModel[V, D, GS]] {
+class KCenters[ID, O, V <: GVector[V] : ClassTag, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], Args <: KCentersArgsTrait[V, D]](val args: Args)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCommons[V] with LocalClusteringAlgorithm[ID, O, V, Cz, GS, Args, KCentersModel[ID, O, V, Cz, D, GS]] {
 	/**
 	 * Run the K-Centers
 	 */
-	def run[
-		ID,
-		O,
-		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
-	](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D, GS] = {
+	def run(data: GS[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = {
 		/**
 		 *
 		 */
@@ -114,7 +115,7 @@ class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V], GS[X] <: GenSeq[X]]
 			}
 		}
 
-		new KCentersModel[V, D, GS](go(0, false), args.metric, args)
+		new KCentersModel[ID, O, V, Cz, D, GS](go(0, false), args.metric, args)
 	}
 }
 /**
@@ -138,22 +139,7 @@ object KCenters {
 		epsilon: Double,
 		maxIterations: Int,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
-	)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D, GS] = {
-
-		val k2 = k
-		val metric2 = metric
-		val epsilon2 = epsilon
-		val maxIterations2 = maxIterations 
-		val initializedCenters2 = initializedCenters
-
-		object TmpArgs extends KCentersArgs[V, D] {
-			val k = k2
-			val metric = metric2
-			val epsilon = epsilon2
-			val maxIterations = maxIterations2
-			val initializedCenters = initializedCenters2
-		}
-
-		(new KCenters[V, D, GS](TmpArgs)).run(data)
+	)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = {
+		(new KCenters[ID, O, V, Cz, D, GS, KCentersArgs[V, D]](KCentersArgs(k, metric, epsilon, maxIterations, initializedCenters))).run(data)
 	}
 }

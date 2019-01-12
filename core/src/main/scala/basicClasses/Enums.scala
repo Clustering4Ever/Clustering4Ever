@@ -41,3 +41,17 @@ object KernelNature extends Enumeration {
         Gaussian,
         Sigmoid = Value
 }
+/**
+ *
+ */
+object ClusteringAlgorithmNatureEnum extends Enumeration {
+
+    type ClusteringAlgorithmNatureEnum = Value
+
+    val KCENTERS,
+        KMEANS,
+        KMODES,
+        KPROTOTYPES,
+        NOARGSALGO,
+        RLA = Value
+}

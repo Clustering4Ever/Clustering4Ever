@@ -9,10 +9,12 @@ import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
+import org.clustering4ever.vectorizables.NotVectorizable
 /**
  *
  */
-case class KMeansArgs[V <: Seq[Double], D <: ContinuousDistance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgs[ScalarVector[V], D] {
+case class KMeansArgs[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgsTrait[ScalarVector[V], D[V]] {
+
 	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.KMeans
 }
 /**
@@ -25,46 +27,69 @@ case class KMeansArgs[V <: Seq[Double], D <: ContinuousDistance[V]](val k: Int, 
  */
 object KMeans {
 	/**
-	 * Run the K-Means with any continuous distance
+	 *
 	 */
-	def apply[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: ContinuousDistance[V], GS[Y] <: GenSeq[Y]](
-		data: GS[Cz[ID, O, ScalarVector[V]]],
-		k: Int,
-		metric: D,
-		maxIterations: Int,
-		epsilon: Double,
-		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
-		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D, GS] = run(data, k, metric, maxIterations, epsilon, initializedCenters)
+	def generateAnyArgumentsCombination[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](
+		kValues: Seq[Int] = Seq(4, 6, 8),
+		metricValues: Seq[D[V]],
+		epsilonValues: Seq[Double] = Seq(0.0001),
+		maxIterationsValues: Seq[Int] = Seq(100),
+		initializedCentersValues: Seq[mutable.HashMap[Int, ScalarVector[V]]] = Seq(mutable.HashMap.empty[Int, ScalarVector[V]])): Seq[KMeansArgs[V, D]] = {
+		for(
+			k <- kValues;
+			metric <- metricValues;
+			epsilon <- epsilonValues;
+			maxIterations <- maxIterationsValues;
+			initializedCenters <- initializedCentersValues
+		) yield	KMeansArgs(k, metric, epsilon, maxIterations, initializedCenters)
+	}
 	/**
-	 * Run the K-Means with any continuous distance
+	 * Generate a KMeans version with specific arguments
 	 */
-	def run[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: ContinuousDistance[V], GS[Y] <: GenSeq[Y]](
+	def generateAlgorithm[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
 		data: GS[Cz[ID, O, ScalarVector[V]]],
 		k: Int,
-		metric: D,
-		maxIterations: Int,
+		metric: D[V],
 		epsilon: Double,
+		maxIterations: Int,
 		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
-		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D, GS] = {
-		
-		val kmeansAlgorithm = new KCenters[ScalarVector[V], D, GS](KMeansArgs(k, metric, epsilon, maxIterations, initializedCenters))
-		kmeansAlgorithm.run(data)
-	
+	)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCenters[ID, O, ScalarVector[V], Cz, D[V], GS, KMeansArgs[V, D]] = {
+		new KCenters[ID, O, ScalarVector[V], Cz, D[V], GS, KMeansArgs[V, D]](KMeansArgs(k, metric, epsilon, maxIterations, initializedCenters))
+	}
+	/**
+	 * Generate a KMeans version with specific arguments
+	 */
+	def generateAlgorithm[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
+		data: GS[Cz[ID, O, ScalarVector[V]]],
+		args: KMeansArgs[V, D]
+	)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCenters[ID, O, ScalarVector[V], Cz, D[V], GS, KMeansArgs[V, D]] = {
+		new KCenters[ID, O, ScalarVector[V], Cz, D[V], GS, KMeansArgs[V, D]](args)
 	}
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
-	def run[V <: Seq[Double], D <: ContinuousDistance[V], GS[Y] <: GenSeq[Y]](
+	def run[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
+		data: GS[Cz[ID, O, ScalarVector[V]]],
+		k: Int,
+		metric: D[V],
+		maxIterations: Int,
+		epsilon: Double,
+		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
+		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ID, O, ScalarVector[V], Cz, D[V], GS] = {
+		val kmeansAlgorithm = generateAlgorithm(data, k, metric, epsilon, maxIterations, initializedCenters)
+		kmeansAlgorithm.run(data)
+	}
+	/**
+	 * Run the K-Means with any continuous distance
+	 */
+	def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
 		data: GS[V],
 		k: Int,
-		metric: D,
+		metric: D[V],
 		maxIterations: Int,
 		epsilon: Double
-	): KCentersModel[ScalarVector[V], D, GS] = {
+	): KCentersModel[Int, NotVectorizable.type, ScalarVector[V], EasyClusterizable, D[V], GS] = {
 		val kMeansModel = run(scalarToClusterizable(data), k, metric, maxIterations, epsilon, mutable.HashMap.empty[Int, ScalarVector[V]])
 		kMeansModel
 	}
 }
-
-
-		

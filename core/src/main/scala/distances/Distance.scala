@@ -51,17 +51,12 @@ trait ClusterizableDistance[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <:
 /**
  *
  */
-trait ClusterizableDistanceBuilder[V <: GVector[V]] extends Serializable {
+trait ContinuousDistance[V <: Seq[Double]] extends Distance[ScalarVector[V]] {
 	/**
 	 *
 	 */
-	def obtainClusterizableMetric[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](clusterizable: Cz[ID, O, V]): ClusterizableDistance[ID, O, V, Cz]
-
+	def d2(v1: V, v2: V): Double
 }
-/**
- *
- */
-trait ContinuousDistance[V <: Seq[Double]] extends Distance[ScalarVector[V]]
 /**
  *
  */

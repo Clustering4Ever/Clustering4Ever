@@ -72,20 +72,6 @@ trait ClustersAnalysisDistributed[
 
     // val centroidsByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, V]]
 
-    // def cardinalities(clusteringNumber: Int): Map[Int, Long]
-
-    // val cardinalitiesByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, Long]]
-
-    // def clustersProportions(clusteringNumber: Int): Map[Int, Double]
-
-    // val clustersProportionsByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, Double]]
-
-    // val metric: D    
-
-    // def centroids(clusteringNumber: Int): Map[Int, V]
-
-    // val centroidsByClusteringNumber = mutable.HashMap.empty[Int, Map[Int, V]]
-
 }
 /**
  *

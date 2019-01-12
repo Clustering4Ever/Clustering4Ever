@@ -14,10 +14,10 @@ import org.clustering4ever.vectors.GVector
 /**
  *
  */
-class KCentersModel[V <: GVector[V], D <: Distance[V]](val centers: mutable.HashMap[Int, V], val metric: D) extends CenterOrientedModelDistributedCz[V, D] with ClusteringModelDistributed[V] {
+case class KCentersModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V]](val centers: mutable.HashMap[Int, V], val metric: D)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends CenterOrientedModelDistributedCz[V, D] with ClusteringModelDistributed[ID, O, V, Cz] {
 	/**
 	 *
 	 */
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = centerPredictCz(data)
+	def obtainClustering(data: RDD[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = centerPredictCz(data)
 
 }

@@ -16,9 +16,14 @@ class Cosine[V <: Seq[Double]](val id: MetricID = 2) extends ContinuousDistance[
 	  * The cosine distance
 	  * @return The cosine distance between dot1 and dot2
 	  */
-	override def d(dot1: ScalarVector[V], dot2: ScalarVector[V]): Double = {
-		val anorm = SumVectors.euclideanNorm(dot1.vector)
-		val bnorm = SumVectors.euclideanNorm(dot2.vector)
-		SumVectors.dotProduct(dot1.vector, dot2.vector) / (anorm * bnorm)
+	def d(dot1: ScalarVector[V], dot2: ScalarVector[V]): Double = d2(dot1.vector, dot2.vector)
+	/**
+	  * The cosine distance
+	  * @return The cosine distance between dot1 and dot2
+	  */
+	def d2(dot1: V, dot2: V): Double = {
+		val anorm = SumVectors.euclideanNorm(dot1)
+		val bnorm = SumVectors.euclideanNorm(dot2)
+		SumVectors.dotProduct(dot1, dot2) / (anorm * bnorm)
 	}
 }

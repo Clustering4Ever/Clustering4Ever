@@ -5,59 +5,59 @@ package org.clustering4ever.scala.clustering.rla
 import scala.language.higherKinds
 import scala.reflect.ClassTag
 import org.clustering4ever.clustering.{ClusteringAlgorithm, LocalClusteringAlgorithm}
-import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.util.SumVectors
 import scala.math.{min, max}
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
-import org.clustering4ever.vectors.GVector
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.ClusteringArgs
 /**
  *
  */
-case class RLAArgs[V <: GVector[V], D <: Distance[V]](val metric: D, val epsilon: Double) extends ClusteringArgs {
-	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.RLA
+trait RLAArgsTrait[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
+	/**
+	 *
+	 */
+	val metric: D
+	/**
+	 *
+	 */
+	 val epsilon: Double
+	/**
+	 *
+	 */
+	val algorithm = org.clustering4ever.extensibleAlgorithmNature.RLA
+
 }
+/**
+ *
+ */
+case class RLAArgs[V <: GVector[V], D <: Distance[V]](val metric: D, val epsilon: Double) extends RLAArgsTrait[V, D]
+/**
+ *
+ */
+case class RLAArgsReal[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsTrait[ScalarVector[V], D[V]]
+/**
+ *
+ */
+case class RLAArgsBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsTrait[BinaryVector[V], D[V]]
+/**
+ *
+ */
+case class RLAArgsMixt[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val metric: D[Vb, Vs], val epsilon: Double) extends RLAArgsTrait[MixtVector[Vb, Vs], D[Vb, Vs]]
 /**
  * The random Local Area clustering algorithm introduce at https://ieeexplore.ieee.org/document/7727595
  * @param data : a GenSeq of any type
  * @param epsilon : distance from random selected point under which we consider dots belongs to the same cluster
  * @param metric : a dissimilarity measure associated to O
  */
-class RLAGen extends ClusteringAlgorithm {
-	/**
-	 * Run the Random Local Clustering
-	 */
-	def runGen[O, D <: Distance[O]](data: GenSeq[O], epsilon: Double, metric: D): RLAModel[O, D] = {
-
-		@annotation.tailrec
-		def go(data: GenSeq[O], medoids: mutable.HashMap[Int, O], clusterID: Int): mutable.HashMap[Int, O] = {
-			if(!data.isEmpty) {
-				val randomMedoid = data.head
-				val toTreat = data.filterNot( v => metric.d(randomMedoid, v) <= epsilon )
-				medoids += ((clusterID, randomMedoid))
-				if(!data.isEmpty) go(toTreat, medoids, clusterID + 1)
-				else medoids	
-			}
-			else medoids
-		}
-
-		new RLAModel[O, D](go(data, mutable.HashMap.empty[Int, O], 0), metric)
-	}
-}
-/**
- *
- */
-class RLA[V <: GVector[V], D <: Distance[V], GS[X] <: GenSeq[X]](val args: RLAArgs[V, D]) extends LocalClusteringAlgorithm[V, GS, RLAArgs[V, D], RLAModelCz[V, D, GS]] {
+class RLA[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], Args <: RLAArgsTrait[V, D]](val args: Args)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends LocalClusteringAlgorithm[ID, O, V, Cz, GS, Args, RLAModel[ID, O, V, Cz, D, GS]] {
 	/**
 	 *
 	 */
-	def run[
-		ID,
-		O,
-		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
-	](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RLAModelCz[V, D, GS] = {
+	def run(data: GS[Cz[ID, O, V]]): RLAModel[ID, O, V, Cz, D, GS] = {
 		@annotation.tailrec
 		def go(data: GS[Cz[ID, O, V]], medoids: mutable.HashMap[Int, V], clusterID: Int): mutable.HashMap[Int, V] = {
 			if(!data.isEmpty) {
@@ -70,19 +70,13 @@ class RLA[V <: GVector[V], D <: Distance[V], GS[X] <: GenSeq[X]](val args: RLAAr
 			else medoids
 		}
 
-		new RLAModelCz[V, D, GS](go(data, mutable.HashMap.empty[Int, V], 0), args.metric)
+		new RLAModel[ID, O, V, Cz, D, GS](go(data, mutable.HashMap.empty[Int, V], 0), args.metric)
 	}
 }
 /**
  * Compagnion object to run the algorithm effortlessly
  */
 object RLA {
-	/**
-	 * Run the RLA
-	 */
-	def run[O, D <: Distance[O]](data: GenSeq[O], epsilon: Double, metric: D): RLAModel[O, D] = {
-		(new RLAGen).runGen(data, epsilon, metric)
-	}
 	/**
 	 *
 	 */
@@ -93,7 +87,7 @@ object RLA {
 		D <: Distance[V],
 		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 		GS[X] <: GenSeq[X]
-	](data: GS[Cz[ID, O, V]], metric: D, epsilon: Double)(implicit ct: ClassTag[Cz[ID, O, V]]): RLAModelCz[V, D, GS] = {
-		(new RLA[V, D, GS](new RLAArgs(metric, epsilon))).run(data)
+	](data: GS[Cz[ID, O, V]], metric: D, epsilon: Double)(implicit ct: ClassTag[Cz[ID, O, V]]): RLAModel[ID, O, V, Cz, D, GS] = {
+		(new RLA[ID, O, V, Cz, D, GS, RLAArgs[V, D]](new RLAArgs(metric, epsilon))).run(data)
 	}
 }

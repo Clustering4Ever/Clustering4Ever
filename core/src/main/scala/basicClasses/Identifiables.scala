@@ -7,6 +7,7 @@ import shapeless.HMap
 import org.clustering4ever.shapeless.VMapping
 import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.vectors.GVector
+import org.clustering4ever.vectorizables.NotVectorizable
 /**
  *
  */
@@ -36,7 +37,7 @@ trait IdentifiedRawObject[ID, O] extends Identified[ID] with RawObject[O]
 /**
  *
  */
-case class EasyIdentifiedRawObject[ID, O](val id: ID, val o: O) extends IdentifiedRawObject[ID, O]
+case class EasyIdentifiedRawObject[ID, O](val id: ID, val o: O = NotVectorizable) extends IdentifiedRawObject[ID, O]
 /**
  * Identified Vectorizable Object
  */
@@ -72,7 +73,7 @@ trait IdentifiedVectorized[ID, O, V <: GVector[V]] extends IdentifiedGVector[ID,
  */
 case class EasyIdentifiedVector[ID, O, V <: GVector[V]](
 	val id: ID,
-	val o: Vectorizable[O],
 	val v: V,
+	val o: Vectorizable[O],
 	val vectorized: HMap[VMapping] = HMap.empty[VMapping]
 ) extends IdentifiedVectorized[ID, O, V]

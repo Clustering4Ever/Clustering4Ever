@@ -6,6 +6,14 @@ import scala.language.implicitConversions
 /**
  *
  */
-case class Vectorizable[O](val o: O) extends Serializable {
+sealed trait VectorizableOrNot extends Serializable
+/**
+ *
+ */
+case class Vectorizable[O](val o: O) extends VectorizableOrNot {
 	def toVector[V](towardVector: O => V): V = towardVector(o)
 }
+/**
+ *
+ */
+object NotVectorizable extends VectorizableOrNot

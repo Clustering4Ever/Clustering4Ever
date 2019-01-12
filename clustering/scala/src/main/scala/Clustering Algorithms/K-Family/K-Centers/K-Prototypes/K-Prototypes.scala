@@ -14,7 +14,7 @@ import org.clustering4ever.vectors.{GVector, MixtVector}
 /**
  *
  */
-case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgs[MixtVector[Vb, Vs], D] {
+case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgsTrait[MixtVector[Vb, Vs], D[Vb, Vs]] {
 	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
 }
 /**
@@ -29,16 +29,16 @@ object KPrototypes {
 	/**
 	 * Run the K-Prototypes with any mixt distance
 	 */
-	def run[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: MixtDistance[Vb, Vs], GS[X] <: GenSeq[X]](
+	def run[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y], GS[X] <: GenSeq[X]](
 		data: GS[Cz[ID, O, MixtVector[Vb, Vs]]],
 		k: Int,
-		metric: D,
+		metric: D[Vb, Vs],
 		maxIterations: Int,
 		epsilon: Double,
 		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
-	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D, GS] = {
+	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[ID, O, MixtVector[Vb, Vs], Cz, D[Vb, Vs], GS] = {
 		
-		val kPrototypesAlgorithm = new KCenters[MixtVector[Vb, Vs], D, GS](KPrototypesArgs(k, metric, epsilon, maxIterations, initializedCenters))
+		val kPrototypesAlgorithm = new KCenters[ID, O, MixtVector[Vb, Vs], Cz, D[Vb, Vs], GS, KPrototypesArgs[Vb, Vs, D]](KPrototypesArgs(k, metric, epsilon, maxIterations, initializedCenters))
 		kPrototypesAlgorithm.run(data)
 	
 	}

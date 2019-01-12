@@ -35,6 +35,10 @@ class Minkowski[V <: Seq[Double]](final val p: Int = 2, val id: MetricID = 3) ex
 	  * @return The Minkowski distance between dot1 and dot2
 	  */
 	def d(dot1: ScalarVector[V], dot2: ScalarVector[V]): Double = minkowski(dot1.vector, dot2.vector)
+	/**
+	 *
+	 */
+	def d2(dot1: V, dot2: V): Double = minkowski(dot1, dot2)
 }
 /**
  *

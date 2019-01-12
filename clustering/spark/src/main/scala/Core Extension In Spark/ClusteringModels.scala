@@ -33,5 +33,5 @@ trait CenterOrientedModelDistributedCz[
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredictCz[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = data.map( cz => cz.addClusterIDs(centerPredictCz(cz)) )
+	def centerPredictCz[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = data.map( cz => cz.addClusterIDs(centerPredict(cz)) )
 }

@@ -20,7 +20,7 @@ import org.clustering4ever.clustering.ClusteringArgs
 /**
  *
  */
-trait KCentersArgs[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
+trait KCentersArgsTrait[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
 	/**
 	 *
 	 */
@@ -54,7 +54,7 @@ trait KCentersArgs[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
 /**
  *
  */
-class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V]](val args: KCentersArgs[V, D]) extends KCommons[V] with DistributedClusteringAlgorithm[V, KCentersArgs[V, D], KCentersModel[V, D]] {
+class KCenters[ID, O, V <: GVector[V] : ClassTag, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], Args <: KCentersArgsTrait[V, D]](val args: Args)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCommons[V] with DistributedClusteringAlgorithm[ID, O, V, Cz, Args, KCentersModel[ID, O, V, Cz, D]] {
 	/**
 	 * To upgrade
 	 * Kmeans++ initialization
@@ -86,11 +86,7 @@ class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V]](val args: KCentersA
 	/**
 	 *
 	 */
-	def run[
-		ID,
-		O,
-		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
-	](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = {
+	def run(data: RDD[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D] = {
 		
 		data.persist(args.persistanceLVL)
 		/**
@@ -124,6 +120,6 @@ class KCenters[V <: GVector[V] : ClassTag, D <: Distance[V]](val args: KCentersA
 			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, args.epsilon)
 			cpt += 1
 		}
-		new KCentersModel[V, D](centers, args.metric)
+		new KCentersModel[ID, O, V, Cz, D](centers, args.metric)
 	}
 }

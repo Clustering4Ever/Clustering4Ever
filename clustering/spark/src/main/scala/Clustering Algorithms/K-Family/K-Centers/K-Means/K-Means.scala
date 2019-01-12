@@ -13,10 +13,11 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
+import org.clustering4ever.vectorizables.NotVectorizable
 /**
  *
  */
-case class KMeansArgs[V <: Seq[Double], D <: ContinuousDistance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgs[ScalarVector[V], D] {
+case class KMeansArgs[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgsTrait[ScalarVector[V], D[V]] {
 	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.KMeans
 }
 /**
@@ -36,31 +37,31 @@ object KMeans {
 		O,
 		V <: Seq[Double],
 		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-		D <: ContinuousDistance[V]
+		D[X <: Seq[Double]] <: ContinuousDistance[X]
 	](
 		data: RDD[Cz[ID, O, ScalarVector[V]]],
 		k: Int,
-		metric: D,
+		metric: D[V],
 		epsilon: Double,
 		maxIterations: Int,
 		persistanceLVL: StorageLevel,
 		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
-		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ScalarVector[V], D] = {
-		val kMeans = new KCenters[ScalarVector[V], D](new KMeansArgs[V, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KCentersModel[ID, O, ScalarVector[V], Cz, D[V]] = {
+		val kMeans = new KCenters[ID, O, ScalarVector[V], Cz, D[V], KMeansArgs[V, D]](new KMeansArgs[V, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
 		val kCentersModel = kMeans.run(data)
 		kCentersModel
 	}
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
-	def run[V <: Seq[Double], D <: ContinuousDistance[V]](
+	def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](
 		data: RDD[V],
 		k: Int,
-		metric: D,
+		metric: D[V],
 		epsilon: Double,
 		maxIterations: Int,
 		persistanceLVL: StorageLevel
-		): KCentersModel[ScalarVector[V], D] = {
+		): KCentersModel[Long, NotVectorizable.type, ScalarVector[V], EasyClusterizable, D[V]] = {
 		val kCentersModel = run(scalarDataWithIDToClusterizable(data.zipWithIndex), k, metric, epsilon, maxIterations, persistanceLVL)
 		kCentersModel
 	}

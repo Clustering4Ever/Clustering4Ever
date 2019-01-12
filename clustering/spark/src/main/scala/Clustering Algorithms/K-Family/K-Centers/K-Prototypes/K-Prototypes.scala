@@ -18,7 +18,7 @@ import org.clustering4ever.vectors.{GVector, MixtVector}
 /**
  *
  */
-case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgs[MixtVector[Vb, Vs], D] {
+case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgsTrait[MixtVector[Vb, Vs], D[Vb, Vs]] {
 	override val algorithm = org.clustering4ever.extensibleAlgorithmNature.KMeans
 }
 /**
@@ -39,17 +39,17 @@ object KPrototypes {
 		Vb <: Seq[Int],
 		Vs <: Seq[Double],
 		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-		D <: MixtDistance[Vb, Vs]
+		D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]
 	](
 		data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,
-		metric: D,
+		metric: D[Vb, Vs],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
 		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
-	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[MixtVector[Vb, Vs], D] = {
-		val kPrototypes = new KCenters[MixtVector[Vb, Vs], D](new KPrototypesArgs[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KCentersModel[ID, O, MixtVector[Vb, Vs], Cz, D[Vb, Vs]] = {
+		val kPrototypes = new KCenters[ID, O, MixtVector[Vb, Vs], Cz, D[Vb, Vs], KPrototypesArgs[Vb, Vs, D]](new KPrototypesArgs[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
 		val kPrototypesModel = kPrototypes.run(data)
 		kPrototypesModel
 	}

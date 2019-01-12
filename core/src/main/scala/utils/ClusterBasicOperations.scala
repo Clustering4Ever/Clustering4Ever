@@ -27,12 +27,7 @@ object ClusterBasicOperations {
 	      case hamming if(hamming.isInstanceOf[Hamming[_]]) => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[O]
 	      case hammingAndEuclidean if(hammingAndEuclidean.isInstanceOf[HammingAndEuclidean[_, _]]) => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixtVector[Seq[Int], Seq[Double]]]]).asInstanceOf[O]
 	      // Look for point which minimize its distance to all others points
-	      case _ => cluster.minBy{ v1 =>
-				// var sum = 0D
-				// cluster.seq.foreach( altVector => sum += metric.d(v1, altVector) )
-				// sum
-				cluster.par.map(metric.d(v1, _)).sum
-			}
+	      case _ => cluster.minBy{ v1 => cluster.map(metric.d(v1, _)).sum }
 	    }
 	}
 	/**
@@ -84,4 +79,5 @@ object ClusterBasicOperations {
 	 	val realPart = transformPreMeanAndCastIt(mixtVector.scalar, cluster.size)
 	 	new MixtVector(binaryPart, realPart)
 	}
+
 }

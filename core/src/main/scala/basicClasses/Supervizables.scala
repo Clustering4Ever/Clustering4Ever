@@ -9,6 +9,7 @@ import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.shapeless.VMapping
 import shapeless.HMap
 import org.clustering4ever.vectors.GVector
+import org.clustering4ever.vectorizables.NotVectorizable
 /**
  *
  */
@@ -29,6 +30,7 @@ trait Supervizable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Superv
 	 * Transform from DFCL to HDFCL by applying bucketing of bucketsOfFeats argument 
 	 */
 	def definedBucketizedFeatures(bucketsOfFeats: Seq[Seq[Int]]): Self[ID, O, V]
+
 }
 /**
  *
@@ -37,7 +39,7 @@ object EasySupervizable {
 	/**
 	 * Simplest way to generate an EasySupervizable
 	 */
-	def apply[ID, V <: GVector[V]](id: ID, v: V, label: Int) = new EasySupervizable(id, Vectorizable(v), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+	def apply[ID, V <: GVector[V]](id: ID, v: V, label: Int) = new EasySupervizable(id, Vectorizable(NotVectorizable), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(new VMapping[Int, V]))
 	/**
 	 * Generate a proper EasySupervizable
 	 */
@@ -94,13 +96,13 @@ case class EasySupervizable[ID, O, V <: GVector[V]](
 	/**
 	 *
 	 */
-	final def addAltVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, V] = {
+	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, V] = {
 		this.copy(vectorized = vectorized + ((vectorizationID, newAltVector)))
 	}
 	/**
 	 *
 	 */
-	final def updtV[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, GV] = {
+	final def updateVector[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, GV] = {
 		new EasySupervizable(id, o, label, vectorized.get(vectorizationID).get.asInstanceOf[GV], mutable.ArrayBuffer.empty[GV], vectorized)
 	}
 }

@@ -7,15 +7,35 @@ import org.clustering4ever.types.VectorizationIDTypes._
 /**
  *
  */
+sealed trait VectorizationNature extends Serializable
+/**
+ *
+ */
+object Scalar extends VectorizationNature
+/**
+ *
+ */
+object Binary extends VectorizationNature
+/**
+ *
+ */
+object Mixt extends VectorizationNature
+/**
+ *
+ */
+object Other extends VectorizationNature
+/**
+ *
+ */
+object Default extends VectorizationNature
+/**
+ *
+ */
 sealed trait EmployedVectorization extends Serializable {
-	val vectorizationID: Int
-	val vectorNature: Int
+	val vectorizationID: VectorizationID
+	val vectorizationNature: VectorizationNature
 }
 /**
  *
  */
-case class DefaultWorkingVector(val vectorizationID: VectorizationID = 0, val vectorNature: VectorizationNature = 0) extends EmployedVectorization
-/**
- *
- */
-case class IthVectorization[O, V <: GVector[V]](val vectorizationID: VectorizationID, val vectorization: O => V, val vectorNature: VectorizationNature = 0) extends EmployedVectorization
+case class IthVectorization[O, V <: GVector[V]](val vectorizationID: VectorizationID, val vectorization: Option[O => V], val vectorizationNature: VectorizationNature) extends EmployedVectorization

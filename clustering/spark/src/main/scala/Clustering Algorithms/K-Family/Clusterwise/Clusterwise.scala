@@ -11,7 +11,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.broadcast.Broadcast
 import org.clustering4ever.scala.clustering.kcenters.KMeans
 import org.clustering4ever.util.SumVectors
-import org.clustering4ever.math.distances.scalar.{Euclidean, RawEuclidean}
+import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
 import org.clustering4ever.vectors.{ScalarVector, GScalarVector}
@@ -159,7 +159,7 @@ class Clusterwise[V <: Seq[Double]](
 			/* 										Test the model on testing set 									*/
 			/********************************************************************************************************/
 			val trainedData = labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }
-			val metric = new RawEuclidean[V](false)
+			val metric = new Euclidean[V](false)
 			val clusterwiseModel = new ClusterwiseModel[V](trainedData, modelByCluster, standardizationParameters, metric)
 			clusterwiseModels += clusterwiseModel
 

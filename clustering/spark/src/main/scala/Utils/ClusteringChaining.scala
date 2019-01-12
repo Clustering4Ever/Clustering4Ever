@@ -15,10 +15,11 @@ import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
 import org.clustering4ever.scala.clustering.kcenters.KCenters
-import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithmCz, DistributedClusteringAlgorithm, LocalClusteringAlgorithm, DataExplorator, AlgorithmsRestrictions}
-import org.clustering4ever.vectorizations.{EmployedVectorization, DefaultWorkingVector, IthVectorization}
+import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithmCz, ClusteringInformationsLocal, DistributedClusteringAlgorithm, ClusteringInformationsDistributed, LocalClusteringAlgorithm, DataExplorator, AlgorithmsRestrictions}
+import org.clustering4ever.vectorizations.{EmployedVectorization, IthVectorization}
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
+import org.clustering4ever.vectorizations.{VectorizationNature, Default}
 /**
  *
  */
@@ -30,10 +31,10 @@ class ClusteringChainingDistributed[
 ](
     val data: RDD[Cz[ID, O, V]],
     val chainableID: Int = scala.util.Random.nextInt,
-    val currentVectorization: EmployedVectorization = new DefaultWorkingVector,
+    val currentVectorization: EmployedVectorization = IthVectorization[O, V](0, None, Default),
     val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
-    val clusteringInfo: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[_, RDD])] = immutable.Vector.empty[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[_, RDD])]
-)(implicit ct: ClassTag[Cz[ID, O, V]]) extends ClusteringChaining[ID, O, V, Cz, RDD] {
+    val clusteringInfo: ClusteringInformationsDistributed[ID, O, Cz] = new ClusteringInformationsDistributed[ID, O, Cz]
+)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends ClusteringChaining[ID, O, V, Cz, RDD] {
     /**
      * A securty value in order to allow proper reduce of Chaining models
      */
@@ -45,7 +46,7 @@ class ClusteringChainingDistributed[
     /**
      *
      */
-    type AlgorithmsRestrictions[NV <: GVector[NV]] = DistributedClusteringAlgorithm[NV, ClusteringArgs, ClusteringModelCz[NV, RDD]]
+    type AlgorithmsRestrictions[NV <: GVector[NV]] = DistributedClusteringAlgorithm[ID, O, NV, Cz, ClusteringArgs, ClusteringModelCz[ID, O, NV, Cz, RDD]]
     /**
      *
      */
@@ -59,7 +60,7 @@ class ClusteringChainingDistributed[
             chainableID,
             currentVectorization,
             vectorizations,
-            clusteringInfo ++ ccl.clusteringInfo.takeRight(ccl.fusionChainableSecurity)
+            clusteringInfo.copy(clusteringInformations = clusteringInfo.clusteringInformations ++ ccl.clusteringInfo.clusteringInformations.takeRight(ccl.fusionChainableSecurity))
         ) { 
         	override protected[chaining] val fusionChainableSecurity = newFusionSecurity
         	override val globalClusteringRunNumber = updatedRunNumber
@@ -74,7 +75,7 @@ class ClusteringChainingDistributed[
         implicit val vMapping = new VectorizationMapping[VectorizationNature, Map[VectorizationID, IthVectorization[O, NV]]]
 
         val itIsEmpty = vectorizations.get(vectorizationNature)(vMapping)
-        val added = new IthVectorization(vectorizationID, towardNewVector)
+        val added = IthVectorization(vectorizationID, Some(towardNewVector), vectorizationNature)
         val vectorizationsUpdated = vectorizations + (
             (
                 vectorizationNature,
@@ -103,11 +104,11 @@ class ClusteringChainingDistributed[
     /**
      * Run one algorithm defined by user
      */
-    def runAlgorithm(algorithm: DistributedClusteringAlgorithm[V, ClusteringArgs, ClusteringModelCz[V, RDD]])(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringChainingDistributed[ID, O, V, Cz]
+    def runAlgorithm(algorithm: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, RDD]]): ClusteringChainingDistributed[ID, O, V, Cz]
      = {
         val model = algorithm.run(data)
         val updatedRunNumber = globalClusteringRunNumber + 1
-        val updatedClusteringInfo = clusteringInfo :+ ((updatedRunNumber, currentVectorization, algorithm.args, model))
+        val updatedClusteringInfo = clusteringInfo.copy(clusteringInformations = clusteringInfo.clusteringInformations :+ ((updatedRunNumber, currentVectorization, algorithm.args, model)))
         val clusterizedData = model.obtainClustering(data)
         new ClusteringChainingDistributed(clusterizedData, chainableID, currentVectorization, vectorizations, updatedClusteringInfo) {
         	override protected[chaining] val fusionChainableSecurity = 1
@@ -117,7 +118,7 @@ class ClusteringChainingDistributed[
     /**
      * Run multiples algorithms defined by user
      */
-    def runAlgorithms(algorithms: DistributedClusteringAlgorithm[V, ClusteringArgs, ClusteringModelCz[V, RDD]]*)(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringChainingDistributed[ID, O, V, Cz] = {
+    def runAlgorithms(algorithms: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, RDD]]*): ClusteringChainingDistributed[ID, O, V, Cz] = {
 
         val updatedFusionChainableSecurity = fusionChainableSecurity
 
@@ -135,38 +136,28 @@ class ClusteringChainingDistributed[
     /**
      * Update the current vector for another
      */
-    def updtV[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID, vMapping: VMapping[Int, NV] = new VMapping[Int, NV])(implicit ct: ClassTag[Cz[ID, O, NV]]): ClusteringChainingDistributed[ID, O, NV, Cz] = {
+    def updateVector[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID)(implicit ct: ClassTag[Cz[ID, O, NV]]): ClusteringChainingDistributed[ID, O, NV, Cz] = {
+        val vMapping = new VMapping[Int, NV]
         val explicitVectorization = new VectorizationMapping[VectorizationNature, Map[VectorizationID, IthVectorization[O, NV]]]
-        val newCurrentVectorization = vectorizations.get[Int, Map[Int, IthVectorization[O, NV]]](vectorizationNature)(explicitVectorization).get.get(vectorizationID).get
-        val updatedVectorData = data.map(_.updtV[NV](vectorizationID)(vMapping))
-        val updatedRunNumber = globalClusteringRunNumber
-        val updatedFusionChainableSecurity = fusionChainableSecurity
+        val newCurrentVectorization = vectorizations.get(vectorizationNature)(explicitVectorization).get.get(vectorizationID).get
+        val updatedVectorData = data.map(_.updateVector[NV](vectorizationID)(vMapping))
+        val globalRunNumberCopy = globalClusteringRunNumber
+        val fusionChainableSecurityCopy = fusionChainableSecurity
         new ClusteringChainingDistributed(updatedVectorData, chainableID, newCurrentVectorization, vectorizations, clusteringInfo) {
-            override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
-        	override val globalClusteringRunNumber = updatedRunNumber
+            override protected[chaining] val fusionChainableSecurity = fusionChainableSecurityCopy
+        	override val globalClusteringRunNumber = globalRunNumberCopy
         }
     }
     /**
      *
      */
-    protected def applyDifferentVectorizationsOfSameNature[NV <: GVector[NV]](
-    	vectorizationNature: VectorizationNature,
+    def runAlgorithmsOnMultipleVectorizations(
         vectorizationIDs: Seq[Int],
-        algorithms: Seq[DistributedClusteringAlgorithm[NV, ClusteringArgs, ClusteringModelCz[NV, RDD]]],
-        otherVectorizationMapping: VMapping[Int, NV] = new VMapping[Int, NV]
-    )(implicit ct: ClassTag[Cz[ID, O, NV]]): ClusteringChainingDistributed[ID, O, NV, Cz] = {
-        vectorizationIDs.par.map( vectorizationID => updtV[NV](vectorizationNature, vectorizationID, otherVectorizationMapping)(ct).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
+        algorithms: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, RDD]]*
+    ): ClusteringChainingDistributed[ID, O, V, Cz] = {
+        vectorizationIDs.par.map( vectorizationID => updateVector(vectorizationID).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
     }
 }
-/**
- *
- */
-object ClusteringChainingDistributed {
-
-    def apply[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]) = new ClusteringChainingDistributed(data)
-
-}
-
 /**
  *
  */
@@ -174,15 +165,16 @@ class ClusteringChainingLocalOnDistributedSystem[
     ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
+    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    S[X] <: Seq[X]
 ](
     @transient val sc: SparkContext,
-    val data: List[Cz[ID, O, V]],
+    val data: S[Cz[ID, O, V]],
     val chainableID: Int = scala.util.Random.nextInt,
-    val currentVectorization: EmployedVectorization = new DefaultWorkingVector,
+    val currentVectorization: EmployedVectorization = IthVectorization[O, V](0, None, Default),
     val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
-    val clusteringInfo: immutable.Vector[((Int, Int), EmployedVectorization, ClusteringArgs, ClusteringModelCz[_, ParSeq])] = immutable.Vector.empty[((Int, Int), EmployedVectorization, ClusteringArgs, ClusteringModelCz[_, ParSeq])]
-)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[List[Cz[ID, O, V]]]) extends DataExplorator[ID, O, V, Cz, List] with AlgorithmsRestrictions[V, ParSeq] {
+    val clusteringInfo: ClusteringInformationsLocal[ID, O, Cz, S] = new ClusteringInformationsLocal[ID, O, Cz, S]
+)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[S[Cz[ID, O, V]]]) extends DataExplorator[ID, O, V, Cz, S] with AlgorithmsRestrictions[ID, O, V, Cz, S] {
     /**
      * A securty value in order to allow proper reduce of Chaining models
      */
@@ -194,31 +186,30 @@ class ClusteringChainingLocalOnDistributedSystem[
     /**
      *
      */
-    type Self[NV <: GVector[NV]] = ClusteringChainingLocalOnDistributedSystem[ID, O, NV, Cz]
+    type Self[NV <: GVector[NV]] = ClusteringChainingLocalOnDistributedSystem[ID, O, NV, Cz, S]
     /**
      *
      */
-    type AlgorithmsRestrictions[NV <: GVector[NV]] = LocalClusteringAlgorithm[NV, ParSeq, ClusteringArgs, ClusteringModelCz[NV, ParSeq]]
+    type AlgorithmsRestrictions[NV <: GVector[NV]] = LocalClusteringAlgorithm[ID, O, NV, Cz, S, ClusteringArgs, ClusteringModelCz[ID, O, NV, Cz, S]]
     /**
      *
      */
-    // def runAlgorithmsInParallel(defaultParallelism: Int, algorithms: AlgorithmsRestrictions[V]*): Self[V] = {
+    def runAlgorithmsInParallel(defaultParallelism: Int, algorithms: AlgorithmsRestrictions[V]*): Self[V] = {
 
-    //     val dataBrodcasted = sc.broadcast(data)
+        val dataBrodcasted = sc.broadcast(data)
 
-    //     val clusteringChainingLocalFinal@ClusteringChainingLocal(dataFinal, chainableIDFinal, currentVectorizationFinal, vectorizationsFinal, clusteringInfoFinal) = sc.parallelize(algorithms.zipWithIndex, defaultParallelism).map{ case (algo, algIdx) =>
-    //         val updatedFusionChainableSecurity = fusionChainableSecurity
-    //         val updatedRunNumber = globalClusteringRunNumber + algIdx
-    //         (new ClusteringChainingLocal(dataBrodcasted.value.par, chainableID, currentVectorization, vectorizations, clusteringInfo) {
-    //             override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
-    //             override protected[chaining] val runNumberWhenMultiRuns = algIdx + 1 
-    //             override val globalClusteringRunNumber = updatedRunNumber
-    //         }).runAlgorithm(algo)
-    //     }.reduce(_.fusionChainable(_))
+        val clusteringChainingLocalFinal@ClusteringChainingLocal(dataFinal, chainableIDFinal, currentVectorizationFinal, vectorizationsFinal, clusteringInfoFinal) = sc.parallelize(algorithms.zipWithIndex, defaultParallelism).map{ case (algo, algIdx) =>
+            val updatedFusionChainableSecurity = fusionChainableSecurity
+            val updatedRunNumber = globalClusteringRunNumber + algIdx
+            (new ClusteringChainingLocal(dataBrodcasted.value, chainableID, currentVectorization, vectorizations, clusteringInfo) {
+                override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
+                override val globalClusteringRunNumber = updatedRunNumber
+            }).runAlgorithm(algo)
+        }.reduce(_.fusionChainable(_))
 
-    //     new ClusteringChainingLocalOnDistributedSystem(sc, dataFinal., chainableIDFinal, currentVectorizationFinal, vectorizationsFinal, clusteringInfoFinal) {
-    //         override protected[chaining] val fusionChainableSecurity = clusteringChainingLocalFinal.fusionChainableSecurity
-    //         override val globalClusteringRunNumber = clusteringChainingLocalFinal.globalClusteringRunNumber
-    //     }
-    // }
+        new ClusteringChainingLocalOnDistributedSystem(sc, dataFinal, chainableIDFinal, currentVectorizationFinal, vectorizationsFinal, clusteringInfoFinal) {
+            override protected[chaining] val fusionChainableSecurity = clusteringChainingLocalFinal.fusionChainableSecurity
+            override val globalClusteringRunNumber = clusteringChainingLocalFinal.globalClusteringRunNumber
+        }
+    }
 }

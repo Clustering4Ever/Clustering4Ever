@@ -8,7 +8,7 @@ import org.clustering4ever.util.SumVectors
 /**
  *
  */
-sealed trait GVector[Self <: GVector[Self]] extends Serializable {
+trait GVector[Self <: GVector[Self]] extends Serializable {
 	/**
 	 *
 	 */
@@ -36,6 +36,10 @@ case class SupervizedVector[N, V[X] <: Seq[X]](val vector: V[N]) extends GSimple
 		})
 	}
 }
+/**
+ *
+ */
+trait AnyVectorNature[O, Self <: AnyVectorNature[O, Self]] extends GVector[Self]
 /**
  *
  */

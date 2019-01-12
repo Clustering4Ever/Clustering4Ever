@@ -14,13 +14,9 @@ import org.clustering4ever.clustering.ClusteringModelLocal
 /**
  *
  */
-class RLAModel[O, D <: Distance[O]](val centers: mutable.HashMap[Int, O], val metric: D) extends CenterOrientedModelLocal[O, D] with KnnOrientedModelLocal[O, D]
-/**
- *
- */
-class RLAModelCz[V <: GVector[V], D <: Distance[V], GS[X] <: GenSeq[X]](val centers: mutable.HashMap[Int, V], val metric: D) extends CenterOrientedModelLocalClusterizable[V, D] with KnnOrientedModelLocalClusterizable[V, D] with ClusteringModelLocal[V, GS] {
+case class RLAModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X]](val centers: mutable.HashMap[Int, V], val metric: D)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends CenterOrientedModelLocalClusterizable[V, D] with KnnOrientedModelLocalClusterizable[V, D] with ClusteringModelLocal[ID, O, V, Cz, GS] {
 	/**
 	 *
 	 */
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = centerPredictCz(data)
+	def obtainClustering(data: GS[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = centerPredictCzCollection(data)
 }
