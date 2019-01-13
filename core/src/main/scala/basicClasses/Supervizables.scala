@@ -39,7 +39,7 @@ object EasySupervizable {
 	/**
 	 * Simplest way to generate an EasySupervizable
 	 */
-	def apply[ID, V <: GVector[V]](id: ID, v: V, label: Int) = new EasySupervizable(id, Vectorizable(NotVectorizable), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+	def apply[ID, V <: GVector[V]](id: ID, v: V, label: Int): EasySupervizable[ID, V, V] = new EasySupervizable(id, Vectorizable(v), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(new VMapping[Int, V]))
 	/**
 	 * Generate a proper EasySupervizable
 	 */

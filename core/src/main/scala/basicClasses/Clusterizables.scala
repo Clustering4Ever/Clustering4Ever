@@ -36,7 +36,7 @@ object EasyClusterizable {
 	/**
 	 * Simplest way to generate an EasyClusterizable
 	 */
-	def apply[ID, V <: GVector[V]](id: ID, v: V): EasyClusterizable[ID, NotVectorizable.type, V] = new EasyClusterizable(id, Vectorizable(NotVectorizable), v, HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+	def apply[ID, V <: GVector[V]](id: ID, v: V): EasyClusterizable[ID, V, V] = new EasyClusterizable(id, Vectorizable(v), v, HMap[VMapping](0 -> v)(new VMapping[Int, V]))
 	/**
 	 * Generate a proper EasyClusterizable
 	 */

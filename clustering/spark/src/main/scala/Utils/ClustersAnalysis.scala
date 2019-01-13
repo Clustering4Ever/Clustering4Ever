@@ -9,7 +9,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.math.distances.{ClusterizableDistance, Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.util.SumVectors

@@ -2,7 +2,6 @@ package org.clustering4ever.vectorizables
 /**
  * @author Beck Gaël
  */
-import scala.language.implicitConversions
 /**
  *
  */

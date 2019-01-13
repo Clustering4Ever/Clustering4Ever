@@ -8,7 +8,7 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.0"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.1"` to your `libraryDependencies`
 
 Eventually add this resolver :
 

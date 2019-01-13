@@ -47,7 +47,7 @@ case class ClusteringChainingLocal[
     /**
      *
      */
-    type AlgorithmsRestrictions[NV <: GVector[NV]] = LocalClusteringAlgorithm[ID, O, NV, Cz, GS, ClusteringArgs, ClusteringModelCz[ID, O, NV, Cz, GS]]
+    type AlgorithmsRestrictions[NV <: GVector[NV]] = LocalClusteringAlgorithm[ID, O, NV, Cz, GS, ClusteringArgs[NV], ClusteringModelCz[ID, O, NV, Cz, GS]]
     /**
      *
      */
@@ -70,7 +70,7 @@ case class ClusteringChainingLocal[
     /**
      *
      */
-    def addAnyVectorizationNature[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID, towardNewVector: O => NV): (ClusteringChainingLocal[ID, O, V, Cz, GS], VectorizationMapping[VectorizationNature, immutable.Map[VectorizationID, IthVectorization[O, NV]]]) = {
+    def addVectorizationNature[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID, towardNewVector: O => NV): (ClusteringChainingLocal[ID, O, V, Cz, GS], VectorizationMapping[VectorizationNature, immutable.Map[VectorizationID, IthVectorization[O, NV]]]) = {
 
         implicit val vMapping = new VectorizationMapping[VectorizationNature, immutable.Map[VectorizationID, IthVectorization[O, NV]]]
 
@@ -105,7 +105,7 @@ case class ClusteringChainingLocal[
     /**
      * Run one algorithm defined by user
      */
-    def runAlgorithm(algorithm: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, GS]]): ClusteringChainingLocal[ID, O, V, Cz, GS]
+    def runAlgorithm(algorithm: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, GS]]): ClusteringChainingLocal[ID, O, V, Cz, GS]
      = {
         val model = algorithm.run(data)
         val updatedRunNumber = globalClusteringRunNumber + 1
@@ -119,7 +119,7 @@ case class ClusteringChainingLocal[
     /**
      * Run multiples algorithms defined by user
      */
-    def runAlgorithms(algorithms: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, GS]]*): ClusteringChainingLocal[ID, O, V, Cz, GS] = {
+    def runAlgorithms(algorithms: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, GS]]*): ClusteringChainingLocal[ID, O, V, Cz, GS] = {
 
         val updatedFusionChainableSecurity = fusionChainableSecurity
 
@@ -138,7 +138,7 @@ case class ClusteringChainingLocal[
     /**
      * Run multiples algorithms defined by user as runAlgorithms but with another way that i suppose less memory greedy
      */
-    def runAlgorithms2(algorithms: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, GS]]*) : ClusteringChainingLocal[ID, O, V, Cz, GS] = {
+    def runAlgorithms2(algorithms: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, GS]]*) : ClusteringChainingLocal[ID, O, V, Cz, GS] = {
 
         val updatedFusionChainableSecurity = fusionChainableSecurity + algorithms.size
         val updatedGlobalClusteringRunNumber = globalClusteringRunNumber + algorithms.size
@@ -176,7 +176,7 @@ case class ClusteringChainingLocal[
      */
     def runAlgorithmsOnMultipleVectorizations(
         vectorizationIDs: Seq[Int],
-        algorithms: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, GS]]*
+        algorithms: LocalClusteringAlgorithm[ID, O, V, Cz, GS, ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, GS]]*
     ): ClusteringChainingLocal[ID, O, V, Cz, GS] = {
         vectorizationIDs.par.map( vectorizationID => updateVector(vectorizationID).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
     }

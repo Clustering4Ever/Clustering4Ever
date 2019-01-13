@@ -3,7 +3,7 @@ package org.clustering4ever.clustering.models
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.math.distances.{Distance, ClusterizableDistance}
+import org.clustering4ever.math.distances.Distance
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clusterizables.Clusterizable

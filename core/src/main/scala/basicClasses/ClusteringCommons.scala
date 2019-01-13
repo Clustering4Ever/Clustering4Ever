@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 import scala.collection.{GenSeq, mutable, immutable, Map}
 import shapeless.HMap
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, NoGVector, ScalarVector, BinaryVector}
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, DistancesMapping}
 import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.math.distances.Distance
@@ -80,7 +80,7 @@ trait DataExplorator[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Cluste
 /**
  * The basic trait shared by all clustering algorithms working on Clusterizable
  */
-trait ClusteringAlgorithmCz[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs, +CM <: ClusteringModelCz[ID, O, _, Cz, Collection]] extends ClusteringAlgorithm {
+trait ClusteringAlgorithmCz[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs[V], +CM <: ClusteringModelCz[ID, O, _, Cz, Collection]] extends ClusteringAlgorithm {
 	/**
 	 *
 	 */
@@ -99,7 +99,7 @@ trait ClusteringAlgorithmCz[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <:
 /**
  * The basic trait shared by all local clustering algorithms
  */
-trait LocalClusteringAlgorithm[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X], +CA <: ClusteringArgs, +CM <: ClusteringModelCz[ID, O, _, Cz, GS]] extends ClusteringAlgorithmCz[ID, O, V, Cz, GS, CA, CM]
+trait LocalClusteringAlgorithm[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X], +CA <: ClusteringArgs[V], +CM <: ClusteringModelCz[ID, O, _, Cz, GS]] extends ClusteringAlgorithmCz[ID, O, V, Cz, GS, CA, CM]
 /**
  * Statistic obtained during clustering algorithm executions
  */
@@ -107,16 +107,29 @@ trait ClusteringStats extends ClusteringCommons
 /**
  * Neccessary clustering algorithm arguments to launch it 
  */
-trait ClusteringArgs extends Serializable {
+trait ClusteringArgs[V <: GVector[V]] extends Serializable {
+	/**
+	 *
+	 */
+	type CA <: ClusteringArgs[V]
+	/**
+	 *
+	 */
 	val algorithm: ClusteringAlgorithmNature
 }
 /**
  *
  */
-object NoClusteringArgs extends ClusteringArgs {
-	val algorithm = AnAlgoWithoutArgs
+trait ClusteringArgsLocal[V <: GVector[V]] extends ClusteringArgs[V] {
+	/**
+	 *
+	 */
+	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] <: ClusteringModelLocal[ID, O, V, Cz, GS]
+	/**
+	 *
+	 */
+	def obtainAlgorithm[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): LocalClusteringAlgorithm[ID, O, V, Cz, GS, CA, CM[ID, O, Cz, GS]]
 }
-
 /**
  *
  */
@@ -124,28 +137,28 @@ trait AlgorithmsRestrictions[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <
 	/**
 	 *
 	 */
-	type AlgorithmsRestrictions[NV <: GVector[NV]] <: ClusteringAlgorithmCz[ID, O, NV, Cz, Collection, ClusteringArgs, ClusteringModelCz[ID, O, NV, Cz, Collection]]
+	type AlgorithmsRestrictions[NV <: GVector[NV]] <: ClusteringAlgorithmCz[ID, O, NV, Cz, Collection, ClusteringArgs[NV], ClusteringModelCz[ID, O, NV, Cz, Collection]]
 }
 /**
  *
  */
 trait ClusteringInformations[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_]] extends CollectionNature[Collection] {
 
-	val clusteringInformations: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[ID, O, _, Cz, Collection])]
+	val clusteringInformations: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs[_], ClusteringModelCz[ID, O, _, Cz, Collection])]
 
-	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double] =
-		immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double]
+	// val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double] =
+	// 	immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double]
 
-	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double] =
-		immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
+	// val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double] =
+	// 	immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
 
 }
 /**
  *
  */
 case class ClusteringInformationsLocal[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](
-	val clusteringInformations: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[ID, O, _, Cz, GS])] =
-		immutable.Vector.empty[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[ID, O, _, Cz, GS])]
+	val clusteringInformations: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs[_], ClusteringModelCz[ID, O, _, Cz, GS])] =
+		immutable.Vector.empty[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs[_], ClusteringModelCz[ID, O, _, Cz, GS])]
 	// val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double] =
 	// 	immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
 	// val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double] =
@@ -160,7 +173,6 @@ trait ClusteringChaining[
 	V <: GVector[V],
 	Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 	Collection[_]
-	// ClustInfo <: ClusteringInformations[ID, O, Cz, Collection]
 ] extends DataExplorator[ID, O, V, Cz, Collection] with AlgorithmsRestrictions[ID, O, V, Cz, Collection] {
 	/**
 	 *
@@ -197,28 +209,27 @@ trait ClusteringChaining[
 	/**
 	 *
 	 */
-	// val clusteringInfo: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs, ClusteringModelCz[ID, O, _, Cz, Collection])]
 	val clusteringInfo: ClusteringInformations[ID, O, Cz, Collection]
 	/**
-	 *
+	 * Total number of algorithms launched
 	 */
 	val globalClusteringRunNumber: GlobalClusteringRunNumber = 0
 	/**
-	 *
+	 * Run one algorithm on the current vectorization
 	 */
 	def runAlgorithm(algorithm: AlgorithmsRestrictions[V]): Self[V]
     /**
-     *
+	 * Run multiples algorithms on the current vectorization
      */
     def runAlgorithms(algorithms: AlgorithmsRestrictions[V]*): Self[V]
    	/**
-	 * @return new ClusteringChaining object and the VectorizationMapping to extract a specific vectorization
+	 * @return new ClusteringChaining object with a vector of type NV and the VectorizationMapping to extract the specific vectorization
 	 */
-    def addAnyVectorizationNature[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID, towardNewVector: O => NV): (Self[V], VectorizationMapping[VectorizationNature, immutable.Map[VectorizationID, IthVectorization[O, NV]]])
+    def addVectorizationNature[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID, towardNewVector: O => NV): (Self[V], VectorizationMapping[VectorizationNature, immutable.Map[VectorizationID, IthVectorization[O, NV]]])
 	/**
-	 *
+	 * @return new ClusteringChaining object with a vector of type same nature than current one and the VectorizationMapping to extract the specific vectorization
 	 */
-	def addDefaultVectorizationNature(vectorizationID: VectorizationID, towardNewVector: O => V): (Self[V], VectorizationMapping[VectorizationNature, immutable.Map[VectorizationID, IthVectorization[O, V]]]) = addAnyVectorizationNature(currentVectorization.vectorizationNature, vectorizationID, towardNewVector)
+	def addVectorizationNature(vectorizationID: VectorizationID, towardNewVector: O => V): (Self[V], VectorizationMapping[VectorizationNature, immutable.Map[VectorizationID, IthVectorization[O, V]]]) = addVectorizationNature(currentVectorization.vectorizationNature, vectorizationID, towardNewVector)
 	/**
 	 * Actualize the data set with a new vector of any nature
 	 */

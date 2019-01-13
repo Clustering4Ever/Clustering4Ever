@@ -20,7 +20,7 @@ object KPPInitializer extends Serializable {
 	def kppInit[
 		ID,
 		O,
-		V <: GVector[V] : ClassTag,
+		V <: GVector[V],
 		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 		D <: Distance[V]
 	](data: GenSeq[Cz[ID, O, V]], metric: D, k: Int) = {

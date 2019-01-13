@@ -14,7 +14,6 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
-import org.clustering4ever.scala.clustering.kcenters.KCenters
 import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithmCz, ClusteringInformationsLocal, DistributedClusteringAlgorithm, ClusteringInformationsDistributed, LocalClusteringAlgorithm, DataExplorator, AlgorithmsRestrictions}
 import org.clustering4ever.vectorizations.{EmployedVectorization, IthVectorization}
 import org.clustering4ever.types.ClusteringInformationTypes._
@@ -46,7 +45,7 @@ class ClusteringChainingDistributed[
     /**
      *
      */
-    type AlgorithmsRestrictions[NV <: GVector[NV]] = DistributedClusteringAlgorithm[ID, O, NV, Cz, ClusteringArgs, ClusteringModelCz[ID, O, NV, Cz, RDD]]
+    type AlgorithmsRestrictions[NV <: GVector[NV]] = DistributedClusteringAlgorithm[ID, O, NV, Cz, ClusteringArgs[NV], ClusteringModelCz[ID, O, NV, Cz, RDD]]
     /**
      *
      */
@@ -70,7 +69,7 @@ class ClusteringChainingDistributed[
     /**
      *
      */
-    def addAnyVectorizationNature[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID, towardNewVector: O => NV): (ClusteringChainingDistributed[ID, O, V, Cz], VectorizationMapping[VectorizationNature, Map[VectorizationID, IthVectorization[O, NV]]]) = {
+    def addVectorizationNature[NV <: GVector[NV]](vectorizationNature: VectorizationNature, vectorizationID: VectorizationID, towardNewVector: O => NV): (ClusteringChainingDistributed[ID, O, V, Cz], VectorizationMapping[VectorizationNature, Map[VectorizationID, IthVectorization[O, NV]]]) = {
 
         implicit val vMapping = new VectorizationMapping[VectorizationNature, Map[VectorizationID, IthVectorization[O, NV]]]
 
@@ -104,7 +103,7 @@ class ClusteringChainingDistributed[
     /**
      * Run one algorithm defined by user
      */
-    def runAlgorithm(algorithm: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, RDD]]): ClusteringChainingDistributed[ID, O, V, Cz]
+    def runAlgorithm(algorithm: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, RDD]]): ClusteringChainingDistributed[ID, O, V, Cz]
      = {
         val model = algorithm.run(data)
         val updatedRunNumber = globalClusteringRunNumber + 1
@@ -118,7 +117,7 @@ class ClusteringChainingDistributed[
     /**
      * Run multiples algorithms defined by user
      */
-    def runAlgorithms(algorithms: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, RDD]]*): ClusteringChainingDistributed[ID, O, V, Cz] = {
+    def runAlgorithms(algorithms: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, RDD]]*): ClusteringChainingDistributed[ID, O, V, Cz] = {
 
         val updatedFusionChainableSecurity = fusionChainableSecurity
 
@@ -153,7 +152,7 @@ class ClusteringChainingDistributed[
      */
     def runAlgorithmsOnMultipleVectorizations(
         vectorizationIDs: Seq[Int],
-        algorithms: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs, ClusteringModelCz[ID, O, V, Cz, RDD]]*
+        algorithms: DistributedClusteringAlgorithm[ID, O, V, Cz, ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, RDD]]*
     ): ClusteringChainingDistributed[ID, O, V, Cz] = {
         vectorizationIDs.par.map( vectorizationID => updateVector(vectorizationID).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
     }
@@ -190,7 +189,7 @@ class ClusteringChainingLocalOnDistributedSystem[
     /**
      *
      */
-    type AlgorithmsRestrictions[NV <: GVector[NV]] = LocalClusteringAlgorithm[ID, O, NV, Cz, S, ClusteringArgs, ClusteringModelCz[ID, O, NV, Cz, S]]
+    type AlgorithmsRestrictions[NV <: GVector[NV]] = LocalClusteringAlgorithm[ID, O, NV, Cz, S, ClusteringArgs[NV], ClusteringModelCz[ID, O, NV, Cz, S]]
     /**
      *
      */

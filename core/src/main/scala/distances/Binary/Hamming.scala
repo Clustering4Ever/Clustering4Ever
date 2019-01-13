@@ -39,20 +39,15 @@ class RawHamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with R
 /**
  *
  */
-class Hamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with BinaryDistance[V] {
+case class Hamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with BinaryDistance[V] {
+	/**
+	  * The Hamming distance with or without squareRoot
+	  * @return The Hamming distance between dot1 and dot2
+	  */
+	def d(dot1: V, dot2: V): Double = hamming(dot1, dot2)
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
 	  */
 	def d(dot1: BinaryVector[V], dot2: BinaryVector[V]): Double = hamming(dot1.vector, dot2.vector)
 }
-/**
- *
- */
-// class HammingClusterizable[V <: Seq[Int], D[X <: Seq[Int]] <: Hamming[X]](val classicalMetric: D[V]) extends HammingMeta with BinaryClusterizableDistance[V, D[V]] {
-// 	/**
-// 	  * The Hamming distance with or without squareRoot
-// 	  * @return The Hamming distance between dot1 and dot2
-// 	  */
-// 	def d[@specialized(Int, Long) ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz[X, Y, Z]]](dot1: Cz[ID, O, BinaryVector[V]], dot2: Cz[ID, O, BinaryVector[V]]): Double = hamming(dot1.workingVector.vector, dot2.workingVector.vector)
-// }

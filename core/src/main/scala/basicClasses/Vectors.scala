@@ -17,6 +17,10 @@ trait GVector[Self <: GVector[Self]] extends Serializable {
 /**
  *
  */
+trait NoGVector extends GVector[NoGVector]
+/**
+ *
+ */
 trait GSimpleVector[N, V <: Seq[N], Self <: GSimpleVector[N, V, Self]] extends GVector[Self] {
 	val vector: V
 }

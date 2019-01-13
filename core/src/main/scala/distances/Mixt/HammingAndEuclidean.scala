@@ -51,18 +51,9 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Seriali
 /**
  *
  */
-class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double = 0D, val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
+case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double = 0D, val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
 	/**
 	 *	
 	 */
 	def d(dot1: MixtVector[Vb, Vs], dot2: MixtVector[Vb, Vs]): Double = hammingAndEuclidean(dot1, dot2)	
 }
-/**
- *
- */
-// class HammingAndEuclideanClusterizable[Vb <: Seq[Int], Vs <: Seq[Double], D <: HammingAndEuclidean[Vb, Vs]](val alpha: Double = 0D, val classicalMetric: D, workingVector: Int = 0) extends HammingAndEuclideanMeta[Vb, Vs] with MixtClusterizableDistance[Vb, Vs, D] {
-// 	/**
-// 	 *
-// 	 */
-// 	def d[@specialized(Int, Long) ID, O, Cz[X, Y, Z] <: Clusterizable[X, Y, Z, Cz[X, Y, Z]]](dot1: Cz[ID, O, MixtVector[Vb, Vs]], dot2: Cz[ID, O, MixtVector[Vb, Vs]]): Double = hammingAndEuclidean(dot1.vector(workingVector), dot2.vector(workingVector))
-// }

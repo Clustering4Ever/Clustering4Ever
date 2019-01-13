@@ -39,32 +39,32 @@ object EmptyDistance extends Distance[Nothing] {
 	val id = 0
 }
 /**
- * Clusterizable Distance Builder void trait
- * It is used to optionalize obtention of a metric on Clusterizable for clustering algorithms
- */
-trait ClusterizableDistance[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends Distance[Cz[ID, O, V]] {
-	/**
-	 *
-	 */
-	val gvMetricIntern: Distance[V]
-}
-/**
  *
  */
 trait ContinuousDistance[V <: Seq[Double]] extends Distance[ScalarVector[V]] {
 	/**
 	 *
 	 */
-	def d2(v1: V, v2: V): Double
+	def d(v1: V, v2: V): Double
 }
 /**
  *
  */
-trait BinaryDistance[V <: Seq[Int]] extends Distance[BinaryVector[V]]
+trait BinaryDistance[V <: Seq[Int]] extends Distance[BinaryVector[V]] {
+	/**
+	 *
+	 */
+	def d(v1: V, v2: V): Double
+}
 /**
  *
  */
-trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVector[Vb, Vs]]
+trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVector[Vb, Vs]] {
+	/**
+	 *
+	 */
+	// def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double
+}
 /**
  *
  */
@@ -73,15 +73,3 @@ trait RawContinuousDistance[V <: Seq[Double]] extends Distance[V]
  *
  */
 trait RawBinaryDistance[V <: Seq[Int]] extends Distance[V]
-/**
- *
- */
-trait RealClusterizableDistance[ID, O, V <: Seq[Double], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, ScalarVector[V], Cz]
-/**
- *
- */
-trait BinaryClusterizableDistance[ID, O, V <: Seq[Int], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, BinaryVector[V], Cz]
-/**
- *
- */
-trait MixtClusterizableDistance[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]] extends ClusterizableDistance[ID, O, MixtVector[Vb, Vs], Cz]

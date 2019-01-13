@@ -39,40 +39,6 @@ trait KCommons[V <: GVector[V]] extends ClusteringCommons {
 	protected def areCentersMovingEnough[D <: Distance[V]](kCentersBeforeUpdate: mutable.HashMap[Int, V], centers: mutable.HashMap[Int, V], epsilon: Double, metric: D) = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
 }
 /**
- *
- */
-trait KCentersArgsTrait[V <: GVector[V], D <: Distance[V]] extends ClusteringArgs {
-	/**
-	 *
-	 */
-	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KCenters
-	/**
-	 *
-	 */
-	val k: Int
-	/**
-	 *
-	 */
-	val metric: D
-	/**
-	 *
-	 */
-	val epsilon: Double
-	/**
-	 *
-	 */
-	val maxIterations: Int
-	/**
-	 *
-	 */
-	val initializedCenters: mutable.HashMap[Int, V]
-}
-/**
- *
- */
-case class KCentersArgs[V <: GVector[V], D <: Distance[V]](val k: Int, val metric: D, val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]) extends KCentersArgsTrait[V, D]
-
-/**
  * The famous K-Centers using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of Clusterizable
  * @param k : number of clusters
@@ -80,11 +46,19 @@ case class KCentersArgs[V <: GVector[V], D <: Distance[V]](val k: Int, val metri
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-class KCenters[ID, O, V <: GVector[V] : ClassTag, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], Args <: KCentersArgsTrait[V, D]](val args: Args)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCommons[V] with LocalClusteringAlgorithm[ID, O, V, Cz, GS, Args, KCentersModel[ID, O, V, Cz, D, GS]] {
+trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], Args <: KCentersArgsAncestor[V, D], Model <: KCentersModelAncestor[ID, O, V, Cz, D, GS]] extends KCommons[V] with LocalClusteringAlgorithm[ID, O, V, Cz, GS, Args, Model] {
+	/**
+	 *
+	 */
+	val args: Args
+	/**
+	 *
+	 */
+	implicit val ct: ClassTag[Cz[ID, O, V]]
 	/**
 	 * Run the K-Centers
 	 */
-	def run(data: GS[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = {
+	def obtainCenters(data: GS[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
 		/**
 		 *
 		 */
@@ -114,12 +88,17 @@ class KCenters[ID, O, V <: GVector[V] : ClassTag, Cz[X, Y, Z <: GVector[Z]] <: C
 				centers
 			}
 		}
-
-		new KCentersModel[ID, O, V, Cz, D, GS](go(0, false), args.metric, args)
+		go(0, false)
 	}
 }
 /**
- * The general KCenters helper
+ *
+ */
+case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X], GS[X] <: GenSeq[X]](val args: KCentersArgs[V, D])(implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCentersAncestor[ID, O, V, Cz, D[V], GS, KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D, GS]] {
+	def run(data: GS[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = new KCentersModel(obtainCenters(data), args.metric, args)
+}
+/**
+ * The general KCenters compagnion object helper
  */
 object KCenters {
 	/**
@@ -130,16 +109,16 @@ object KCenters {
 		O,
 		V <: GVector[V] : ClassTag,
 		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-		D <: Distance[V],
+		D[X <: GVector[X]] <: Distance[X],
 		GS[X] <: GenSeq[X]
 	](
 		data: GS[Cz[ID, O, V]],
 		k: Int,
-		metric: D,
+		metric: D[V],
 		epsilon: Double,
 		maxIterations: Int,
 		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
 	)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = {
-		(new KCenters[ID, O, V, Cz, D, GS, KCentersArgs[V, D]](KCentersArgs(k, metric, epsilon, maxIterations, initializedCenters))).run(data)
+		(KCenters[ID, O, V, Cz, D, GS](KCentersArgs(k, metric, epsilon, maxIterations, initializedCenters))).run(data)
 	}
 }
