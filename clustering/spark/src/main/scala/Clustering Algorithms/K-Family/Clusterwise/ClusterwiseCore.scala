@@ -6,13 +6,13 @@ import scala.util.control.Breaks._
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
 
-class ClusterwiseCore[V[Double] <: Seq[Double]](
-	val dsXYTrain: GenSeq[(Int, (V[Double], V[Double]))],
+class ClusterwiseCore[V <: Seq[Double]](
+	val dsXYTrain: GenSeq[(Int, (V, V))],
 	val h: Int,
 	val g: Int,
 	val nbMaxAttemps: Int,
 	logOn: Boolean = false
-)  extends ClusterwiseTypes[V[Double]] with Serializable {
+)  extends ClusterwiseTypes[V] with Serializable {
 	val rangeOverClasses = (0 until g).toArray
 
 	private[this] def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) = {
@@ -63,9 +63,9 @@ class ClusterwiseCore[V[Double] <: Seq[Double]](
 	}
 
 
-	private[this] def elseCaseWhenComputingError(errorsIndexes: Array[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) = {
+	private[this] def elseCaseWhenComputingError(errorsIndices: Array[((Double, Double), Int)], boolTab: Array[Boolean], currentClass: Int) = {
 		var b = true
-		errorsIndexes.map{ case ((err1, err2), idx) =>
+		errorsIndices.map{ case ((err1, err2), idx) =>
 			if( idx == currentClass ) err2
 			else {
 	  			if( boolTab(idx) && b ) {
@@ -93,7 +93,7 @@ class ClusterwiseCore[V[Double] <: Seq[Double]](
 			try
 			{
 				cptAttemps += 1
-			  	val classedDS: Array[(Int, (V[Double], V[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
+			  	val classedDS: Array[(Int, (V, V, Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
 			  	val valuesToBrowse = classedDS.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
 				val dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, _) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
@@ -127,9 +127,9 @@ class ClusterwiseCore[V[Double] <: Seq[Double]](
 
 					  	val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
-					  	val errorsIndexes = error1.zip(error2).zipWithIndex
+					  	val errorsIndices = error1.zip(error2).zipWithIndex
 					  	boolTab(currentDotClass) = false
-					  	val errors = rangeOverClasses.map( i => (if( i == currentDotClass ) errorsIndexes.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndexes, boolTab, currentDotClass)).sum )
+					  	val errors = rangeOverClasses.map( i => (if( i == currentDotClass ) errorsIndices.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndices, boolTab, currentDotClass)).sum )
 					  	val minError = errors.min
 					  	val classToMovePointInto = errors.indexOf(minError)
 					  	val (pointID, (pointX, pointY, _)) = classedDS(currentDotIdx)
@@ -244,10 +244,10 @@ class ClusterwiseCore[V[Double] <: Seq[Double]](
 					  	if( regPerClass2.isEmpty ) break
 			  	  		val error2 = regPerClass2.map(_._1)
 					  	val boolTab = Array.fill(g)(true)
-					  	val errorsIndexes = error1.zip(error2).zipWithIndex
+					  	val errorsIndices = error1.zip(error2).zipWithIndex
 
 					  	boolTab(currentclusterID) = false
-					  	val errors = rangeOverClasses.map( i => (if( i == currentclusterID ) errorsIndexes.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndexes, boolTab, currentclusterID)).sum )
+					  	val errors = rangeOverClasses.map( i => (if( i == currentclusterID ) errorsIndices.map{ case ((err1, err2), idx) => err1 } else elseCaseWhenComputingError(errorsIndices, boolTab, currentclusterID)).sum )
 					  	val minError = errors.min
 					  	val classToMoveGroupInto = errors.indexOf(minError)
 					  	val posInClass = posInClassForMovingPoints(currentClass, currentDotsGrpIdx, classlimits)
@@ -302,8 +302,8 @@ class ClusterwiseCore[V[Double] <: Seq[Double]](
 
 object ClusterwiseCore extends Serializable {
 
-	def plsPerDot[V[Double] <: Seq[Double]](
-		dsXYTrain: GenSeq[(Int, (V[Double], V[Double]))],
+	def plsPerDot[V <: Seq[Double]](
+		dsXYTrain: GenSeq[(Int, (V, V))],
 		h: Int,
 		g: Int,
 		nbMaxAttemps: Int = 30,
@@ -314,8 +314,8 @@ object ClusterwiseCore extends Serializable {
 		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)
 	}
 
-	def plsPerMicroClusters[V[Double] <: Seq[Double]](
-		dsXYTrain: GenSeq[(Int, (V[Double], V[Double]))],
+	def plsPerMicroClusters[V <: Seq[Double]](
+		dsXYTrain: GenSeq[(Int, (V, V))],
 		allGroupedData: immutable.HashMap[Int, Int],
 		h: Int,
 		g: Int,

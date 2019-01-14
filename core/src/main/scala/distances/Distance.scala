@@ -3,40 +3,73 @@ package org.clustering4ever.math.distances
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
+import org.clustering4ever.clusterizables.Clusterizable
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.types.MetricIDType._
+/**
+ *
+ */
+trait MetricArgs extends Serializable
 /**
  * Most general notion of Distance, taking two object of type O and returning a Double
  */
 trait Distance[O] extends Serializable {
+// trait Distance[O, MA <: MetricArgs] extends Serializable {
+	// val metricArgs: MA
+	/**
+	 *
+	 */
 	def d(o1: O, o2: O): Double
+	/**
+	 *
+	 */
+	val id: MetricID
+}
+/**
+ * The EmptyDistance for algorithm which doesn't require any distances
+ */
+object EmptyDistance extends Distance[Nothing] {
+	/**
+	 *
+	 */
+	def d(o1: Nothing, o2: Nothing): Double = 0D
+	/**
+	 *
+	 */
+	val id = 0
 }
 /**
  *
  */
-trait ContinuousDistance[V <: Seq[Double]] extends Distance[V]
-/**
- *
- */
-trait BinaryDistance[V <: Seq[Int]] extends Distance[V]
-/**
- *
- */
-trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[BinaryScalarVector[Vb, Vs]]
-/**
- *
- */
-trait ClusterizableDistance[O, V, D <: Distance[V]] extends Distance[O] {
-	val classicalMetric: D
+trait ContinuousDistance[V <: Seq[Double]] extends Distance[ScalarVector[V]] {
+	/**
+	 *
+	 */
+	def d(v1: V, v2: V): Double
 }
 /**
  *
  */
-trait RealClusterizableDistance[O, V <: Seq[Double], D <: ContinuousDistance[V]] extends ClusterizableDistance[O, V, D]
+trait BinaryDistance[V <: Seq[Int]] extends Distance[BinaryVector[V]] {
+	/**
+	 *
+	 */
+	def d(v1: V, v2: V): Double
+}
 /**
  *
  */
-trait BinaryClusterizableDistance[O, V <: Seq[Int], D <: BinaryDistance[V]] extends ClusterizableDistance[O, V, D]
+trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVector[Vb, Vs]] {
+	/**
+	 *
+	 */
+	// def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double
+}
 /**
  *
  */
-trait MixtClusterizableDistance[O, Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]] extends ClusterizableDistance[O, BinaryScalarVector[Vb, Vs], D]
+trait RawContinuousDistance[V <: Seq[Double]] extends Distance[V]
+/**
+ *
+ */
+trait RawBinaryDistance[V <: Seq[Int]] extends Distance[V]

@@ -1,16 +1,15 @@
-package org.clustering4ever.scala.indexes
+package org.clustering4ever.indices
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.collection.GenSeq
-import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.clustering.ClusteringCommons
 /**
- * This object is used to compute internals clustering indexes as Davies Bouldin or Silhouette
+ * This object is used to compute internals clustering indices as Davies Bouldin or Silhouette
  */
-trait InternalIndexesCommons[V, D <: Distance[V]] extends ClusteringCommons {
+trait InternalIndicesCommons[V, D <: Distance[V]] extends ClusteringCommons {
   /**
    * Measure of how good the clustering scheme is
    * Params:

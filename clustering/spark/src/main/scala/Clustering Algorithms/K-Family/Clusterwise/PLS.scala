@@ -5,7 +5,7 @@ import scala.math.{pow, sqrt => ssqrt}
 import scala.collection.{immutable, mutable, GenSeq}
 import org.clustering4ever.util.SumVectors
 import breeze.linalg.{DenseVector, DenseMatrix, Transpose, eigSym, svd, sum, *, diag}
-import org.clustering4ever.util.VectorsBasicOperationsImplicits._
+import org.clustering4ever.util.VectorsAddOperationsImplicits._
 /**
  *
  */
@@ -16,9 +16,9 @@ trait CommonPLSTypes {
 /**
  *
  */
-class PLS[V[Double] <: Seq[Double]](
-	dsXi: GenSeq[(Int, V[Double])],
-	dsY: GenSeq[V[Double]],
+class PLS[V <: Seq[Double]](
+	dsXi: GenSeq[(Int, V)],
+	dsY: GenSeq[V],
 	n: Int,
 	h: Int,
 	lw: Double,
@@ -30,8 +30,8 @@ class PLS[V[Double] <: Seq[Double]](
 		val nrowX = dsX.size
 		val ncolY = dsY.head.size
 		val lw = 1D / n
-		val meanX = dsX.reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map(_ / n)
-		val meanY = dsY.reduce(SumVectors.sumVectors(_, _).asInstanceOf[V[Double]]).map(_ / n)
+		val meanX = dsX.reduce(SumVectors.sumVectors(_, _)).map(_ / n)
+		val meanY = dsY.reduce(SumVectors.sumVectors(_, _)).map(_ / n)
 		val meanYa = meanY.toArray
 
 
@@ -133,9 +133,9 @@ class PLS[V[Double] <: Seq[Double]](
 
 			val crossProdXY = bXklwT * bYk
 			val crossProdW = resW(i) * resW(i).t
-			val pred_crit_comp = crossProdXY - crossProdW * crossProdXY
-			val pred_crit_comp_squared = pred_crit_comp.map( x => x * x )
-			val colSum = sum(pred_crit_comp_squared(::, *))
+			val predCritComp = crossProdXY - crossProdW * crossProdXY
+			val predCritCompSquared = predCritComp.map( x => x * x )
+			val colSum = sum(predCritCompSquared(::, *))
 			resCritComp += ssqrt(colSum.t.toArray.sum)
 
 			val wts = ssqrt(lw)
@@ -225,7 +225,7 @@ class PLS[V[Double] <: Seq[Double]](
 
 object PLS extends CommonPLSTypes {
 
-	def runClusterwisePLS[V[Double] <: Seq[Double]](dsX: Array[IdWithX[V[Double]]], dsY: Array[Y[V[Double]]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	def runClusterwisePLS[V <: Seq[Double]](dsX: Array[IdWithX[V]], dsY: Array[Y[V]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
 		val lw = 1D / n
@@ -233,7 +233,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	def runPLS[V[Double] <: Seq[Double]](dsX: IdWithX[V[Double]], dsY: Y[V[Double]], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	def runPLS[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX.size
 		val lw = 1D / n
 		val ktabXdudiYvalues = ktabXdudiY(dsX, dsY, n)
@@ -241,7 +241,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	def ktabXdudiY[V[Double] <: Seq[Double]](dsX: IdWithX[V[Double]], dsY: Y[V[Double]], n: Int): (Int, Double, Double) = {
+	def ktabXdudiY[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], n: Int): (Int, Double, Double) = {
 		val lw = 1D / n
 		val cw = dsX.head._2.size
 		val colw = dsY.head.size

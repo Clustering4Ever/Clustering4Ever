@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.kprototypes
+package org.clustering4ever.spark.clustering.kcenters
 /**
  * @author Beck Gaël
  */
@@ -6,15 +6,24 @@ import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import scala.util.Random
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
+import org.clustering4ever.math.distances.MixtDistance
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.util.SparkImplicits._
-import org.apache.spark.rdd.RDD
-import org.clustering4ever.spark.clustering.kcenters.{KCentersModel, KCenters}
+import org.clustering4ever.vectors.{GVector, MixtVector}
+/**
+ *
+ */
+case class KPrototypes[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val args: KPrototypesArgs[Vb, Vs, D])(implicit val ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]], val ctV: ClassTag[MixtVector[Vb, Vs]]) extends KCentersAncestor[ID, O, MixtVector[Vb, Vs], Cz, D[Vb, Vs], KPrototypesArgs[Vb, Vs, D], KPrototypesModel[ID, O, Vb, Vs, Cz, D]] {
+	/**
+	 *
+	 */
+	def run(data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D] = KPrototypesModel[ID, O, Vb, Vs, Cz, D](obtainCenters(data), args.metric)
+}
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :
@@ -28,23 +37,23 @@ object KPrototypes {
 	 * Run the K-Prototypes with any mixt distance
 	 */
 	def run[
-		ID: Numeric,
+		ID,
 		O,
-		Vb[Int] <: Seq[Int],
-		Vs[Double] <: Seq[Double],
-		Cz[ID, O, V] <: Clusterizable[ID, O, V, Cz[ID, O, V]],
-		D <: MixtDistance[Vb[Int], Vs[Double]]
+		Vb <: Seq[Int],
+		Vs <: Seq[Double],
+		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+		D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]
 	](
-		data: RDD[Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]]],
+		data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]],
 		k: Int,
 		epsilon: Double,
 		maxIterations: Int,
-		metric: D,
-		workingVector: Int = 0,
-		initializedCenters: mutable.HashMap[Int, BinaryScalarVector[Vb[Int], Vs[Double]]] = mutable.HashMap.empty[Int, BinaryScalarVector[Vb[Int], Vs[Double]]]
-	)(implicit ct: ClassTag[Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]]]): KCentersModel[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]], D] = {
-		val kPrototypes = new KCenters[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]], Cz[ID, O, BinaryScalarVector[Vb[Int], Vs[Double]]], D](k, epsilon, maxIterations, metric)
-		val kPrototypesModel = kPrototypes.run(data)(workingVector)
+		metric: D[Vb, Vs],
+		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
+		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
+	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D] = {
+		val kPrototypes = KPrototypes[ID, O, Vb, Vs, Cz, D](KPrototypesArgs[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		val kPrototypesModel = kPrototypes.run(data)
 		kPrototypesModel
 	}
 }

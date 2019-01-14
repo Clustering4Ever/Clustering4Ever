@@ -3,12 +3,14 @@ package org.clustering4ever.util
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import scala.collection.GenSeq
-import org.clustering4ever.scala.clusterizables.EasyClusterizable
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 import scala.language.implicitConversions
-import org.clustering4ever.preprocessing.DFCL
-import org.clustering4ever.scala.vectorizables.Vector
+import scala.collection.GenSeq
+import org.clustering4ever.clusterizables.EasyClusterizable
+import org.clustering4ever.vectorizables.Vectorizable
+import org.clustering4ever.vectors.{BinaryVector, ScalarVector, MixtVector}
+import org.clustering4ever.supervizables.EasySupervizable
+import org.clustering4ever.vectors.SupervizedVector
+import org.clustering4ever.vectorizables.{VectorizableOrNot, NotVectorizable, Vectorizable}
 /**
  *
  */
@@ -16,25 +18,37 @@ object ScalaImplicits {
 	/**
 	 *
 	 */
-	implicit def prepareDataWithIDToVectorsClustering[ID, N, V[N] <: Seq[N], GS[X] <: GenSeq[X]](genSeq: GS[(V[N], ID)])(implicit num: Numeric[ID]): GS[EasyClusterizable[Long, V[N], V[N]]] = {
-		genSeq.map{ case (vector, id) => ClusterizableGenerator.obtainEasyClusterizable(num.toLong(id), vector) }.asInstanceOf[GS[EasyClusterizable[Long, V[N], V[N]]]]
+	implicit def scalarDataWithIDToClusterizable[ID, V <: Seq[Double], GS[Y] <: GenSeq[Y]](genSeq: GS[(V, ID)]): GS[EasyClusterizable[ID, ScalarVector[V], ScalarVector[V]]] = {
+		genSeq.map{ case (vector, id) => EasyClusterizable(id, ScalarVector(vector)) }.asInstanceOf[GS[EasyClusterizable[ID, ScalarVector[V], ScalarVector[V]]]]
 	}
 	/**
 	 *
 	 */
-	implicit def prepareDataWithIDToMixtClustering[ID, Vb <: Seq[Int], Vs <: Seq[Double], GS[X] <: GenSeq[X]](genSeq: GS[(BinaryScalarVector[Vb, Vs], ID)])(implicit num: Numeric[ID]): GS[EasyClusterizable[Long, BinaryScalarVector[Vb, Vs], BinaryScalarVector[Vb, Vs]]] = {
-		genSeq.map{ case (vectors, id) => ClusterizableGenerator.obtainEasyClusterizable(num.toLong(id), new BinaryScalarVector(vectors.binary, vectors.scalar)) }.asInstanceOf[GS[EasyClusterizable[Long, BinaryScalarVector[Vb, Vs], BinaryScalarVector[Vb, Vs]]]]
+	implicit def binaryDataWithIDToClusterizable[ID, V <: Seq[Int], GS[Y] <: GenSeq[Y]](genSeq: GS[(V, ID)]): GS[EasyClusterizable[ID, BinaryVector[V], BinaryVector[V]]] = {
+		genSeq.map{ case (vector, id) => EasyClusterizable(id, BinaryVector(vector)) }.asInstanceOf[GS[EasyClusterizable[ID, BinaryVector[V], BinaryVector[V]]]]
 	}
 	/**
 	 *
 	 */
-	implicit def prepareToVectorsClustering[N, V[N] <: Seq[N], GS[X] <: GenSeq[X]](genSeq: GS[V[N]]): GS[EasyClusterizable[Long, V[N], V[N]]] = genSeq.zipWithIndex.asInstanceOf[GS[(V[N], Int)]]
+	implicit def mixtDataWithIDToClusterizable[ID, Vb <: Seq[Int], Vs <: Seq[Double], GS[X] <: GenSeq[X]](genSeq: GS[((Vb, Vs), ID)]): GS[EasyClusterizable[ID, MixtVector[Vb, Vs], MixtVector[Vb, Vs]]] = {
+		genSeq.map{ case ((binary, scalar), id) => EasyClusterizable(id, MixtVector(binary, scalar)) }.asInstanceOf[GS[EasyClusterizable[ID, MixtVector[Vb, Vs], MixtVector[Vb, Vs]]]]
+	}
 	/**
 	 *
 	 */
-	implicit def prepareToMixtClustering[Vb <: Seq[Int], Vs <: Seq[Double], GS[X] <: GenSeq[X]](genSeq: GenSeq[BinaryScalarVector[Vb, Vs]]): GenSeq[EasyClusterizable[Long, BinaryScalarVector[Vb, Vs], BinaryScalarVector[Vb, Vs]]] = prepareDataWithIDToMixtClustering(genSeq.zipWithIndex.asInstanceOf[GS[(BinaryScalarVector[Vb, Vs], Int)]])
+	implicit def scalarToClusterizable[V <: Seq[Double], GS[Y] <: GenSeq[Y]](genSeq: GS[V]): GS[EasyClusterizable[Int, ScalarVector[V], ScalarVector[V]]] = genSeq.zipWithIndex.asInstanceOf[GS[(V, Int)]]
 	/**
 	 *
 	 */
-	implicit def rawDataToDFCL[T, V[T] <: Seq[T], GS[X] <: GenSeq[X]](gs: GS[(V[T], Int)]): GS[DFCL[Int, V[T]]] = gs.zipWithIndex.map{ case ((v, l), id) => new DFCL(id, new Vector(v), l) }.asInstanceOf[GS[DFCL[Int, V[T]]]]
+	implicit def binaryToClusterizable[V <: Seq[Int], GS[Y] <: GenSeq[Y]](genSeq: GS[V]): GS[EasyClusterizable[Int, BinaryVector[V], BinaryVector[V]]] = genSeq.zipWithIndex.asInstanceOf[GS[(V, Int)]]
+	/**
+	 *
+	 */
+	implicit def mixtToClusterizable[Vb <: Seq[Int], Vs <: Seq[Double], GS[X] <: GenSeq[X]](genSeq: GS[(Vb, Vs)]): GS[EasyClusterizable[Int, MixtVector[Vb, Vs], MixtVector[Vb, Vs]]] = genSeq.zipWithIndex.asInstanceOf[GS[((Vb, Vs), Int)]]
+	/**
+	 *
+	 */
+	implicit def rawDataToSupervizable[T, V[X] <: Seq[X], GS[Y] <: GenSeq[Y]](gs: GS[(V[Int], Int)]): GS[EasySupervizable[Int, SupervizedVector[T, V], SupervizedVector[T, V]]] = {
+		gs.zipWithIndex.map{ case ((v, l), id) => EasySupervizable(id, SupervizedVector(v),  l) }.asInstanceOf[GS[EasySupervizable[Int, SupervizedVector[T, V], SupervizedVector[T, V]]]]
+	}
 }

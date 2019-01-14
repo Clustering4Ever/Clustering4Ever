@@ -1,50 +1,43 @@
 package org.clustering4ever.spark.clustering.kcenters
-
+/**
+ * @author Beck Gaël
+ */
 import scala.language.higherKinds
-import org.apache.commons.math3.distribution.EnumeratedDistribution
-import org.apache.commons.math3.util.Pair
-import scala.collection.JavaConverters._
-import scala.math.pow
-import scala.collection.{immutable, mutable, parallel}
-import scala.util.Random
 import scala.reflect.ClassTag
+import scala.collection.mutable
 import org.apache.spark.rdd.RDD
-import org.apache.spark.storage.StorageLevel
-import org.clustering4ever.math.distances.Distance
-import org.clustering4ever.stats.Stats
-import org.clustering4ever.scala.clusterizables.Clusterizable
-import org.clustering4ever.scala.clustering.kcenters.KCommons
-import org.clustering4ever.clustering.CenterOrientedModelDistributed
-import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
-import spire.math.{Numeric => SNumeric}
+import org.clustering4ever.clusterizables.Clusterizable
+import org.clustering4ever.clustering.models.CenterOrientedModelDistributedCz
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.clustering.ClusteringModelDistributed
 /**
  *
  */
-class KCentersModel[
-	ID: Numeric,
-	O,
-	V,
-	Cz <: Clusterizable[ID, O, V, Cz] : ClassTag,
-	D <: Distance[V]
-	](
-	val centers: mutable.HashMap[Int, V],
-	val metric: D,
-	var workingVector: Int = 0
-) extends CenterOrientedModelDistributed[V, D] {
+trait KCentersModelAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V]] extends CenterOrientedModelDistributedCz[V, D] with ClusteringModelDistributed[ID, O, V, Cz] {
 	/**
-	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
-	 * @return the input Seq with labels obtain via centerPredict method
+	 *
 	 */
-	def centerPredict(data: RDD[Cz])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(centerPredict(rc.vector(workingVector))) )
+	implicit val ct: ClassTag[Cz[ID, O, V]]
 	/**
-	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
-	 * @return the input Seq with labels obtain via knnPredict method
+	 *
 	 */
-	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[(ClusterID, V)])(implicit i: DummyImplicit): RDD[Cz] = data.map( rc => rc.addClusterID(knnPredict(rc.vector(workingVector), k, trainDS)) )
-	/**
-	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
-	 * @return the input Seq with labels obtain via knnPredict method
-	 */
-	def knnPredict(data: RDD[Cz], k: Int, trainDS: Seq[Cz], clusteringNumber: Int = 0): RDD[Cz] = knnPredict(data, k, trainDS.map( rc => (rc.clusterID(clusteringNumber), rc.vector(workingVector)) ))
+	def obtainClustering(data: RDD[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = centerPredictCz(data)
+
 }
+/**
+ *
+ */
+case class KCentersModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X]](val centers: mutable.HashMap[Int, V], val metric: D[V])(implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCentersModelAncestor[ID, O, V, Cz, D[V]]
+/**
+ *
+ */
+case class KMeansModel[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Double]] <: ContinuousDistance[X]](val centers: mutable.HashMap[Int, ScalarVector[V]], val metric: D[V])(implicit val ct: ClassTag[Cz[ID, O, ScalarVector[V]]]) extends KCentersModelAncestor[ID, O, ScalarVector[V], Cz, D[V]]
+/**
+ *
+ */
+case class KModesModel[ID, O, V <: Seq[Int], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Int]] <: BinaryDistance[X]](val centers: mutable.HashMap[Int, BinaryVector[V]], val metric: D[V])(implicit val ct: ClassTag[Cz[ID, O, BinaryVector[V]]]) extends KCentersModelAncestor[ID, O, BinaryVector[V], Cz, D[V]]
+/**
+ *
+ */
+case class KPrototypesModel[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val centers: mutable.HashMap[Int, MixtVector[Vb, Vs]], val metric: D[Vb, Vs])(implicit val ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]) extends KCentersModelAncestor[ID, O, MixtVector[Vb, Vs], Cz, D[Vb, Vs]]

@@ -1,12 +1,11 @@
 package org.clustering4ever.spark.clustering.mtm.global
 
-import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.math.distances.RawContinuousDistance
 
 /**
  * @author Sarazin Tugdual & Beck Gaël
  **/
-abstract class AbstractPrototype(val id: Int, var point: Seq[Double], metric: ContinuousDistance[Seq[Double]]) extends Serializable
+abstract class AbstractPrototype(val id: Int, var point: Seq[Double], metric: RawContinuousDistance[Seq[Double]]) extends Serializable
 {
 	def update(newPoint: Seq[Double]): Double =
 	{

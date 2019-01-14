@@ -1,45 +1,30 @@
 package org.clustering4ever.spark.clustering.kcenters
 
 import scala.language.higherKinds
-import org.apache.commons.math3.distribution.EnumeratedDistribution
-import org.apache.commons.math3.util.Pair
+import org.apache.spark.SparkContext
 import scala.collection.JavaConverters._
 import scala.math.pow
-import scala.collection.{immutable, mutable, parallel}
+import scala.collection.mutable
 import scala.util.Random
 import scala.reflect.ClassTag
-import spire.math.{Numeric => SNumeric}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
-import org.clustering4ever.scala.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.scala.clustering.kcenters.KCommons
-import org.clustering4ever.clustering.CenterOrientedModelDistributed
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import org.clustering4ever.scala.measurableclass.BinaryScalarVector
 import org.clustering4ever.clustering.DistributedClusteringAlgorithm
+import org.clustering4ever.vectors.GVector
+import org.clustering4ever.clustering.ClusteringArgsDistributed
 /**
  *
  */
-class KCenters[
-	ID: Numeric,
-	O,
-	V: ClassTag,
-	Cz <: Clusterizable[ID, O, V, Cz] : ClassTag,
-	D <: Distance[V]
-	](
-	k: Int,
-	epsilon: Double,
-	maxIterations: Int,
-	metric: D,
-	initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V],
-	persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY
-) extends KCommons[ID, O, V, Cz, D](k, epsilon, maxIterations, metric, initializedCenters) with DistributedClusteringAlgorithm[RDD[Cz]] {
-
-	private val emptyValue = mutable.ArrayBuffer.empty[V]
-	private def mergeValue(combiner: mutable.ArrayBuffer[V], comb: V): mutable.ArrayBuffer[V] = combiner += comb
-	private def mergeCombiners(combiner1: mutable.ArrayBuffer[V], combiner2: mutable.ArrayBuffer[V]): mutable.ArrayBuffer[V] = combiner1 ++= combiner2
+trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], Args <: KCentersArgsAncestor[V, D], Model <: KCentersModelAncestor[ID, O, V, Cz, D]] extends KCommons[V] with DistributedClusteringAlgorithm[ID, O, V, Cz, Args, Model] {
+	/**
+	 *
+	 */
+	implicit val ctV: ClassTag[V]
 	/**
 	 * To upgrade
 	 * Kmeans++ initialization
@@ -50,16 +35,20 @@ class KCenters[
 	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
 	 * </ol>
 	 */
-	private def kmppInitializationRDD(vectorizedDataset: RDD[V], k: Int): mutable.HashMap[Int, V] = {
+	private def kmppInitializationRDD[D <: Distance[V]](vectorizedDataset: RDD[V], k: Int, metric: D): mutable.HashMap[Int, V] = {
 
 		def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 		
 		val centersBuff = mutable.ArrayBuffer(vectorizedDataset.first)
 
-		(1 until k).foreach( i => centersBuff += Stats.obtainCenterFollowingWeightedDistribution[V](vectorizedDataset.map{ v =>
-			val toPow2 = metric.d(v, obtainNearestCenter(v, centersBuff))
-			(v, toPow2 * toPow2)
-		}.sample(false, 0.01, 8L).collect.toBuffer) )
+		(1 until k).foreach( i =>
+			centersBuff += Stats.obtainCenterFollowingWeightedDistribution[V](
+				vectorizedDataset.map{ v =>
+					val toPow2 = metric.d(v, obtainNearestCenter(v, centersBuff))
+					(v, toPow2 * toPow2)
+				}.sample(false, 0.01, 8L).collect.toBuffer
+			)
+		)
 
 		val centers = mutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
 		centers
@@ -67,44 +56,49 @@ class KCenters[
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz])(workingVector: Int = 0): KCentersModel[ID, O, V, Cz, D] = {
+	def obtainCenters(data: RDD[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
+		
+		data.persist(args.persistanceLVL)
 		/**
 		 * To upgrade
 		 */
-		val centers: mutable.HashMap[Int, V] = if( initializedCenters.isEmpty ) kmppInitializationRDD(data.map(_.vector(workingVector)).persist(persistanceLVL), k) else initializedCenters
+		val centers: mutable.HashMap[Int, V] = if(args.initializedCenters.isEmpty) kmppInitializationRDD(data.map(_.v), args.k, args.metric) else args.initializedCenters
 		val kCentersBeforeUpdate: mutable.HashMap[Int, V] = centers.clone
 		val clustersCardinality: mutable.HashMap[Int, Long] = centers.map{ case (clusterID, _) => (clusterID, 0L) }
 		
 		def updateCentersAndCardinalities(centersInfo: Iterable[(Int, Long, V)]) = {
 			centersInfo.foreach{ case (clusterID, cardinality, center) =>
-				kCentersBeforeUpdate(clusterID) = center.asInstanceOf[V]
+				kCentersBeforeUpdate(clusterID) = center
 				clustersCardinality(clusterID) = cardinality
 			}
 		}
 
 		def checkIfConvergenceAndUpdateCenters(centersInfo: Iterable[(Int, Long, V)], epsilon: Double) = {
 			updateCentersAndCardinalities(centersInfo)
-			val allModHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon)
+			val allModHaveConverged = areCentersMovingEnough(kCentersBeforeUpdate, centers, epsilon, args.metric)
 			kCentersBeforeUpdate.foreach{ case (clusterID, mode) => centers(clusterID) = mode }	
 			allModHaveConverged
 		}
-		def obtainCentersInfo = {
-				data.map( cz => (obtainNearestCenterID(cz.vector(workingVector), centers), cz.vector(workingVector)) ).aggregateByKey(emptyValue)(mergeValue, mergeCombiners)
-					.map{ case (clusterID, aggregate) => 
-						(
-							clusterID,
-							aggregate.size.toLong,
-							ClusterBasicOperations.obtainCenter(aggregate.par, metric)
-						)
-					}.collect
-			}
 		var cpt = 0
 		var allModHaveConverged = false
-		while( cpt < maxIterations && ! allModHaveConverged ) {
-			val centersInfo = obtainCentersInfo
-			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, epsilon)
+		while(cpt < args.maxIterations && !allModHaveConverged) {
+			val centersInfo = data.map( cz => (obtainNearestCenterID(cz.v, centers, args.metric), (1L, cz.v)) )
+				.reduceByKeyLocally{ case ((card1, v1), (card2, v2)) => ((card1 + card2), ClusterBasicOperations.obtainCenter(List(v1, v2), args.metric)) }
+				.map{ case (clusterID, (cardinality, center)) => (clusterID, cardinality, center) }
+				.toArray
+
+			allModHaveConverged = checkIfConvergenceAndUpdateCenters(centersInfo, args.epsilon)
 			cpt += 1
 		}
-		new KCentersModel[ID, O, V, Cz, D](centers, metric)
+		centers
 	}
+}
+/**
+ *
+ */
+case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X]](val args: KCentersArgs[V, D])(implicit val ct: ClassTag[Cz[ID, O, V]], val ctV: ClassTag[V]) extends KCentersAncestor[ID, O, V, Cz, D[V], KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D]] {
+	/**
+	 *
+	 */
+	def run(data: RDD[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D] = KCentersModel[ID, O, V, Cz, D](obtainCenters(data), args.metric)
 }

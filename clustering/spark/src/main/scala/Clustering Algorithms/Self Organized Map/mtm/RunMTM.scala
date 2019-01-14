@@ -11,8 +11,8 @@ import org.clustering4ever.spark.clustering.mtm.global.AbstractTrainer
 import org.clustering4ever.spark.clustering.mtm.utils.NamedVector
 import org.clustering4ever.spark.clustering.mtm.utils.DataGenerator
 import org.clustering4ever.spark.clustering.mtm.utils.Output
-import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.math.distances.ContinuousDistance
+import org.clustering4ever.math.distances.scalar.RawEuclidean
+import org.clustering4ever.math.distances.RawContinuousDistance
 /**
  * @author Sarazin Tugdual & Beck Gaël
  **/
@@ -23,7 +23,7 @@ object RunSom
     sparkMaster: String,
     intputFile: RDD[Seq[Double]],
     outputDir: String,
-    metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true),
+    metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[Seq[Double]](false),
     execName: String = "RunMTM",
     nbRow: Int = 10, 
     nbCol: Int = 10, 
@@ -57,7 +57,7 @@ object RunSom
   def exec(
     intputFile: RDD[Seq[Double]],
     outputDir: String,
-    metric: ContinuousDistance[Seq[Double]] = new Euclidean[Seq[Double]](true),
+    metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[Seq[Double]](false),
     nbRow: Int = 10,
     nbCol: Int = 10,
     tmin: Double = 0.9,

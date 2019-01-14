@@ -2,13 +2,22 @@ package org.clustering4ever.math.distances.binary
 /**
  * @author Beck Gaël
  */
-import org.clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
 import scala.collection.mutable
+import org.clustering4ever.math.distances.{BinaryDistance, BinaryDistanceUtil}
+import org.clustering4ever.vectors.BinaryVector
+import org.clustering4ever.types.MetricIDType._
+/**
+ *
+ **/
+case class Vari[V <: Seq[Int]](val id: MetricID = 9) extends BinaryDistance[V] {
 
-class Vari extends BinaryDistance[mutable.ArrayBuffer[Int]] {
-
-	def d(vector1: mutable.ArrayBuffer[Int], vector2: mutable.ArrayBuffer[Int]): Double = {
-		val (a,b,c,d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)
+	def d(vector1: V, vector2: V): Double = {
+		val (a, b, c, d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)
 		(b + c).toDouble / (4 * (a + b + c + d))
 	}
+	/**
+	 *
+	 */
+	def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = d(vector1.vector, vector2.vector)
+
 }

@@ -4,28 +4,31 @@ package org.clustering4ever.scala.preprocessing.util
  */
 import scala.language.higherKinds
 import scala.collection.{mutable, immutable, GenSeq}
-import org.clustering4ever.preprocessing.{DFCL, HDFCL}
+import org.clustering4ever.supervizables.Supervizable
 import scala.util.Random
-import org.clustering4ever.scala.vectorizables.Vector
+import org.clustering4ever.vectorizables.Vectorizable
+import org.clustering4ever.vectors.{SupervizedVector, GVector}
+import org.clustering4ever.supervizables.EasySupervizable
 /**
  * Theses functions are used to preprocess raw data                    
  */
 object Util extends Serializable {
-
-
   /**
    * Determine in which interval falls a value given a specific range.
    * @return i if smaller or equal than ith value (starting at 0) and range.size +1 if bigger than the last range value 
    */
-  def whichInterval[N](d: N, range: Seq[N])(implicit num: Numeric[N])  = {
+  def whichInterval[N](d: N, range: Seq[N])(implicit num: Numeric[N]): Int  = {
     @annotation.tailrec
     def go(i: Int): Int = {
-      if( num.lteq(d, range(i)) ) i
-      else if( num.gt(d, range.last) ) range.size + 1
+      if(num.lteq(d, range(i))) i
+      else if(num.gt(d, range.last)) range.size + 1
       else go(i + 1)
     }
     go(0)
   }
+  /**
+   *
+   */
   private def obtainIdxByValueByFeatIdx[T](occurPerFeat: Seq[mutable.HashSet[T]]) = { 
     immutable.HashMap(
       occurPerFeat.map( values => immutable.HashMap(values.toSeq.zipWithIndex:_*) )
@@ -43,7 +46,7 @@ object Util extends Serializable {
   /**
    *
    */
-  def obtainOccurencePerFeature[ID: Numeric, T, V[T] <: Seq[T]](gs: GenSeq[DFCL[ID, V[T]]]): Seq[mutable.HashSet[T]] = reduceOccFeaturesGs(gs.map(_.originalVector.map(mutable.HashSet(_))))
+  def obtainOccurencePerFeature[ID, O, T, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](gs: GenSeq[Sz[ID, O, SupervizedVector[T, V]]]): Seq[mutable.HashSet[T]] = reduceOccFeaturesGs(gs.map(_.v.vector.map(mutable.HashSet(_))))
   /**
    *
    */
@@ -59,25 +62,28 @@ object Util extends Serializable {
   /**
    *
    */
-  def prepareGsForRoughSet[ID: Numeric, T, V[T] <: Seq[T]](gs: GenSeq[DFCL[ID, V[T]]]): GenSeq[DFCL[ID, V[T]]] = {
+  def prepareGsForRoughSet[ID, O, T, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz], GS[X] <: GenSeq[X]](gs: GS[Sz[ID, O, SupervizedVector[T, V]]]): GS[EasySupervizable[ID, O, SupervizedVector[T, V]]] = {
     
     val occurPerFeat = obtainOccurencePerFeature(gs)
 
     val idxByValueByFeatIdx = obtainIdxByValueByFeatIdx(occurPerFeat)
 
-    val learnableGs = gs.map( dfcl => new DFCL(dfcl.id, new Vector(dfcl.originalVector.zipWithIndex.map{ case (value, idxF) => idxByValueByFeatIdx(idxF)(value) }.asInstanceOf[V[T]]), dfcl.label) )
+    val learnableGs = gs.map{ sup => 
+      val newWorkingVector = new SupervizedVector(sup.v.vector.zipWithIndex.map{ case (value, idxF) => idxByValueByFeatIdx(idxF)(value) }.asInstanceOf[V[T]])
+      new EasySupervizable(sup.id, sup.o, sup.label, newWorkingVector)
+    }
 
-    learnableGs
+    learnableGs.asInstanceOf[GS[EasySupervizable[ID, O, SupervizedVector[T, V]]]]
   }
   /**
    *
    */
-  def prepareGsForRoughSetHeuristic[ID: Numeric, T, V[T] <: Seq[T]](gs: GenSeq[DFCL[ID, V[T]]], numberOfBucket: Int): (GenSeq[HDFCL[ID, Int, mutable.Buffer, mutable.Buffer]], mutable.Buffer[mutable.Buffer[Int]]) = {
+  def prepareGsForRoughSetHeuristic[ID, O, T, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz], GS[X] <: GenSeq[X]](gs: GS[Sz[ID, O, SupervizedVector[T, V]]], numberOfBucket: Int): (GS[EasySupervizable[ID, O, SupervizedVector[T, V]]], mutable.Buffer[mutable.Buffer[Int]]) = {
     
-    val bucketizedFeats = obtainRandomlyBucketizedFeatures(gs.head.originalVector.size, numberOfBucket)
+    val bucketizedFeats = obtainRandomlyBucketizedFeatures(gs.head.v.vector.size, numberOfBucket)
     
     (
-      prepareGsForRoughSet(gs).map( dfcl => dfcl.bucketizedFeatures(bucketizedFeats) ),
+      prepareGsForRoughSet(gs).map( sup => sup.definedBucketizedFeatures(bucketizedFeats) ).asInstanceOf[GS[EasySupervizable[ID, O, SupervizedVector[T, V]]]],
       bucketizedFeats
     )
 
