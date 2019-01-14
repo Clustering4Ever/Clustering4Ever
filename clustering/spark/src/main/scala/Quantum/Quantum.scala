@@ -1,0 +1,5 @@
+package Quantum
+
+class Quantum {
+
+}

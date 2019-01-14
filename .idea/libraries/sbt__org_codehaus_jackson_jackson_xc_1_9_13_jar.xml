@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="sbt: org.codehaus.jackson:jackson-xc:1.9.13:jar">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../.ivy2/cache/org.codehaus.jackson/jackson-xc/jars/jackson-xc-1.9.13.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../.ivy2/cache/org.codehaus.jackson/jackson-xc/srcs/jackson-xc-1.9.13-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
