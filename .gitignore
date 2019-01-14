@@ -6,3 +6,4 @@ core/target/
 target/
 documentation/target
 qualityMeasure/target/
+.idea/
