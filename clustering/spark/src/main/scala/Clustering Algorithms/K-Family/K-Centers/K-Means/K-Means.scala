@@ -20,7 +20,7 @@ case class KMeans[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusteri
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz[ID, O, ScalarVector[V]]]): KMeansModel[ID, O, V, Cz, D] = KMeansModel[ID, O, V, Cz, D](obtainCenters(data), args.metric)
+	def run(data: RDD[Cz[ID, O, ScalarVector[V]]]): KMeansModel[ID, O, V, Cz, D] = KMeansModel[ID, O, V, Cz, D](obtainCenters(data), args.metric, args)
 }
 /**
  * The famous K-Means using a user-defined dissmilarity measure.

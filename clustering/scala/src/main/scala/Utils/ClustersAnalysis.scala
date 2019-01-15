@@ -2,11 +2,11 @@ package org.clustering4ever.scala.clusteranalysis
 /**
  * @author Beck Gaël
  */
+import scala.language.existentials
 import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{Map, GenMap, mutable, immutable, GenSeq}
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.clustering.ClustersAnalysis
 import org.clustering4ever.shapeless.VMapping
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
@@ -16,6 +16,8 @@ import org.clustering4ever.util.SumVectors
 import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, GMixtVector}
 import org.clustering4ever.types.MetricIDType._
 import org.clustering4ever.types.ClusteringNumberType._
+import org.clustering4ever.vectorizations.{Vectorization, EasyVectorization}
+import org.clustering4ever.clustering.{ClustersAnalysis, ClusteringArgs, ClusteringModelLocal, ClusteringInformationsLocal}
 /**
  *
  */
@@ -26,6 +28,24 @@ trait ClustersAnalysisLocal[
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     GS[X] <: GenSeq[X]
 ] extends ClustersAnalysis[ID, O, V, Cz, GS] {
+    /**
+     *
+     */
+    def extractClusteringInformationsForSpecificVectorizationAndCastThemUntilIFindSomethingMoreElegant[NV <: Seq[Int], Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto[O, BinaryVector[NV]]): immutable.Vector[(ClusteringNumber, Vecto[O, BinaryVector[NV]], ClusteringArgs[BinaryVector[NV]], ClusteringModelLocal[ID, O, BinaryVector[NV], Cz, GS, ClusteringArgs[BinaryVector[NV]]])] = {
+        clusteringInfo.clusteringInformations.filter{ case (clusteringNumber, vectorizationIn, _, _) => vectorization.clusteringNumbers.contains(clusteringNumber) }
+            .asInstanceOf[immutable.Vector[(ClusteringNumber, Vecto[O, BinaryVector[NV]], ClusteringArgs[BinaryVector[NV]], ClusteringModelLocal[ID, O, BinaryVector[NV], Cz, GS, ClusteringArgs[BinaryVector[NV]]])]]
+    }
+    /**
+     *
+     */
+    def extractClusteringInformationsForSpecificClusteringNumberAndCastThemUntilIFindSomethingMoreElegant[NV <: GVector[NV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](clusteringNumber: ClusteringNumber, vecto: Vecto[O, NV]) = {
+        require(vecto.clusteringNumbers.contains(clusteringNumber))
+        clusteringInfo.clusteringInformations(clusteringNumber).asInstanceOf[(Int, Vecto[O, NV], ClusteringArgs[NV], ClusteringModelLocal[ID, O, NV, Cz, GS, ClusteringArgs[NV]])]
+    }
+    /**
+     *
+     */
+    val clusteringInfo: ClusteringInformationsLocal[ID, O, Cz, GS] = new ClusteringInformationsLocal[ID, O, Cz, GS]
     /**
      *
      */
@@ -71,7 +91,7 @@ trait ClustersAnalysisLocal[
     }
 }
 /**
- *
+ * Specific class for real vector datasets
  */
 class RealClustersAnalysis[
     ID,
@@ -91,7 +111,7 @@ class RealClustersAnalysis[
 
 }
 /**
- *
+ * Specific class for binary vector datasets
  */
 class BinaryClustersAnalysis[
     ID,
@@ -99,7 +119,7 @@ class BinaryClustersAnalysis[
     V <: Seq[Int],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     GS[X] <: GenSeq[X]
-](val data: GS[Cz[ID, O, BinaryVector[V]]], vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]) extends ClustersAnalysisLocal[ID, O, BinaryVector[V], Cz, GS] {
+](val data: GS[Cz[ID, O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]) extends ClustersAnalysisLocal[ID, O, BinaryVector[V], Cz, GS] {
     /**
      *
      */
@@ -108,10 +128,6 @@ class BinaryClustersAnalysis[
      *
      */
     import org.clustering4ever.util.VectorsAddOperationsImplicits._
-    /**
-     *
-     */
-    if(vectorHeader.isDefined) require(data.head.v.vector.size == vectorHeader.size)
     /**
      *
      */

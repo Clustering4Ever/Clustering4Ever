@@ -10,6 +10,7 @@ import org.clustering4ever.shapeless.VMapping
 import shapeless.HMap
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.vectorizables.NotVectorizable
+import org.clustering4ever.types.VectorizationIDTypes._
 /**
  *
  */
@@ -90,19 +91,25 @@ case class EasySupervizable[ID, O, V <: GVector[V]](
 	/**
 	 *
 	 */
-	final def addVectorized[GV <: GVector[GV]](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, V] = {
+	final def addVectorized[GV <: GVector[GV]](vectorizationID: VectorizationID, towardNewVector: O => GV): EasySupervizable[ID, O, V] = {
+
+		implicit val vMapping = new VMapping[VectorizationID, GV]
+
 		this.copy(vectorized = vectorized + ((vectorizationID, o.toVector(towardNewVector))))
 	}
 	/**
 	 *
 	 */
-	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, V] = {
+	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, newAltVector: GV): EasySupervizable[ID, O, V] = {
+
+		implicit val vMapping = new VMapping[VectorizationID, GV]
+
 		this.copy(vectorized = vectorized + ((vectorizationID, newAltVector)))
 	}
 	/**
 	 *
 	 */
-	final def updateVector[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, GV] = {
-		new EasySupervizable(id, o, label, vectorized.get(vectorizationID).get.asInstanceOf[GV], mutable.ArrayBuffer.empty[GV], vectorized)
+	final def updateVector[GV <: GVector[GV]](vectorizationID: VectorizationID): EasySupervizable[ID, O, GV] = {
+		new EasySupervizable(id, o, label, vectorized.get(vectorizationID)(new VMapping[VectorizationID, GV]).get.asInstanceOf[GV], mutable.ArrayBuffer.empty[GV], vectorized)
 	}
 }

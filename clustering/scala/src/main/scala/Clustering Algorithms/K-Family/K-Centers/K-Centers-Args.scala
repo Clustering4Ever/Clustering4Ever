@@ -46,14 +46,6 @@ case class KCentersArgs[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val 
 	/**
 	 *
 	 */
-	type CA = KCentersArgs[V, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = KCentersModel[ID, O, V, Cz, D, GS]
-	/**
-	 *
-	 */
 	def obtainAlgorithm[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): KCenters[ID, O, V, Cz, D, GS] = {
 		KCenters[ID, O, V, Cz, D, GS](this)
 	}
@@ -64,14 +56,6 @@ case class KCentersArgs[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val 
 case class KMeansArgs[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgsAncestor[ScalarVector[V], D[V]] {
 
 	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KMeans
-	/**
-	 *
-	 */
-	type CA = KMeansArgs[V, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = KMeansModel[ID, O, V, Cz, D, GS]
 	/**
 	 *
 	 */
@@ -91,14 +75,6 @@ case class KModesArgs[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val 
 	/**
 	 *
 	 */
-	type CA = KModesArgs[V, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = KModesModel[ID, O, V, Cz, D, GS]
-	/**
-	 *
-	 */
 	def obtainAlgorithm[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KModes[ID, O, V, Cz, D, GS] = {
 		KModes[ID, O, V, Cz, D, GS](this)
 	}
@@ -109,14 +85,6 @@ case class KModesArgs[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val 
 case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgsAncestor[MixtVector[Vb, Vs], D[Vb, Vs]] {
 
 	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
-	/**
-	 *
-	 */
-	type CA = KPrototypesArgs[Vb, Vs, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = KPrototypesModel[ID, O, Vb, Vs, Cz, D, GS]
 	/**
 	 *
 	 */

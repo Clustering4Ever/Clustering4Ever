@@ -15,11 +15,11 @@ import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices._
-import org.clustering4ever.vectorizations.EmployedVectorization
+import org.clustering4ever.vectorizations.Vectorization
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait DistributedClusteringAlgorithm[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgs[V], +CM <: ClusteringModelCz[ID, O, V, Cz, RDD]] extends ClusteringAlgorithmCz[ID, O, V, Cz, RDD, CA, CM] {
+trait ClusteringAlgorithmDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgs[V], +CM <: ClusteringModelCz[ID, O, V, Cz, RDD, CA]] extends ClusteringAlgorithmCz[ID, O, V, Cz, RDD, CA, CM] {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
@@ -30,7 +30,7 @@ trait DistributedClusteringAlgorithm[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVect
 /**
  *
  */
-trait ClusteringModelDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]] extends ClusteringModelCz[ID, O, V, Cz, RDD] {
+trait ClusteringModelDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgsDistributed[V]] extends ClusteringModelCz[ID, O, V, Cz, RDD, CA] {
 	/**
 	 *
 	 */
@@ -42,9 +42,30 @@ trait ClusteringModelDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z
  *
  */
 case class ClusteringInformationsDistributed[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](
-	val clusteringInformations: immutable.Vector[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs[_], ClusteringModelCz[ID, O, _, Cz, RDD])] = immutable.Vector.empty[(GlobalClusteringRunNumber, EmployedVectorization, ClusteringArgs[_], ClusteringModelCz[ID, O, _, Cz, RDD])]
-	// val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double] = immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
-	// val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double] = immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
+	val clusteringInformations: immutable.Vector[
+		(
+			GlobalClusteringRunNumber,
+			Vectorization[O, _],
+			ClusteringArgsDistributed[_],
+			ClusteringModelDistributed[ID, O, _, Cz, ClusteringArgsDistributed[_]]
+		)
+	] = immutable.Vector.empty[(GlobalClusteringRunNumber, Vectorization[O, _], ClusteringArgsDistributed[_], ClusteringModelDistributed[ID, O, _, Cz, ClusteringArgsDistributed[_]])],
+	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[
+		(
+			GlobalClusteringRunNumber,
+			MetricID,
+			VectorizationID,
+			InternalsIndicesType
+		),
+			Double
+	] = immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
+	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[
+			(	GlobalClusteringRunNumber,
+				VectorizationID,
+				ExternalsIndicesType
+			),
+			Double
+	] = immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
 ) extends ClusteringInformations[ID, O, Cz, RDD]
 
 /**
@@ -54,9 +75,5 @@ trait ClusteringArgsDistributed[V <: GVector[V]] extends ClusteringArgs[V] {
 	/**
 	 *
 	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]] <: ClusteringModelDistributed[ID, O, V, Cz]
-	/**
-	 *
-	 */
-	// def obtainAlgorithm[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): DistributedClusteringAlgorithm[ID, O, V, Cz, CA, CM[ID, O, Cz]]
+	def obtainAlgorithm[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringAlgorithmDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V], ClusteringModelDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V]]]
 }

@@ -15,6 +15,19 @@ import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices._
+import org.clustering4ever.clustering.ClusteringInformations
+/**
+ *
+ */
+trait ClustersIndicesAnalysisAncestor[
+    ID,
+    O,
+    V <: GVector[V],
+    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Collection[_]
+] {
+    val clusteringInformations: ClusteringInformations[ID, O, Cz, Collection]
+}
 /**
  *
  */

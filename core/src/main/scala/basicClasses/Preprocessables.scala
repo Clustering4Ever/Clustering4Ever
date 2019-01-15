@@ -17,13 +17,13 @@ trait Preprocessable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Prep
 	/**
 	 *
 	 */
-	def addVectorized[GV <: GVector[GV]](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): Self[ID, O, V]
+	def addVectorized[GV <: GVector[GV]](vectorizationID: Int, towardNewVector: O => GV): Self[ID, O, V]
 	/**
 	 *
 	 */
-	def addAlternativeVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): Self[ID, O, V]
+	def addAlternativeVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV): Self[ID, O, V]
 	/**
 	 *
 	 */
-	def updateVector[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): Self[ID, O, GV]
+	def updateVector[GV <: GVector[GV]](vectorizationID: Int): Self[ID, O, GV]
 }

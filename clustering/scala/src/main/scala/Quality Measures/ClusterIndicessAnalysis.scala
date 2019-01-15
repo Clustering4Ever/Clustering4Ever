@@ -9,24 +9,29 @@ import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.indices.{ExternalIndicesLocal, InternalIndicesLocal}
 import org.clustering4ever.enums.NmiNormalizationNature
 import org.clustering4ever.enums.InternalsIndices.InternalsIndicesType
+import org.clustering4ever.clustering.ClusteringInformationsLocal
+import org.clustering4ever.vectorizations.{Vectorization, EasyVectorization}
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices.ExternalsIndicesType
 import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.vectors.GVector
-import org.clustering4ever.shapeless.DistancesMapping
 import shapeless.HMap
 import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-class ClustersIndicesAnalysisLocal[
+case class ClustersIndicesAnalysisLocal[
     ID,
     O,
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     GS[X] <: GenSeq[X]
-](val data: GS[Cz[ID, O, V]], val internalsIndicesByMetricClusteringNumberIndex: immutable.Map[(MetricID, ClusteringNumber, InternalsIndicesType), Double] = immutable.Map.empty[(MetricID, ClusteringNumber, InternalsIndicesType), Double]) extends ClustersIndicesAnalysis[ID, O, V, Cz, GS] {
+](
+    val data: GS[Cz[ID, O, V]],
+    val internalsIndicesByMetricClusteringNumberIndex: immutable.Map[(MetricID, ClusteringNumber, InternalsIndicesType), Double] = immutable.Map.empty[(MetricID, ClusteringNumber, InternalsIndicesType), Double],
+    val clusteringInfo: ClusteringInformationsLocal[ID, O, Cz, GS] = new ClusteringInformationsLocal[ID, O, Cz, GS]
+) extends ClustersIndicesAnalysis[ID, O, V, Cz, GS] {
     /**
      *
      */
@@ -51,6 +56,24 @@ class ClustersIndicesAnalysisLocal[
         }.seq.toMap
     }
     /**
+     *
+     */
+    def obtainInternalsIndicesVecto[D <: Distance[V], Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](metric: D, indices: InternalsIndicesType*)(vectorization: Vecto[O, V]): immutable.Map[InternalsIndicesType, Double] = {
+        obtainInternalsIndices(metric, indices:_*)(vectorization.vectorizationID)
+    }
+    /**
+     *
+     */
+    def computeInternalsIndicesForSpecificsClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber*): Seq[immutable.Map[InternalsIndicesType, Double]] = {
+        clusteringNumber.par.map( cn => obtainInternalsIndices(metric, indices:_*)(cn) ).seq
+    }
+    /**
+     *
+     */
+    def computeInternalsIndicesForEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]] = {
+        computeInternalsIndicesForSpecificsClusteringNumber(metric, indices:_*)((0 until data.head.clusterIDs.size):_*)
+    }
+    /**
      * Compute given internals indices and add result to internalsIndicesByMetricClusteringNumberIndex
      * @return A Map which link internal indices to its associate value 
      */
@@ -61,12 +84,6 @@ class ClustersIndicesAnalysisLocal[
         val obtainedIndices = obtainInternalsIndices(metric, indices:_*)(clusteringNumber).map{ case (indexType, v) => ((metric.id, clusteringNumber, indexType), v) }.seq
         
         new ClustersIndicesAnalysisLocal(data, internalsIndicesByMetricClusteringNumberIndex ++ obtainedIndices)
-    }
-    /**
-     *
-     */
-    def computeInternalsIndicesForEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]] = {
-        (0 until data.head.clusterIDs.size).par.map( cn => obtainInternalsIndices(metric, indices:_*)(cn) ).seq
     }
     /**
      *

@@ -8,7 +8,7 @@ import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
-import org.clustering4ever.util.ScalaImplicits._
+import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 /**
  *
@@ -28,12 +28,7 @@ object KMeans {
 	/**
 	 *
 	 */
-	def generateAnyArgumentsCombination[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](
-		kValues: Seq[Int] = Seq(4, 6, 8),
-		metricValues: Seq[D[V]] = Seq(Euclidean[V](false)),
-		epsilonValues: Seq[Double] = Seq(0.0001),
-		maxIterationsValues: Seq[Int] = Seq(100),
-		initializedCentersValues: Seq[mutable.HashMap[Int, ScalarVector[V]]] = Seq(mutable.HashMap.empty[Int, ScalarVector[V]])): Seq[KMeansArgs[V, D]] = {
+	def generateAnyArgumentsCombination[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](kValues: Seq[Int] = Seq(4, 6, 8), metricValues: Seq[D[V]] = Seq(Euclidean[V](false)), epsilonValues: Seq[Double] = Seq(0.0001), maxIterationsValues: Seq[Int] = Seq(40, 100), initializedCentersValues: Seq[mutable.HashMap[Int, ScalarVector[V]]] = Seq(mutable.HashMap.empty[Int, ScalarVector[V]])): Seq[KMeansArgs[V, D]] = {
 		for(
 			k <- kValues;
 			metric <- metricValues;

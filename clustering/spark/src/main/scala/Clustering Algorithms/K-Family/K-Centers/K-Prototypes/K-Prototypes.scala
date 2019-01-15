@@ -22,7 +22,7 @@ case class KPrototypes[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[X, Y, Z <: G
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D] = KPrototypesModel[ID, O, Vb, Vs, Cz, D](obtainCenters(data), args.metric)
+	def run(data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D] = KPrototypesModel[ID, O, Vb, Vs, Cz, D](obtainCenters(data), args.metric, args)
 }
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.

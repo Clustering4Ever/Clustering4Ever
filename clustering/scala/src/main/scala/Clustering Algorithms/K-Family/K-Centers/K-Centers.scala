@@ -10,7 +10,7 @@ import shapeless._
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.clustering.{ClusteringCommons, LocalClusteringAlgorithm}
+import org.clustering4ever.clustering.{ClusteringCommons, ClusteringAlgorithmLocal}
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.clustering.ClusteringArgs
 import org.clustering4ever.vectors.GVector
@@ -46,7 +46,7 @@ trait KCommons[V <: GVector[V]] extends ClusteringCommons {
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], Args <: KCentersArgsAncestor[V, D], Model <: KCentersModelAncestor[ID, O, V, Cz, D, GS]] extends KCommons[V] with LocalClusteringAlgorithm[ID, O, V, Cz, GS, Args, Model] {
+trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], +Args <: KCentersArgsAncestor[V, D], +Model <: KCentersModelAncestor[ID, O, V, Cz, D, GS, Args]] extends KCommons[V] with ClusteringAlgorithmLocal[ID, O, V, Cz, GS, Args, Model] {
 	/**
 	 *
 	 */
@@ -95,7 +95,7 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
  *
  */
 case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X], GS[X] <: GenSeq[X]](val args: KCentersArgs[V, D])(implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCentersAncestor[ID, O, V, Cz, D[V], GS, KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D, GS]] {
-	def run(data: GS[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = new KCentersModel(obtainCenters(data), args.metric, args)
+	def run(data: GS[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = KCentersModel(obtainCenters(data), args.metric, args)
 }
 /**
  * The general KCenters compagnion object helper

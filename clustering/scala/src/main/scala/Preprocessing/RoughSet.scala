@@ -93,7 +93,7 @@ trait RoughSet extends RoughSetCommons {
  */
 object RoughSet extends RoughSet {
 
-  import org.clustering4ever.util.ScalaImplicits._
+  import org.clustering4ever.util.ScalaCollectionImplicits._
   /**
    * Rought Set feature selection classical algorithm
    */

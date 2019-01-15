@@ -18,7 +18,6 @@ import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices.ExternalsIndicesType
 import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.vectors.GVector
-import org.clustering4ever.shapeless.DistancesMapping
 import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.types.MetricIDType._
 /**

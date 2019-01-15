@@ -8,7 +8,7 @@ import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, BinaryDistance}
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
-import org.clustering4ever.util.ScalaImplicits._
+import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, BinaryVector}
 /**
  *

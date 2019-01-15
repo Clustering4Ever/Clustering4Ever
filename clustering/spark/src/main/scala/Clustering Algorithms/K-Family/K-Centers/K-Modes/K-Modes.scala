@@ -20,7 +20,7 @@ case class KModes[ID, O, V <: Seq[Int], Cz[X, Y, Z <: GVector[Z]] <: Clusterizab
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz[ID, O, BinaryVector[V]]]): KModesModel[ID, O, V, Cz, D] = KModesModel[ID, O, V, Cz, D](obtainCenters(data), args.metric)
+	def run(data: RDD[Cz[ID, O, BinaryVector[V]]]): KModesModel[ID, O, V, Cz, D] = KModesModel[ID, O, V, Cz, D](obtainCenters(data), args.metric, args)
 }
 /**
  *

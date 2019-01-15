@@ -100,19 +100,25 @@ case class EasyClusterizable[ID, O, V <: GVector[V]](
 	/**
 	 *
 	 */
-	final def addVectorized[GV <: GVector[GV]](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): EasyClusterizable[ID, O, V] = {
+	final def addVectorized[GV <: GVector[GV]](vectorizationID: VectorizationID, towardNewVector: O => GV): EasyClusterizable[ID, O, V] = {
+
+		implicit val vMapping = new VMapping[VectorizationID, GV]
+
 		this.copy(vectorized = vectorized + ((vectorizationID, o.toVector(towardNewVector))))
 	}
 	/**
 	 *
 	 */
-	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): EasyClusterizable[ID, O, V] = {
+	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, newAltVector: GV): EasyClusterizable[ID, O, V] = {
+
+		implicit val vMapping = new VMapping[VectorizationID, GV]
+
 		this.copy(vectorized = vectorized + ((vectorizationID, newAltVector)))
 	}
 	/**
 	 *
 	 */
-	final def updateVector[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[VectorizationID, GV] = new VMapping[VectorizationID, GV]): EasyClusterizable[ID, O, GV] = {
-		this.copy(v = vectorized.get(vectorizationID).get)
+	final def updateVector[GV <: GVector[GV]](vectorizationID: VectorizationID): EasyClusterizable[ID, O, GV] = {
+		this.copy(v = vectorized.get(vectorizationID)(new VMapping[VectorizationID, GV]).get)
 	}
 }

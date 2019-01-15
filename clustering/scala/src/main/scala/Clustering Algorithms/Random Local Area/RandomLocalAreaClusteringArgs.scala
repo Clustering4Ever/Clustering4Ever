@@ -15,7 +15,7 @@ import org.clustering4ever.clustering.ClusteringArgsLocal
 /**
  *
  */
-trait RLAArgsTrait[V <: GVector[V], D <: Distance[V]] extends ClusteringArgsLocal[V] {
+trait RLAArgsAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringArgsLocal[V] {
 	/**
 	 *
 	 */
@@ -33,15 +33,7 @@ trait RLAArgsTrait[V <: GVector[V], D <: Distance[V]] extends ClusteringArgsLoca
 /**
  *
  */
-case class RLAArgs[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsTrait[V, D[V]] {
-	/**
-	 *
-	 */
-	type CA = RLAArgs[V, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = RLAModel[ID, O, V, Cz, D, GS]
+case class RLAArgs[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsAncestor[V, D[V]] {
 	/**
 	 *
 	 */
@@ -52,15 +44,7 @@ case class RLAArgs[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val metri
 /**
  *
  */
-case class RLAArgsScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsTrait[ScalarVector[V], D[V]] {
-	/**
-	 *
-	 */
-	type CA = RLAArgsScalar[V, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = RLAModelScalar[ID, O, V, Cz, D, GS]
+case class RLAArgsScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsAncestor[ScalarVector[V], D[V]] {
 	/**
 	 *
 	 */
@@ -71,15 +55,7 @@ case class RLAArgsScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDist
 /**
  *
  */
-case class RLAArgsBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsTrait[BinaryVector[V], D[V]] {
-	/**
-	 *
-	 */
-	type CA = RLAArgsBinary[V, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = RLAModelBinary[ID, O, V, Cz, D, GS]
+case class RLAArgsBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val metric: D[V], val epsilon: Double) extends RLAArgsAncestor[BinaryVector[V], D[V]] {
 	/**
 	 *
 	 */
@@ -90,15 +66,7 @@ case class RLAArgsBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](v
 /**
  *
  */
-case class RLAArgsMixt[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val metric: D[Vb, Vs], val epsilon: Double) extends RLAArgsTrait[MixtVector[Vb, Vs], D[Vb, Vs]] {
-	/**
-	 *
-	 */
-	type CA = RLAArgsMixt[Vb, Vs, D]
-	/**
-	 *
-	 */
-	type CM[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]] = RLAModelMixt[ID, O, Vb, Vs, Cz, D, GS]
+case class RLAArgsMixt[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val metric: D[Vb, Vs], val epsilon: Double) extends RLAArgsAncestor[MixtVector[Vb, Vs], D[Vb, Vs]] {
 	/**
 	 *
 	 */

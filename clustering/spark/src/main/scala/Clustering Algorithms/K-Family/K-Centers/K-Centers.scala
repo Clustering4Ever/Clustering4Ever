@@ -14,13 +14,13 @@ import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.scala.clustering.kcenters.KCommons
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import org.clustering4ever.clustering.DistributedClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithmDistributed
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clustering.ClusteringArgsDistributed
 /**
  *
  */
-trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], Args <: KCentersArgsAncestor[V, D], Model <: KCentersModelAncestor[ID, O, V, Cz, D]] extends KCommons[V] with DistributedClusteringAlgorithm[ID, O, V, Cz, Args, Model] {
+trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], Args <: KCentersArgsAncestor[V, D], Model <: KCentersModelAncestor[ID, O, V, Cz, D, Args]] extends KCommons[V] with ClusteringAlgorithmDistributed[ID, O, V, Cz, Args, Model] {
 	/**
 	 *
 	 */
@@ -100,5 +100,5 @@ case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Cluster
 	/**
 	 *
 	 */
-	def run(data: RDD[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D] = KCentersModel[ID, O, V, Cz, D](obtainCenters(data), args.metric)
+	def run(data: RDD[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D] = KCentersModel[ID, O, V, Cz, D](obtainCenters(data), args.metric, args)
 }

@@ -1,6 +1,6 @@
 # Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22)
 
-**Welcome** to Big Data Clustering Library gathering clustering algorithms and quality indices. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
+**Welcome** to Big Data Clustering Library gathering clustering algorithms and quality indices as immutabely as possible. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
 
 ## [API documentation](http://www.clustering4ever.org/API%20Documentation/)
 
@@ -8,7 +8,7 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.1"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.2"` to your `libraryDependencies`
 
 Eventually add this resolver :
 
@@ -65,9 +65,13 @@ Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ 
 * _Gradient Ascent_
 * **_Rough Set Features Selection_**
 
-### Clustering benchmark
+### Clustering benchmarking and analysis
 
-Using classes _ClusteringChainingLocal_ and _ClusteringChainingDistributed_ you have the possibility to run multiple clustering algorithms in **parallel**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**. 
+Using classes _ClusteringChainingLocal_, _ClusteringChainingDistributed_, and _ClusteringChainingClusteredSystem_ you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
+
+Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ are devoted for clustering indices analysis.
+
+Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to describe obtained clustering in term of distributions, proportions of categorical features...
 
 ### Incoming soon
 
@@ -91,11 +95,11 @@ Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark
 
 ### Helper functions to generate Clusterizable collections 
 
-You can generate your collections with basic Clusterizable using helpers in `org.clustering4ever.util.{ScalaImplicits, SparkImplicits}`
+You can easily generate your collections with basic Clusterizable using helpers in `org.clustering4ever.util.{ArrayAndSeqTowardGVectorImplicit, ScalaCollectionImplicits, SparkImplicits}` or explore Clusterizable and EasyClusterizable for more advanced usages.
 
 ### [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/5.-References)
 
 ### What data structures are recommended for best performances
 
 * ArrayBuffer as vector are a good start
-* ArrayBuffer or ParArray as vector containers are also recommended
+* ArrayBuffer, ParArray or ParSeq as vector containers are recommended

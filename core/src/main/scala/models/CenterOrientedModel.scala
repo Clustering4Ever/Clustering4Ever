@@ -49,7 +49,7 @@ trait CenterOrientedModelMixt[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int]
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	// def centerPredict(v: V): ClusterID = centerPredict(v)
+	def centerPredict(v: (Vb, Vs)): ClusterID = centerPredict(v)
 }
 /**
  *

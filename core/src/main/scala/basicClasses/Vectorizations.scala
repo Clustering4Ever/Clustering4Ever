@@ -3,7 +3,10 @@ package org.clustering4ever.vectorizations
  * @author Beck Gaël
  */
 import org.clustering4ever.vectors.GVector
+import scala.collection.immutable
+import org.clustering4ever.shapeless.{VMapping, VectorizationMapping}
 import org.clustering4ever.types.VectorizationIDTypes._
+import org.clustering4ever.clustering.ClusteringCommons
 /**
  *
  */
@@ -31,11 +34,36 @@ object Default extends VectorizationNature
 /**
  *
  */
-sealed trait EmployedVectorization extends Serializable {
+trait Vectorization[O, V <: GVector[V]]  extends ClusteringCommons {
+	
 	val vectorizationID: VectorizationID
-	val vectorizationNature: VectorizationNature
+
+	val vectorizationFct: Option[O => V]
+	
+	val outputFeaturesNames: immutable.Vector[String]
+
+	val clusteringNumbers: immutable.HashSet[ClusterID]
+
+	def updateClustering(clusteringIDs: Int*): Vectorization[O, V]
+
+	val vMapping = new VMapping[VectorizationID, V]
+
+	val vectoMapping: VectorizationMapping[VectorizationID, Vectorization[O, V]]
 }
 /**
  *
  */
-case class IthVectorization[O, V <: GVector[V]](val vectorizationID: VectorizationID, val vectorization: Option[O => V], val vectorizationNature: VectorizationNature) extends EmployedVectorization
+case class EasyVectorization[O, V <: GVector[V]](
+	val vectorizationID: VectorizationID,
+	val vectorizationFct: Option[O => V] = None,
+	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
+	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
+) extends Vectorization[O, V] {
+	/**
+	 *
+	 */
+	val vectoMapping = new VectorizationMapping[VectorizationID, EasyVectorization[O, V]]
+
+	def updateClustering(clusteringIDs: Int*): EasyVectorization[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
+
+}

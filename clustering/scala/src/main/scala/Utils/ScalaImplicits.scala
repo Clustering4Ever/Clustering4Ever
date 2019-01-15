@@ -4,7 +4,7 @@ package org.clustering4ever.util
  */
 import scala.language.higherKinds
 import scala.language.implicitConversions
-import scala.collection.GenSeq
+import scala.collection.{GenSeq, mutable, immutable}
 import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.vectors.{BinaryVector, ScalarVector, MixtVector}
@@ -14,7 +14,36 @@ import org.clustering4ever.vectorizables.{VectorizableOrNot, NotVectorizable, Ve
 /**
  *
  */
-object ScalaImplicits {
+object ArrayAndSeqTowardGVectorImplicit {
+	/**
+	 *
+	 */
+	implicit def realSeqToScalarVector[V <: Seq[Double]](v: V): ScalarVector[V] = ScalarVector(v) 
+	/**
+	 *
+	 */
+	implicit def realArrayToScalarVector(v: Array[Double]): ScalarVector[mutable.ArrayBuffer[Double]] = ScalarVector(mutable.ArrayBuffer(v:_*)) 
+	/**
+	 *
+	 */
+	implicit def binarySeqToScalarVector[V <: Seq[Int]](v: V): BinaryVector[V] = BinaryVector(v) 
+	/**
+	 *
+	 */
+	implicit def binaryArrayToScalarVector(v: Array[Int]): BinaryVector[mutable.ArrayBuffer[Int]] = BinaryVector(mutable.ArrayBuffer(v:_*)) 
+	/**
+	 *
+	 */
+	implicit def mixtSeqToScalarVector[Vb <: Seq[Int], Vs <: Seq[Double]](v: (Vb, Vs)): MixtVector[Vb, Vs] = MixtVector(v._1, v._2) 
+	/**
+	 *
+	 */
+	implicit def mixtArrayToScalarVector(v: (Array[Int], Array[Double])): MixtVector[mutable.ArrayBuffer[Int], mutable.ArrayBuffer[Double]] = MixtVector(mutable.ArrayBuffer(v._1:_*), mutable.ArrayBuffer(v._2:_*))
+}
+/**
+ *
+ */
+object ScalaCollectionImplicits {
 	/**
 	 *
 	 */

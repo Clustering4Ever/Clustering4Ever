@@ -14,4 +14,4 @@ class VectorizationMapping[K, +V] extends Serializable
 /**
  *
  */
-class DistancesMapping[+K, V] extends Serializable
+class DistancesMapping[K, V] extends Serializable

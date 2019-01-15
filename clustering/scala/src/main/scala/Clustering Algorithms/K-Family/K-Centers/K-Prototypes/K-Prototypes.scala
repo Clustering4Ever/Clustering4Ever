@@ -9,7 +9,7 @@ import scala.util.Random
 import org.clustering4ever.math.distances.{MixtDistance, Distance}
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
-import org.clustering4ever.util.ScalaImplicits._
+import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, MixtVector}
 /**
  *
