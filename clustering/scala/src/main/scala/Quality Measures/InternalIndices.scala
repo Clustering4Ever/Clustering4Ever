@@ -14,7 +14,7 @@ import org.clustering4ever.util.ClusterBasicOperations
 /**
  *
  */
-class InternalIndicesLocal[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesCommons[V, D] {
+case class InternalIndicesLocal[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesCommons[V, D] {
   /**
    *
    */
@@ -122,21 +122,19 @@ object InternalIndicesLocal extends ClusteringCommons {
    *   * c number of clusters
    */
   def daviesBouldin[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
-    val internalIndices = new InternalIndicesLocal(clusterized, metric)
-    internalIndices.daviesBouldin
+    InternalIndicesLocal(clusterized, metric).daviesBouldin
   }
   /**
    *
    */
   def silhouette[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
-    val internalIndices = new InternalIndicesLocal(clusterized, metric)
-    internalIndices.silhouette
+    InternalIndicesLocal(clusterized, metric).silhouette
   }
   /**
    *
    */
   def ballHall[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D) = {
-    (new InternalIndicesLocal(clusterized, metric)).ballHall
+    InternalIndicesLocal(clusterized, metric).ballHall
   }
 
 }

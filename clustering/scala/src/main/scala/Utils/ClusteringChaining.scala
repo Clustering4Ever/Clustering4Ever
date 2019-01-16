@@ -8,18 +8,17 @@ import scala.collection.{GenSeq, mutable, immutable}
 import shapeless.{HMap, HNil}
 import org.clustering4ever.clustering.{ClusteringArgsLocal, ClusteringModelLocal}
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.shapeless.{VMapping, VectorizationMapping}
+import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.scala.clustering.kcenters.KCenters
 import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithmCz, ClusteringAlgorithmLocal, ClusteringInformationsLocal}
-import org.clustering4ever.vectorizations.{Vectorization, EasyVectorization}
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.enums.ClusteringAlgorithmNatureEnum
 import org.clustering4ever.enums.ClusteringAlgorithmNatureEnum._
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
-import org.clustering4ever.vectorizations.{VectorizationNature, Default}
+import org.clustering4ever.vectorizations.{VectorizationLocal, EasyVectorizationLocal}
 /**
  * This classe intend to run many algorithms parallely on a local system for medium size datasets
  */
@@ -28,13 +27,22 @@ case class ClusteringChainingLocal[
     O,
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     GS[X] <: GenSeq[X]
 ](
     val data: GS[Cz[ID, O, V]],
-    val chainableID: Int = scala.util.Random.nextInt,
-    val currentVectorization: Vectorization[O, V] = EasyVectorization[O, V](0),
-    val clusteringInfo: ClusteringInformationsLocal[ID, O, Cz, GS] = new ClusteringInformationsLocal[ID, O, Cz, GS]
-)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends ClusteringChaining[ID, O, V, Cz, GS] {
+    val chainableID: Int,
+    val currentVectorization: Vecto[O, V],
+    val clusteringInformations: HMap[ClusteringInformationsMapping] = HMap.empty[ClusteringInformationsMapping]
+)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends ClusteringChaining[ID, O, V, Cz, Vecto, GS] {
+    /**
+     *
+     */
+    private implicit val currentVectorizationMapping = currentVectorization.vectoMapping
+    /**
+     *
+     */
+    private implicit val currentClusteringInformationMapping = ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[ID, O, V, Cz, Vecto, GS]]
     /**
      * HMap of original and added Vectorization
      */
@@ -46,28 +54,31 @@ case class ClusteringChainingLocal[
     /**
      *
      */
-    type Self[NV <: GVector[NV]] = ClusteringChainingLocal[ID, O, NV, Cz, GS]
+    type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]] = ClusteringChainingLocal[ID, O, GV, Cz, OtherVecto, GS]
     /**
      *
      */
-    type AlgorithmsRestrictions[NV <: GVector[NV]] = ClusteringAlgorithmLocal[ID, O, NV, Cz, GS, ClusteringArgsLocal[NV], ClusteringModelLocal[ID, O, NV, Cz, GS, ClusteringArgsLocal[NV]]]
+    type AlgorithmsRestrictions[GV <: GVector[GV]] = ClusteringAlgorithmLocal[ID, O, GV, Cz, GS, ClusteringArgsLocal[GV], ClusteringModelLocal[ID, O, GV, Cz, GS, ClusteringArgsLocal[GV]]]
     /**
      *
      */
-    protected[chaining] def fusionChainable(ccl: ClusteringChainingLocal[ID, O, V, Cz, GS]): ClusteringChainingLocal[ID, O, V, Cz, GS] = {
-
+    protected[chaining] def fusionChainable(ccl: Self[V, Vecto]): Self[V, Vecto] = {
         val newFusionSecurity = fusionChainableSecurity + ccl.fusionChainableSecurity
         val updatedRunNumber = scala.math.max(globalClusteringRunNumber, ccl.globalClusteringRunNumber)
         val aVecto = vectorizations.get(currentVectorization.vectorizationID).get
         val bVecto = ccl.vectorizations.get(currentVectorization.vectorizationID).get
-        val updatedCurrentVectorization = currentVectorization.updateClustering(aVecto.clusteringNumbers.toSeq ++ bVecto.clusteringNumbers:_*)
+        val updatedCurrentVectorization = currentVectorization.updateClustering(aVecto.clusteringNumbers.union(bVecto.clusteringNumbers).toSeq:_*)
         val updatedVectorizations = vectorizations + ((updatedCurrentVectorization.vectorizationID, updatedCurrentVectorization))
+        // To handle with clustering indices
+        val aInfos = clusteringInformations.get(updatedCurrentVectorization.vectorizationID).get
+        val bClusteringInfos = ccl.clusteringInformations.get(updatedCurrentVectorization.vectorizationID).get.clusteringInformations
+        val updatedInfos = clusteringInformations + ((updatedCurrentVectorization.vectorizationID, aInfos.copy(clusteringInformations = aInfos.clusteringInformations ++ bClusteringInfos)))
 
         new ClusteringChainingLocal(
             data.zip(ccl.data).map{ case (cz1, cz2) => cz1.addClusterIDs(cz2.clusterIDs.takeRight(ccl.fusionChainableSecurity):_*) }.asInstanceOf[GS[Cz[ID, O, V]]],
             chainableID,
             updatedCurrentVectorization,
-            clusteringInfo.copy(clusteringInformations = clusteringInfo.clusteringInformations ++ ccl.clusteringInfo.clusteringInformations.takeRight(ccl.fusionChainableSecurity))
+            updatedInfos
         ) {
             override val vectorizations = updatedVectorizations
             override val globalClusteringRunNumber = updatedRunNumber
@@ -77,15 +88,21 @@ case class ClusteringChainingLocal[
     /**
      * Run one algorithm defined by user
      */
-    def runAlgorithm(algorithm: AlgorithmsRestrictions[V]): ClusteringChainingLocal[ID, O, V, Cz, GS]
-     = {
+    def runAlgorithm(algorithm: AlgorithmsRestrictions[V]): Self[V, Vecto] = {
         val model = algorithm.run(data)
         val updatedRunNumber = globalClusteringRunNumber + 1
-        val updatedClusteringInfo = clusteringInfo.copy(clusteringInformations = clusteringInfo.clusteringInformations :+ ((updatedRunNumber, currentVectorization, algorithm.args, model)))
         val updatedData = model.obtainClustering(data)
         val updatedCurrentVectorization = currentVectorization.updateClustering(updatedRunNumber)
         val updatedVectorizations = vectorizations + ((updatedCurrentVectorization.vectorizationID, updatedCurrentVectorization))
-        new ClusteringChainingLocal(updatedData, chainableID, updatedCurrentVectorization, updatedClusteringInfo) {
+        val aInfos = clusteringInformations.get(updatedCurrentVectorization.vectorizationID)
+        val updatedInfos = if(aInfos.isDefined) clusteringInformations + ((
+                updatedCurrentVectorization.vectorizationID,
+                aInfos.get.copy(clusteringInformations = aInfos.get.clusteringInformations + ((updatedRunNumber, updatedCurrentVectorization, algorithm.args, model)))
+            ))
+            else HMap[ClusteringInformationsMapping](
+                updatedCurrentVectorization.vectorizationID -> new ClusteringInformationsLocal(immutable.HashSet((updatedRunNumber, updatedCurrentVectorization, algorithm.args, model)))
+            )
+        new ClusteringChainingLocal(updatedData, chainableID, updatedCurrentVectorization, updatedInfos) {
             override val vectorizations = updatedVectorizations
             override val globalClusteringRunNumber = updatedRunNumber
             override protected[chaining] val fusionChainableSecurity = 1
@@ -94,7 +111,7 @@ case class ClusteringChainingLocal[
     /**
      * Run multiples algorithms defined by user
      */
-    def runAlgorithms(algorithms: AlgorithmsRestrictions[V]*): ClusteringChainingLocal[ID, O, V, Cz, GS] = {
+    def runAlgorithms(algorithms: AlgorithmsRestrictions[V]*): Self[V, Vecto] = {
 
         val updatedFusionChainableSecurity = fusionChainableSecurity
 
@@ -102,8 +119,9 @@ case class ClusteringChainingLocal[
 
             val updatedRunNumber = globalClusteringRunNumber + algIdx
             val updatedVectorizations = vectorizations
+            // val updatedInfos = clusteringInfo2
 
-            (new ClusteringChainingLocal(data, chainableID, currentVectorization, clusteringInfo) {
+            (new ClusteringChainingLocal(data, chainableID, currentVectorization, clusteringInformations) {
                 override val vectorizations = updatedVectorizations
                 override val globalClusteringRunNumber = updatedRunNumber
                 override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
@@ -113,64 +131,75 @@ case class ClusteringChainingLocal[
 
     }
     /**
-     * Run multiples algorithms defined by user as runAlgorithms but with another way that i suppose less memory greedy
+     *
      */
-    // def runAlgorithms2(algorithms: AlgorithmsRestrictions[V]*) : ClusteringChainingLocal[ID, O, V, Cz, GS] = {
-
-    //     val updatedFusionChainableSecurity = fusionChainableSecurity + algorithms.size
-    //     val updatedGlobalClusteringRunNumber = globalClusteringRunNumber + algorithms.size
-
-    //     val pAlgo = algorithms.par
-    //     val argss = pAlgo.zipWithIndex.map{ case (algo, idx) => (globalClusteringRunNumber + idx + 1, currentVectorization, algo.args) }
-    //     val models = pAlgo.map(_.run(data))
-    //     val clusterIDs = models.map(_.obtainClusteringIDs(data)).map(_.map(mutable.Buffer(_))).reduce(_.zip(_).map{ case (a, b) => a ++= b})
-    //     val clusteringInfoss = ClusteringInformationsLocal(argss.zip(models).map{ case ((a, cv, algo), model) => (a, cv, algo, model) }.toVector)
-    //     val updatedData = data.zip(clusterIDs).map{ case (cz, ids) => cz.addClusterIDs(ids:_*) }.asInstanceOf[GS[Cz[ID, O, V]]]
-    //     val updatedCurrentVectorization = currentVectorization.updateClustering((globalClusteringRunNumber until algorithms.size):_*)
-    //     val updatedVectorizations = vectorizations + ((updatedCurrentVectorization.vectorizationID, updatedCurrentVectorization))
-
-    //     (new ClusteringChainingLocal(updatedData, chainableID, currentVectorization, clusteringInfoss) {
-    //         override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
-    //         override val vectorizations = updatedVectorizations
-    //         override val globalClusteringRunNumber = updatedGlobalClusteringRunNumber
-    //     })
-
-    // }
+    private def internalUpdating[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]) = {
+        val updatedRunNumber = globalClusteringRunNumber
+        val updatedVectorizations = vectorizations.+((vectorization.vectorizationID, vectorization))(vectorization.vectoMapping)
+        val updatedFusionChainableSecurity = fusionChainableSecurity
+        (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity)
+    }
     /**
      *
      */
-    def addAnyVectorization[NV <: GVector[NV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto[O, NV]): (ClusteringChainingLocal[ID, O, V, Cz, GS], VectorizationMapping[VectorizationID, Vecto[O, NV]]) = {
+    def updateVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto] = {
 
-        implicit val vectoMapping = new VectorizationMapping[VectorizationID, Vecto[O, NV]]
-        val updatedVectorizations = vectorizations + ((vectorization.vectorizationID, vectorization))
-        val updatedRunNumber = globalClusteringRunNumber
-        val updatedFusionChainableSecurity = fusionChainableSecurity
+        val (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity) = internalUpdating(vectorization)
+        new ClusteringChainingLocal(
+            data.map(_.updateVectorization(vectorization)).asInstanceOf[GS[Cz[ID, O, GV]]],
+            chainableID,
+            vectorization,
+            clusteringInformations
+        ) {
+            override val vectorizations = updatedVectorizations
+            override val globalClusteringRunNumber = updatedRunNumber
+            override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
+        }
+    }
+    /**
+     *
+     */
+    def addVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]): Self[V, Vecto] = {
 
-        (
-            new ClusteringChainingLocal(
-                data.map(_.addVectorized(vectorization.vectorizationID, vectorization.vectorizationFct.get)).asInstanceOf[GS[Cz[ID, O, V]]],
-                chainableID,
-                currentVectorization,
-                clusteringInfo
-            ) {
-                override val vectorizations = updatedVectorizations
-                override val globalClusteringRunNumber = updatedRunNumber
-                override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
-            },
-            vectoMapping
-        )
+        val (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity) = internalUpdating(vectorization)
+        new ClusteringChainingLocal(
+            data,
+            chainableID,
+            currentVectorization,
+            clusteringInformations
+        ) {
+            override val vectorizations = updatedVectorizations
+            override val globalClusteringRunNumber = updatedRunNumber
+            override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
+        }
+    }
+    /**
+     *
+     */
+    def addVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]): Self[V, Vecto] = {
 
+        val (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity) = internalUpdating(vectorization)
+        new ClusteringChainingLocal(
+            data.map(_.addVectorization(vectorization)).asInstanceOf[GS[Cz[ID, O, V]]],
+            chainableID,
+            currentVectorization,
+            clusteringInformations
+        ) {
+            override val vectorizations = updatedVectorizations
+            override val globalClusteringRunNumber = updatedRunNumber
+            override protected[chaining] val fusionChainableSecurity = updatedFusionChainableSecurity
+        }
     }
     /**
      * Update the current vector for another
      */
-    def updateAnyVector[NV <: GVector[NV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto[O, NV])(implicit ct: ClassTag[Cz[ID, O, NV]]): ClusteringChainingLocal[ID, O, NV, Cz, GS] = {
-        val updatedVectorData = data.map(_.updateVector[NV](vectorization.vectorizationID)).asInstanceOf[GS[Cz[ID, O, NV]]]
-        val newCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(new VectorizationMapping[VectorizationID, Vecto[O, NV]]).get
+    def switchToAnotherExistantVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto] = {
+        val updatedVectorData = data.map(_.switchForExistingVector(vectorization)).asInstanceOf[GS[Cz[ID, O, GV]]]
+        val updatedCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(VectorizationMapping[VectorizationID, OtherVecto[O, GV]]).get
         val updatedGlobalRunNumber = globalClusteringRunNumber
         val fusionChainableSecurityCopy = fusionChainableSecurity
         val updatedVectorizations = vectorizations
-        new ClusteringChainingLocal(updatedVectorData, chainableID, newCurrentVectorization, clusteringInfo) {
+        new ClusteringChainingLocal(updatedVectorData, chainableID, updatedCurrentVectorization, clusteringInformations) {
             override val vectorizations = updatedVectorizations
             override val globalClusteringRunNumber = updatedGlobalRunNumber
             override protected[chaining] val fusionChainableSecurity = fusionChainableSecurityCopy
@@ -179,10 +208,22 @@ case class ClusteringChainingLocal[
     /**
      *
      */
-    def runAlgorithmsOnMultipleVectorizations[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](
-        vectorizations: Seq[Vecto[O, V]],
+    def runAlgorithmsOnMultipleVectorizationsOfSameNature[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](
+        vectorizations: Seq[OtherVecto[O, V]],
         algorithms: AlgorithmsRestrictions[V]*
-    ): ClusteringChainingLocal[ID, O, V, Cz, GS] = {
-        vectorizations.par.map( vectorization => updateVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
+    ): Self[V, OtherVecto] = {
+        vectorizations.par.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
+    }
+}
+/**
+ *
+ */
+object ClusteringChainingLocal extends Serializable {
+    def apply[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]) = {
+        new ClusteringChainingLocal(
+            data,
+            scala.util.Random.nextInt,
+            EasyVectorizationLocal[O, V](0)
+        )
     }
 }

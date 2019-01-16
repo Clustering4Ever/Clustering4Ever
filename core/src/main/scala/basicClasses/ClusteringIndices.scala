@@ -15,7 +15,6 @@ import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices._
-import org.clustering4ever.clustering.ClusteringInformations
 /**
  *
  */
@@ -25,8 +24,12 @@ trait ClustersIndicesAnalysisAncestor[
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     Collection[_]
-] {
-    val clusteringInformations: ClusteringInformations[ID, O, Cz, Collection]
+] extends ClusteringCommons {
+    /**
+     *
+     */
+    val data: Collection[Cz[ID, O, V]]
+    // val clusteringInformations: ClusteringInformations[ID, O, V, Cz, Collection]
 }
 /**
  *
@@ -37,8 +40,8 @@ trait ClustersInternalIndicesAnalysis[
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     Collection[_]
-] extends DataExplorator[ID, O, V, Cz, Collection] with ClusteringCommons {
-	/**
+] extends ClustersIndicesAnalysisAncestor[ID, O, V, Cz, Collection] {
+    /**
 	 *
 	 */
 	type Self <: ClustersInternalIndicesAnalysis[ID, O, V, Cz, Collection]
@@ -70,7 +73,7 @@ trait ClustersExternalIndicesAnalysis[
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     Collection[_]
-] extends DataExplorator[ID, O, V, Cz, Collection] with ClusteringCommons {
+] extends ClustersIndicesAnalysisAncestor[ID, O, V, Cz, Collection] {
 	/**
 	 *
 	 */
@@ -103,7 +106,7 @@ trait ClustersIndicesAnalysis[
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     Collection[_]
-] extends DataExplorator[ID, O, V, Cz, Collection] with ClustersInternalIndicesAnalysis[ID, O, V, Cz, Collection] with ClustersExternalIndicesAnalysis[ID, O, V, Cz, Collection] {
+] extends ClustersInternalIndicesAnalysis[ID, O, V, Cz, Collection] with ClustersExternalIndicesAnalysis[ID, O, V, Cz, Collection] {
 	/**
 	 *
 	 */

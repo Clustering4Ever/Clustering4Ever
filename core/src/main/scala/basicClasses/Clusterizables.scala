@@ -12,6 +12,8 @@ import org.clustering4ever.supervizables.Supervizable
 import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.vectorizables.{Vectorizable, NotVectorizable, VectorizableOrNot}
 import org.clustering4ever.types.VectorizationIDTypes._
+import org.clustering4ever.vectorizations.{Vectorization, EasyVectorizationLocal}
+
 /**
  * Basic trait for Clusterizable objects
  */
@@ -36,18 +38,18 @@ object EasyClusterizable {
 	/**
 	 * Simplest way to generate an EasyClusterizable
 	 */
-	def apply[ID, V <: GVector[V]](id: ID, v: V): EasyClusterizable[ID, V, V] = new EasyClusterizable(id, Vectorizable(v), v, HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+	def apply[ID, V <: GVector[V]](id: ID, v: V): EasyClusterizable[ID, V, V] = new EasyClusterizable(id, Vectorizable(v), v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
 	/**
 	 * Generate a proper EasyClusterizable
 	 */
-	def apply[ID, O, V <: GVector[V]](id: ID, o: O, v: V): EasyClusterizable[ID, O, V] = new EasyClusterizable(id, Vectorizable(o), v, HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+	def apply[ID, O, V <: GVector[V]](id: ID, o: O, v: V): EasyClusterizable[ID, O, V] = new EasyClusterizable(id, Vectorizable(o), v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
 	/**
 	 *
 	 */
 	def apply[ID, O, V <: GVector[V]](id: ID, o: O, towardVector: O => V) = {
 		val vecto = Vectorizable(o)
 		val v = vecto.toVector(towardVector)
-		new EasyClusterizable(id, vecto, v, HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+		new EasyClusterizable(id, vecto, v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
 	}
 	/**
 	 * Simplest way to generate an EasyClusterizable for real vectors
@@ -100,25 +102,26 @@ case class EasyClusterizable[ID, O, V <: GVector[V]](
 	/**
 	 *
 	 */
-	final def addVectorized[GV <: GVector[GV]](vectorizationID: VectorizationID, towardNewVector: O => GV): EasyClusterizable[ID, O, V] = {
-
-		implicit val vMapping = new VMapping[VectorizationID, GV]
-
-		this.copy(vectorized = vectorized + ((vectorizationID, o.toVector(towardNewVector))))
+	final def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, V] = {
+		this.copy(vectorized = vectorized.+(((vectorization.vectorizationID, o.toVector(vectorization.vectorizationFct.get))))(VMapping[VectorizationID, GV]))
 	}
 	/**
 	 *
 	 */
-	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, newAltVector: GV): EasyClusterizable[ID, O, V] = {
-
-		implicit val vMapping = new VMapping[VectorizationID, GV]
-
-		this.copy(vectorized = vectorized + ((vectorizationID, newAltVector)))
+	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, newAlternativeVector: GV): EasyClusterizable[ID, O, V] = {
+		this.copy(vectorized = vectorized.+(((vectorizationID, newAlternativeVector)))(VMapping[VectorizationID, GV]))
 	}
 	/**
 	 *
 	 */
-	final def updateVector[GV <: GVector[GV]](vectorizationID: VectorizationID): EasyClusterizable[ID, O, GV] = {
-		this.copy(v = vectorized.get(vectorizationID)(new VMapping[VectorizationID, GV]).get)
+	final def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, GV] = {
+		this.copy(v = vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get)
 	}
+	/**
+	 *
+	 */
+	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, GV] = {
+		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
+	}
+
 }

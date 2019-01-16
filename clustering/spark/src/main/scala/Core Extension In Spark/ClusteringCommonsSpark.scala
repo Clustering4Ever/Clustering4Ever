@@ -8,6 +8,7 @@ import scala.collection.immutable
 import org.apache.spark.rdd.RDD
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.shapeless.{VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.types.MetricIDType._
 import org.clustering4ever.types.ClusteringNumberType._
@@ -41,15 +42,15 @@ trait ClusteringModelDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z
 /**
  *
  */
-case class ClusteringInformationsDistributed[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](
-	val clusteringInformations: immutable.Vector[
+case class ClusteringInformationsDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Vecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Vecto]](
+	val clusteringInformations: immutable.HashSet[
 		(
 			GlobalClusteringRunNumber,
-			Vectorization[O, _],
-			ClusteringArgsDistributed[_],
-			ClusteringModelDistributed[ID, O, _, Cz, ClusteringArgsDistributed[_]]
+			Vecto[O, V],
+			ClusteringArgsDistributed[V],
+			ClusteringModelDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V]]
 		)
-	] = immutable.Vector.empty[(GlobalClusteringRunNumber, Vectorization[O, _], ClusteringArgsDistributed[_], ClusteringModelDistributed[ID, O, _, Cz, ClusteringArgsDistributed[_]])],
+	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto[O, V], ClusteringArgsDistributed[V], ClusteringModelDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V]])],
 	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[
 		(
 			GlobalClusteringRunNumber,
@@ -66,8 +67,32 @@ case class ClusteringInformationsDistributed[ID, O, Cz[X, Y, Z <: GVector[Z]] <:
 			),
 			Double
 	] = immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
-) extends ClusteringInformations[ID, O, Cz, RDD]
-
+)
+/**
+ *
+ */
+trait VectorizationDistributed[O, V <: GVector[V], Self[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Self]] extends Vectorization[O, V, Self] {
+	/**
+	 *
+	 */
+	def getInformationMapping[ID, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](cz: Option[RDD[Cz[ID, O, V]]] = None): ClusteringInformationsMapping[VectorizationID, Self[O, V]] = {
+		ClusteringInformationsMapping[VectorizationID, Self[O, V]]
+	}
+}
+/**
+ *
+ */
+case class EasyVectorizationDistributed[O, V <: GVector[V]] (
+	val vectorizationID: VectorizationID,
+	val vectorizationFct: Option[O => V] = None,
+	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
+	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
+) extends VectorizationDistributed[O, V, EasyVectorizationDistributed] {
+	/**
+	 *
+	 */
+	def updateClustering(clusteringIDs: Int*): EasyVectorizationDistributed[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
+}
 /**
  *
  */

@@ -23,9 +23,9 @@ object ClusterBasicOperations {
 	 */
 	def obtainCenter[O, D <: Distance[O]](cluster: GenSeq[O], metric: D): O = {
 	    metric match {
-	      case euclidean if(euclidean.isInstanceOf[Euclidean[_]]) => obtainMean(cluster.asInstanceOf[GenSeq[ScalarVector[Seq[Double]]]]).asInstanceOf[O]
-	      case hamming if(hamming.isInstanceOf[Hamming[_]]) => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[O]
-	      case hammingAndEuclidean if(hammingAndEuclidean.isInstanceOf[HammingAndEuclidean[_, _]]) => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixtVector[Seq[Int], Seq[Double]]]]).asInstanceOf[O]
+	      case euclidean: Euclidean[_] => obtainMean(cluster.asInstanceOf[GenSeq[ScalarVector[Seq[Double]]]]).asInstanceOf[O]
+	      case hamming: Hamming[_] => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[O]
+	      case hammingAndEuclidean: HammingAndEuclidean[_, _] => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixtVector[Seq[Int], Seq[Double]]]]).asInstanceOf[O]
 	      // Look for point which minimize its distance to all others points
 	      case _ => cluster.minBy{ v1 => cluster.map(metric.d(v1, _)).sum }
 	    }
@@ -37,7 +37,7 @@ object ClusterBasicOperations {
 	/**
 	 *
 	 */
-	private def transformPreMeanAndCastIt[V <: Seq[Double]](preMean: ScalarVector[V], clusterSize: Int) = new ScalarVector(preMean.vector.map(_ / clusterSize).asInstanceOf[V])
+	private def transformPreMeanAndCastIt[V <: Seq[Double]](preMean: ScalarVector[V], clusterSize: Int) = ScalarVector(preMean.vector.map(_ / clusterSize).asInstanceOf[V])
 	/**
 	 * @return the centroid of the given cluster composed by real vectors
 	 * 
@@ -57,7 +57,7 @@ object ClusterBasicOperations {
 	/**
 	 *
 	 */
-	private def transformPreModeAndCastIt[V <: Seq[Int]](preMode: BinaryVector[V], clusterSize: Int) = new BinaryVector(preMode.vector.map( v => if( 2 * v >= clusterSize ) 1 else 0 ).asInstanceOf[V])
+	private def transformPreModeAndCastIt[V <: Seq[Int]](preMode: BinaryVector[V], clusterSize: Int) = BinaryVector(preMode.vector.map( v => if( 2 * v >= clusterSize ) 1 else 0 ).asInstanceOf[V])
 	/**
 	 * @return the centroid of the given cluster composed by binary vectors
 	 * 
@@ -77,7 +77,7 @@ object ClusterBasicOperations {
 	 	val mixtVector: MixtVector[Vb, Vs] = SumVectors.sumColumnMatrix(cluster)
 	 	val binaryPart = transformPreModeAndCastIt(mixtVector.binary, cluster.size)
 	 	val realPart = transformPreMeanAndCastIt(mixtVector.scalar, cluster.size)
-	 	new MixtVector(binaryPart, realPart)
+	 	MixtVector(binaryPart, realPart)
 	}
 
 }

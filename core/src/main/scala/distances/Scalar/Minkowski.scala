@@ -29,7 +29,7 @@ trait MinkowshiMeta extends Serializable {
 /**
  *
  */
-case class Minkowski[V <: Seq[Double]](final val p: Int = 2, val id: MetricID = 3) extends MinkowshiMeta with ContinuousDistance[V] {
+case class Minkowski[V <: Seq[Double]](final val p: Int = 2, final val id: MetricID = 3) extends MinkowshiMeta with ContinuousDistance[V] {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2

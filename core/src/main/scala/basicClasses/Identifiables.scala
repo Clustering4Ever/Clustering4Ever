@@ -11,7 +11,7 @@ import org.clustering4ever.vectorizables.NotVectorizable
 /**
  *
  */
-trait Identified[ID] extends Serializable {
+trait IdentifiedRawObject[ID, O] {
 	/**
 	 *
 	 */
@@ -19,21 +19,12 @@ trait Identified[ID] extends Serializable {
 	/**
 	 *
 	 */
-	final override def hashCode(): Int = id.hashCode
-}
-/**
- *
- */
-trait RawObject[O] extends Serializable {
+	val o: O
 	/**
 	 *
 	 */
-	val o: O
+	final override def hashCode(): Int = id.hashCode
 }
-/**
- *
- */
-trait IdentifiedRawObject[ID, O] extends Identified[ID] with RawObject[O]
 /**
  *
  */
@@ -62,7 +53,7 @@ trait IdentifiedGVector[ID, O, V <: GVector[V]] extends IdentifiedVector[ID, O, 
 /**
  *
  */
-trait IdentifiedVectorized[ID, O, V <: GVector[V]] extends IdentifiedGVector[ID, O, V] {
+trait IdentifiedWithVectorizations[ID, O, V <: GVector[V]] extends IdentifiedGVector[ID, O, V] {
 	/**
 	 *
 	 */
@@ -76,4 +67,4 @@ case class EasyIdentifiedVector[ID, O, V <: GVector[V]](
 	val v: V,
 	val o: Vectorizable[O],
 	val vectorized: HMap[VMapping] = HMap.empty[VMapping]
-) extends IdentifiedVectorized[ID, O, V]
+) extends IdentifiedWithVectorizations[ID, O, V]

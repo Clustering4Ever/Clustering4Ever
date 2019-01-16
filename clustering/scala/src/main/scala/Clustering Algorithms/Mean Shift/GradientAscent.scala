@@ -23,9 +23,9 @@ case class GradientAscentArgs[V <: Seq[Double], D <: ContinuousDistance[V], KArg
  */
 class GradientAscent[V <: Seq[Double], D <: ContinuousDistance[V], KArgs <: KernelArgs, K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y], GS[X] <: GenSeq[X]](args: GradientAscentArgs[V, D, KArgs, K]) {
   
-  val vMapping = new VMapping[Int, ScalarVector[V]]
+  val vMapping = VMapping[Int, ScalarVector[V]]
 
-  def run[ID, O, Pz[X, Y, Z <: GVector[Z]] <: Preprocessable[X, Y, Z, Pz]](data: GS[Pz[ID, O, ScalarVector[V]]]) = {
+  def run[ID, O, Pz[X, Y, Z <: GVector[Z]] <: Preprocessable[X, Y, Z, Pz]](data: GS[Pz[ID, O, ScalarVector[V]]]): GS[Pz[ID, O, ScalarVector[V]]] = {
 
     val haveNotConverged = false
     val kernelLocality = data.map(_.v)

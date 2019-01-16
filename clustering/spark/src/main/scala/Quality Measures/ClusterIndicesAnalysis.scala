@@ -23,7 +23,7 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-class ClustersIndicesAnalysisDistributed[
+case class ClustersIndicesAnalysisDistributed[
     ID,
     O,
     V <: GVector[V] : ClassTag,
@@ -41,7 +41,7 @@ class ClustersIndicesAnalysisDistributed[
         
         val idAndVector: RDD[(ClusterID, V)] = data.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) ).persist(persistanceLVL)
 
-        val internalIndices = new InternalIndicesDistributed(idAndVector, metric)
+        val internalIndices = InternalIndicesDistributed(idAndVector, metric)
 
         indices.map{ index =>
             index match {
@@ -61,7 +61,7 @@ class ClustersIndicesAnalysisDistributed[
 
         val obtainedIndices = obtainInternalsIndices(metric, indices:_*)(clusteringNumber).seq.map{ case (indexType, v) => ((metric.id, clusteringNumber, indexType), v) }
         
-        new ClustersIndicesAnalysisDistributed(data, sc, persistanceLVL, internalsIndicesByMetricClusteringNumberIndex ++ obtainedIndices)
+        ClustersIndicesAnalysisDistributed(data, sc, persistanceLVL, internalsIndicesByMetricClusteringNumberIndex ++ obtainedIndices)
     }
     /**
      *
@@ -76,7 +76,7 @@ class ClustersIndicesAnalysisDistributed[
         
         val indicess = computeInternalsIndicesForEveryClusteringNumber(metric, indices:_*).zipWithIndex.flatMap{ case (scores, idx) => scores.map{ case (indexType, v) => ((metric.id, idx, indexType), v) } }
 
-        new ClustersIndicesAnalysisDistributed(data, sc, persistanceLVL, internalsIndicesByMetricClusteringNumberIndex ++ indicess)
+        ClustersIndicesAnalysisDistributed(data, sc, persistanceLVL, internalsIndicesByMetricClusteringNumberIndex ++ indicess)
     }
 
     /**

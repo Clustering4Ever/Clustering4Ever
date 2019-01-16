@@ -14,7 +14,7 @@ import org.clustering4ever.math.distances.Distance
 /**
  * This object is used to compute internals clustering indices as Davies Bouldin or Silhouette
  */
-class InternalIndicesDistributed[V: ClassTag, D <: Distance[V]](clusterized: RDD[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndicesCommons[V, D] {
+case class InternalIndicesDistributed[V : ClassTag, D <: Distance[V]](clusterized: RDD[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndicesCommons[V, D] {
   /**
    *
    */
@@ -51,7 +51,7 @@ class InternalIndicesDistributed[V: ClassTag, D <: Distance[V]](clusterized: RDD
           val agg = aggregate.map(_._2)
           val a = agg.head
           val b = agg.last
-          if( a._1.isDefined ) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get))
+          if(a._1.isDefined) (id, (b._2.get, a._1.get)) else (id, (a._2.get, b._1.get))
         }
       val cart = for(i <- clustersWithCenterandScatters; j <- clustersWithCenterandScatters if(i._1 != j._1)) yield (i, j)
       val rijList = sc.parallelize(cart.seq.toSeq).map{ case ((idClust1, (centroid1, scatter1)), (idClust2, (centroid2, scatter2))) => (idClust1, good(centroid1, centroid2, scatter1, scatter2, metric)) }
@@ -64,11 +64,8 @@ class InternalIndicesDistributed[V: ClassTag, D <: Distance[V]](clusterized: RDD
 
   lazy val ballHall: Double = {
     val neutralElement = mutable.ArrayBuffer.empty[V]
-
     val clusters = clusterized.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).cache
-
     val prototypes = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainCenter(cluster, metric)) }.collectAsMap
-
     clusters.map{ case (clusterID, aggregate) => aggregate.map( v => metric.d(v, prototypes(clusterID)) ).sum / aggregate.size }.sum / clusters.count
   }
 }

@@ -11,7 +11,7 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-case class Cosine[V <: Seq[Double]](val id: MetricID = 2) extends ContinuousDistance[V] {
+case class Cosine[V <: Seq[Double]](final val id: MetricID = 2) extends ContinuousDistance[V] {
 	/**
 	  * The cosine distance
 	  * @return The cosine distance between dot1 and dot2

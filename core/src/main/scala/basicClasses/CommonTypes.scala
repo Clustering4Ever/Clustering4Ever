@@ -19,7 +19,8 @@ object ClusteringNumberType {
 	 *
 	 */
 	type ClusteringNumber = Int
-}/**
+}
+/**
  *
  */
 object VectorizationIDTypes {

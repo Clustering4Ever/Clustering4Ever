@@ -55,7 +55,7 @@ trait ClustersAnalysisDistributed[
     /**
      *
      */
-    def centroids[D <: DistanceRestriction](metric: D, clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V]): immutable.Map[ClusterID, V] = {
+    def centroids[D[X <: GVector[X]] <: Distance[X]](metric: D[V], clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V]): immutable.Map[ClusterID, V] = {
         groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.collect.toMap
     }
     // def cardinalities(clusteringNumber: Int): Map[Int, Long]

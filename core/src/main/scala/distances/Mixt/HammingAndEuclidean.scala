@@ -51,7 +51,7 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Seriali
 /**
  *
  */
-case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](val alpha: Double = 0D, val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
+case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](final val alpha: Double = 0D, final val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
 	/**
 	 *	
 	 */

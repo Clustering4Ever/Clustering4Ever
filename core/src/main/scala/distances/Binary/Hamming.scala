@@ -29,7 +29,7 @@ trait HammingMeta extends Serializable {
 /**
  *
  */
-class RawHamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with RawBinaryDistance[V] {
+class RawHamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta with RawBinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
@@ -39,7 +39,7 @@ class RawHamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with R
 /**
  *
  */
-case class Hamming[V <: Seq[Int]](val id: MetricID = 4) extends HammingMeta with BinaryDistance[V] {
+case class Hamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta with BinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between dot1 and dot2
