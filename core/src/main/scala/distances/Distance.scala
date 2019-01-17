@@ -13,7 +13,7 @@ trait MetricArgs extends Serializable
 /**
  * Most general notion of Distance, taking two object of type O and returning a Double
  */
-trait Distance[O] extends Serializable {
+trait GenericDistance[O] extends Serializable {
 // trait Distance[O, MA <: MetricArgs] extends Serializable {
 	// val metricArgs: MA
 	/**
@@ -38,6 +38,10 @@ object EmptyDistance extends Distance[Nothing] {
 	 */
 	val id = 0
 }
+/**
+ *
+ */
+trait Distance[V <: GVector[V]] extends GenericDistance[V]
 /**
  *
  */
@@ -68,8 +72,8 @@ trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVecto
 /**
  *
  */
-trait RawContinuousDistance[V <: Seq[Double]] extends Distance[V]
+trait RawContinuousDistance[V <: Seq[Double]] extends GenericDistance[V]
 /**
  *
  */
-trait RawBinaryDistance[V <: Seq[Int]] extends Distance[V]
+trait RawBinaryDistance[V <: Seq[Int]] extends GenericDistance[V]

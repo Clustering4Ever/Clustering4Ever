@@ -1,8 +1,6 @@
 package org.clustering4ever.spark.clustering.kcenters
 
 import scala.language.higherKinds
-import org.apache.spark.SparkContext
-import scala.collection.JavaConverters._
 import scala.math.pow
 import scala.collection.mutable
 import scala.util.Random

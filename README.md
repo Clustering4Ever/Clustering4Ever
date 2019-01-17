@@ -8,7 +8,7 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.2"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.3"` to your `libraryDependencies`
 
 Eventually add this resolver :
 
@@ -67,7 +67,7 @@ Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ 
 
 ### Clustering benchmarking and analysis
 
-Using classes _ClusteringChainingLocal_, _ClusteringChainingDistributed_, and _ClusteringChainingClusteredSystem_ you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
+Using classes _ClusteringChainingLocal_, _BigDataClusteringChaining_, and _DistributedClusteringChaining_ you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
 
 Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ are devoted for clustering indices analysis.
 

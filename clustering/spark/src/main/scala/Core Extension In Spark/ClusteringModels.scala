@@ -11,12 +11,12 @@ import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait CenterOrientedModelDistributed[O, D <: Distance[O]] extends CenterOrientedModel[O, D] {
+trait CenterOrientedModelDistributed[V <: GVector[V], D <: Distance[V]] extends CenterOrientedModel[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict(data: RDD[O]): RDD[(ClusterID, O)] = data.map( v => (centerPredict(v), v) )
+	def centerPredict(data: RDD[V]): RDD[(ClusterID, V)] = data.map( v => (centerPredict(v), v) )
 }
 /**
  *

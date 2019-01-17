@@ -4,7 +4,7 @@ package org.clustering4ever.util
  */
 import scala.language.higherKinds
 import scala.collection.GenSeq
-import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.math.distances.{GenericDistance, Distance}
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
@@ -21,7 +21,7 @@ object ClusterBasicOperations {
 	 * Many attemps with defining type V <: Seq[Double] but implicit calls are refused
 	 * Someone to render it more proper would be cool :)
 	 */
-	def obtainCenter[O, D <: Distance[O]](cluster: GenSeq[O], metric: D): O = {
+	def obtainCenter[O, D <: GenericDistance[O]](cluster: GenSeq[O], metric: D): O = {
 	    metric match {
 	      case euclidean: Euclidean[_] => obtainMean(cluster.asInstanceOf[GenSeq[ScalarVector[Seq[Double]]]]).asInstanceOf[O]
 	      case hamming: Hamming[_] => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[O]

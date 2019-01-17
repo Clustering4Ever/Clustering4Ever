@@ -54,11 +54,11 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 	/**
 	 *
 	 */
-	implicit val ct: ClassTag[Cz[ID, O, V]]
+	protected implicit val ct: ClassTag[Cz[ID, O, V]]
 	/**
 	 * Run the K-Centers
 	 */
-	def obtainCenters(data: GS[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
+	protected def obtainCenters(data: GS[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
 		/**
 		 *
 		 */
@@ -94,7 +94,7 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 /**
  *
  */
-case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X], GS[X] <: GenSeq[X]](val args: KCentersArgs[V, D])(implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCentersAncestor[ID, O, V, Cz, D[V], GS, KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D, GS]] {
+case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X], GS[X] <: GenSeq[X]](val args: KCentersArgs[V, D])(protected implicit val ct: ClassTag[Cz[ID, O, V]]) extends KCentersAncestor[ID, O, V, Cz, D[V], GS, KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D, GS]] {
 	def run(data: GS[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = KCentersModel(obtainCenters(data), args.metric, args)
 }
 /**

@@ -24,7 +24,7 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 	/**
 	 *
 	 */
-	implicit val ctV: ClassTag[V]
+	protected implicit val ctV: ClassTag[V]
 	/**
 	 * To upgrade
 	 * Kmeans++ initialization
@@ -56,7 +56,7 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 	/**
 	 *
 	 */
-	def obtainCenters(data: RDD[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
+	protected def obtainCenters(data: RDD[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
 		
 		data.persist(args.persistanceLVL)
 		/**
@@ -96,7 +96,7 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 /**
  *
  */
-case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X]](val args: KCentersArgs[V, D])(implicit val ct: ClassTag[Cz[ID, O, V]], val ctV: ClassTag[V]) extends KCentersAncestor[ID, O, V, Cz, D[V], KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D]] {
+case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X]](val args: KCentersArgs[V, D])(protected implicit val ct: ClassTag[Cz[ID, O, V]],protected val ctV: ClassTag[V]) extends KCentersAncestor[ID, O, V, Cz, D[V], KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D]] {
 	/**
 	 *
 	 */

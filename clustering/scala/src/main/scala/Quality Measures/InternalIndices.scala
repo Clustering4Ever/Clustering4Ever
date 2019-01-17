@@ -8,13 +8,13 @@ import scala.collection.{GenSeq, mutable}
 import scala.language.higherKinds
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.binary.Hamming
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.math.distances.{GenericDistance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.clustering.ClusteringCommons
 import org.clustering4ever.util.ClusterBasicOperations
 /**
  *
  */
-case class InternalIndicesLocal[V, D <: Distance[V]](clusterized: GenSeq[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesCommons[V, D] {
+case class InternalIndicesLocal[O, D <: GenericDistance[O]](clusterized: GenSeq[(Int, O)], metric: D, clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesCommons[O, D] {
   /**
    *
    */
@@ -72,7 +72,7 @@ case class InternalIndicesLocal[V, D <: Distance[V]](clusterized: GenSeq[(Int, V
      * Param: cluster: RDD[Seq]
      * Return index of point and the corresponding a(i) Array[(Int, Double)]
      */
-    def aiList(cluster: Seq[(Int, V)]): Map[Int, Double] = {
+    def aiList(cluster: Seq[(Int, O)]): Map[Int, Double] = {
       val pointPairs = for( i <- cluster; j <- cluster if i._1 != j._1 ) yield (i, j)
       val allPointsDistances = pointPairs.map( pp => ((pp._1._1, pp._2._1), metric.d(pp._1._2, pp._2._2)) )
       val totalDistanceList = allPointsDistances.map(v => (v._1._1, v._2)).groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).sum) }
@@ -121,19 +121,19 @@ object InternalIndicesLocal extends ClusteringCommons {
    *   * n number of clusterized points
    *   * c number of clusters
    */
-  def daviesBouldin[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
+  def daviesBouldin[O, D <: GenericDistance[O]](clusterized: GenSeq[(ClusterID, O)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
     InternalIndicesLocal(clusterized, metric).daviesBouldin
   }
   /**
    *
    */
-  def silhouette[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
+  def silhouette[O, D <: GenericDistance[O]](clusterized: GenSeq[(ClusterID, O)], metric: D, clusterLabels: Option[Seq[ClusterID]] = None): Double = {
     InternalIndicesLocal(clusterized, metric).silhouette
   }
   /**
    *
    */
-  def ballHall[V, D <: Distance[V]](clusterized: GenSeq[(ClusterID, V)], metric: D) = {
+  def ballHall[O, D <: GenericDistance[O]](clusterized: GenSeq[(ClusterID, O)], metric: D) = {
     InternalIndicesLocal(clusterized, metric).ballHall
   }
 

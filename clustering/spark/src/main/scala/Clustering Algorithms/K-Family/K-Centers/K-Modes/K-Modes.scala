@@ -16,7 +16,7 @@ import org.clustering4ever.vectors.{GVector, BinaryVector}
 /**
  *
  */
-case class KModes[ID, O, V <: Seq[Int], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Int]] <: BinaryDistance[X]](val args: KModesArgs[V, D])(implicit val ct: ClassTag[Cz[ID, O, BinaryVector[V]]], val ctV: ClassTag[BinaryVector[V]]) extends KCentersAncestor[ID, O, BinaryVector[V], Cz, D[V], KModesArgs[V, D], KModesModel[ID, O, V, Cz, D]] {
+case class KModes[ID, O, V <: Seq[Int], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Int]] <: BinaryDistance[X]](val args: KModesArgs[V, D])(protected implicit val ct: ClassTag[Cz[ID, O, BinaryVector[V]]], protected val ctV: ClassTag[BinaryVector[V]]) extends KCentersAncestor[ID, O, BinaryVector[V], Cz, D[V], KModesArgs[V, D], KModesModel[ID, O, V, Cz, D]] {
 	/**
 	 *
 	 */

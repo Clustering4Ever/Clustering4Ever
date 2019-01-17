@@ -15,7 +15,7 @@ import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.vectorizations.VectorizationLocal
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
-import org.clustering4ever.clustering.{VectorizationDistributed, EasyVectorizationDistributed, ClusteringChaining, ClusteringAlgorithmCz, ClusteringInformationsLocal, ClusteringAlgorithmDistributed, ClusteringInformationsDistributed, ClusteringAlgorithmLocal, DataExplorator, AlgorithmsRestrictions}
+import org.clustering4ever.clustering.{VectorizationDistributed, EasyVectorizationDistributed, ClusteringChaining, ClusteringAlgorithm, ClusteringInformationsLocal, ClusteringAlgorithmDistributed, ClusteringInformationsDistributed, ClusteringAlgorithmLocal, DataExplorator, AlgorithmsRestrictions}
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 /**
@@ -194,12 +194,12 @@ case class BigDataClusteringChaining[
     /**
      *
      */
-    def runAlgorithmsOnMultipleVectorizations[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](
-        vectorizations: Seq[OtherVecto[O, V]],
-        algorithms: AlgorithmsRestrictions[V]*
-    ): Self[V, OtherVecto] = {
-        vectorizations.view.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
-    }
+    // def runAlgorithmsOnMultipleVectorizations[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](
+    //     vectorizations: Seq[OtherVecto[O, V]],
+    //     algorithms: AlgorithmsRestrictions[V]*
+    // ): Self[V, OtherVecto] = {
+    //     vectorizations.view.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
+    // }
 }
 /**
  *

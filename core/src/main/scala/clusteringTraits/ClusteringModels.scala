@@ -10,17 +10,17 @@ import org.clustering4ever.vectors.GVector
 /**
  * The basic trait shared by all clustering models
  */
-trait ClusteringModel extends ClusteringCommons {
+trait GenericClusteringModel extends ClusteringCommons {
 	// val clusteringStats: ClusteringStats
 }
 /**
  * The basic trait shared by all clustering models
  */
-trait ClusteringModelCz[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs[V]] extends ClusteringModel with CollectionNature[Collection] {
+trait ClusteringModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs[V]] extends GenericClusteringModel with CollectionNature[Collection] {
 	/**
 	 *
 	 */
-	implicit val ct: ClassTag[Cz[ID, O, V]]
+	protected implicit val ct: ClassTag[Cz[ID, O, V]]
 	/**
 	 *
 	 */
@@ -37,7 +37,7 @@ trait ClusteringModelCz[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clu
 /**
  *
  */
-trait ClusteringModelLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X], +CA <: ClusteringArgs[V]] extends ClusteringModelCz[ID, O, V, Cz, GS, CA] {
+trait ClusteringModelLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X], +CA <: ClusteringArgs[V]] extends ClusteringModel[ID, O, V, Cz, GS, CA] {
 	/**
 	 *
 	 */

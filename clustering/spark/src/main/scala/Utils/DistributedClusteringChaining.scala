@@ -15,7 +15,7 @@ import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.vectorizations.VectorizationLocal
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
-import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithmCz, ClusteringInformationsLocal, ClusteringAlgorithmLocal, DataExplorator, AlgorithmsRestrictions}
+import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithm, ClusteringInformationsLocal, ClusteringAlgorithmLocal, DataExplorator, AlgorithmsRestrictions}
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.vectorizations.EasyVectorizationLocal

@@ -3,14 +3,14 @@ package org.clustering4ever.clustering.models
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.math.distances.{GenericDistance, Distance}
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait KnnOrientedModel[O, D <: Distance[O]] extends MetricModel[O, D] {
+trait GenericKnnOrientedModel[O, D <: GenericDistance[O]] extends GenericMetricModel[O, D] {
 	/**
 	 * Time complexity O(n<sub>trainDS</sub>)
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors
@@ -22,6 +22,21 @@ trait KnnOrientedModel[O, D <: Distance[O]] extends MetricModel[O, D] {
 	 */
 	def knnPredict(v: O, k: Int, trainDS: Seq[(ClusterID, O)]): ClusterID = knnPredictWithNN(v, k, trainDS)._1
 }
+/**
+ *
+ */
+trait GenericKnnOrientedModelLocal[O, D <: GenericDistance[O]] extends GenericKnnOrientedModel[O, D] {
+	/**
+	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
+	 * @return the input Seq with labels obtain via knnPredict method
+	 */
+	def knnPredict[GS[X] <: GenSeq[X]](data: GS[O], k: Int, trainDS: Seq[(ClusterID, O)]): GS[(ClusterID, O)] = data.map( v => (knnPredict(v, k, trainDS), v) ).asInstanceOf[GS[(ClusterID, O)]]
+
+}
+/**
+ *
+ */
+trait KnnOrientedModel[V <: GVector[V], D <: Distance[V]] extends GenericKnnOrientedModel[V, D]
 /**
  *
  */
@@ -43,14 +58,7 @@ trait KnnOrientedModelClusterizable[V <: GVector[V], D <: Distance[V]] extends K
 /**
  *
  */
-trait KnnOrientedModelLocal[O, D <: Distance[O]] extends KnnOrientedModel[O, D] {
-	/**
-	 * Time complexity O(n<sub>data</sub>.n<sub>trainDS</sub>)
-	 * @return the input Seq with labels obtain via knnPredict method
-	 */
-	def knnPredict[GS[X] <: GenSeq[X]](data: GS[O], k: Int, trainDS: Seq[(ClusterID, O)]): GS[(ClusterID, O)] = data.map( v => (knnPredict(v, k, trainDS), v) ).asInstanceOf[GS[(ClusterID, O)]]
-
-}
+trait KnnOrientedModelLocal[V <: GVector[V], D <: Distance[V]] extends GenericKnnOrientedModelLocal[V, D]
 /**
  *
  */

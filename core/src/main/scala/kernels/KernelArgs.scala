@@ -4,7 +4,7 @@ package org.clustering4ever.kernels
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.math.distances.{GenericDistance, Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.math.distances.scalar.{Euclidean}
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, GMixtVector}
@@ -18,15 +18,23 @@ trait KernelArgs extends Serializable {
 /**
  *
  */
-trait KernelArgsWithMetric[O, D <: Distance[O]] extends KernelArgs {
+trait GenericKernelArgsWithMetric[O, D <: GenericDistance[O]] extends KernelArgs {
     val metric: D
 }
 /**
  *
  */
-trait KernelArgsKnn[O, D <: Distance[O]] extends KernelArgsWithMetric[O, D] {
+trait GenericKernelArgsKnn[O, D <: GenericDistance[O]] extends GenericKernelArgsWithMetric[O, D] {
     val k: Int
 }
+/**
+ *
+ */
+trait KernelArgsWithMetric[V <: GVector[V], D <: Distance[V]] extends GenericKernelArgsWithMetric[V, D]
+/**
+ *
+ */
+trait KernelArgsKnn[V <: GVector[V], D <: Distance[V]] extends GenericKernelArgsKnn[V, D]
 /**
  *
  */

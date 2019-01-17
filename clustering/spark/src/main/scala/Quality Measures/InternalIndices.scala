@@ -10,11 +10,11 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
 import org.clustering4ever.clustering.ClusteringCommons
 import org.clustering4ever.util.ClusterBasicOperations
-import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.math.distances.GenericDistance
 /**
  * This object is used to compute internals clustering indices as Davies Bouldin or Silhouette
  */
-case class InternalIndicesDistributed[V : ClassTag, D <: Distance[V]](clusterized: RDD[(Int, V)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndicesCommons[V, D] {
+case class InternalIndicesDistributed[O : ClassTag, D <: GenericDistance[O]](clusterized: RDD[(Int, O)], metric: D, clustersIDsOp: Option[mutable.ArraySeq[Int]] = None) extends InternalIndicesCommons[O, D] {
   /**
    *
    */
@@ -22,11 +22,11 @@ case class InternalIndicesDistributed[V : ClassTag, D <: Distance[V]](clusterize
   /**
    *
    */
-  private[this] def addToBuffer[V](buff: mutable.ArrayBuffer[V], elem: V) = buff += elem
+  private[this] def addToBuffer[O](buff: mutable.ArrayBuffer[O], elem: O) = buff += elem
   /**
    *
    */
-  private[this] def aggregateBuff[V](buff1: mutable.ArrayBuffer[V], buff2: mutable.ArrayBuffer[V]) = buff1 ++= buff2
+  private[this] def aggregateBuff[O](buff1: mutable.ArrayBuffer[O], buff2: mutable.ArrayBuffer[O]) = buff1 ++= buff2
   /**
    *
    */
@@ -36,7 +36,7 @@ case class InternalIndicesDistributed[V : ClassTag, D <: Distance[V]](clusterize
       0D
     }
     else {
-      val neutralElement = mutable.ArrayBuffer.empty[V]
+      val neutralElement = mutable.ArrayBuffer.empty[O]
       val neutralElement2 = mutable.ArrayBuffer.empty[Double]
       def addToBuffer2(buff: mutable.ArrayBuffer[Double], elem: Double) = buff += elem
       def aggregateBuff2(buff1: mutable.ArrayBuffer[Double], buff2: mutable.ArrayBuffer[Double]) = buff1 ++= buff2
@@ -63,7 +63,7 @@ case class InternalIndicesDistributed[V : ClassTag, D <: Distance[V]](clusterize
   }
 
   lazy val ballHall: Double = {
-    val neutralElement = mutable.ArrayBuffer.empty[V]
+    val neutralElement = mutable.ArrayBuffer.empty[O]
     val clusters = clusterized.aggregateByKey(neutralElement)(addToBuffer, aggregateBuff).cache
     val prototypes = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainCenter(cluster, metric)) }.collectAsMap
     clusters.map{ case (clusterID, aggregate) => aggregate.map( v => metric.d(v, prototypes(clusterID)) ).sum / aggregate.size }.sum / clusters.count
@@ -77,14 +77,14 @@ object InternalIndicesDistributed extends ClusteringCommons {
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    */
-  def daviesBouldin[V: ClassTag, D <: Distance[V]](sc: SparkContext, clusterized: RDD[(ClusterID, V)], metric: D): Double = { 
+  def daviesBouldin[O: ClassTag, D <: GenericDistance[O]](sc: SparkContext, clusterized: RDD[(ClusterID, O)], metric: D): Double = { 
     val internalIndices = new InternalIndicesDistributed(clusterized, metric)
     internalIndices.daviesBouldin(sc)
   }
   /**
    *
    */
-  def ballHall[V: ClassTag, D <: Distance[V]](clusterized: RDD[(ClusterID, V)], metric: D): Double = {
+  def ballHall[O: ClassTag, D <: GenericDistance[O]](clusterized: RDD[(ClusterID, O)], metric: D): Double = {
     (new InternalIndicesDistributed(clusterized, metric)).ballHall
   }
 

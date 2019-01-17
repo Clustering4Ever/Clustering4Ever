@@ -20,10 +20,10 @@ import org.clustering4ever.vectorizations.Vectorization
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait ClusteringAlgorithmDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgs[V], +CM <: ClusteringModelCz[ID, O, V, Cz, RDD, CA]] extends ClusteringAlgorithmCz[ID, O, V, Cz, RDD, CA, CM] {
+trait ClusteringAlgorithmDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgs[V], +CM <: ClusteringModel[ID, O, V, Cz, RDD, CA]] extends ClusteringAlgorithm[ID, O, V, Cz, RDD, CA, CM] {
 	/**
 	 * Execute the corresponding clustering algorithm
-	 * @return ClusteringModel
+	 * @return GenericClusteringModel
 	 */
 	def run(data: RDD[Cz[ID, O, V]]): CM
 
@@ -31,7 +31,7 @@ trait ClusteringAlgorithmDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVect
 /**
  *
  */
-trait ClusteringModelDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgsDistributed[V]] extends ClusteringModelCz[ID, O, V, Cz, RDD, CA] {
+trait ClusteringModelDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgsDistributed[V]] extends ClusteringModel[ID, O, V, Cz, RDD, CA] {
 	/**
 	 *
 	 */

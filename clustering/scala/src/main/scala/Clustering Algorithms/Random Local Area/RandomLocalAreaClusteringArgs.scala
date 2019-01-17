@@ -4,7 +4,7 @@ package org.clustering4ever.scala.clustering.rla
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import org.clustering4ever.clustering.ClusteringModel
+import org.clustering4ever.clustering.GenericClusteringModel
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.clusterizables.Clusterizable

@@ -33,30 +33,7 @@ trait CollectionNature[Collection[_]] extends ClusteringCommons
 /**
  * The basic trait shared by all clustering algorithms
  */
-trait ClusteringAlgorithm extends ClusteringCommons
-/**
- * The basic trait shared by all clustering algorithms working on Clusterizable
- */
-trait ClusteringAlgorithmCz[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs[V], +CM <: ClusteringModelCz[ID, O, V, Cz, Collection, CA]] extends ClusteringAlgorithm {
-	/**
-	 *
-	 */
-	implicit val ct: ClassTag[Cz[ID, O, V]]
-	/**
-	 *
-	 */
-	val args: CA
-	/**
-	 * Execute the corresponding clustering algorithm
-	 * @return ClusteringModel
-	 */
-	def run(data: Collection[Cz[ID, O, V]]): CM
-
-}
-/**
- * The basic trait shared by all local clustering algorithms
- */
-trait ClusteringAlgorithmLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X], +CA <: ClusteringArgs[V], +CM <: ClusteringModelCz[ID, O, V, Cz, GS, CA]] extends ClusteringAlgorithmCz[ID, O, V, Cz, GS, CA, CM]
+trait GenericClusteringAlgorithm extends ClusteringCommons
 /**
  * Statistic obtained during clustering algorithm executions
  */
@@ -70,6 +47,29 @@ trait ClusteringArgs[V <: GVector[V]] extends Serializable {
 	 */
 	val algorithm: ClusteringAlgorithmNature
 }
+/**
+ * The basic trait shared by all clustering algorithms working on Clusterizable
+ */
+trait ClusteringAlgorithm[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs[V], +CM <: ClusteringModel[ID, O, V, Cz, Collection, CA]] extends GenericClusteringAlgorithm {
+	/**
+	 *
+	 */
+	protected implicit val ct: ClassTag[Cz[ID, O, V]]
+	/**
+	 *
+	 */
+	val args: CA
+	/**
+	 * Execute the corresponding clustering algorithm
+	 * @return GenericClusteringModel
+	 */
+	def run(data: Collection[Cz[ID, O, V]]): CM
+
+}
+/**
+ * The basic trait shared by all local clustering algorithms
+ */
+trait ClusteringAlgorithmLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X], +CA <: ClusteringArgs[V], +CM <: ClusteringModel[ID, O, V, Cz, GS, CA]] extends ClusteringAlgorithm[ID, O, V, Cz, GS, CA, CM]
 /**
  *
  */
@@ -104,13 +104,13 @@ trait AlgorithmsRestrictions[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <
 	/**
 	 *
 	 */
-	type AlgorithmsRestrictions[NV <: GVector[NV]] <: ClusteringAlgorithmCz[ID, O, NV, Cz, Collection, ClusteringArgs[NV], ClusteringModelCz[ID, O, NV, Cz, Collection, ClusteringArgs[NV]]]
+	type AlgorithmsRestrictions[NV <: GVector[NV]] <: ClusteringAlgorithm[ID, O, NV, Cz, Collection, ClusteringArgs[NV], ClusteringModel[ID, O, NV, Cz, Collection, ClusteringArgs[NV]]]
 }
 /**
  *
  */
 // trait ClusteringInformations[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_]] extends CollectionNature[Collection] {
-// 	val clusteringInformations: immutable.HashSet[(GlobalClusteringRunNumber, Vectorization[O, V], ClusteringArgs[V], ClusteringModelCz[ID, O, V, Cz, Collection, ClusteringArgs[V]])]
+// 	val clusteringInformations: immutable.HashSet[(GlobalClusteringRunNumber, Vectorization[O, V], ClusteringArgs[V], ClusteringModel[ID, O, V, Cz, Collection, ClusteringArgs[V]])]
 // 	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double]
 // 	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
 // }

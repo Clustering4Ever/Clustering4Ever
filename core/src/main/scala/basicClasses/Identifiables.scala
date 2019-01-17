@@ -9,7 +9,7 @@ import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.vectorizables.NotVectorizable
 /**
- *
+ * HashCode of IdentifiedRawObject descendant is fixed to ID hashcode
  */
 trait IdentifiedRawObject[ID, O] {
 	/**

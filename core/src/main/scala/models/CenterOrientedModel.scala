@@ -3,14 +3,14 @@ package org.clustering4ever.clustering.models
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
+import org.clustering4ever.math.distances.{GenericDistance, Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait CenterOrientedModel[O, D <: Distance[O]] extends MetricModel[O, D] {
+trait GenericCenterOrientedModel[O, D <: GenericDistance[O]] extends GenericMetricModel[O, D] {
 	/**
 	 *
 	 */
@@ -21,6 +21,10 @@ trait CenterOrientedModel[O, D <: Distance[O]] extends MetricModel[O, D] {
 	 */
 	def centerPredict(v: O): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid, v) }._1
 }
+/**
+ *
+ */
+trait CenterOrientedModel[V <: GVector[V], D <: Distance[V]] extends GenericCenterOrientedModel[V, D]
 /**
  *
  */
@@ -65,13 +69,17 @@ trait CenterOrientedModelCz[V <: GVector[V], D <: Distance[V]] extends CenterOri
 /**
  *
  */
-trait CenterOrientedModelLocal[O, D <: Distance[O]] extends CenterOrientedModel[O, D] {
+trait GenericCenterOrientedModelLocal[O, D <: GenericDistance[O]] extends GenericCenterOrientedModel[O, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
 	def centerPredict[GS[X] <: GenSeq[X]](data: GS[O]): GS[(ClusterID, O)] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, O)]]
 }
+/**
+ *
+ */
+trait CenterOrientedModelLocal[V <: GVector[V], D <: Distance[V]] extends GenericCenterOrientedModelLocal[V, D]
 /**
  *
  */

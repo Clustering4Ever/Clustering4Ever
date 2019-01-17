@@ -4,15 +4,15 @@ package org.clustering4ever.clustering.models
  */
 import scala.language.higherKinds
 import scala.collection.{GenSeq, mutable, Traversable}
-import org.clustering4ever.clustering.ClusteringModel
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import org.clustering4ever.clustering.GenericClusteringModel
+import org.clustering4ever.math.distances.{GenericDistance, Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.identifiables.IdentifiedRawObject
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait DataBasedModel[ID, O, D <: Distance[O], T[X] <: Traversable[X], IRO[A, B] <: IdentifiedRawObject[A, B]] extends KnnOrientedModel[O, D] {
+trait GenericDataBasedModel[ID, O, D <: GenericDistance[O], T[X] <: Traversable[X], IRO[A, B] <: IdentifiedRawObject[A, B]] extends GenericKnnOrientedModel[O, D] {
 	/**
 	 *
 	 */
@@ -41,6 +41,10 @@ trait DataBasedModel[ID, O, D <: Distance[O], T[X] <: Traversable[X], IRO[A, B] 
 	def knnPredict[GS[X] <: GenSeq[X]](genSeq: GS[O], k: Int): GS[(ClusterID, O)] = genSeq.map( obj => (knnPredict(obj, k), obj) ).asInstanceOf[GS[(ClusterID, O)]]
 
 }
+/**
+ *
+ */
+trait DataBasedModel[ID, V <: GVector[V], D <: Distance[V], T[X] <: Traversable[X], IRO[A, B] <: IdentifiedRawObject[A, B]] extends GenericDataBasedModel[ID, V, D, T, IRO]
 /**
  *
  */

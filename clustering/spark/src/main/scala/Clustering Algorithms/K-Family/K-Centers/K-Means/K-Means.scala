@@ -16,7 +16,7 @@ import org.clustering4ever.vectors.{GVector, ScalarVector}
 /**
  *
  */
-case class KMeans[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Double]] <: ContinuousDistance[X]](val args: KMeansArgs[V, D])(implicit val ct: ClassTag[Cz[ID, O, ScalarVector[V]]], val ctV: ClassTag[ScalarVector[V]]) extends KCentersAncestor[ID, O, ScalarVector[V], Cz, D[V], KMeansArgs[V, D], KMeansModel[ID, O, V, Cz, D]] {
+case class KMeans[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Double]] <: ContinuousDistance[X]](val args: KMeansArgs[V, D])(protected implicit val ct: ClassTag[Cz[ID, O, ScalarVector[V]]], protected val ctV: ClassTag[ScalarVector[V]]) extends KCentersAncestor[ID, O, ScalarVector[V], Cz, D[V], KMeansArgs[V, D], KMeansModel[ID, O, V, Cz, D]] {
 	/**
 	 *
 	 */

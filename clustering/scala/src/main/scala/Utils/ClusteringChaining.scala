@@ -12,7 +12,7 @@ import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, Clustering
 import org.clustering4ever.extensibleAlgorithmNature._
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.scala.clustering.kcenters.KCenters
-import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithmCz, ClusteringAlgorithmLocal, ClusteringInformationsLocal}
+import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithm, ClusteringAlgorithmLocal, ClusteringInformationsLocal}
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.enums.ClusteringAlgorithmNatureEnum
@@ -100,7 +100,7 @@ case class ClusteringChainingLocal[
                 aInfos.get.copy(clusteringInformations = aInfos.get.clusteringInformations + ((updatedRunNumber, updatedCurrentVectorization, algorithm.args, model)))
             ))
             else HMap[ClusteringInformationsMapping](
-                updatedCurrentVectorization.vectorizationID -> new ClusteringInformationsLocal(immutable.HashSet((updatedRunNumber, updatedCurrentVectorization, algorithm.args, model)))
+                updatedCurrentVectorization.vectorizationID -> ClusteringInformationsLocal(immutable.HashSet((updatedRunNumber, updatedCurrentVectorization, algorithm.args, model)))
             )
         new ClusteringChainingLocal(updatedData, chainableID, updatedCurrentVectorization, updatedInfos) {
             override val vectorizations = updatedVectorizations
@@ -119,8 +119,6 @@ case class ClusteringChainingLocal[
 
             val updatedRunNumber = globalClusteringRunNumber + algIdx
             val updatedVectorizations = vectorizations
-            // val updatedInfos = clusteringInfo2
-
             (new ClusteringChainingLocal(data, chainableID, currentVectorization, clusteringInformations) {
                 override val vectorizations = updatedVectorizations
                 override val globalClusteringRunNumber = updatedRunNumber
@@ -208,22 +206,31 @@ case class ClusteringChainingLocal[
     /**
      *
      */
-    def runAlgorithmsOnMultipleVectorizationsOfSameNature[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](
-        vectorizations: Seq[OtherVecto[O, V]],
-        algorithms: AlgorithmsRestrictions[V]*
-    ): Self[V, OtherVecto] = {
-        vectorizations.par.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
-    }
+    // def runAlgorithmsOnMultipleVectorizationsOfSameNature[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](
+    //     vectorizations: Seq[OtherVecto[O, V]],
+    //     algorithms: AlgorithmsRestrictions[V]*
+    // ): Self[V, OtherVecto] = {
+    //     vectorizations.par.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
+    // }
 }
 /**
  *
  */
 object ClusteringChainingLocal extends Serializable {
-    def apply[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]) = {
+    /**
+     *
+     */
+    def apply[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]], chainingID: Int)(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringChainingLocal[ID, O, V, Cz, EasyVectorizationLocal, GS] = {
         new ClusteringChainingLocal(
             data,
-            scala.util.Random.nextInt,
+            chainingID,
             EasyVectorizationLocal[O, V](0)
         )
+    }
+    /**
+     *
+     */
+    def apply[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringChainingLocal[ID, O, V, Cz, EasyVectorizationLocal, GS] = {
+        apply(data, scala.util.Random.nextInt)
     }
 }
