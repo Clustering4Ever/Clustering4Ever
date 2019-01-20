@@ -6,11 +6,9 @@ import scala.language.higherKinds
 import scala.language.implicitConversions
 import scala.collection.{GenSeq, mutable, immutable}
 import org.clustering4ever.clusterizables.EasyClusterizable
-import org.clustering4ever.vectorizables.Vectorizable
-import org.clustering4ever.vectors.{BinaryVector, ScalarVector, MixtVector}
 import org.clustering4ever.supervizables.EasySupervizable
 import org.clustering4ever.vectors.SupervizedVector
-import org.clustering4ever.vectorizables.{VectorizableOrNot, NotVectorizable, Vectorizable}
+import org.clustering4ever.vectors.{SupervizedVector, BinaryVector, ScalarVector, MixtVector}
 /**
  *
  */
@@ -77,7 +75,7 @@ object ScalaCollectionImplicits {
 	/**
 	 *
 	 */
-	implicit def rawDataToSupervizable[T, V[X] <: Seq[X], GS[Y] <: GenSeq[Y]](gs: GS[(V[Int], Int)]): GS[EasySupervizable[Int, SupervizedVector[T, V], SupervizedVector[T, V]]] = {
-		gs.zipWithIndex.map{ case ((v, l), id) => EasySupervizable(id, SupervizedVector(v),  l) }.asInstanceOf[GS[EasySupervizable[Int, SupervizedVector[T, V], SupervizedVector[T, V]]]]
+	implicit def rawDataToSupervizable[T, S[X] <: Seq[X], GS[Y] <: GenSeq[Y]](gs: GS[(S[T], Int)]): GS[EasySupervizable[Int, SupervizedVector[T, S], SupervizedVector[T, S]]] = {
+		gs.zipWithIndex.map{ case ((v, l), id) => EasySupervizable(id, SupervizedVector(v),  l) }.asInstanceOf[GS[EasySupervizable[Int, SupervizedVector[T, S], SupervizedVector[T, S]]]]
 	}
 }

@@ -7,7 +7,6 @@ import scala.language.implicitConversions
 import org.apache.spark.rdd.RDD
 import org.clustering4ever.clusterizables.EasyClusterizable
 import org.clustering4ever.vectors.{BinaryVector, ScalarVector}
-import org.clustering4ever.vectorizables.NotVectorizable
 /**
  *
  */

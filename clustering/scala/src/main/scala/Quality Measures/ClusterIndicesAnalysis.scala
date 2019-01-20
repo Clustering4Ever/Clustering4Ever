@@ -58,7 +58,7 @@ case class ClustersIndicesAnalysisLocal[
     /**
      *
      */
-    def obtainInternalsIndicesVecto[D <: Distance[V], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](metric: D, indices: InternalsIndicesType*)(vectorization: Vecto[O, V]): immutable.Map[InternalsIndicesType, Double] = {
+    def obtainInternalsIndicesVecto[D <: Distance[V], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](metric: D, indices: InternalsIndicesType*)(vectorization: Vecto[O, V]): immutable.Map[InternalsIndicesType, Double] = {
         obtainInternalsIndices(metric, indices:_*)(vectorization.vectorizationID)
     }
     /**

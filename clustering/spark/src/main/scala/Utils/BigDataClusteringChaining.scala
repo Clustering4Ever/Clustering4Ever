@@ -25,12 +25,12 @@ case class BigDataClusteringChaining[
     ID,
     O,
     V <: GVector[V],
-    Vecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Vecto],
+    Vecto <: VectorizationDistributed[O, V, Vecto],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
 ](
     val data: RDD[Cz[ID, O, V]],
     val chainableID: Int,
-    val currentVectorization: Vecto[O, V],
+    val currentVectorization: Vecto,
     val clusteringInformations: HMap[ClusteringInformationsMapping] = HMap.empty[ClusteringInformationsMapping]
 )(implicit val ct: ClassTag[Cz[ID, O, V]]) extends ClusteringChaining[ID, O, V, Cz, Vecto, RDD] {
     /**
@@ -52,7 +52,7 @@ case class BigDataClusteringChaining[
     /**
      *
      */
-    type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]] = BigDataClusteringChaining[ID, O, GV, OtherVecto, Cz]
+    type Self[GV <: GVector[GV], OtherVecto <: VectorizationDistributed[O, GV, OtherVecto]] = BigDataClusteringChaining[ID, O, GV, OtherVecto, Cz]
     /**
      *
      */
@@ -135,7 +135,7 @@ case class BigDataClusteringChaining[
     /**
      *
      */
-    private def internalUpdating[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]) = {
+    private def internalUpdating[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV]) = {
         val updatedRunNumber = globalClusteringRunNumber
         val updatedVectorizations = vectorizations.+((vectorization.vectorizationID, vectorization))(vectorization.vectoMapping)
         val updatedFusionChainableSecurity = fusionChainableSecurity
@@ -144,7 +144,7 @@ case class BigDataClusteringChaining[
     /**
      *
      */
-    def updateVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto] = {
+    def updateVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto[O, GV]] = {
 
         val (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity) = internalUpdating(vectorization)
         new BigDataClusteringChaining(
@@ -161,7 +161,7 @@ case class BigDataClusteringChaining[
     /**
      *
      */
-    def addVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]): Self[V, Vecto] = {
+    def addVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV]): Self[V, Vecto] = {
 
         val (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity) = internalUpdating(vectorization)
         new BigDataClusteringChaining(
@@ -179,7 +179,7 @@ case class BigDataClusteringChaining[
     /**
      * Update the current vector for another
      */
-    def switchToAnotherExistantVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto] = {
+    def switchToAnotherExistantVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto[O, GV]] = {
         val updatedVectorData = data.map(_.switchForExistingVector(vectorization))
         val updatedCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
         val updatedGlobalRunNumber = globalClusteringRunNumber
@@ -195,7 +195,7 @@ case class BigDataClusteringChaining[
      *
      */
     // def runAlgorithmsOnMultipleVectorizations[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](
-    //     vectorizations: Seq[OtherVecto[O, V]],
+    //     vectorizations: Seq[OtherVecto],
     //     algorithms: AlgorithmsRestrictions[V]*
     // ): Self[V, OtherVecto] = {
     //     vectorizations.view.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))

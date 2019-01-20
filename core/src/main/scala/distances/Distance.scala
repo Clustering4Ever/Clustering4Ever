@@ -39,7 +39,7 @@ object EmptyDistance extends Distance[Nothing] {
 	val id = 0
 }
 /**
- *
+ * Distance trait for applicable on GVector descendant like objects
  */
 trait Distance[V <: GVector[V]] extends GenericDistance[V]
 /**
@@ -47,7 +47,7 @@ trait Distance[V <: GVector[V]] extends GenericDistance[V]
  */
 trait ContinuousDistance[V <: Seq[Double]] extends Distance[ScalarVector[V]] {
 	/**
-	 *
+	 * Distance on raw vector nature
 	 */
 	def d(v1: V, v2: V): Double
 }
@@ -56,7 +56,7 @@ trait ContinuousDistance[V <: Seq[Double]] extends Distance[ScalarVector[V]] {
  */
 trait BinaryDistance[V <: Seq[Int]] extends Distance[BinaryVector[V]] {
 	/**
-	 *
+	 * Distance on raw vector nature
 	 */
 	def d(v1: V, v2: V): Double
 }
@@ -65,7 +65,7 @@ trait BinaryDistance[V <: Seq[Int]] extends Distance[BinaryVector[V]] {
  */
 trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVector[Vb, Vs]] {
 	/**
-	 *
+	 * Distance on raw vector nature
 	 */
 	// def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double
 }

@@ -18,7 +18,11 @@ trait Preprocessable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Prep
 	/**
 	 *
 	 */
-	def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): Self[ID, O, V]
+	this: Self[ID, O, V] =>
+	/**
+	 *
+	 */
+	def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, V]
 	/**
 	 *
 	 */
@@ -26,9 +30,10 @@ trait Preprocessable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Prep
 	/**
 	 *
 	 */
-	def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
+	def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
 	/**
 	 *
 	 */
-	def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
+	def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
+
 }

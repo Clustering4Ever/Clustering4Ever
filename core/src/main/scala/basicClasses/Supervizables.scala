@@ -9,13 +9,16 @@ import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.shapeless.VMapping
 import shapeless.HMap
 import org.clustering4ever.vectors.GVector
-import org.clustering4ever.vectorizables.NotVectorizable
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.vectorizations.Vectorization
 /**
  *
  */
 trait Supervizable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Self]] extends Preprocessable[ID, O, V, Self] {
+	/**
+	 *
+	 */
+	this: Self[ID, O, V] =>
 	/**
 	 *
 	 */
@@ -89,7 +92,7 @@ case class EasySupervizable[ID, O, V <: GVector[V]](
 	/**
 	 *
 	 */
-	final def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): EasySupervizable[ID, O, V] = {
+	final def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[ID, O, V] = {
 		this.copy(vectorized = vectorized.+(((vectorization.vectorizationID, o.toVector(vectorization.vectorizationFct.get))))(VMapping[VectorizationID, GV]))
 	}
 	/**
@@ -101,14 +104,13 @@ case class EasySupervizable[ID, O, V <: GVector[V]](
 	/**
 	 *
 	 */
-	final def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): EasySupervizable[ID, O, GV] = {
-		EasySupervizable(id, o, label, vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get.asInstanceOf[GV], mutable.ArrayBuffer.empty[GV], vectorized)
+	final def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[ID, O, GV] = {
+		EasySupervizable(id, o, label, vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get, mutable.ArrayBuffer.empty[GV], vectorized)
 	}
-
 	/**
 	 *
 	 */
-	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto]](vectorization: Vecto[O, GV]): EasySupervizable[ID, O, GV] = {
+	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[ID, O, GV] = {
 		EasySupervizable(id, o, label, o.toVector(vectorization.vectorizationFct.get), mutable.ArrayBuffer.empty[GV], vectorized)
 	}
 }

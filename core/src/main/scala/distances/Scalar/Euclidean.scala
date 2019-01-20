@@ -45,7 +45,7 @@ trait EuclideanMeta[V <: Seq[Double]] extends Serializable {
 /**
  * The Euclidean distance with or without squareRoot
  */
-class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanMeta[V] with RawContinuousDistance[V] {
+case class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanMeta[V] with RawContinuousDistance[V] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between dot1 and dot2

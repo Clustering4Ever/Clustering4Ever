@@ -37,7 +37,7 @@ object VectorsAddOperationsImplicits {
 		val builder = v1.vector.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
 		builder.sizeHint(v1.vector.size)
 		(0 until v1.vector.size).foreach( i => builder += v1.vector(i) + v2.vector(i) )
-		new ScalarVector(builder.result)
+		ScalarVector(builder.result)
 	}
 	/**
 	 *
@@ -46,7 +46,7 @@ object VectorsAddOperationsImplicits {
 		val builder = v1.vector.genericBuilder.asInstanceOf[mutable.Builder[Int, V]]
 		builder.sizeHint(v1.vector.size)
 		(0 until v1.vector.size).foreach( i => builder += v1.vector(i) + v2.vector(i) )
-		new BinaryVector(builder.result)
+		BinaryVector(builder.result)
 	}
 	/**
 	 *
@@ -54,7 +54,7 @@ object VectorsAddOperationsImplicits {
 	implicit def addMixtVectors[Vb <: Seq[Int], Vs <: Seq[Double]](v1: MixtVector[Vb, Vs], v2: MixtVector[Vb, Vs]): MixtVector[Vb, Vs] = {
 		val binaryPart = addRawBinaryVectors(v1.binary, v2.binary)
 		val scalarPart = addRawScalarVectors(v1.scalar, v2.scalar)
-		new MixtVector(binaryPart, scalarPart)
+		MixtVector(binaryPart, scalarPart)
 	}
 }
 /**

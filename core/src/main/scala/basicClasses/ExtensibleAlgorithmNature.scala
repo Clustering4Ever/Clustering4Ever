@@ -22,11 +22,19 @@ object KPrototypes extends ClusteringAlgorithmNature
 /**
  *
  */
+object GaussianMixtures extends ClusteringAlgorithmNature
+/**
+ *
+ */
 object AnAlgoWithoutArgs extends ClusteringAlgorithmNature
 /**
  *
  */
 object RLA extends ClusteringAlgorithmNature
+/**
+ *
+ */
+object EpsilonProximity extends ClusteringAlgorithmNature
 /**
  *
  */

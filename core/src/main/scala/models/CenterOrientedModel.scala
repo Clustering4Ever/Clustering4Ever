@@ -19,7 +19,7 @@ trait GenericCenterOrientedModel[O, D <: GenericDistance[O]] extends GenericMetr
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	def centerPredict(v: O): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid, v) }._1
+	def centerPredict(o: O): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid, o) }._1
 }
 /**
  *

@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 import scala.collection.{GenSeq, mutable, immutable, Map}
 import shapeless.HMap
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.vectors.{GVector, NoGVector, ScalarVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.math.distances.Distance
@@ -19,7 +19,6 @@ import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices._
-import org.clustering4ever.vectorizations.VectorizationNature
 /**
  * Commons properties of all clustering linked class
  */
@@ -39,9 +38,13 @@ trait GenericClusteringAlgorithm extends ClusteringCommons
  */
 trait ClusteringStats extends ClusteringCommons
 /**
+ *
+ */
+trait ClusteringArgsGeneric extends Serializable
+/**
  * Neccessary clustering algorithm arguments to launch it 
  */
-trait ClusteringArgs[V <: GVector[V]] extends Serializable {
+trait ClusteringArgs[V <: GVector[V]] extends ClusteringArgsGeneric {
 	/**
 	 *
 	 */
@@ -117,15 +120,15 @@ trait AlgorithmsRestrictions[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <
 /**
  *
  */
-case class ClusteringInformationsLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto], GS[X] <: GenSeq[X]](
+case class ClusteringInformationsLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Vecto <: VectorizationLocal[O, V, Vecto], GS[X] <: GenSeq[X]](
 	val clusteringInformations: immutable.HashSet[
 		(
 			GlobalClusteringRunNumber,
-			Vecto[O, V],
+			Vecto,
 			ClusteringArgsLocal[V],
 			ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]]
 		)
-	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto[O, V], ClusteringArgsLocal[V], ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]])],
+	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto, ClusteringArgsLocal[V], ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]])],
 	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[
 		(
 			GlobalClusteringRunNumber,
@@ -152,7 +155,7 @@ trait ClusteringChaining[
 	O,
 	V <: GVector[V],
 	Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-    Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto],
+    Vecto <: Vectorization[O, V, Vecto],
 	Collection[_]
 ] extends DataExplorator[ID, O, V, Cz, Collection] with AlgorithmsRestrictions[ID, O, V, Cz, Collection] {
 	/**
@@ -166,7 +169,7 @@ trait ClusteringChaining[
 	/**
 	 *
 	 */
-	val currentVectorization: Vecto[O, V]
+	val currentVectorization: Vecto
 	/**
 	 * A securty value in order to allow proper reduce of Chaining models
 	 */
@@ -206,7 +209,7 @@ trait ClusteringChaining[
 	/**
 	 * @return new ClusteringChaining object with a vector of type same nature than current one and the VectorizationMapping to extract the specific vectorization
 	 */
-	// def addVectorization[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto[O, V]): Self[V] = {
+	// def addVectorization[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto): Self[V] = {
 	// 	addAnyVectorization(vectorization)
 	// }
 	/**
@@ -216,14 +219,14 @@ trait ClusteringChaining[
 	/**
 	 * Actualize the data set with a new vector of the same nature than previous one
 	 */
-    // def updateVector[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto[O, V]): Self[V] = {
+    // def updateVector[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto): Self[V] = {
     // 	updateAnyVector[V, Vecto](vectorization)
     // }
     /**
      *
      */
     // def runAlgorithmsOnMultipleVectorizations[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](
-    //     vectorizations: Seq[Vecto[O, V]],
+    //     vectorizations: Seq[Vecto],
     //     algorithms: AlgorithmsRestrictions[V]*
     // ): Self[V]
 }

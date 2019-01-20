@@ -7,7 +7,6 @@ import shapeless.HMap
 import org.clustering4ever.shapeless.VMapping
 import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.vectors.GVector
-import org.clustering4ever.vectorizables.NotVectorizable
 /**
  * HashCode of IdentifiedRawObject descendant is fixed to ID hashcode
  */
@@ -28,7 +27,7 @@ trait IdentifiedRawObject[ID, O] {
 /**
  *
  */
-case class EasyIdentifiedRawObject[ID, O](val id: ID, val o: O = NotVectorizable) extends IdentifiedRawObject[ID, O]
+case class EasyIdentifiedRawObject[ID, O](val id: ID, val o: O) extends IdentifiedRawObject[ID, O]
 /**
  * Identified Vectorizable Object
  */

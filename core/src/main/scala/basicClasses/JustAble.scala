@@ -14,4 +14,9 @@ trait GeneralPurposable[
 	O,
 	V <: GVector[V],
 	Self[A, B, C <: GVector[C]] <: GeneralPurposable[A, B, C, Self]
-] extends Clusterizable[ID, O, V, Self] with Supervizable[ID, O, V, Self]
+] extends Clusterizable[ID, O, V, Self] with Supervizable[ID, O, V, Self] {
+	/**
+	 *
+	 */
+	this: Self[ID, O, V] =>
+}

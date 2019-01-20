@@ -44,13 +44,13 @@ trait ClustersAnalysisLocal[
     /**
      *
      */
-    def getClusterinfInformationsForVectorization[NV <: GVector[NV]](vectorization: EasyVectorizationLocal[O, NV]): Option[ClusteringInformationsLocal[ID, O, NV, Cz, EasyVectorizationLocal, GS]] = {
-        clusteringInformations.get(vectorization.vectorizationID)(ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[ID, O, NV, Cz, EasyVectorizationLocal, GS]])
+    def getClusterinfInformationsForVectorization[NV <: GVector[NV]](vectorization: EasyVectorizationLocal[O, NV]): Option[ClusteringInformationsLocal[ID, O, NV, Cz, EasyVectorizationLocal[O, NV], GS]] = {
+        clusteringInformations.get(vectorization.vectorizationID)(ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[ID, O, NV, Cz, EasyVectorizationLocal[O, NV], GS]])
     }
     /**
      *
      */
-    def getClusterinfInformationsForClustering[NV <: GVector[NV]](clusteringNumber: ClusteringNumber, vectorization: EasyVectorizationLocal[O, NV]): Option[ClusteringInformationsLocal[ID, O, NV, Cz, EasyVectorizationLocal, GS]] = {
+    def getClusterinfInformationsForClustering[NV <: GVector[NV]](clusteringNumber: ClusteringNumber, vectorization: EasyVectorizationLocal[O, NV]): Option[ClusteringInformationsLocal[ID, O, NV, Cz, EasyVectorizationLocal[O, NV], GS]] = {
         getClusterinfInformationsForVectorization(vectorization).find(_.clusteringInformations.exists(_._1 == clusteringNumber))
     }
     /**

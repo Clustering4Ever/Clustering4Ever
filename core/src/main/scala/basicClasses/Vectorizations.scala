@@ -12,31 +12,11 @@ import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-sealed trait VectorizationNature extends Serializable
-/**
- *
- */
-object Scalar extends VectorizationNature
-/**
- *
- */
-object Binary extends VectorizationNature
-/**
- *
- */
-object Mixt extends VectorizationNature
-/**
- *
- */
-object Other extends VectorizationNature
-/**
- *
- */
-object Default extends VectorizationNature
-/**
- *
- */
-trait Vectorization[O, V <: GVector[V], Self[A, B <: GVector[B]] <: Vectorization[A, B, Self]]  extends ClusteringCommons {
+trait Vectorization[O, V <: GVector[V], Self <: Vectorization[O, V, Self]] extends ClusteringCommons {
+	/**
+	 *
+	 */
+	this: Self =>
 	/**
 	 *
 	 */
@@ -56,7 +36,7 @@ trait Vectorization[O, V <: GVector[V], Self[A, B <: GVector[B]] <: Vectorizatio
 	/**
 	 *
 	 */
-	def updateClustering(clusteringIDs: Int*): Self[O, V]
+	def updateClustering(clusteringIDs: Int*): Self
 	/**
 	 *
 	 */
@@ -64,12 +44,16 @@ trait Vectorization[O, V <: GVector[V], Self[A, B <: GVector[B]] <: Vectorizatio
 	/**
 	 *
 	 */
-	val vectoMapping = VectorizationMapping[VectorizationID, Self[O, V]]
+	val vectoMapping = VectorizationMapping[VectorizationID, Self]
 }
 /**
  *
  */
-trait VectorizationLocal[O, V <: GVector[V], Self[A, B <: GVector[B]] <: VectorizationLocal[A, B, Self]]  extends Vectorization[O, V, Self] {
+trait VectorizationLocal[O, V <: GVector[V], Self <: VectorizationLocal[O, V, Self]]  extends Vectorization[O, V, Self] {
+	/**
+	 *
+	 */
+	this: Self =>
 	/**
 	 *
 	 */
@@ -85,7 +69,7 @@ case class EasyVectorizationLocal[O, V <: GVector[V]](
 	val vectorizationFct: Option[O => V] = None,
 	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
 	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
-) extends VectorizationLocal[O, V, EasyVectorizationLocal] {
+) extends VectorizationLocal[O, V, EasyVectorizationLocal[O, V]] {
 	/**
 	 *
 	 */
