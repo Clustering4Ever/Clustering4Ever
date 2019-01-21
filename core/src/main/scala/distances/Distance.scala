@@ -4,7 +4,7 @@ package org.clustering4ever.math.distances
  */
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, GSimpleVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.types.MetricIDType._
 /**
  *
@@ -45,21 +45,20 @@ trait Distance[V <: GVector[V]] extends GenericDistance[V]
 /**
  *
  */
-trait ContinuousDistance[V <: Seq[Double]] extends Distance[ScalarVector[V]] {
+trait GSimpleVectorDistance[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV]] extends Distance[SV] {
 	/**
-	 * Distance on raw vector nature
+	 *
 	 */
 	def d(v1: V, v2: V): Double
 }
 /**
  *
  */
-trait BinaryDistance[V <: Seq[Int]] extends Distance[BinaryVector[V]] {
-	/**
-	 * Distance on raw vector nature
-	 */
-	def d(v1: V, v2: V): Double
-}
+trait ContinuousDistance[V <: Seq[Double]] extends GSimpleVectorDistance[Double, V, ScalarVector[V]]
+/**
+ *
+ */
+trait BinaryDistance[V <: Seq[Int]] extends GSimpleVectorDistance[Int, V, BinaryVector[V]]
 /**
  *
  */
@@ -67,7 +66,7 @@ trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVecto
 	/**
 	 * Distance on raw vector nature
 	 */
-	// def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double
+	def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double
 }
 /**
  *

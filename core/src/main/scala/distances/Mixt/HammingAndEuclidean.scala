@@ -55,5 +55,9 @@ case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](final val alph
 	/**
 	 *	
 	 */
+	def d(dot1: (Vb, Vs), dot2: (Vb, Vs)): Double = hammingAndEuclidean(MixtVector(dot1._1, dot1._2), MixtVector(dot2._1, dot2._2))	
+	/**
+	 *	
+	 */
 	def d(dot1: MixtVector[Vb, Vs], dot2: MixtVector[Vb, Vs]): Double = hammingAndEuclidean(dot1, dot2)	
 }

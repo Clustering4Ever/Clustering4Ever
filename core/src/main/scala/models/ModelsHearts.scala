@@ -8,13 +8,9 @@ import org.clustering4ever.vectors.GVector
 /**
  *
  */
-trait GenericMetricModel[O, D <: GenericDistance[O]] extends GenericClusteringModel {
+trait MetricModel[V <: GVector[V], D <: Distance[V]] extends GenericClusteringModel {
 	/**
 	 * A metric defined on any object nature
 	 */
 	val metric: D
 }
-/**
- *
- */
-trait MetricModel[V <: GVector[V], D <: Distance[V]] extends GenericMetricModel[V, D]

@@ -135,3 +135,12 @@ case class SupervizedVector[N, V[X] <: Seq[X]](val vector: V[N]) extends GSimple
 		}
 	}
 }
+/**
+ *
+ */
+case class GenericObjectVector[O](val rawObject: O) extends GVector[GenericObjectVector[O]] {
+	/**
+	 *
+	 */
+	def pickFeatures(idxs: Int*): GenericObjectVector[O] = this.copy()
+}

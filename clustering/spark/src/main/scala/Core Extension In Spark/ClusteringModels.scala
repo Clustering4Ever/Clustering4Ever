@@ -11,7 +11,7 @@ import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait CenterOrientedModelDistributed[V <: GVector[V], D <: Distance[V]] extends CenterOrientedModel[V, D] {
+trait CenterModelDistributed[V <: GVector[V], D <: Distance[V]] extends CenterModel[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
@@ -21,14 +21,10 @@ trait CenterOrientedModelDistributed[V <: GVector[V], D <: Distance[V]] extends 
 /**
  *
  */
-trait CenterOrientedModelDistributedCz[
+trait CenterModelDistributedCz[
 	V <: GVector[V],
 	D <: Distance[V]
-] extends CenterOrientedModelDistributed[V, D] with CenterOrientedModelCz[V, D] {
-	/**
-	 *
-	 */
-	type CollectionType[X] = RDD[X]
+] extends CenterModelDistributed[V, D] with CenterModelCz[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method

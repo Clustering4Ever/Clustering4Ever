@@ -8,7 +8,7 @@ import org.clustering4ever.clustering.GenericClusteringModel
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.clustering.models.{CenterOrientedModelLocal, KnnModelModelLocal, CenterOrientedModelLocalClusterizable, KnnModelModelLocalClusterizable}
+import org.clustering4ever.clustering.models.{CenterModelLocal, KnnModelModelLocal, CenterModelLocalCz, KnnModelModelLocalCz}
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.clustering.ClusteringModelLocal
 import org.clustering4ever.clustering.ClusteringArgsLocal

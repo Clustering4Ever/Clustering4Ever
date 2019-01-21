@@ -7,14 +7,14 @@ import scala.reflect.ClassTag
 import scala.collection.mutable
 import org.apache.spark.rdd.RDD
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.clustering.models.CenterOrientedModelDistributedCz
+import org.clustering4ever.clustering.models.CenterModelDistributedCz
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.clustering.ClusteringModelDistributed
 /**
  *
  */
-trait KCentersModelAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], Args <: KCentersArgsAncestor[V, D]] extends CenterOrientedModelDistributedCz[V, D] with ClusteringModelDistributed[ID, O, V, Cz, Args] {
+trait KCentersModelAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], Args <: KCentersArgsAncestor[V, D]] extends CenterModelDistributedCz[V, D] with ClusteringModelDistributed[ID, O, V, Cz, Args] {
 	/**
 	 *
 	 */
