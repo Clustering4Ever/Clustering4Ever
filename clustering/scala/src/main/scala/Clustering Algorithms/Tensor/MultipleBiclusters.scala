@@ -9,11 +9,11 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.mutable
 import breeze.linalg.svd.SVD
 import breeze.stats._
-import org.clustering4ever.clustering.GenericClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithmGeneric
 /**
  *
  */
-class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends GenericClusteringAlgorithm {
+class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends ClusteringAlgorithmGeneric {
 
   def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])/*: Unit*/ = {
 

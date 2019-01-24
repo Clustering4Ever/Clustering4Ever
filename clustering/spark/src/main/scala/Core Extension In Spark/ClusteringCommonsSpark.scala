@@ -6,7 +6,9 @@ import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.immutable
 import org.apache.spark.rdd.RDD
-import org.clustering4ever.clusterizables.Clusterizable
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.Encoders
+import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.shapeless.{VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.vectors.GVector
@@ -17,10 +19,11 @@ import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.vectorizations.Vectorization
+import org.apache.spark.sql.Dataset
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait ClusteringAlgorithmDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgs[V], +CM <: ClusteringModel[ID, O, V, Cz, RDD, CA]] extends ClusteringAlgorithm[ID, O, V, Cz, RDD, CA, CM] {
+trait ClusteringAlgorithmDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgsDistributed[V], +CM <: ClusteringModelDistributed[ID, O, V, Cz, CA]] extends ClusteringAlgorithm[ID, O, V, Cz, RDD, CA, CM] {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return GenericClusteringModel
@@ -50,24 +53,8 @@ case class ClusteringInformationsDistributed[ID, O, V <: GVector[V], Cz[X, Y, Z 
 			ClusteringArgsDistributed[V],
 			ClusteringModelDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V]]
 		)
-	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto, ClusteringArgsDistributed[V], ClusteringModelDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V]])],
-	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[
-		(
-			GlobalClusteringRunNumber,
-			MetricID,
-			VectorizationID,
-			InternalsIndicesType
-		),
-			Double
-	] = immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
-	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[
-			(	GlobalClusteringRunNumber,
-				VectorizationID,
-				ExternalsIndicesType
-			),
-			Double
-	] = immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
-)
+	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto, ClusteringArgsDistributed[V], ClusteringModelDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V]])]
+) extends ClusteringCommons
 /**
  *
  */
@@ -102,7 +89,20 @@ case class EasyVectorizationDistributed[O, V <: GVector[V]] (
  */
 trait ClusteringArgsDistributed[V <: GVector[V]] extends ClusteringArgs[V] {
 	/**
-	 *
+	 * @return the corresponding algorithm with given arguments to run on data
 	 */
 	def obtainAlgorithm[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringAlgorithmDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V], ClusteringModelDistributed[ID, O, V, Cz, ClusteringArgsDistributed[V]]]
+}
+/**
+ *
+ */
+object RowToCz extends Serializable {
+	/**
+	 *
+	 */
+	def fromRawToEasyClusterizable[ID, GV <: GVector[GV]](row: Row, id: Int, vectorIDInRow: Int) = EasyClusterizable(row.getAs[ID](id), row, row.getAs[GV](vectorIDInRow))
+	/**
+	 *
+	 */
+	def fromCzToRaw[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](cz: Cz[ID, O, V]) = Row(cz)
 }

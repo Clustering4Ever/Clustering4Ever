@@ -11,7 +11,7 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
-import org.clustering4ever.scala.clustering.kcenters.KCenters
+import org.clustering4ever.clustering.kcenters.scala.KCenters
 import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithm, ClusteringAlgorithmLocal, ClusteringInformationsLocal}
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringInformationTypes._

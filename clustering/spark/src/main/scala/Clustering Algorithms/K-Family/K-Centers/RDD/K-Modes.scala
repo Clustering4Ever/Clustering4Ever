@@ -1,10 +1,10 @@
-package org.clustering4ever.spark.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.rdd
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import scala.collection.{mutable, GenSeq}
+import scala.collection.immutable
 import scala.util.Random
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
@@ -42,9 +42,9 @@ object KModes {
 		epsilon: Double,
 		maxIterations: Int,
 		persistanceLVL: StorageLevel,
-		initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]
+		initializedCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]
 	)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KModesModel[ID, O, V, Cz, D] = {
-		val kmodes = KModes[ID, O, V, Cz, D](KModesArgs[V, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		val kmodes = KModes[ID, O, V, Cz, D](KModesArgs(k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
 		val kModesModel = kmodes.run(data)
 		kModesModel
 	}

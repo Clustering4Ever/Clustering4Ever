@@ -1,9 +1,9 @@
-package org.clustering4ever.scala.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.scala
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import scala.collection.{mutable, GenSeq}
+import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
 import scala.reflect.ClassTag
 import shapeless._
@@ -19,24 +19,32 @@ import org.clustering4ever.vectors.GVector
  */
 trait KCommons[V <: GVector[V]] extends ClusteringCommons {
 	/**
-	 * Check if there are empty centers and remove them
-	 */
-	protected def removeEmptyClusters(centers: mutable.HashMap[Int, V], kCentersBeforeUpdate: mutable.HashMap[Int, V], centersCardinality: mutable.HashMap[Int, Int]): Unit = {
-		val emptyCenterIDs = centersCardinality.collect{ case (clusterID, cardinality) if(cardinality == 0) => clusterID }
-		if(!emptyCenterIDs.isEmpty) {
-			centers --= emptyCenterIDs
-			kCentersBeforeUpdate --= emptyCenterIDs
-		}
-	}
-	/**
 	 *
 	 */
-	protected def obtainNearestCenterID[D <: Distance[V]](v: V, centers: mutable.HashMap[Int, V], metric: D): ClusterID = centers.minBy{ case (clusterID, center) => metric.d(center, v) }._1
+	protected def obtainNearestCenterID[D <: Distance[V]](v: V, centers: immutable.HashMap[Int, V], metric: D): ClusterID = centers.minBy{ case (clusterID, center) => metric.d(center, v) }._1
 	/**
 	 * Check if centers move enough
 	 * @return true if every centers move less than epsilon
 	 */
-	protected def areCentersMovingEnough[D <: Distance[V]](kCentersBeforeUpdate: mutable.HashMap[Int, V], centers: mutable.HashMap[Int, V], epsilon: Double, metric: D) = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
+	protected def areCentersMovingEnough[D <: Distance[V]](kCentersBeforeUpdate: immutable.HashMap[Int, V], centers: immutable.HashMap[Int, V], epsilon: Double, metric: D) = kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
+	/**
+	 * Check if there are empty centers and remove them
+	 */
+	protected def removeEmptyClusters(centers: immutable.HashMap[Int, V], kCentersBeforeUpdate: immutable.HashMap[Int, V], centersCardinality: immutable.HashMap[Int, Long]): (immutable.HashMap[Int, V], immutable.HashMap[Int, V]) = {
+		val emptyCenterIDs = centersCardinality.collect{ case (clusterID, cardinality) if(cardinality == 0) => clusterID }
+		if(!emptyCenterIDs.isEmpty) {
+			(
+				centers -- emptyCenterIDs,
+				kCentersBeforeUpdate -- emptyCenterIDs
+			)
+		}
+		else {
+			(
+				centers,
+				kCentersBeforeUpdate
+			)
+		}
+	}
 }
 /**
  * The famous K-Centers using a user-defined dissmilarity measure.
@@ -58,38 +66,35 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 	/**
 	 * Run the K-Centers
 	 */
-	protected def obtainCenters(data: GS[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
+	protected def obtainCenters(data: GS[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
 		/**
 		 *
 		 */
-		val centers: mutable.HashMap[Int, V] = if(args.initializedCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, args.metric, args.k) else args.initializedCenters
-		/**
-		 *
-		 */
-		val centersCardinality: mutable.HashMap[Int, Int] = centers.map{ case (clusterID, _) => (clusterID, 0) }
+		val centers: immutable.HashMap[Int, V] = if(args.initializedCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, args.metric, args.k) else args.initializedCenters
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, allCentersHaveConverged: Boolean): mutable.HashMap[Int, V] = {
+		def go(cpt: Int, allCentersHaveConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
 			if(cpt < args.maxIterations && !allCentersHaveConverged) {
-				// Keep old position of centroids
-				val kCentersBeforeUpdate = centers.clone
-				// Compute centers and cardinality of each cluster
-				data.groupBy( cz => obtainNearestCenterID(cz.v, centers, args.metric) ).foreach{ case (clusterID, aggregate) =>
-					centers(clusterID) = ClusterBasicOperations.obtainCenter(aggregate.map(_.v), args.metric)
-					centersCardinality(clusterID) = aggregate.size
-				}
-				removeEmptyClusters(centers, kCentersBeforeUpdate, centersCardinality)
+				val centersInfo = data.groupBy( cz => obtainNearestCenterID(cz.v, centers, args.metric) ).map{ case (clusterID, aggregate) =>
+					(clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), args.metric), aggregate.size)
+				}.toSeq.seq
 
-				go(cpt + 1, areCentersMovingEnough(kCentersBeforeUpdate, centers, args.epsilon, args.metric))
+				val newCenters = immutable.HashMap(centersInfo.map{ case (clusterID, center, _) => (clusterID, center) }:_*)
+				val newCardinalities = immutable.HashMap(centersInfo.map{ case (clusterID, _, cardinality) => (clusterID, cardinality.toLong) }:_*)
+				val (newCentersPruned, newKCentersBeforUpdatePruned) = removeEmptyClusters(newCenters, centers, newCardinalities)
+
+				go(cpt + 1, areCentersMovingEnough(newKCentersBeforUpdatePruned, newCentersPruned, args.epsilon, args.metric), newCentersPruned)
 			}
 			else {
 				centers
 			}
 		}
-		go(0, false)
+		go(0, false, centers)
 	}
+
+
 }
 /**
  *
@@ -117,7 +122,7 @@ object KCenters {
 		metric: D[V],
 		epsilon: Double,
 		maxIterations: Int,
-		initializedCenters: mutable.HashMap[Int, V] = mutable.HashMap.empty[Int, V]
+		initializedCenters: immutable.HashMap[Int, V] = immutable.HashMap.empty[Int, V]
 	)(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D, GS] = {
 		(KCenters[ID, O, V, Cz, D, GS](KCentersArgs(k, metric, epsilon, maxIterations, initializedCenters))).run(data)
 	}

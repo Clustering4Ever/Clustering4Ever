@@ -8,11 +8,11 @@ import breeze.numerics._
 import scala.collection.mutable
 import breeze.linalg.svd.SVD
 import breeze.stats._
-import org.clustering4ever.clustering.GenericClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithmGeneric
 /**
  *
  */
-class ThIndFibers(val k1: Int, val k2: Int) extends GenericClusteringAlgorithm {
+class ThIndFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithmGeneric {
 	/**
 	 *
 	 */

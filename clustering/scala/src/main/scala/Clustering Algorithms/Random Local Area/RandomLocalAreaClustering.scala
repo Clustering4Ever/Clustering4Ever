@@ -4,7 +4,7 @@ package org.clustering4ever.scala.clustering.rla
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import org.clustering4ever.clustering.{GenericClusteringAlgorithm, ClusteringAlgorithmLocal}
+import org.clustering4ever.clustering.{ClusteringAlgorithmGeneric, ClusteringAlgorithmLocal}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.util.SumVectors
 import scala.math.{min, max}
@@ -17,7 +17,7 @@ import org.clustering4ever.util.ScalaCollectionImplicits._
  * The random Local Area clustering algorithm introduce at https://ieeexplore.ieee.org/document/7727595
  * @param data : a GenSeq of any type
  * @param epsilon : distance from random selected point under which we consider dots belongs to the same cluster
- * @param metric : a dissimilarity measure associated to O
+ * @param metric : a dissimilarity measure associated to V
  */
 trait RLAAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], +Args <: RLAArgsAncestor[V, D], +Model <: RLAModelAncestor[ID, O, V, Cz, D, GS, Args]] extends ClusteringAlgorithmLocal[ID, O, V, Cz, GS, Args, Model] {
 	/**
@@ -31,19 +31,18 @@ trait RLAAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusteriz
 	/**
 	 *
 	 */
-	protected def obtainCenters(data: GS[Cz[ID, O, V]]): mutable.HashMap[Int, V] = {
+	protected def obtainCenters(data: GS[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
 		@annotation.tailrec
-		def go(data: GS[Cz[ID, O, V]], medoids: mutable.HashMap[Int, V], clusterID: Int): mutable.HashMap[Int, V] = {
+		def go(data: GS[Cz[ID, O, V]], medoids: immutable.HashMap[Int, V], clusterID: Int): immutable.HashMap[Int, V] = {
 			if(!data.isEmpty) {
 				val randomMedoid = data.head
 				val toTreat = data.filterNot( cz => args.metric.d(randomMedoid.v, cz.v) <= args.epsilon ).asInstanceOf[GS[Cz[ID, O, V]]]
-				medoids += ((clusterID, randomMedoid.v))
-				if(!data.isEmpty) go(toTreat, medoids, clusterID + 1)
+				if(!data.isEmpty) go(toTreat, medoids + ((clusterID, randomMedoid.v)), clusterID + 1)
 				else medoids
 			}
 			else medoids
 		}
-		go(data, mutable.HashMap.empty[Int, V], 0)
+		go(data, immutable.HashMap.empty[Int, V], 0)
 	}
 }
 /**

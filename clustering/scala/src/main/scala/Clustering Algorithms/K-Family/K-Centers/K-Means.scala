@@ -1,10 +1,10 @@
-package org.clustering4ever.scala.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.scala
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import scala.collection.{mutable, GenSeq}
+import scala.collection.{immutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
@@ -28,7 +28,7 @@ object KMeans {
 	/**
 	 *
 	 */
-	def generateAnyArgumentsCombination[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](kValues: Seq[Int] = Seq(4, 6, 8), metricValues: Seq[D[V]] = Seq(Euclidean[V](false)), epsilonValues: Seq[Double] = Seq(0.0001), maxIterationsValues: Seq[Int] = Seq(40, 100), initializedCentersValues: Seq[mutable.HashMap[Int, ScalarVector[V]]] = Seq(mutable.HashMap.empty[Int, ScalarVector[V]])): Seq[KMeansArgs[V, D]] = {
+	def generateAnyArgumentsCombination[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](kValues: Seq[Int] = Seq(4, 6, 8), metricValues: Seq[D[V]] = Seq(Euclidean[V](false)), epsilonValues: Seq[Double] = Seq(0.0001), maxIterationsValues: Seq[Int] = Seq(40, 100), initializedCentersValues: Seq[immutable.HashMap[Int, ScalarVector[V]]] = Seq(immutable.HashMap.empty[Int, ScalarVector[V]])): Seq[KMeansArgs[V, D]] = {
 		for(
 			k <- kValues;
 			metric <- metricValues;
@@ -46,7 +46,7 @@ object KMeans {
 		metric: D[V],
 		epsilon: Double,
 		maxIterations: Int,
-		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
+		initializedCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]
 	)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KMeans[ID, O, V, Cz, D, GS] = {
 		KMeans[ID, O, V, Cz, D, GS](KMeansArgs(k, metric, epsilon, maxIterations, initializedCenters))
 	}
@@ -68,7 +68,7 @@ object KMeans {
 		metric: D[V],
 		maxIterations: Int,
 		epsilon: Double,
-		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
+		initializedCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]
 		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KMeansModel[ID, O, V, Cz, D, GS] = {
 		val kmeansAlgorithm = generateAlgorithm(data, k, metric, epsilon, maxIterations, initializedCenters)
 		kmeansAlgorithm.run(data)
@@ -83,7 +83,7 @@ object KMeans {
 		maxIterations: Int,
 		epsilon: Double
 	): KMeansModel[Int, ScalarVector[V], V, EasyClusterizable, D, GS] = {
-		val kMeansModel = run(scalarToClusterizable(data), k, metric, maxIterations, epsilon, mutable.HashMap.empty[Int, ScalarVector[V]])
+		val kMeansModel = run(scalarToClusterizable(data), k, metric, maxIterations, epsilon, immutable.HashMap.empty[Int, ScalarVector[V]])
 		kMeansModel
 	}
 }

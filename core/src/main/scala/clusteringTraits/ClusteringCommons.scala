@@ -32,7 +32,7 @@ trait CollectionNature[Collection[_]] extends ClusteringCommons
 /**
  * The basic trait shared by all clustering algorithms
  */
-trait GenericClusteringAlgorithm extends ClusteringCommons
+trait ClusteringAlgorithmGeneric extends ClusteringCommons
 /**
  * Statistic obtained during clustering algorithm executions
  */
@@ -53,7 +53,7 @@ trait ClusteringArgs[V <: GVector[V]] extends ClusteringArgsGeneric {
 /**
  * The basic trait shared by all clustering algorithms working on Clusterizable
  */
-trait ClusteringAlgorithm[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs[V], +CM <: ClusteringModel[ID, O, V, Cz, Collection, CA]] extends GenericClusteringAlgorithm {
+trait ClusteringAlgorithm[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_], +CA <: ClusteringArgs[V], +CM <: ClusteringModel[ID, O, V, Cz, Collection, CA]] extends ClusteringAlgorithmGeneric {
 	/**
 	 *
 	 */
@@ -128,8 +128,13 @@ case class ClusteringInformationsLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVe
 			ClusteringArgsLocal[V],
 			ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]]
 		)
-	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto, ClusteringArgsLocal[V], ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]])],
-	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[
+	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto, ClusteringArgsLocal[V], ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]])]
+) extends ClusteringCommons
+/**
+ *
+ */
+case class ClusteringIndicesLocal(
+	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.HashMap[
 		(
 			GlobalClusteringRunNumber,
 			MetricID,
@@ -137,16 +142,16 @@ case class ClusteringInformationsLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVe
 			InternalsIndicesType
 		),
 		Double
-	] = immutable.Map.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
-	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[
+	] = immutable.HashMap.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
+	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.HashMap[
 		(
 			GlobalClusteringRunNumber,
 			VectorizationID,
 			ExternalsIndicesType
 		),
 		Double
-	] = immutable.Map.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
-)
+	] = immutable.HashMap.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
+) extends ClusteringCommons
 /**
  *
  */
@@ -304,7 +309,7 @@ trait ClustersAnalysis[
     /**
      *
      */
-    def centroids[D[X <: GVector[X]] <: Distance[X]](metric: D[V], clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, V]
+    def centroids[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, V]
     /**
      *
      */

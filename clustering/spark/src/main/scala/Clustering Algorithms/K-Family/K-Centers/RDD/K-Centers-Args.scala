@@ -1,24 +1,26 @@
-package org.clustering4ever.spark.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.rdd
 
 import scala.language.higherKinds
 import scala.math.pow
-import scala.collection.mutable
+import scala.collection.immutable
 import scala.util.Random
 import scala.reflect.ClassTag
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.Dataset
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.sql.Encoders
+import org.apache.spark.sql.SparkSession
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.scala.clustering.kcenters.KCommons
+import org.clustering4ever.clustering.kcenters.scala.KCommons
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import org.clustering4ever.clustering.ClusteringAlgorithmDistributed
 import org.clustering4ever.clustering.ClusteringArgsDistributed
 /**
  *
  */
-trait KCentersArgsAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringArgsDistributed[V] {
+trait KCentersArgsSuperAncestor[V <: GVector[V], D <: Distance[V]] extends Serializable {
 	/**
 	 *
 	 */
@@ -42,13 +44,16 @@ trait KCentersArgsAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 	/**
 	 *
 	 */
-	val initializedCenters: mutable.HashMap[Int, V]
-
+	val initializedCenters: immutable.HashMap[Int, V]
 }
 /**
  *
  */
-case class KCentersArgs[V <: GVector[V] : ClassTag, D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel, val initializedCenters: mutable.HashMap[Int, V]) extends KCentersArgsAncestor[V, D[V]] {
+trait KCentersArgsAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersArgsSuperAncestor[V, D] with ClusteringArgsDistributed[V]
+/**
+ *
+ */
+case class KCentersArgs[V <: GVector[V] : ClassTag, D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel, val initializedCenters: immutable.HashMap[Int, V]) extends KCentersArgsAncestor[V, D[V]] {
 	
 	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KCenters
 	/**
@@ -61,7 +66,7 @@ case class KCentersArgs[V <: GVector[V] : ClassTag, D[X <: GVector[X]] <: Distan
 /**
  *
  */
-case class KMeansArgs[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgsAncestor[ScalarVector[V], D[V]] {
+case class KMeansArgs[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersArgsAncestor[ScalarVector[V], D[V]] {
 	
 	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KMeans
 	/**
@@ -74,7 +79,7 @@ case class KMeansArgs[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistanc
 /**
  *
  */
-case class KModesArgs[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersArgsAncestor[BinaryVector[V], D[V]] {
+case class KModesArgs[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersArgsAncestor[BinaryVector[V], D[V]] {
 	
 	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KModes
 	/**
@@ -87,7 +92,7 @@ case class KModesArgs[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val 
 /**
  *
  */
-case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgsAncestor[MixtVector[Vb, Vs], D[Vb, Vs]] {
+case class KPrototypesArgs[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val initializedCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersArgsAncestor[MixtVector[Vb, Vs], D[Vb, Vs]] {
 	
 	val algorithm = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
 	/**

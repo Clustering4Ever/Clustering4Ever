@@ -46,7 +46,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 * _Random Local Area_ *
 * **Clusterwize** 
 
-Algorithm followed with a * implement _ClusteringAlgorithmCz_ trait and can be run by benchmarking classes.
+Algorithm followed with a * implement _ClusteringAlgorithm_ trait and can be run by benchmarking classes.
 
 ### Quality Indices
 

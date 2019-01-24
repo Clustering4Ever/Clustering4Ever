@@ -1,10 +1,10 @@
-package org.clustering4ever.scala.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.scala
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import scala.collection.{mutable, GenSeq}
+import scala.collection.{immutable, GenSeq}
 import org.clustering4ever.math.distances.{Distance, BinaryDistance}
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
@@ -29,7 +29,7 @@ object KModes {
 		metricValues: Seq[D[V]] = Seq(Hamming[V] _),
 		epsilonValues: Seq[Double] = Seq(0.0001),
 		maxIterationsValues: Seq[Int] = Seq(100),
-		initializedCentersValues: Seq[mutable.HashMap[Int, BinaryVector[V]]] = Seq(mutable.HashMap.empty[Int, BinaryVector[V]])): Seq[KModesArgs[V, D]] = {
+		initializedCentersValues: Seq[immutable.HashMap[Int, BinaryVector[V]]] = Seq(immutable.HashMap.empty[Int, BinaryVector[V]])): Seq[KModesArgs[V, D]] = {
 		for(
 			k <- kValues;
 			metric <- metricValues;
@@ -47,7 +47,7 @@ object KModes {
 		metric: D[V],
 		maxIterations: Int,
 		epsilon: Double,
-		initializedCenters: mutable.HashMap[Int, BinaryVector[V]] = mutable.HashMap.empty[Int, BinaryVector[V]]
+		initializedCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]
 	)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KModesModel[ID, O, V, Cz, D, GS] = {
 		
 		val kmodesAlgorithm = new KModes[ID, O, V, Cz, D, GS](KModesArgs(k, metric, epsilon, maxIterations, initializedCenters))

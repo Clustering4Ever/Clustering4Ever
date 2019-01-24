@@ -1,12 +1,13 @@
-package org.clustering4ever.spark.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.rdd
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import scala.collection.{mutable, GenSeq}
+import scala.collection.immutable
 import scala.util.Random
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.Dataset
 import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
@@ -24,7 +25,7 @@ case class KMeans[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusteri
 }
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : preferably and ArrayBuffer or ParArray of Clusterizable descendant, the SimpleRealClusterizable is the basic reference with mutable.ArrayBuffer as vector type, they are recommendend for speed efficiency
+ * @param data : preferably and ArrayBuffer or ParArray of Clusterizable descendant, the EasyClusterizable is the basic reference
  * @param k : number of clusters
  * @param epsilon : minimal threshold under which we consider a centroid has converged
  * @param maxIterations : maximal number of iteration
@@ -47,9 +48,9 @@ object KMeans {
 		epsilon: Double,
 		maxIterations: Int,
 		persistanceLVL: StorageLevel,
-		initializedCenters: mutable.HashMap[Int, ScalarVector[V]] = mutable.HashMap.empty[Int, ScalarVector[V]]
+		initializedCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]
 		)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KMeansModel[ID, O, V, Cz, D] = {
-		val kMeans = KMeans[ID, O, V, Cz, D](KMeansArgs[V, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		val kMeans = KMeans[ID, O, V, Cz, D](KMeansArgs(k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
 		val kCentersModel = kMeans.run(data)
 		kCentersModel
 	}

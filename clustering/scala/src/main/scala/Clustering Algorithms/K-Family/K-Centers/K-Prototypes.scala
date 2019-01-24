@@ -1,10 +1,10 @@
-package org.clustering4ever.scala.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.scala
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import scala.collection.{mutable, GenSeq}
+import scala.collection.{immutable, GenSeq}
 import scala.util.Random
 import org.clustering4ever.math.distances.{MixtDistance, Distance}
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
@@ -36,7 +36,7 @@ object KPrototypes {
 		metric: D[Vb, Vs],
 		maxIterations: Int,
 		epsilon: Double,
-		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
+		initializedCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
 	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D, GS] = {
 		
 		val kPrototypesAlgorithm = new KPrototypes[ID, O, Vb, Vs, Cz, D, GS](KPrototypesArgs(k, metric, epsilon, maxIterations, initializedCenters))

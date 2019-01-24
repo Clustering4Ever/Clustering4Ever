@@ -1,9 +1,9 @@
-package org.clustering4ever.scala.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.scala
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import scala.collection.{mutable, GenSeq}
+import scala.collection.{mutable, immutable, GenSeq}
 import scala.util.Random
 import scala.reflect.ClassTag
 import org.clustering4ever.stats.Stats
@@ -23,7 +23,7 @@ object KPPInitializer extends Serializable {
 		V <: GVector[V],
 		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
 		D <: Distance[V]
-	](data: GenSeq[Cz[ID, O, V]], metric: D, k: Int) = {
+	](data: GenSeq[Cz[ID, O, V]], metric: D, k: Int): immutable.HashMap[Int, V] = {
 
 		def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 		
@@ -36,7 +36,7 @@ object KPPInitializer extends Serializable {
 			}.toBuffer
 		} )
 
-		val centers = mutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
+		val centers = immutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
 		centers
 	}
 }

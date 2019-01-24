@@ -7,11 +7,11 @@ import breeze.math._
 import breeze.numerics._
 import scala.collection.mutable
 import breeze.stats.mean
-import org.clustering4ever.clustering.GenericClusteringAlgorithm
+import org.clustering4ever.clustering.ClusteringAlgorithmGeneric
 /**
  *
  */
-class ThSumFibers(val k1: Int, val k2: Int) extends GenericClusteringAlgorithm {
+class ThSumFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithmGeneric {
 	/**
 	 *
 	 */

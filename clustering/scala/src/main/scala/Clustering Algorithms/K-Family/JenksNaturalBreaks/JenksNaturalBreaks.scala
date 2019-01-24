@@ -4,11 +4,11 @@ package org.clustering4ever.scala.clustering
  */
 import scala.collection.{mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
-import org.clustering4ever.clustering.{GenericClusteringAlgorithm, GenericClusteringModel}
+import org.clustering4ever.clustering.{ClusteringAlgorithmGeneric, GenericClusteringModel}
 /**
  *
  */
-class JenksNaturalBreaks(desiredNumberCategories: Int) extends GenericClusteringAlgorithm {
+class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorithmGeneric {
   /**
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
    * Return breaks position in the sorted GenSeq

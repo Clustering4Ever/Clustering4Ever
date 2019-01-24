@@ -1,10 +1,10 @@
-package org.clustering4ever.spark.clustering.kcenters
+package org.clustering4ever.clustering.kcenters.rdd
 /**
  * @author Beck Gaël
  */
 import scala.language.higherKinds
 import scala.reflect.ClassTag
-import scala.collection.{mutable, GenSeq}
+import scala.collection.immutable
 import scala.util.Random
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
@@ -50,9 +50,9 @@ object KPrototypes {
 		maxIterations: Int,
 		metric: D[Vb, Vs],
 		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
-		initializedCenters: mutable.HashMap[Int, MixtVector[Vb, Vs]] = mutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
+		initializedCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
 	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D] = {
-		val kPrototypes = KPrototypes[ID, O, Vb, Vs, Cz, D](KPrototypesArgs[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
+		val kPrototypes = KPrototypes[ID, O, Vb, Vs, Cz, D](KPrototypesArgs(k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
 		val kPrototypesModel = kPrototypes.run(data)
 		kPrototypesModel
 	}

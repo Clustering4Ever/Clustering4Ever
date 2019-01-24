@@ -4,7 +4,7 @@ package org.clustering4ever.clustering.models
  */
 import scala.language.higherKinds
 import org.clustering4ever.math.distances.{GSimpleVectorDistance, Distance, ContinuousDistance, BinaryDistance, MixtDistance}
-import scala.collection.{mutable, GenSeq}
+import scala.collection.{mutable, immutable, GenSeq}
 import org.clustering4ever.vectors.{GVector, GSimpleVector,ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.clusterizables.Clusterizable
 /**
@@ -12,14 +12,14 @@ import org.clustering4ever.clusterizables.Clusterizable
  */
 trait CenterModel[V <: GVector[V], D <: Distance[V]] extends MetricModel[V, D] {
 	/**
-	 *
+	 * Prototypes of clusters, aka elements which minimize distances to each members of their respective clusters
 	 */
-	val centers: mutable.HashMap[ClusterID, V]
+	val centers: immutable.HashMap[ClusterID, V]
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	def centerPredict(o: V): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid, o) }._1
+	def centerPredict(v: V): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid, v) }._1
 }
 /**
  *
@@ -52,12 +52,12 @@ trait CenterModelMixt[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, V
 /**
  *
  */
-trait CenterModelCz[V <: GVector[V], D <: Distance[V]] extends CenterModel[V, D] {
+trait CenterModelCz[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], D <: Distance[V]] extends CenterModel[V, D] {
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	def centerPredict[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](cz: Cz[ID, O, V]): ClusterID = centerPredict(cz.v)
+	def centerPredict(cz: Cz[ID, O, V]): ClusterID = centerPredict(cz.v)
 
 }
 /**
@@ -78,7 +78,7 @@ trait CenterModelSimpleVLocal[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict[GS[X] <: GenSeq[X]](data: GS[V])(implicit d1: DummyImplicit, d2 : DummyImplicit): GS[(ClusterID, V)] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, V)]]
+	def centerPredict[GS[X] <: GenSeq[X]](data: GS[V])(implicit d1: DummyImplicit, d2: DummyImplicit): GS[(ClusterID, V)] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, V)]]
 }
 /**
  *
@@ -88,7 +88,7 @@ trait CenterModelMixtLocal[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict[GS[X] <: GenSeq[X]](data: GS[(Vb, Vs)])(implicit d1: DummyImplicit, d2 : DummyImplicit): GS[(ClusterID, (Vb, Vs))] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, (Vb, Vs))]]
+	def centerPredict[GS[X] <: GenSeq[X]](data: GS[(Vb, Vs)])(implicit d1: DummyImplicit, d2: DummyImplicit): GS[(ClusterID, (Vb, Vs))] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, (Vb, Vs))]]
 }
 /**
  *
@@ -101,12 +101,12 @@ trait CenterModelLocalBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends Cent
 /**
  *
  */
-trait CenterModelLocalCz[V <: GVector[V], D <: Distance[V]] extends CenterModelLocal[V, D] with CenterModelCz[V, D] {
+trait CenterModelLocalCz[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], D <: Distance[V]] extends CenterModelLocal[V, D] with CenterModelCz[ID, O, V, Cz, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit d: DummyImplicit): GS[Cz[ID, O, V]] = {
+	def centerPredict[GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit d: DummyImplicit): GS[Cz[ID, O, V]] = {
 		data.map( cz => cz.addClusterIDs(centerPredict(cz)) ).asInstanceOf[GS[Cz[ID, O, V]]]
 	}
 }
