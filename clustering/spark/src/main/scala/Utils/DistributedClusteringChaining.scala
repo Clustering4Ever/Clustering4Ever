@@ -15,7 +15,7 @@ import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.vectorizations.VectorizationLocal
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
-import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithm, ClusteringInformationsLocal, ClusteringAlgorithmLocal, DataExplorator, AlgorithmsRestrictions}
+import org.clustering4ever.clustering.{ClusteringInformationsLocal, ClusteringAlgorithmLocal, DataExplorator, AlgorithmsRestrictions}
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.vectorizations.EasyVectorizationLocal
@@ -33,6 +33,9 @@ case class DistributedClusteringChaining[
 ](
     @transient val sc: SparkContext,
     val data: S[Cz[ID, O, V]],
+    /**
+     * The ID of this clustering chainable, it stays constant over algorithms launch
+     */
     val chainableID: Int,
     val currentVectorization: Vecto,
     val clusteringInformations: HMap[ClusteringInformationsMapping] = HMap.empty[ClusteringInformationsMapping]
@@ -142,7 +145,7 @@ case class DistributedClusteringChaining[
     /**
      * Update the current vector for another
      */
-    def switchToAnotherExistantVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]] (vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]], ct2: ClassTag[S[Cz[ID, O, GV]]]): Self[GV, OtherVecto[O, GV]] = {
+    def switchToAnotherExistingVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]] (vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]], ct2: ClassTag[S[Cz[ID, O, GV]]]): Self[GV, OtherVecto[O, GV]] = {
 
         val updatedVectorData = data.map(_.switchForExistingVector(vectorization)).asInstanceOf[S[Cz[ID, O, GV]]]
         val updatedCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get

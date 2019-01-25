@@ -16,9 +16,8 @@ import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.kcenters.scala.KCommons
 import org.clustering4ever.util.ClusterBasicOperations
-import org.clustering4ever.clustering.{ClusteringCommons, ClusteringAlgorithmDistributed}
+import org.clustering4ever.clustering.rdd.ClusteringAlgorithmDistributed
 import org.clustering4ever.vectors.GVector
-import org.clustering4ever.clustering.ClusteringArgsDistributed
 /**
  *
  */

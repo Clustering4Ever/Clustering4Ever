@@ -1,10 +1,8 @@
-package org.clustering4ever.spark.clustering.mtm.utils
+package org.clustering4ever.spark.clustering.mtm
 
 import org.apache.spark.mllib.linalg.DenseVector
 import java.io._
 import org.apache.spark.rdd.RDD
-import org.clustering4ever.spark.clustering.mtm.global.AbstractModel
-
 
 object WriterClusters{
   def js(data: RDD[NamedVector], model: AbstractModel, path: String) = {

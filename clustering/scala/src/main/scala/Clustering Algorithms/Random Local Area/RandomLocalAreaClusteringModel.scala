@@ -14,7 +14,7 @@ import org.clustering4ever.clustering.ClusteringModelLocal
 /**
  *
  */
-trait RLAModelAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], +Args <: RLAArgsAncestor[V, D]] extends CenterModelLocalCz[ID, O, V, Cz, D] with KnnModelModelLocalCz[V, D] with ClusteringModelLocal[ID, O, V, Cz, GS, Args] {
+trait RLAModelAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], +Args <: RLAArgsAncestor[V, D]] extends CenterModelLocalCz[ID, O, V, Cz, D] with KnnModelModelLocalCz[ID, O, V, Cz, D] with ClusteringModelLocal[ID, O, V, Cz, GS, Args] {
 	/**
 	 *
 	 */

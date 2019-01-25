@@ -6,7 +6,8 @@ import scala.language.higherKinds
 import scala.collection.mutable
 import org.clustering4ever.util.SumVectors
 /**
- *
+ * The Generic Vector trait
+ * If you want to apply algorithms on other vector nature as time series, you've just need to write a case class which inherit GVector which describe your vectorization withou forget the corresponding distance which inherit Distance
  */
 trait GVector[Self <: GVector[Self]] extends Serializable {
 	/**
@@ -14,7 +15,7 @@ trait GVector[Self <: GVector[Self]] extends Serializable {
 	 */
 	this: Self =>
 	/**
-	 *
+	 * @return the same Vector nature with selected features
 	 */
 	def pickFeatures(indices: Int*): Self
 }
@@ -67,7 +68,7 @@ trait GMixtVector[Vb <: Seq[Int], Vs <: Seq[Double], Self <: GMixtVector[Vb, Vs,
 	val scalar: Vs
 }
 /**
- *
+ * Vector for binary data taking represented as a vector on {0, 1}<sup>d</sup>
  */
 case class BinaryVector[Vb <: Seq[Int]](val vector: Vb) extends GBinaryVector[Vb, BinaryVector[Vb]] {
 	/**
@@ -83,7 +84,7 @@ case class BinaryVector[Vb <: Seq[Int]](val vector: Vb) extends GBinaryVector[Vb
 	}
 }
 /**
- *
+ * Vector for continuous data represented as a vector on R<sup>d</sup>
  */
 case class ScalarVector[Vs <: Seq[Double]](val vector: Vs) extends GScalarVector[Vs, ScalarVector[Vs]] {
 	/**
@@ -99,7 +100,7 @@ case class ScalarVector[Vs <: Seq[Double]](val vector: Vs) extends GScalarVector
 	}
 }
 /**
- *
+ * Vector for binary and continuous data represented as 2 vectors, one on R<sup>d1</sup> Vs, the other on {0, 1}<sup>d2</sup> Vb
  */
 case class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](val binary: Vb, val scalar: Vs) extends GMixtVector[Vb, Vs, MixtVector[Vb, Vs]] {
 	/**

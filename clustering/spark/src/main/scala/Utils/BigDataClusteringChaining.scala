@@ -9,13 +9,13 @@ import org.apache.spark.SparkContext
 import scala.collection.{mutable, immutable, GenSeq}
 import scala.collection.parallel.immutable.ParSeq
 import org.apache.spark.rdd.RDD
-import org.clustering4ever.clustering.{ClusteringArgsLocal, ClusteringArgsDistributed, ClusteringModelLocal, ClusteringModelDistributed}
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
-import org.clustering4ever.vectorizations.VectorizationLocal
+import org.clustering4ever.vectorizations.{VectorizationDistributed, EasyVectorizationDistributed}
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
-import org.clustering4ever.clustering.{VectorizationDistributed, EasyVectorizationDistributed, ClusteringChaining, ClusteringAlgorithm, ClusteringInformationsLocal, ClusteringAlgorithmDistributed, ClusteringInformationsDistributed, ClusteringAlgorithmLocal, DataExplorator, AlgorithmsRestrictions}
+import org.clustering4ever.clustering.ClusteringChaining
+import org.clustering4ever.clustering.rdd.{ClusteringArgsDistributed, ClusteringModelDistributed, ClusteringAlgorithmDistributed, ClusteringInformationsDistributed}
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 /**
@@ -179,7 +179,7 @@ case class BigDataClusteringChaining[
     /**
      * Update the current vector for another
      */
-    def switchToAnotherExistantVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto[O, GV]] = {
+    def switchToAnotherExistingVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto[O, GV]] = {
         val updatedVectorData = data.map(_.switchForExistingVector(vectorization))
         val updatedCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
         val updatedGlobalRunNumber = globalClusteringRunNumber
@@ -198,7 +198,7 @@ case class BigDataClusteringChaining[
     //     vectorizations: Seq[OtherVecto],
     //     algorithms: AlgorithmsRestrictions[V]*
     // ): Self[V, OtherVecto] = {
-    //     vectorizations.view.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
+    //     vectorizations.view.map( vectorization => switchToAnotherExistingVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
     // }
 }
 /**

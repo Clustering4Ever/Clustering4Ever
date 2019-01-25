@@ -12,15 +12,15 @@ import org.clustering4ever.vectors.GVector
  */
 trait IdentifiedRawObject[ID, O] {
 	/**
-	 *
+	 * The ID of the container class
 	 */
 	val id: ID
 	/**
-	 *
+	 * The raw object of the container class
 	 */
 	val o: O
 	/**
-	 *
+	 * HashCode of the container is defined by hashcode of its id field
 	 */
 	final override def hashCode(): Int = id.hashCode
 }
@@ -37,7 +37,7 @@ trait IdentifiedVectorizableObject[ID, O] extends IdentifiedRawObject[ID, Vector
  */
 trait IdentifiedVector[ID, O, V] extends IdentifiedRawObject[ID, Vectorizable[O]] {
 	/**
-	 *
+	 * The working vector of the container
 	 */
 	val v: V
 	/**
@@ -46,7 +46,7 @@ trait IdentifiedVector[ID, O, V] extends IdentifiedRawObject[ID, Vectorizable[O]
 	final val hashCode2: Int = v.hashCode
 }
 /**
- *
+ * Restrict V to be a GVector descendant
  */
 trait IdentifiedGVector[ID, O, V <: GVector[V]] extends IdentifiedVector[ID, O, V]
 /**
@@ -54,7 +54,7 @@ trait IdentifiedGVector[ID, O, V <: GVector[V]] extends IdentifiedVector[ID, O, 
  */
 trait IdentifiedWithVectorizations[ID, O, V <: GVector[V]] extends IdentifiedGVector[ID, O, V] {
 	/**
-	 *
+	 * HMap containing various vectorization of the raw object as descendant of GVector
 	 */
 	val vectorized: HMap[VMapping]
 }

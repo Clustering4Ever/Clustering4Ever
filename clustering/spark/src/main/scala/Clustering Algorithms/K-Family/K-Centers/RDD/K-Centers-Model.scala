@@ -12,7 +12,7 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.models.CenterModelDistributedCz
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
-import org.clustering4ever.clustering.ClusteringModelDistributed
+import org.clustering4ever.clustering.rdd.ClusteringModelDistributed
 /**
  *
  */

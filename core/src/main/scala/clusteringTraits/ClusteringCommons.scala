@@ -23,6 +23,9 @@ import org.clustering4ever.enums.ExternalsIndices._
  * Commons properties of all clustering linked class
  */
 trait ClusteringCommons extends Serializable {
+	/**
+	 * Clustering Identifier, an Int which define in which cluster is fallen a point
+	 */
 	type ClusterID = Int
 }
 /**
@@ -38,7 +41,7 @@ trait ClusteringAlgorithmGeneric extends ClusteringCommons
  */
 trait ClusteringStats extends ClusteringCommons
 /**
- *
+ * The basic trait shared by all clustering algorithm arguments
  */
 trait ClusteringArgsGeneric extends Serializable
 /**
@@ -88,7 +91,7 @@ trait ClusteringArgsLocal[V <: GVector[V]] extends ClusteringArgs[V] {
  */
 trait DataExplorator[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_]] extends CollectionNature[Collection] {
 	/**
-	 *
+	 * The local or distributed collection of clusterizable
 	 */
 	val data: Collection[Cz[ID, O, V]]
 	/**
@@ -96,7 +99,7 @@ trait DataExplorator[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Cluste
 	 */
 	// val currentVectorization: Vectorization[O, V]
 	/**
-	 *
+	 * The HMap of vectorizations given by users
 	 */
 	val vectorizations: HMap[VectorizationMapping]
 }
@@ -105,7 +108,7 @@ trait DataExplorator[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Cluste
  */
 trait AlgorithmsRestrictions[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_]] {
 	/**
-	 *
+	 * Type preventing to launch wrong algorithm nature
 	 */
 	type AlgorithmsRestrictions[NV <: GVector[NV]] <: ClusteringAlgorithm[ID, O, NV, Cz, Collection, ClusteringArgs[NV], ClusteringModel[ID, O, NV, Cz, Collection, ClusteringArgs[NV]]]
 }
@@ -113,9 +116,9 @@ trait AlgorithmsRestrictions[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <
  *
  */
 // trait ClusteringInformations[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Collection[_]] extends CollectionNature[Collection] {
-// 	val clusteringInformations: immutable.HashSet[(GlobalClusteringRunNumber, Vectorization[O, V], ClusteringArgs[V], ClusteringModel[ID, O, V, Cz, Collection, ClusteringArgs[V]])]
-// 	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double]
-// 	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
+// 	val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, Vectorization[O, V], ClusteringArgs[V], ClusteringModel[ID, O, V, Cz, Collection, ClusteringArgs[V]])]
+// 	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.Map[(ClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double]
+// 	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.Map[(ClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
 // }
 /**
  *
@@ -123,12 +126,12 @@ trait AlgorithmsRestrictions[ID, O,	V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <
 case class ClusteringInformationsLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], Vecto <: VectorizationLocal[O, V, Vecto], GS[X] <: GenSeq[X]](
 	val clusteringInformations: immutable.HashSet[
 		(
-			GlobalClusteringRunNumber,
+			ClusteringRunNumber,
 			Vecto,
 			ClusteringArgsLocal[V],
 			ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]]
 		)
-	] = immutable.HashSet.empty[(GlobalClusteringRunNumber, Vecto, ClusteringArgsLocal[V], ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]])]
+	] = immutable.HashSet.empty[(ClusteringRunNumber, Vecto, ClusteringArgsLocal[V], ClusteringModelLocal[ID, O, V, Cz, GS, ClusteringArgsLocal[V]])]
 ) extends ClusteringCommons
 /**
  *
@@ -136,21 +139,21 @@ case class ClusteringInformationsLocal[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVe
 case class ClusteringIndicesLocal(
 	val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.HashMap[
 		(
-			GlobalClusteringRunNumber,
+			ClusteringRunNumber,
 			MetricID,
 			VectorizationID,
 			InternalsIndicesType
 		),
 		Double
-	] = immutable.HashMap.empty[(GlobalClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
+	] = immutable.HashMap.empty[(ClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
 	val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.HashMap[
 		(
-			GlobalClusteringRunNumber,
+			ClusteringRunNumber,
 			VectorizationID,
 			ExternalsIndicesType
 		),
 		Double
-	] = immutable.HashMap.empty[(GlobalClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
+	] = immutable.HashMap.empty[(ClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double]
 ) extends ClusteringCommons
 /**
  *
@@ -168,11 +171,11 @@ trait ClusteringChaining[
 	 */
 	implicit val ct: ClassTag[Cz[ID, O, V]]
 	/**
-	 *
+	 * The ID of this clustering chainable, it stays constant over algorithms launch
 	 */
 	val chainableID: Int
 	/**
-	 *
+	 * The current vectorization employed for the field v of clusterizable in the dataset
 	 */
 	val currentVectorization: Vecto
 	/**
@@ -183,22 +186,19 @@ trait ClusteringChaining[
 	 * Internal methods to merge models when runAlgorithms is launched
 	 */
     // protected def fusionChainable(anotherClusterChaining: Self[V, Vecto]): Self[V, Vecto]
-	/**
-	 *
-	 */
-	// protected implicit val currentVectorizationMapping = currentVectorization.vectoMapping
-	/**
-	 *
-	 */
+    /**
+     * HMap containing initial and added vectorization
+     * Vectorizations are accessible using corresponding vectorizationID and VectorizationMapping explicitly or implicitly (Int -> Desired-GVector)
+     */
 	val vectorizations: HMap[VectorizationMapping]
 	/**
 	 *
 	 */
 	// val clusteringInformations: ClusteringInformations[ID, O, Cz, Collection]
 	/**
-	 * Total number of algorithms launched
+	 * Total number of algorithms launched, first run is equivalent to 0
 	 */
-	val globalClusteringRunNumber: GlobalClusteringRunNumber = -1
+	val globalClusteringRunNumber: ClusteringRunNumber = -1
 	/**
 	 * Run one algorithm on the current vectorization
 	 */

@@ -5,12 +5,6 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.linalg.DenseVector
-import org.clustering4ever.spark.clustering.mtm.global.AbstractModel
-import org.clustering4ever.spark.clustering.mtm.global.AbstractPrototype
-import org.clustering4ever.spark.clustering.mtm.global.AbstractTrainer
-import org.clustering4ever.spark.clustering.mtm.utils.NamedVector
-import org.clustering4ever.spark.clustering.mtm.utils.DataGenerator
-import org.clustering4ever.spark.clustering.mtm.utils.Output
 import org.clustering4ever.math.distances.scalar.RawEuclidean
 import org.clustering4ever.math.distances.RawContinuousDistance
 /**
