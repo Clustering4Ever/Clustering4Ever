@@ -13,18 +13,27 @@ import org.clustering4ever.enums.KernelNature._
  * Class regrouping arguments value for a specific kernel type
  */
 trait KernelArgs extends Serializable {
+	/**
+	 * Nature of the Kernel
+	 */
 	val kernelType: KernelType
 }
 /**
  *
  */
 trait GenericKernelArgsWithMetric[O, D <: GenericDistance[O]] extends KernelArgs {
+	/**
+	 * The metric used by this Kernel
+	 */
     val metric: D
 }
 /**
  *
  */
 trait GenericKernelArgsKnn[O, D <: GenericDistance[O]] extends GenericKernelArgsWithMetric[O, D] {
+	/**
+	 * The k value for KNN
+	 */
     val k: Int
 }
 /**

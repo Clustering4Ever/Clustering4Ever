@@ -16,7 +16,7 @@ import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.kcenters.scala.KCommons
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
-import org.clustering4ever.clustering.ClusteringArgsDistributed
+import org.clustering4ever.clustering.rdd.ClusteringArgsDistributed
 /**
  *
  */

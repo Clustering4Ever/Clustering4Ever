@@ -1,4 +1,4 @@
-package org.clustering4ever.clustersanalysis
+package org.clustering4ever.clusteringanalysis
 /**
  * @author Beck Gaël
  */

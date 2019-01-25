@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.mtm.utils
+package org.clustering4ever.spark.clustering.mtm
 
 /**
  * Created with IntelliJ IDEA.

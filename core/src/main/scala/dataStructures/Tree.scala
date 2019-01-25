@@ -1,4 +1,4 @@
-package org.clustering4ever.structures
+package org.clustering4ever.structures.tree
 /**
  * @author Beck Gaël
  */

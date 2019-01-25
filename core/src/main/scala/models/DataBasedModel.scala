@@ -12,17 +12,17 @@ import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait DataBasedModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], T[X] <: Traversable[X]] extends KnnModelModelCz[V, D] {
+trait DataBasedModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], T[X] <: Traversable[X]] extends KnnModelModelCz[ID, O, V, Cz, D] {
 	/**
-	 *
+	 * The whole clusterized dataset grouped by ClusterID
 	 */
 	val data: scala.collection.Map[ClusterID, T[Cz[ID, O, V]]]
 	/**
-	 *
+	 * A metric defined on any object which inherit GVector
 	 */
 	val metric: D
 	/**
-	 *
+	 * The whole clusterized dataset as a Seq
 	 */
 	lazy val dataAsSeq: Seq[(ClusterID, Cz[ID, O, V])] = data.toSeq.flatMap{ case (clusterID, values) => values.map((clusterID, _)) }
 	/**
@@ -32,9 +32,9 @@ trait DataBasedModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Cluste
 		dataAsSeq.sortBy{ case (_, cz) => metric.d(v, cz.v) }.take(k).groupBy(_._1).maxBy{ case (clusterID, aggregate) => aggregate.size }
 	}
 	/**
-	 * @return clusterID associate to obj
+	 * @return clusterID associate to given Vector
 	 */
-	def knnPredict(obj: V, k: Int): ClusterID = knnPredictWithNN(obj, k)._1
+	def knnPredict(v: V, k: Int): ClusterID = knnPredictWithNN(v, k)._1
 	/**
 	 * @return sequence of clusterizable with added clusterID
 	 */

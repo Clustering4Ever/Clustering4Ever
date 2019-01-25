@@ -20,19 +20,20 @@ trait Preprocessable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Prep
 	 */
 	this: Self[ID, O, V] =>
 	/**
-	 *
+	 * Apply the given vectorization on raw object and add the obtain vector in vectorized field
 	 */
 	def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, V]
 	/**
-	 *
+	 * Add directly a vector in vectorized field without passing through a vectorization
 	 */
 	def addAlternativeVector[GV <: GVector[GV]](vectorizationID: Int, newAlternativeVector: GV): Self[ID, O, V]
 	/**
-	 *
+	 * Look for an existing vector in vectorized field and put it as working vector
 	 */
 	def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
 	/**
-	 *
+	 * Update working vector by applying given vectorization.
+	 * This method doesn't save previous working vector and given vectorization in vectorized field
 	 */
 	def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
 

@@ -14,7 +14,7 @@ import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVec
 /**
  *
  */
-trait KCentersModelAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], +Args <: KCentersArgsAncestor[V, D]] extends CenterModelLocalCz[ID, O, V, Cz, D] with KnnModelModelLocalCz[V, D] with ClusteringModelLocal[ID, O, V, Cz, GS, Args] {
+trait KCentersModelAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], GS[X] <: GenSeq[X], +Args <: KCentersArgsAncestor[V, D]] extends CenterModelLocalCz[ID, O, V, Cz, D] with KnnModelModelLocalCz[ID, O, V, Cz, D] with ClusteringModelLocal[ID, O, V, Cz, GS, Args] {
 	/**
 	 *
 	 */

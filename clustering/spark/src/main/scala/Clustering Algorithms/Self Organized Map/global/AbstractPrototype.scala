@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.mtm.global
+package org.clustering4ever.spark.clustering.mtm
 
 import org.clustering4ever.math.distances.RawContinuousDistance
 

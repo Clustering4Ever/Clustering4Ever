@@ -22,15 +22,15 @@ trait Clusterizable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Clust
 	 */
 	this: Self[ID, O, V] =>
 	/**
-	 *
+	 * ClusterIDs in which belong this clusterizable, first clustering is at index 0, last one at index n - 1
 	 */
 	val clusterIDs: immutable.Vector[Int]
 	/**
-	 *
+	 * add one or more clusterIDs existing clusterIDs of this clusterizable
 	 */
 	def addClusterIDs(newClusterIDs: Int*): Self[ID, O, V]
 	/**
-	 *
+	 * replace all clusterIDs by new ones
 	 */
 	def overwriteClusterIDs(newClusterIDs: Int*): Self[ID, O, V]	 
 }
@@ -68,7 +68,7 @@ object EasyClusterizable {
 	def rawApplyMixt[ID, Vb <: Seq[Int], Vs <: Seq[Double]](id: ID, binary: Vb, scalar: Vs) = apply(id, MixtVector(binary, scalar))
 }
 /**
- *
+ * A ready to work case class of Clusterizable trait for cluster without limits
  */
 case class EasyClusterizable[ID, O, V <: GVector[V]](
 	val id: ID,
@@ -91,37 +91,38 @@ case class EasyClusterizable[ID, O, V <: GVector[V]](
 		}
 	}
 	/**
-	 *
+	 * add one or more clusterIDs existing clusterIDs of this clusterizable
 	 */
 	final def addClusterIDs(newClusterIDs: Int*): EasyClusterizable[ID, O, V] = {
 		this.copy(clusterIDs = clusterIDs ++ newClusterIDs)
 	}
 	/**
-	 *
+	 * replace all clusterIDs by new ones
 	 */
 	final def overwriteClusterIDs(newClusterIDs: Int*): EasyClusterizable[ID, O, V] = {
 		this.copy(clusterIDs = immutable.Vector(newClusterIDs:_*))
 	}
 	/**
-	 *
+	 * Apply the given vectorization on raw object and add the obtain vector in vectorized field
 	 */
 	final def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, V] = {
 		this.copy(vectorized = vectorized.+(((vectorization.vectorizationID, o.toVector(vectorization.vectorizationFct.get))))(VMapping[VectorizationID, GV]))
 	}
 	/**
-	 *
+	 * Add directly a vector in vectorized field without passing through a vectorization
 	 */
 	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, newAlternativeVector: GV): EasyClusterizable[ID, O, V] = {
 		this.copy(vectorized = vectorized.+(((vectorizationID, newAlternativeVector)))(VMapping[VectorizationID, GV]))
 	}
 	/**
-	 *
+	 * Look for an existing vector in vectorized field and put it as working vector
 	 */
 	final def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, GV] = {
 		this.copy(v = vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get)
 	}
 	/**
-	 *
+	 * Update working vector by applying given vectorization.
+	 * This method doesn't save neither previous working vector and given vectorization in vectorized field to prevent clusterizable to becomes heavier
 	 */
 	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, GV] = {
 		this.copy(v = o.toVector(vectorization.vectorizationFct.get))

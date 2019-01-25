@@ -11,7 +11,7 @@
  * https://github.com/crim-ca/patchwork
  */
 
-package org.clustering4ever.spark.clustering.patchwork
+package org.clustering4ever.clustering.patchwork
 
 import org.apache.log4j.LogManager
 import org.apache.spark.rdd.RDD
@@ -167,7 +167,7 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
   }
 
   def nearCells(p: Array[Int]): List[Array[Int]] = {
-    val nearCellsList: ListBuffer[Array[Int]] = new ListBuffer[Array[Int]]
+    val nearCellsList: ListBuffer[Array[Int]] = ListBuffer.empty[Array[Int]]
     for (i <- Range(0, p.length)) {
       val tempP1 = p.clone()
       tempP1.update(i, p(i) - 1)

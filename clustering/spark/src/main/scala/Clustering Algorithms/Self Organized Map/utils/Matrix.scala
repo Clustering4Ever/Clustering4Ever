@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.mtm.utils
+package org.clustering4ever.spark.clustering.mtm
 //package org.lipn.som.utils
 
 /**

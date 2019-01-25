@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.mtm.global
+package org.clustering4ever.spark.clustering.mtm
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.linalg.DenseVector

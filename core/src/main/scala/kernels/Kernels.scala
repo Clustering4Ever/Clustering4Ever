@@ -36,16 +36,16 @@ object KernelUtils {
 	/**
 	 *
 	 */
-	def computeModeAndCastIt[V <: Seq[Double]](preMode: ScalarVector[V], kernelValue: Double): ScalarVector[V] = new ScalarVector(preMode.vector.map(_ / kernelValue).asInstanceOf[V])
+	def computeModeAndCastIt[V <: Seq[Double]](preMode: ScalarVector[V], kernelValue: Double): ScalarVector[V] = ScalarVector(preMode.vector.map(_ / kernelValue).asInstanceOf[V])
 	/**
 	 *
 	 */
-	def obtainPreMode[V <: Seq[Double]](vi: ScalarVector[V], kernelVal: Double): ScalarVector[V] = new ScalarVector(vi.vector.map(_ * kernelVal).asInstanceOf[V])
+	def obtainPreMode[V <: Seq[Double]](vi: ScalarVector[V], kernelVal: Double): ScalarVector[V] = ScalarVector(vi.vector.map(_ * kernelVal).asInstanceOf[V])
 }
 /**
  *
  */
-case class KernelGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends Kernel[ScalarVector[V], KernelArgsGaussian[V, D]] {
+case class GaussianKernel[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends Kernel[ScalarVector[V], KernelArgsGaussian[V, D]] {
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-lambda|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - lambda is the bandwidth
@@ -71,7 +71,7 @@ case class KernelGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDis
 /**
  *
  */
-case class KernelFlat[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends Kernel[ScalarVector[V], KernelArgsFlat[V, D]] {
+case class FlatKernel[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends Kernel[ScalarVector[V], KernelArgsFlat[V, D]] {
 	/**
 	 *
 	 */
@@ -135,13 +135,9 @@ object GmmKernels {
 	}
 }
 /**
- * Investigate why specialization with Spire Numeric prevent compilations
+ *
  */
-trait KnnKernel[
-	V <: GVector[V],
-	D <: Distance[V],
-	Args <: KernelArgsKnn[V, D]
-] extends Kernel[V, Args] {
+trait KnnKernel[V <: GVector[V], D <: Distance[V], Args <: KernelArgsKnn[V, D]] extends Kernel[V, Args] {
 	/**
 	 * @return knn
 	 */
@@ -157,11 +153,7 @@ trait KnnKernel[
 /**
  *
  */
-trait KnnKernelRealMeta[
-	V <: Seq[Double],
-	D <: ContinuousDistance[V],
-	Args <: KernelArgsKnnRealMeta[V, D]
-] extends KnnKernel[ScalarVector[V], D, Args]
+trait KnnKernelRealMeta[V <: Seq[Double], D <: ContinuousDistance[V], Args <: KernelArgsKnnRealMeta[V, D]] extends KnnKernel[ScalarVector[V], D, Args]
 /**
  *
  */
@@ -180,7 +172,7 @@ case class KnnKernelEuclidean[
 ](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V, D[V], Args[V, D]] {
 	/**
 	 * The KNN kernel for euclidean space, it select KNN using a Euclidean measure and compute the mean<sup>*</sup> of them
-	 * @note Mean computation has a sense only for euclidean distance.
+	 * @note Mean computation has a sense only for euclidean distance if you're looking for the point minimizing distance from other points.
 	 */
 	override def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
 		val knn = obtainKnn(v, env.seq)

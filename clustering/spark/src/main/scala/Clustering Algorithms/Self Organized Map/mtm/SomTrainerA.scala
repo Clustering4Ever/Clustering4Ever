@@ -4,8 +4,6 @@ import scala.math.{abs, exp, max}
 import scala.util.Random
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext._
-import org.clustering4ever.spark.clustering.mtm.global.{AbstractPrototype, AbstractModel, AbstractTrainer}
-import org.clustering4ever.spark.clustering.mtm.utils.NamedVector
 import scala.concurrent.duration.{FiniteDuration, Duration}
 import org.apache.spark.mllib.linalg.DenseVector
 import scala.collection.immutable

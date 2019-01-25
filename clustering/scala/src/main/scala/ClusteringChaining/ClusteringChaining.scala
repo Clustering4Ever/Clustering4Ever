@@ -44,7 +44,8 @@ case class ClusteringChainingLocal[
      */
     private implicit val currentClusteringInformationMapping = ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[ID, O, V, Cz, Vecto, GS]]
     /**
-     * HMap of original and added Vectorization
+     * HMap containing initial and added vectorization
+     * Vectorizations are accessible using corresponding vectorizationID and VectorizationMapping explicitly or implicitly (Int -> Desired-GVector)
      */
     val vectorizations: HMap[VectorizationMapping] = HMap[VectorizationMapping](currentVectorization.vectorizationID -> currentVectorization)
     /**
@@ -52,7 +53,7 @@ case class ClusteringChainingLocal[
      */
     protected[chaining] val fusionChainableSecurity: Int = 0
     /**
-     *
+     * ClusteringChainingLocal type with a specific GVector and Vectorization
      */
     type Self[GV <: GVector[GV], OtherVecto <: VectorizationLocal[O, GV, OtherVecto]] = ClusteringChainingLocal[ID, O, GV, Cz, OtherVecto, GS]
     /**
@@ -138,7 +139,7 @@ case class ClusteringChainingLocal[
         (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity)
     }
     /**
-     *
+     * Update working vector with given vectorization without saving neither previous working vector and new vector in clusterizable vectorized field
      */
     def updateVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto[O, GV]] = {
 
@@ -155,7 +156,7 @@ case class ClusteringChainingLocal[
         }
     }
     /**
-     *
+     * Add a vectorization in ClusteringChaining object which can be applied latter
      */
     def addVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV]): Self[V, Vecto] = {
 
@@ -189,9 +190,9 @@ case class ClusteringChainingLocal[
         }
     }
     /**
-     * Update the current vector for another
+     * Update the current working vector for another existing vector in clusterizable vectorized field
      */
-    def switchToAnotherExistantVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto[O, GV]] = {
+    def switchToAnotherExistingVector[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto[O, GV]] = {
         val updatedVectorData = data.map(_.switchForExistingVector(vectorization)).asInstanceOf[GS[Cz[ID, O, GV]]]
         val updatedCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(VectorizationMapping[VectorizationID, OtherVecto[O, GV]]).get
         val updatedGlobalRunNumber = globalClusteringRunNumber
@@ -210,7 +211,7 @@ case class ClusteringChainingLocal[
     //     vectorizations: Seq[OtherVecto],
     //     algorithms: AlgorithmsRestrictions[V]*
     // ): Self[V, OtherVecto] = {
-    //     vectorizations.par.map( vectorization => switchToAnotherExistantVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
+    //     vectorizations.par.map( vectorization => switchToAnotherExistingVector(vectorization).runAlgorithms(algorithms:_*) ).reduce(_.fusionChainable(_))
     // }
 }
 /**

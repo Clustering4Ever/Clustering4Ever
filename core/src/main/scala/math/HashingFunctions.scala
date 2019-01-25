@@ -1,4 +1,4 @@
-package org.clustering4ever.util
+package org.clustering4ever.hashing
 /**
  * @author Beck Gaël
  */
@@ -14,7 +14,8 @@ trait HashingArgs extends Serializable
  */
 trait GenericHashing[O] extends Serializable {
   /**
-   *
+   * The hashing function (hf)
+   * @return a hashing value as a Double
    */
   def hf(o: O): Double
 }

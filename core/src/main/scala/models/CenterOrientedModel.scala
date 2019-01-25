@@ -12,7 +12,7 @@ import org.clustering4ever.clusterizables.Clusterizable
  */
 trait CenterModel[V <: GVector[V], D <: Distance[V]] extends MetricModel[V, D] {
 	/**
-	 * Prototypes of clusters, aka elements which minimize distances to each members of their respective clusters
+	 * Prototypes of clusters, ie elements which minimize distances to each members of their respective clusters
 	 */
 	val centers: immutable.HashMap[ClusterID, V]
 	/**
@@ -74,7 +74,7 @@ trait CenterModelLocal[V <: GVector[V], D <: Distance[V]] extends CenterModel[V,
  *
  */
 trait CenterModelSimpleVLocal[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <: GSimpleVectorDistance[T, V, SV]] extends CenterModelSimpleV[T, V, SV, D] {
-	/**0
+	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
@@ -84,7 +84,7 @@ trait CenterModelSimpleVLocal[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <
  *
  */
 trait CenterModelMixtLocal[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]] extends CenterModelMixt[Vb, Vs, D] {
-	/**0
+	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */

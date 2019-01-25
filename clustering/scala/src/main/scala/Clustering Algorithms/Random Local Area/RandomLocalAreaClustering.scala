@@ -23,10 +23,6 @@ trait RLAAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusteriz
 	/**
 	 *
 	 */
-	val args: Args
-	/**
-	 *
-	 */
 	protected implicit val ct: ClassTag[Cz[ID, O, V]]
 	/**
 	 *
@@ -89,7 +85,7 @@ object RLAScalar {
 		(RLAScalar[ID, O, V, Cz, D, GS](RLAArgsScalar(metric, epsilon))).run(data)
 	}
 	/**
-	 * Run the K-Means with any continuous distance
+	 *
 	 */
 	def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
 		data: GS[V],

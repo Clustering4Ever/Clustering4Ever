@@ -36,5 +36,14 @@ object ClusteringInformationTypes {
 	/**
 	 *
 	 */
-	type GlobalClusteringRunNumber = Int
+	type ClusteringRunNumber = Int
+}
+/**
+ *
+ */
+object ClusterIDType {
+	/**
+	 *
+	 */
+	type ClusterID = Int	
 }
