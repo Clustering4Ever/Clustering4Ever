@@ -16,13 +16,7 @@ import org.clustering4ever.vectors.{GVector, ScalarVector}
 /**
  *
  */
-case class KMeans[ID, O, V <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Double]] <: ContinuousDistance[X]](val args: KMeansArgs[V, D])(protected implicit val ct: ClassTag[Cz[ID, O, ScalarVector[V]]], protected val ctV: ClassTag[ScalarVector[V]]) extends KCentersAncestor[ID, O, ScalarVector[V], Cz, D[V], KMeansArgs[V, D], KMeansModel[ID, O, V, Cz, D]] {
-	/**
-	 *
-	 */
-	val kryoSerialization = args.kryoSerialization	
-	/**
-	 *
-	 */
-	def run(data: Dataset[Cz[ID, O, ScalarVector[V]]]): KMeansModel[ID, O, V, Cz, D] = KMeansModel[ID, O, V, Cz, D](obtainCenters(data), args.metric, args)
+case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel, val kryoSerialization: Boolean = false, val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]])(implicit protected val ctV: ClassTag[ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] {
+
+	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, kryoSerialization, obtainCenters(data))
 }

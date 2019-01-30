@@ -19,7 +19,7 @@ import org.clustering4ever.types.MetricIDType._
 import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.vectorizations.{Vectorization, VectorizationLocal, EasyVectorizationLocal}
-import org.clustering4ever.clustering.{ClustersAnalysis, ClusteringArgs, ClusteringModelLocal, ClusteringInformationsLocal}
+import org.clustering4ever.clustering.{ClustersAnalysis, ClusteringModel, ClusteringInformationsLocal}
 /**
  *
  */
@@ -28,7 +28,7 @@ trait ClustersAnalysisLocal[
     O,
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-    Vecto <: VectorizationLocal[O, V, Vecto],
+    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     GS[X] <: GenSeq[X]
 ] extends ClustersAnalysis[ID, O, V, Cz, GS] {
     /**
@@ -42,13 +42,13 @@ trait ClustersAnalysisLocal[
     /**
      *
      */
-    def getClusterinfInformationsForVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[ID, O, GV, Cz, OtherVecto[O, GV], GS]] = {
-        clusteringInformations.get(vectorization.vectorizationID)(ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[ID, O, GV, Cz, OtherVecto[O, GV], GS]])
+    def getClusterinfInformationsForVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[O, GV, OtherVecto]] = {
+        clusteringInformations.get(vectorization.vectorizationID)(ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[O, GV, OtherVecto]])
     }
     /**
      *
      */
-    def getClusterinfInformationsForClustering[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](clusteringNumber: ClusteringNumber, vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[ID, O, GV, Cz, OtherVecto[O, GV], GS]] = {
+    def getClusterinfInformationsForClustering[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](clusteringNumber: ClusteringNumber, vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[O, GV, OtherVecto]] = {
         getClusterinfInformationsForVectorization(vectorization).find(_.clusteringInformations.exists(_._1 == clusteringNumber))
     }
     /**
@@ -101,14 +101,14 @@ case class RealClustersAnalysis[
     O,
     V <: Seq[Double],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto[A, B]],
+    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     GS[X] <: GenSeq[X]
 ](
     val data: GS[Cz[ID, O, ScalarVector[V]]],
     val currentVectorization: Vecto[O, ScalarVector[V]],
     val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
     val clusteringInformations: HMap[ClusteringInformationsMapping]
-) extends ClustersAnalysisLocal[ID, O, ScalarVector[V], Cz, Vecto[O, ScalarVector[V]], GS] {
+) extends ClustersAnalysisLocal[ID, O, ScalarVector[V], Cz, Vecto, GS] {
     /**
      *
      */
@@ -140,14 +140,14 @@ case class BinaryClustersAnalysis[
     O,
     V <: Seq[Int],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto[A, B]],
+    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     GS[X] <: GenSeq[X]
 ](  
     val data: GS[Cz[ID, O, BinaryVector[V]]],
     val currentVectorization: Vecto[O, BinaryVector[V]],
     val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
     val clusteringInformations: HMap[ClusteringInformationsMapping]
-) extends ClustersAnalysisLocal[ID, O, BinaryVector[V], Cz, Vecto[O, BinaryVector[V]], GS] {
+) extends ClustersAnalysisLocal[ID, O, BinaryVector[V], Cz, Vecto, GS] {
     /**
      * Field which regroup all analysis made in this class
      */
@@ -165,7 +165,7 @@ case class BinaryClustersAnalysis[
     /**
      * Switch the working vector for the one given by vectorization
      */
-    def switchToAnotherExistingVector[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, BinaryVector[S]]) = {
+    def switchForExistingVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, BinaryVector[S]]) = {
         BinaryClustersAnalysis(
             data.map(_.updateVectorization(vectorization)).asInstanceOf[GS[Cz[ID, O, BinaryVector[S]]]],
             vectorization,
@@ -237,9 +237,9 @@ case class BinaryClustersAnalysis[
     /**
      *
      */
-    def updateBinaryStatsOnAllClusteringNumberForGivenVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, BinaryVector[S]]): BinaryClustersAnalysis[ID, O, S, Cz, OtherVecto, GS] = {
+    def updateBinaryStatsOnAllClusteringNumberForGivenVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, BinaryVector[S]]): BinaryClustersAnalysis[ID, O, S, Cz, OtherVecto, GS] = {
         val requiredVecto = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
-        val updatedBinaryClustersAnalysis@BinaryClustersAnalysis(updtData, updtCurrentVectorization, updtVectorizations, updtClusteringInformations) = switchToAnotherExistingVector(vectorization)
+        val updatedBinaryClustersAnalysis@BinaryClustersAnalysis(updtData, updtCurrentVectorization, updtVectorizations, updtClusteringInformations) = switchForExistingVectorization(vectorization)
         val statsByCn = updatedBinaryClustersAnalysis.frequencyPerEveryFeatureMultipleClusteringNumbers(requiredVecto.clusteringNumbers.toSeq:_*)
         val cbaByCN = immutable.HashMap(statsByCn.map{ case (cn, (opfcn, fpfcn)) => (cn, ClusteringBinaryAnalysis(cn, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn)) }:_*)
 

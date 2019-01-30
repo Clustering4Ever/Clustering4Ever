@@ -8,11 +8,11 @@ import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.ContinuousDistance
 import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.clustering.ClusteringSharedTypes
 /**
  *
  */
-object Stats extends ClusteringCommons {
+object Stats extends ClusteringSharedTypes {
 	/**
 	 * @return the standard deviation between vectors and a mean
 	 */
@@ -57,7 +57,7 @@ object Stats extends ClusteringCommons {
 	 *
 	 */
 	def obtainCenterFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
-		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
+		val p = scala.util.Random.nextDouble * distribution.view.map(_._2).sum
 		@annotation.tailrec
 		def go(accum: Double, i: Int): Int = {
 			if(accum < p) go(accum + distribution(i)._2, i + 1)

@@ -40,7 +40,7 @@ trait EuclideanMeta[V <: Seq[Double]] extends Serializable {
 	/**
 	 *
 	 */
-	override def toString() = "Euclidean distance " + toStringRoot + "squared root applied"
+	override def toString = "Euclidean distance " + toStringRoot + "squared root applied"
 }
 /**
  * The Euclidean distance with or without squareRoot

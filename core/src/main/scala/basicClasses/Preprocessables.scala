@@ -30,7 +30,7 @@ trait Preprocessable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Prep
 	/**
 	 * Look for an existing vector in vectorized field and put it as working vector
 	 */
-	def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
+	def switchForExistingVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[ID, O, GV]
 	/**
 	 * Update working vector by applying given vectorization.
 	 * This method doesn't save previous working vector and given vectorization in vectorized field

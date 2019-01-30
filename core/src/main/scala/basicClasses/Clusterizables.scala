@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.collection.{immutable, mutable}
 import shapeless.HMap
 import org.clustering4ever.shapeless.VMapping
-import org.clustering4ever.clustering.ClusteringArgs
+import org.clustering4ever.clustering.ClusteringModel
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.supervizables.Supervizable
 import org.clustering4ever.preprocessing.Preprocessable
@@ -111,13 +111,13 @@ case class EasyClusterizable[ID, O, V <: GVector[V]](
 	/**
 	 * Add directly a vector in vectorized field without passing through a vectorization
 	 */
-	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, newAlternativeVector: GV): EasyClusterizable[ID, O, V] = {
-		this.copy(vectorized = vectorized.+(((vectorizationID, newAlternativeVector)))(VMapping[VectorizationID, GV]))
+	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, alternativeVector: GV): EasyClusterizable[ID, O, V] = {
+		this.copy(vectorized = vectorized.+(((vectorizationID, alternativeVector)))(VMapping[VectorizationID, GV]))
 	}
 	/**
 	 * Look for an existing vector in vectorized field and put it as working vector
 	 */
-	final def switchForExistingVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, GV] = {
+	final def switchForExistingVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasyClusterizable[ID, O, GV] = {
 		this.copy(v = vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get)
 	}
 	/**

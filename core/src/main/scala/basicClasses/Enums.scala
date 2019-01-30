@@ -5,7 +5,11 @@ package org.clustering4ever.enums
 /**
  *
  */
-object InternalsIndices extends Enumeration {
+trait ClusteringIndices extends Serializable
+/**
+ *
+ */
+object InternalsIndices extends Enumeration with ClusteringIndices {
     type InternalsIndicesType = Value
     val DaviesBouldin,
         BallHall,
@@ -14,7 +18,7 @@ object InternalsIndices extends Enumeration {
 /**
  *
  */
-object ExternalsIndices extends Enumeration {
+object ExternalsIndices extends Enumeration with ClusteringIndices {
     type ExternalsIndicesType = Value
     val MI,
         NMI_Sqrt,

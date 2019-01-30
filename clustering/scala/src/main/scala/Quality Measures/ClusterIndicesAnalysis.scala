@@ -41,9 +41,7 @@ case class ClustersIndicesAnalysisLocal[
      * @return A Map which link internal indices to its associate value 
      */
     def obtainInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): immutable.Map[InternalsIndicesType, Double] = {
-        
         val idAndVector: GS[(ClusterID, V)] = data.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) ).asInstanceOf[GS[(ClusterID, V)]]
-
         val internalIndices = InternalIndicesLocal(idAndVector, metric)
 
         indices.par.map{ index =>
@@ -77,28 +75,23 @@ case class ClustersIndicesAnalysisLocal[
      * Compute given internals indices and add result to internalsIndicesByMetricClusteringNumberIndex
      * @return A Map which link internal indices to its associate value 
      */
-    def saveInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): ClustersIndicesAnalysisLocal[ID, O, V, Cz, GS] = {
-        
+    def saveInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): ClustersIndicesAnalysisLocal[ID, O, V, Cz, GS] = {        
         val idAndVector: GS[(ClusterID, V)] = data.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) ).asInstanceOf[GS[(ClusterID, V)]]
-
         val obtainedIndices = obtainInternalsIndices(metric, indices:_*)(clusteringNumber).map{ case (indexType, v) => ((metric.id, clusteringNumber, indexType), v) }.seq
-        
         ClustersIndicesAnalysisLocal(data, internalsIndicesByMetricClusteringNumberIndex ++ obtainedIndices)
     }
     /**
      *
      */
     def saveInternalsIndicesForEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): ClustersIndicesAnalysisLocal[ID, O, V, Cz, GS] = {
-        
         val indicess = computeInternalsIndicesForEveryClusteringNumber(metric, indices:_*).zipWithIndex.flatMap{ case (scores, idx) => scores.map{ case (indexType, v) => ((metric.id, idx, indexType), v) } }
-
         ClustersIndicesAnalysisLocal(data, internalsIndicesByMetricClusteringNumberIndex ++ indicess)
     }
     /**
      * Compute given externals indices and add result to externalsIndicesByClusteringNumber
      * @return A Map which link external indices to its associate value 
      */
-    def computeExternalsIndices(groundTruth: GS[ClusterID], indices: ExternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): immutable.Map[ExternalsIndicesType, Double] = {
+    def computeExternalsIndices(groundTruth: GS[ClusterID], indices: ExternalsIndicesType*)(clusteringNumber: ClusteringNumber): immutable.Map[ExternalsIndicesType, Double] = {
 
         val onlyClusterIDs = data.map(_.clusterIDs(clusteringNumber))
 
@@ -118,7 +111,13 @@ case class ClustersIndicesAnalysisLocal[
     /**
      *
      */
+    def computeSomeExternalsIndices(groundTruth: GS[ClusterID], clusterIDs: Int*)(indices: ExternalsIndicesType*): Seq[immutable.Map[ExternalsIndicesType, Double]] = {
+        clusterIDs.par.map( cn => computeExternalsIndices(groundTruth, indices:_*)(cn) ).seq
+    }
+    /**
+     *
+     */
     def computeExternalsIndicesForEveryClusteringNumber(groundTruth: GS[ClusterID], indices: ExternalsIndicesType*): Seq[immutable.Map[ExternalsIndicesType, Double]] = {
-        (0 until data.head.clusterIDs.size).par.map( cn => computeExternalsIndices(groundTruth, indices:_*)(cn) ).seq
+        computeSomeExternalsIndices(groundTruth, (0 until data.head.clusterIDs.size):_*)(indices:_*)
     }
 }

@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
 import scala.collection.{mutable, GenSeq}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
-import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.clustering.ClusteringSharedTypes
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.math.distances.GenericDistance
 /**
@@ -72,7 +72,7 @@ case class InternalIndicesDistributed[O : ClassTag, D <: GenericDistance[O]](clu
 /**
  *
  */
-object InternalIndicesDistributed extends ClusteringCommons {
+object InternalIndicesDistributed extends ClusteringSharedTypes {
   /**
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters

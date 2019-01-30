@@ -16,15 +16,6 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.vectors.{GVector, MixtVector}
 /**
- *
- */
-case class KPrototypes[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val args: KPrototypesArgs[Vb, Vs, D])(protected implicit val ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]], protected val ctV: ClassTag[MixtVector[Vb, Vs]]) extends KCentersAncestor[ID, O, MixtVector[Vb, Vs], Cz, D[Vb, Vs], KPrototypesArgs[Vb, Vs, D], KPrototypesModel[ID, O, Vb, Vs, Cz, D]] {
-	/**
-	 *
-	 */
-	def run(data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D] = KPrototypesModel[ID, O, Vb, Vs, Cz, D](obtainCenters(data), args.metric, args)
-}
-/**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :
  * @param k : number of clusters
@@ -32,28 +23,7 @@ case class KPrototypes[ID, O, Vb <: Seq[Int], Vs <: Seq[Double], Cz[X, Y, Z <: G
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-object KPrototypes {
-	/**
-	 * Run the K-Prototypes with any mixt distance
-	 */
-	def run[
-		ID,
-		O,
-		Vb <: Seq[Int],
-		Vs <: Seq[Double],
-		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
-		D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]
-	](
-		data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]],
-		k: Int,
-		epsilon: Double,
-		maxIterations: Int,
-		metric: D[Vb, Vs],
-		persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
-		initializedCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]]
-	)(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModel[ID, O, Vb, Vs, Cz, D] = {
-		val kPrototypes = KPrototypes[ID, O, Vb, Vs, Cz, D](KPrototypesArgs(k, metric, epsilon, maxIterations, persistanceLVL, initializedCenters))
-		val kPrototypesModel = kPrototypes.run(data)
-		kPrototypesModel
-	}
+case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]])(protected implicit val ctV: ClassTag[MixtVector[Vb, Vs]]) extends KCentersAncestor[MixtVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
+
+	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]])(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }

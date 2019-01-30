@@ -11,13 +11,13 @@ import org.clustering4ever.vectors.GVector
 /**
  *
  */
-object SimilarityMatrix {
+object SimilarityMatrix extends Serializable {
 	/**
 	 *
 	 */
 	def simpleSimilarityMatrix[O, D <: GenericDistance[O]](data: GenSeq[O], metric: D): GenSeq[(O, GenSeq[Double])] = data.map( v1 => (v1, data.map( altVectors => metric.d(v1, altVectors) )) )
 	/**
-	 *
+	 * @return object in the given dataset which minimize its distance to every other points 
 	 */
 	def distanceMinimizer[O, D <: GenericDistance[O]](data: GenSeq[O], metric: D): O = simpleSimilarityMatrix(data, metric).minBy{ case (_, distances) => distances.sum }._1
 	/**

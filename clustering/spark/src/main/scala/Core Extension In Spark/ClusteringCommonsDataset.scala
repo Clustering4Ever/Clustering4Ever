@@ -20,43 +20,38 @@ import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.vectorizations.Vectorization
 import org.apache.spark.sql.Dataset
-import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel, ClusteringArgs}
+import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel}
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait ClusteringAlgorithmDistributedDS[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgsDistributedDS[V], +CM <: ClusteringModelDistributedDS[ID, O, V, Cz, CA]] extends ClusteringAlgorithm[ID, O, V, Cz, Dataset, CA, CM] {
+trait ClusteringAlgorithmDistributedDS[V <: GVector[V], CA <: ClusteringModelDistributedDS[V]] extends ClusteringAlgorithm[V, CA] {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return GenericClusteringModel
 	 */
-	def run(data: Dataset[Cz[ID, O, V]]): CM
+	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CA
 
-}
-/*
- *
- */
-trait ClusteringModelDistributedDS[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], +CA <: ClusteringArgsDistributedDS[V]] extends ClusteringModel[ID, O, V, Cz, Dataset, CA] {
-	/**
-	 * kryo Serialization if true, java one else
-	 */
-	val encoderClusterIDs = if(args.kryoSerialization) Encoders.kryo[Int] else Encoders.javaSerialization[Int]
-	/**
-	 *
-	 */
-	def obtainClusteringIDs(data: Dataset[Cz[ID, O, V]]): Dataset[ClusterID] = {
-		obtainClustering(data).map(_.clusterIDs.last)(encoderClusterIDs)
-	}
 }
 /**
  *
  */
-trait ClusteringArgsDistributedDS[V <: GVector[V]] extends ClusteringArgs[V] {
+trait ClusteringModelDistributedDS[V <: GVector[V]] extends ClusteringModel[V] {
 	/**
 	 * kryo Serialization if true, java one else
 	 */
 	val kryoSerialization: Boolean
 	/**
-	 * @return the corresponding algorithm with given arguments to run on data
+	 * kryo Serialization if true, java one else
 	 */
-	def obtainAlgorithm[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): ClusteringAlgorithmDistributedDS[ID, O, V, Cz, ClusteringArgsDistributedDS[V], ClusteringModelDistributedDS[ID, O, V, Cz, ClusteringArgsDistributedDS[V]]]
+	val encoderClusterIDs = if(kryoSerialization) Encoders.kryo[Int] else Encoders.javaSerialization[Int]
+	/**
+	 * General methods to obtain a clustering from the model in order to measure performances scores
+	 */
+	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): Dataset[Cz[ID, O, V]]
+	/**
+	 *
+	 */
+	def obtainClusteringIDs[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): Dataset[ClusterID] = {
+		obtainClustering(data).map(_.clusterIDs.last)(encoderClusterIDs)
+	}
 }

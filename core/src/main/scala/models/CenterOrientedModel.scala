@@ -52,12 +52,12 @@ trait CenterModelMixt[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, V
 /**
  *
  */
-trait CenterModelCz[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], D <: Distance[V]] extends CenterModel[V, D] {
+trait CenterModelCz[V <: GVector[V], D <: Distance[V]] extends CenterModel[V, D] {
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	def centerPredict(cz: Cz[ID, O, V]): ClusterID = centerPredict(cz.v)
+	def centerPredict[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz]](cz: Cz[ID, O, V]): ClusterID = centerPredict(cz.v)
 
 }
 /**
@@ -101,12 +101,12 @@ trait CenterModelLocalBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends Cent
 /**
  *
  */
-trait CenterModelLocalCz[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], D <: Distance[V]] extends CenterModelLocal[V, D] with CenterModelCz[ID, O, V, Cz, D] {
+trait CenterModelLocalCz[V <: GVector[V], D <: Distance[V]] extends CenterModelLocal[V, D] with CenterModelCz[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredict[GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit d: DummyImplicit): GS[Cz[ID, O, V]] = {
+	def centerPredict[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]])(implicit d: DummyImplicit): GS[Cz[ID, O, V]] = {
 		data.map( cz => cz.addClusterIDs(centerPredict(cz)) ).asInstanceOf[GS[Cz[ID, O, V]]]
 	}
 }

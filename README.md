@@ -34,12 +34,12 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
   * **_K-Modes_** *
   * **_K-Prototypes_** *
 * _Tensor Biclustering algorithms_
-  * Folding-Spectral
-  * Unfolding-Spectral
-  * Thresholding Sum Of Squared Trajectory Length
-  * Thresholding Individuals Trajectory Length
-  * Recursive Biclustering
-  * Multiple Biclustering
+  * _Folding-Spectral_
+  * _Unfolding-Spectral_
+  * _Thresholding Sum Of Squared Trajectory Length_
+  * _Thresholding Individuals Trajectory Length_
+  * _Recursive Biclustering_
+  * _Multiple Biclustering_
 * **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
 * **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
 * **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
@@ -103,3 +103,7 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 * ArrayBuffer as vector are a good start
 * ArrayBuffer, ParArray or ParSeq as vector containers are recommended
+
+### Others recommendations
+
+* It is advise to use Numeric value for the ID generic, else depending the case you will have to provide an according Ordering on ID.

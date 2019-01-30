@@ -8,7 +8,7 @@ import org.clustering4ever.vectors.BinaryVector
 /**
  *
  */
-object BinaryDistanceUtil {
+object BinaryDistanceUtil extends Serializable {
 	/**
 	 * Buil the contingency matrix where for each bite i, j :
 	 *   - a is incremented if i = 1, j = 1

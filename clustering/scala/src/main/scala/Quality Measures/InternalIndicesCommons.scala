@@ -5,11 +5,11 @@ package org.clustering4ever.indices
 import scala.language.higherKinds
 import scala.collection.GenSeq
 import org.clustering4ever.math.distances.GenericDistance
-import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.clustering.ClusteringSharedTypes
 /**
  * This object is used to compute internals clustering indices as Davies Bouldin or Silhouette
  */
-trait InternalIndicesCommons[O, D <: GenericDistance[O]] extends ClusteringCommons {
+trait InternalIndicesCommons[O, D <: GenericDistance[O]] extends ClusteringSharedTypes {
   /**
    * Measure of how good the clustering scheme is
    * Params:

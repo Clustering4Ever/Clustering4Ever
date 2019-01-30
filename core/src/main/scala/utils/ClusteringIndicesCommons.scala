@@ -7,7 +7,7 @@ import scala.collection.mutable
 /**
  *
  */
-object ClusteringIndicesCommons {
+object ClusteringIndicesCommons extends Serializable {
 
 	final def nmiIn1(arr: Array[Double], s: Double) = {
 		def computeVal(n: Int, v: Double): Double = {

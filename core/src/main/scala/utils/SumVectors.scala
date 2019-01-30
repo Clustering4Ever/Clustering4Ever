@@ -6,47 +6,68 @@ import scala.reflect.ClassTag
 import scala.math.sqrt
 import scala.collection.GenSeq
 import scala.language.higherKinds
+import spire.math.{Numeric => SNumeric}
 import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, MixtVector}
 import scala.collection.mutable
 /**
  *
  */
-object VectorsAddOperationsImplicits {
+object FromArrayToSeq extends Serializable {
+	/**
+	 *
+	 */
+	def arrayToSimpleSeq[N, V <: Seq[N]](a: Array[N]) = {
+		val builder = a.genericBuilder.asInstanceOf[mutable.Builder[N, V]]
+		builder.sizeHint(a.size)
+		(0 until a.size).foreach( i => builder += a(i) )
+		builder.result
+	}
+	/**
+	 *
+	 */
+	def arrayToScalarSeq[V <: Seq[Double]](a: Array[Double]) = arrayToSimpleSeq[Double, V](a)
+	/**
+	 *
+	 */
+	def arrayToBinarySeq[V <: Seq[Int]](a: Array[Int]) = arrayToSimpleSeq[Int, V](a)
+
+}
+/**
+ *
+ */
+object VectorsAddOperationsImplicits extends Serializable {
+	/**
+	 * Check perf before use it
+	 */
+	private def addRawSimpleVector[N, V <: Seq[N]](v1: V, v2: V)(implicit num: SNumeric[N]): V = {
+		val builder = v1.genericBuilder.asInstanceOf[mutable.Builder[N, V]]
+		builder.sizeHint(v1.size)
+		(0 until v1.size).foreach( i => builder += num.plus(v1(i), v2(i)) )
+		builder.result
+	}
 	/**
 	 *
 	 */
 	implicit def addRawScalarVectors[V <: Seq[Double]](v1: V, v2: V): V = {
-		val builder = v1.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
-		builder.sizeHint(v1.size)
-		(0 until v1.size).foreach( i => builder += v1(i) + v2(i) )
-		builder.result
+		addRawSimpleVector[Double, V](v1, v2)
 	}
 	/**
 	 *
 	 */
 	implicit def addRawBinaryVectors[V <: Seq[Int]](v1: V, v2: V): V = {
-		val builder = v1.genericBuilder.asInstanceOf[mutable.Builder[Int, V]]
-		builder.sizeHint(v1.size)
-		(0 until v1.size).foreach( i => builder += v1(i) + v2(i) )
-		builder.result
+		addRawSimpleVector[Int, V](v1, v2)
 	}
 	/**
 	 *
 	 */
 	implicit def addScalarVectors[V <: Seq[Double]](v1: ScalarVector[V], v2: ScalarVector[V]): ScalarVector[V] = {
-		val builder = v1.vector.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
-		builder.sizeHint(v1.vector.size)
-		(0 until v1.vector.size).foreach( i => builder += v1.vector(i) + v2.vector(i) )
-		ScalarVector(builder.result)
+		ScalarVector(addRawScalarVectors(v1.vector, v2.vector))
 	}
 	/**
 	 *
 	 */
 	implicit def addBinaryVectors[V <: Seq[Int]](v1: BinaryVector[V], v2: BinaryVector[V]): BinaryVector[V] = {
-		val builder = v1.vector.genericBuilder.asInstanceOf[mutable.Builder[Int, V]]
-		builder.sizeHint(v1.vector.size)
-		(0 until v1.vector.size).foreach( i => builder += v1.vector(i) + v2.vector(i) )
-		BinaryVector(builder.result)
+		BinaryVector(addRawBinaryVectors(v1.vector, v2.vector))
 	}
 	/**
 	 *
@@ -60,7 +81,7 @@ object VectorsAddOperationsImplicits {
 /**
  * Object which gather common operation on Vectors of any nature, aka scalar, binary, mixt
  */
-object SumVectors {
+object SumVectors extends Serializable {
 
 	import VectorsAddOperationsImplicits._
 	/**

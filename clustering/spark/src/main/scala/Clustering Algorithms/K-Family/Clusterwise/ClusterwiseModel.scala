@@ -9,7 +9,6 @@ import scala.collection.{immutable, GenSeq, mutable}
 import scala.collection.parallel.ParSeq
 import org.clustering4ever.math.distances.ContinuousDistance
 import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.clustering.GenericClusteringModel
 /**
  *
  */
@@ -18,7 +17,7 @@ class ClusterwiseModel[V <: Seq[Double]](
 	interceptXYcoefPredByClass: immutable.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.IndexedSeq[(Int, Array[Double])])],
 	standardizationParameters: Option[(mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double])] = None,
 	metric: ContinuousDistance[V] = new Euclidean[V]
-) extends GenericClusteringModel {
+) {
 	type Xvector = V
 	type Yvector = V
 	type IDXtest = Seq[(Long, Xvector)]

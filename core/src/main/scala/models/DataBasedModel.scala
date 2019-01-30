@@ -4,7 +4,6 @@ package org.clustering4ever.clustering.models
  */
 import scala.language.higherKinds
 import scala.collection.{GenSeq, mutable, Traversable}
-import org.clustering4ever.clustering.GenericClusteringModel
 import org.clustering4ever.math.distances.{GenericDistance, Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.identifiables.IdentifiedRawObject
 import org.clustering4ever.vectors.GVector
@@ -12,7 +11,7 @@ import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait DataBasedModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], T[X] <: Traversable[X]] extends KnnModelModelCz[ID, O, V, Cz, D] {
+trait DataBasedModel[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], T[X] <: Traversable[X]] extends KnnModelModelCz[V, D] {
 	/**
 	 * The whole clusterized dataset grouped by ClusterID
 	 */

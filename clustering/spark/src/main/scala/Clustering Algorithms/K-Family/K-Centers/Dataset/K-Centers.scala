@@ -23,15 +23,15 @@ import org.clustering4ever.clustering.kcenters.rdd.KCommonsSpark
 /**
  *
  */
-trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], +Args <: KCentersArgsAncestor[V, D], +Model <: KCentersModelAncestor[ID, O, V, Cz, D, Args]] extends KCommonsSpark[V] with ClusteringAlgorithmDistributedDS[ID, O, V, Cz, Args, Model] {
+trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAncestor[V, D]] extends KCommonsSpark[V, D] with ClusteringAlgorithmDistributedDS[V, CA] {
 	/**
-	 * kryo Serialization if true, java one else
+	 *
 	 */
 	val kryoSerialization: Boolean
 	/**
 	 * kryo Serialization if true, java one else
 	 */
-	private val encoder = if(kryoSerialization) Encoders.kryo[Cz[ID, O, V]] else Encoders.javaSerialization[Cz[ID, O, V]]
+	val encoder = if(kryoSerialization) Encoders.kryo[(Int, Long, V)] else Encoders.javaSerialization[(Int, Long, V)]
 	/**
 	 * kryo Serialization if true, java one else
 	 */
@@ -39,36 +39,39 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 	/**
 	 *
 	 */
-	protected def obtainCenters(data: Dataset[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
+	protected def obtainCenters[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
+		/**
+		 * kryo Serialization if true, java one else
+		 */
+		// val encoder = if(kryoSerialization) Encoders.kryo[Cz[ID, O, V]] else Encoders.javaSerialization[Cz[ID, O, V]]
 
-		data.persist(args.persistanceLVL)
+		data.persist(persistanceLVL)
 
 		def computeCenters(key: ClusterID, values: Iterator[Cz[ID, O, V]]): (ClusterID, Long, V) = {
 				val agg = values.toBuffer
 				val s = agg.size.toLong
-				if(s <= 20000) (key, s, ClusterBasicOperations.obtainCenter(agg.map(_.v), args.metric))
-				else (key, s, ClusterBasicOperations.obtainCenter(agg.par.map(_.v), args.metric))
+				if(s <= 20000) (key, s, ClusterBasicOperations.obtainCenter(agg.map(_.v), metric))
+				else (key, s, ClusterBasicOperations.obtainCenter(agg.par.map(_.v), metric))
 		}
 
-		val centers: immutable.HashMap[Int, V] = if(args.initializedCenters.isEmpty) kmppInitializationRDD(data.rdd.map(_.v), args.k, args.metric) else args.initializedCenters
+		val centers: immutable.HashMap[Int, V] = if(customCenters.isEmpty) kmppInitializationRDD(data.rdd.map(_.v), k, metric) else customCenters
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, allCentersHaveConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
-			if(cpt < args.maxIterations && !allCentersHaveConverged) {
-				val centersInfo = data.groupByKey( cz => obtainNearestCenterID(cz.v, centers, args.metric) )(encoderInt)
-					.mapGroups(computeCenters)(args.encoder)
-					.collect
-
-				val newCenters = immutable.HashMap(centersInfo.map{ case (clusterID, _, center) => (clusterID, center) }:_*)
-				val newCardinalities = immutable.HashMap(centersInfo.map{ case (clusterID, cardinality, _) => (clusterID, cardinality) }:_*)
-				val (newCentersPruned, newKCentersBeforUpdatePruned) = removeEmptyClusters(newCenters, centers, newCardinalities)
-
-				go(cpt + 1, areCentersMovingEnough(newKCentersBeforUpdatePruned, newCentersPruned, args.epsilon, args.metric), newCentersPruned)
+		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
+			val centersInfo = data.groupByKey( cz => obtainNearestCenterID(cz.v, centers, metric) )(encoderInt)
+				.mapGroups(computeCenters)(encoder)
+				.collect
+			val newCenters = immutable.HashMap(centersInfo.map{ case (clusterID, _, center) => (clusterID, center) }:_*)
+			val newCardinalities = immutable.HashMap(centersInfo.map{ case (clusterID, cardinality, _) => (clusterID, cardinality) }:_*)
+			val (newCentersPruned, newKCentersBeforUpdatePruned) = removeEmptyClusters(newCenters, centers, newCardinalities)
+			val shiftingEnough = areCentersNotMovingEnough(newKCentersBeforUpdatePruned, newCentersPruned, epsilon, metric)
+			if(cpt < maxIterations && !shiftingEnough) {
+				go(cpt + 1, shiftingEnough, newCentersPruned)
 			}
 			else {
-				centers
+				newCentersPruned.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
 			}
 		}
 		go(0, false, centers)

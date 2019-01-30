@@ -7,11 +7,11 @@ import breeze.linalg.svd.SVD
 import breeze.stats.mean
 import breeze.linalg._
 import scala.math._
-import org.clustering4ever.clustering.ClusteringAlgorithmGeneric
+import org.clustering4ever.clustering.ClusteringAlgorithmAncestor
 /**
  *
  */
-class UnfoldingSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithmGeneric {
+class UnfoldingSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithmAncestor {
   /**
    * This function compute the ufolding mode-3 of the principal tensor
    * By a bijection map between the set of trajectory and the column of a new matrix

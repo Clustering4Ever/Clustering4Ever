@@ -8,7 +8,7 @@ import scala.collection.{GenSeq, mutable, immutable, Map}
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.math.distances.Distance
-import org.clustering4ever.clustering.{DataExplorator, ClusteringCommons}
+import org.clustering4ever.clustering.{DataExplorator, ClusteringSharedTypes}
 import org.clustering4ever.types.MetricIDType._
 import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.types.ClusteringInformationTypes._
@@ -24,7 +24,7 @@ trait ClustersIndicesAnalysisAncestor[
     V <: GVector[V],
     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
     Collection[_]
-] extends ClusteringCommons {
+] extends ClusteringSharedTypes {
     /**
      *
      */

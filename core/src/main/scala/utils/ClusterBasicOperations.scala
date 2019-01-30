@@ -13,7 +13,7 @@ import org.clustering4ever.vectors.{GVector, MixtVector, ScalarVector, BinaryVec
 /**
  * Type Class is probably the solution to this casting meli melo, but it is hard to apply in such complex case without any usefull ressources
  */
-object ClusterBasicOperations {
+object ClusterBasicOperations extends Serializable {
 	/**
 	 * @return the center which minimize its distance from all others cluster members for any space
 	 * When it is euclidean or hamming distance which is used, the linear way to compute the center is applied, aka the mean and mode (majority vote)

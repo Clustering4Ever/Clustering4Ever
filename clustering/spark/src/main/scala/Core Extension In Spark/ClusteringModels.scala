@@ -23,22 +23,22 @@ trait CenterModelDistributed[V <: GVector[V], D <: Distance[V]] extends CenterMo
 /**
  *
  */
-trait CenterModelDistributedCz[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], D <: Distance[V]] extends CenterModelDistributed[V, D] with CenterModelCz[ID, O, V, Cz, D] {
+trait CenterModelDistributedCz[V <: GVector[V], D <: Distance[V]] extends CenterModelDistributed[V, D] with CenterModelCz[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredictCz(data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = data.map( cz => cz.addClusterIDs(centerPredict(cz)) )
+	def centerPredictCz[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = data.map( cz => cz.addClusterIDs(centerPredict(cz)) )
 }
 /**
  *
  */
-trait CenterModelDistributedCzDS[ID, O, V <: GVector[V], Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], D <: Distance[V]] extends CenterModelDistributedCz[ID, O, V, Cz, D] {
+trait CenterModelDistributedCzDS[V <: GVector[V], D <: Distance[V]] extends CenterModelDistributedCz[V, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	def centerPredictCz(data: Dataset[Cz[ID, O, V]], kryoSerialization: Boolean = false)(implicit ct: ClassTag[Cz[ID, O, V]]): Dataset[Cz[ID, O, V]] = {
+	def centerPredictCz[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]], kryoSerialization: Boolean = false)(implicit ct: ClassTag[Cz[ID, O, V]]): Dataset[Cz[ID, O, V]] = {
 		if(kryoSerialization) data.map( cz => cz.addClusterIDs(centerPredict(cz)) )(Encoders.javaSerialization[Cz[ID, O, V]])
 		else data.map( cz => cz.addClusterIDs(centerPredict(cz)) )(Encoders.kryo[Cz[ID, O, V]])
 	}

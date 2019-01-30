@@ -9,7 +9,7 @@ import scala.language.higherKinds
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.math.distances.{GenericDistance, ContinuousDistance, BinaryDistance}
-import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.clustering.ClusteringSharedTypes
 import org.clustering4ever.util.ClusterBasicOperations
 /**
  *
@@ -114,7 +114,7 @@ case class InternalIndicesLocal[O, D <: GenericDistance[O]](clusterized: GenSeq[
 /**
  *
  */
-object InternalIndicesLocal extends ClusteringCommons {
+object InternalIndicesLocal extends ClusteringSharedTypes {
   /**
    * Davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with:

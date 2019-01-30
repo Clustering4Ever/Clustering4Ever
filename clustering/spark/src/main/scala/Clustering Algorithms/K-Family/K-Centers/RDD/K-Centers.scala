@@ -14,14 +14,18 @@ import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.clustering.kcenters.scala.KCommons
+import org.clustering4ever.clustering.kcenters.scala.{KCommons, KCentersModelCommons}
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.clustering.rdd.ClusteringAlgorithmDistributed
 import org.clustering4ever.vectors.GVector
 /**
  *
  */
-trait KCommonsSpark[V <: GVector[V]] extends KCommons[V] {
+trait KCommonsSpark[V <: GVector[V], D <: Distance[V]] extends KCommons[V, D] {
+	/**
+	 *
+	 */
+	val persistanceLVL: StorageLevel
 	/**
 	 *
 	 */
@@ -36,7 +40,7 @@ trait KCommonsSpark[V <: GVector[V]] extends KCommons[V] {
 	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
 	 * </ol>
 	 */
-	protected def kmppInitializationRDD[D <: Distance[V]](vectorizedDataset: RDD[V], k: Int, metric: D): immutable.HashMap[Int, V] = {
+	protected def kmppInitializationRDD(vectorizedDataset: RDD[V], k: Int, metric: D): immutable.HashMap[Int, V] = {
 
 		def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 		
@@ -58,34 +62,33 @@ trait KCommonsSpark[V <: GVector[V]] extends KCommons[V] {
 /**
  *
  */
-trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], +Args <: KCentersArgsAncestor[V, D], +Model <: KCentersModelAncestor[ID, O, V, Cz, D, Args]] extends KCommonsSpark[V] with ClusteringAlgorithmDistributed[ID, O, V, Cz, Args, Model] {
+trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAncestor[V, D]] extends KCommonsSpark[V, D] with ClusteringAlgorithmDistributed[V, CA] {
 	/**
 	 *
 	 */
-	protected def obtainCenters(data: RDD[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
+	protected def obtainCenters[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
 		
-		data.persist(args.persistanceLVL)
+		data.persist(persistanceLVL)
 
-		val centers: immutable.HashMap[Int, V] = if(args.initializedCenters.isEmpty) kmppInitializationRDD(data.map(_.v), args.k, args.metric) else args.initializedCenters
+		val centers: immutable.HashMap[Int, V] = if(customCenters.isEmpty) kmppInitializationRDD(data.map(_.v), k, metric) else customCenters
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, allCentersHaveConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
-			if(cpt < args.maxIterations && !allCentersHaveConverged) {
-				val centersInfo = data.map( cz => (obtainNearestCenterID(cz.v, centers, args.metric), (1L, cz.v)) )
-					.reduceByKeyLocally{ case ((card1, v1), (card2, v2)) => ((card1 + card2), ClusterBasicOperations.obtainCenter(Seq(v1, v2), args.metric)) }
-					.map{ case (clusterID, (cardinality, center)) => (clusterID, center, cardinality) }
-					.toArray
-
-				val newCenters = immutable.HashMap(centersInfo.map{ case (clusterID, center, _) => (clusterID, center) }:_*)
-				val newCardinalities = immutable.HashMap(centersInfo.map{ case (clusterID, _, cardinality) => (clusterID, cardinality) }:_*)
-				val (newCentersPruned, newKCentersBeforUpdatePruned) = removeEmptyClusters(newCenters, centers, newCardinalities)
-
-				go(cpt + 1, areCentersMovingEnough(newKCentersBeforUpdatePruned, newCentersPruned, args.epsilon, args.metric), newCentersPruned)
+		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
+			val centersInfo = data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), (1L, cz.v)) )
+				.reduceByKeyLocally{ case ((card1, v1), (card2, v2)) => ((card1 + card2), ClusterBasicOperations.obtainCenter(Seq(v1, v2), metric)) }
+				.map{ case (clusterID, (cardinality, center)) => (clusterID, center, cardinality) }
+				.toArray
+			val newCenters = immutable.HashMap(centersInfo.map{ case (clusterID, center, _) => (clusterID, center) }:_*)
+			val newCardinalities = immutable.HashMap(centersInfo.map{ case (clusterID, _, cardinality) => (clusterID, cardinality) }:_*)
+			val (newCentersPruned, newKCentersBeforUpdatePruned) = removeEmptyClusters(newCenters, centers, newCardinalities)
+			val shiftingEnough = areCentersNotMovingEnough(newKCentersBeforUpdatePruned, newCentersPruned, epsilon, metric)
+			if(cpt < maxIterations && !shiftingEnough) {
+				go(cpt + 1, shiftingEnough, newCentersPruned)
 			}
 			else {
-				centers
+				centers.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
 			}
 		}
 		go(0, false, centers)
@@ -94,9 +97,7 @@ trait KCentersAncestor[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clus
 /**
  *
  */
-case class KCenters[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D[X <: GVector[X]] <: Distance[X]](val args: KCentersArgs[V, D])(protected implicit val ct: ClassTag[Cz[ID, O, V]],protected val ctV: ClassTag[V]) extends KCentersAncestor[ID, O, V, Cz, D[V], KCentersArgs[V, D], KCentersModel[ID, O, V, Cz, D]] {
-	/**
-	 *
-	 */
-	def run(data: RDD[Cz[ID, O, V]]): KCentersModel[ID, O, V, Cz, D] = KCentersModel[ID, O, V, Cz, D](obtainCenters(data), args.metric, args)
+case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, V])(implicit val ctV: ClassTag[V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
+
+	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }

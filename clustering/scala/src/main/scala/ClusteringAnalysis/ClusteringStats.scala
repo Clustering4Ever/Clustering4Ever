@@ -3,14 +3,14 @@ package org.clustering4ever.clusteringanalysis
  * @author Beck Gaël
  */
 import scala.collection.immutable
-import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.clustering.ClusteringSharedTypes
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.types.ClusterIDType._
 /**
  *
  */
-trait ClusteringBinaryAnalysisAncestor extends ClusteringCommons {
+trait ClusteringBinaryAnalysisAncestor extends ClusteringSharedTypes {
 	/**
 	 * The number of clustering which was applied 
 	 */
@@ -52,7 +52,7 @@ case class ClusteringBinaryAnalysis(
 /**
  *
  */
-trait EveryClusteringBinaryAnalysisAncestor extends ClusteringCommons {
+trait EveryClusteringBinaryAnalysisAncestor extends ClusteringSharedTypes {
 	/**
 	 * ClusteringBinaryAnalysis by clusteringNumber by vectorizationID
 	 */
