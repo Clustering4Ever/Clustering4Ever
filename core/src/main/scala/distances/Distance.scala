@@ -43,7 +43,7 @@ trait Distance[V <: GVector[V]] extends GenericDistance[V]
  */
 trait GSimpleVectorDistance[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV]] extends Distance[SV] {
 	/**
-	 * @return the distance between two objects of nature Seq[T] where T can be Double or Int usually
+	 * @return the distance between two objects of nature Seq[T] where T can be any Numeric type ie (Double, float, Int...) usually
 	 */
 	def d(v1: V, v2: V): Double
 }

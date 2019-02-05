@@ -12,15 +12,17 @@ import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, BinaryVector}
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
- * @param data : GenSeq of Clusterizable descendant, the EasyClusterizable is the basic reference
- * @param k : number of clusters seeked
- * @param epsilon : The stopping criteria, ie the distance under which centers are mooving from their previous position
- * @param maxIterations : maximal number of iteration
- * @param metric : a defined binary dissimilarity measure on a GVector descendant
+ * @param data GenSeq of Clusterizable descendant, the EasyClusterizable is the basic reference
+ * @param k number of clusters seeked
+ * @param epsilon The stopping criteria, ie the distance under which centers are mooving from their previous position
+ * @param maxIterations maximal number of iteration
+ * @param metric a defined binary dissimilarity measure on a GVector descendant
  */
 case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] {
 
-	def run[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel(k, metric, epsilon, maxIterations, obtainCenters(data))
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
+
+	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel(k, metric, epsilon, maxIterations, obtainCenters(data))
 }
 /**
  *

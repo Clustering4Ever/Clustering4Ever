@@ -29,7 +29,7 @@ trait ClusteringAlgorithmDistributed[V <: GVector[V], CA <: ClusteringModelDistr
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
 	 */
-	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CA
+	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): CA
 
 }
 /**
@@ -45,11 +45,11 @@ trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel[V] {
 	/**
 	 * General methods to obtain a clustering from the model in order to measure performances scores
 	 */
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[Cz[ID, O, V]]
+	protected[clustering] def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): RDD[Cz[O, V]]
 	/**
 	 * @return a RDD of clusterIDs 
 	 */
-	def obtainClusteringIDs[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[ClusterID] = {
+	protected[clustering] def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): RDD[ClusterID] = {
 		obtainClustering(data).map(_.clusterIDs.last)
 	}
 }
@@ -72,9 +72,9 @@ object RowToCz extends Serializable {
 	/**
 	 *
 	 */
-	def fromRawToEasyClusterizable[ID, GV <: GVector[GV]](row: Row, id: Int, vectorIDInRow: Int) = EasyClusterizable(row.getAs[ID](id), row, row.getAs[GV](vectorIDInRow))
+	def fromRawToEasyClusterizable[GV <: GVector[GV]](row: Row, id: Int, vectorIDInRow: Int) = EasyClusterizable(row.getAs[Long](id), row, row.getAs[GV](vectorIDInRow))
 	/**
 	 *
 	 */
-	def fromCzToRaw[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](cz: Cz[ID, O, V]) = Row(cz)
+	def fromCzToRaw[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](cz: Cz[O, V]) = Row(cz)
 }

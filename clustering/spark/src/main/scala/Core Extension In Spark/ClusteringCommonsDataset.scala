@@ -29,7 +29,7 @@ trait ClusteringAlgorithmDistributedDS[V <: GVector[V], CA <: ClusteringModelDis
 	 * Execute the corresponding clustering algorithm
 	 * @return GenericClusteringModel
 	 */
-	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): CA
+	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): CA
 
 }
 /**
@@ -47,11 +47,11 @@ trait ClusteringModelDistributedDS[V <: GVector[V]] extends ClusteringModel[V] {
 	/**
 	 * General methods to obtain a clustering from the model in order to measure performances scores
 	 */
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): Dataset[Cz[ID, O, V]]
+	protected[clustering] def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): Dataset[Cz[O, V]]
 	/**
 	 *
 	 */
-	def obtainClusteringIDs[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): Dataset[ClusterID] = {
+	protected[clustering] def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): Dataset[ClusterID] = {
 		obtainClustering(data).map(_.clusterIDs.last)(encoderClusterIDs)
 	}
 }

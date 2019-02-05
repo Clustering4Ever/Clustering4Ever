@@ -12,7 +12,7 @@ import org.clustering4ever.clustering.ClusteringModelLocal
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
 import org.clustering4ever.clusterizables.Clusterizable
 /**
- *
+ * Trait regrouping commons elements between KCenters models descendant as well for scala than spark
  */
 trait KCentersModelCommons[V <: GVector[V], D <: Distance[V]] extends CenterModel[V, D] {
 	/**
@@ -33,12 +33,12 @@ trait KCentersModelCommons[V <: GVector[V], D <: Distance[V]] extends CenterMode
  */
 trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersModelCommons[V, D] with ClusteringModelLocal[V] with CenterModelLocalCz[V, D] {
 
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = centerPredict(data)
+	protected[clustering] def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = centerPredict(data)
 	/**
 	 * Compute the distance between every points and all centers
 	 */
-	def prototypesDistancePerPoint[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]]): GS[(Cz[ID, O, V], immutable.HashMap[ClusterID, Double])] = {
-		data.map( cz => (cz, centers.map{ case (clusterID, center) => (clusterID, metric.d(cz.v, center)) } ) ).asInstanceOf[GS[(Cz[ID, O, V], immutable.HashMap[ClusterID, Double])]]
+	def prototypesDistancePerPoint[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[(Cz[O, V], immutable.HashMap[ClusterID, Double])] = {
+		data.map( cz => (cz, centers.map{ case (clusterID, center) => (clusterID, metric.d(cz.v, center)) } ) ).asInstanceOf[GS[(Cz[O, V], immutable.HashMap[ClusterID, Double])]]
 	}
 }
 /**

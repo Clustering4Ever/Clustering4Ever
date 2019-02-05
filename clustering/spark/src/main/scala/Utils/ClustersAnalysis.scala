@@ -21,15 +21,14 @@ import org.clustering4ever.types.ClusteringNumberType._
  *
  */
 trait ClustersAnalysisDistributed[
-    ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
-] extends ClustersAnalysis[ID, O, V, Cz, RDD] {
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]
+] extends ClustersAnalysis[O, V, Cz, RDD] {
 
-    private val neutralElement = mutable.ArrayBuffer.empty[Cz[ID, O, V]]
-    def addToBuffer(buff: mutable.ArrayBuffer[Cz[ID, O, V]], elem: Cz[ID, O, V]) = buff += elem
-    def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[ID, O, V]], buff2: mutable.ArrayBuffer[Cz[ID, O, V]]) = buff1 ++= buff2
+    private val neutralElement = mutable.ArrayBuffer.empty[Cz[O, V]]
+    def addToBuffer(buff: mutable.ArrayBuffer[Cz[O, V]], elem: Cz[O, V]) = buff += elem
+    def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[O, V]], buff2: mutable.ArrayBuffer[Cz[O, V]]) = buff1 ++= buff2
     /**
      *
      */
@@ -37,13 +36,13 @@ trait ClustersAnalysisDistributed[
     /**
      *
      */
-    def groupedByClusterID(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[(ClusterID, mutable.ArrayBuffer[Cz[ID, O, V]])] = {
+    def groupedByClusterID(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]]): RDD[(ClusterID, mutable.ArrayBuffer[Cz[O, V]])] = {
         data.map( cz => (cz.clusterIDs(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
     }
     /**
      *
      */
-    def cardinalities(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]]): immutable.Map[ClusterID, Int] = {
+    def cardinalities(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]]): immutable.Map[ClusterID, Int] = {
         groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collect.toMap
     }
     /**
@@ -55,7 +54,7 @@ trait ClustersAnalysisDistributed[
     /**
      *
      */
-    def centroids[D[X <: GVector[X]] <: Distance[X]](metric: D[V], clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[ID, O, V]], ct2: ClassTag[V]): immutable.Map[ClusterID, V] = {
+    def centroids[D[X <: GVector[X]] <: Distance[X]](metric: D[V], clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]], ct2: ClassTag[V]): immutable.Map[ClusterID, V] = {
         groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.collect.toMap
     }
     // def cardinalities(clusteringNumber: Int): Map[Int, Long]
@@ -80,9 +79,9 @@ trait ClustersAnalysisDistributed[
 //     ID,
 //     O,
 //     V <: Seq[Double],
-//     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+//     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
 //     D <: ContinuousDistance[V]
-// ](clusterized: RDD[Cz[ID, O, ScalarVector[V]]], metric: D)(implicit ct: ClassTag[Cz[ID, O, ScalarVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, ScalarVector[V], Cz, D](clusterized, metric) {
+// ](clusterized: RDD[Cz[O, ScalarVector[V]]], metric: D)(implicit ct: ClassTag[Cz[O, ScalarVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, ScalarVector[V], Cz, D](clusterized, metric) {
 
 //     /**
 //      * TO DO
@@ -97,9 +96,9 @@ trait ClustersAnalysisDistributed[
 //     ID,
 //     O,
 //     V <: Seq[Int],
-//     Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+//     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
 //     D <: BinaryDistance[V]
-// ](clusterized: RDD[Cz[ID, O, BinaryVector[V]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, BinaryVector[V], Cz, D](clusterized, metric) {
+// ](clusterized: RDD[Cz[O, BinaryVector[V]]], metric: D, vectorHeader: Option[mutable.ArrayBuffer[String]] = None, eachCategoryRange: Option[mutable.ArrayBuffer[Int]] = None)(implicit ct: ClassTag[Cz[O, BinaryVector[V]]], ct2: ClassTag[V]) extends ClustersAnalysisDistributed[ID, O, BinaryVector[V], Cz, D](clusterized, metric) {
 
 //     private val originalVector = 0
 

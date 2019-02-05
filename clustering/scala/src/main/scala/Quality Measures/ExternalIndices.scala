@@ -10,9 +10,9 @@ import scala.collection.mutable
 /**
  *
  */
-class ExternalIndicesLocal {
+trait ExternalIndicesLocal {
 
-	def mutualInformationInternal[S <: GenSeq[Int]](x: S, y: S) = {
+	def mutualInformationInternal(x: GenSeq[Int], y: GenSeq[Int]) = {
 		require( x.size == y.size )
 		val n = x.size
 		val maxX = x.max
@@ -39,19 +39,19 @@ class ExternalIndicesLocal {
 /**
  *
  */
-object ExternalIndicesLocal {
+object ExternalIndicesLocal extends ExternalIndicesLocal {
 	/**
 	 * Compute the mutual information
 	 * @return (Mutual Information, entropy x, entropy y)
 	 */
-	def mutualInformation[S <: GenSeq[Int]](x: S, y: S): Double = (new ExternalIndicesLocal).mutualInformationInternal(x, y)._1
+	def mutualInformation(x: GenSeq[Int], y: GenSeq[Int]): Double = mutualInformationInternal(x, y)._1
 	/**
 	 * Compute the normalize mutual entropy
-	 * @param normalization : nature of normalization, either sqrt or max
+	 * @param normalization nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 */
-	def nmi[S <: GenSeq[Int]](x: S, y: S, normalization: Normalization = SQRT) = {
-		val (mi, hu, hv) = (new ExternalIndicesLocal).mutualInformationInternal(x, y)
+	def nmi(x: GenSeq[Int], y: GenSeq[Int], normalization: Normalization = SQRT) = {
+		val (mi, hu, hv) = mutualInformationInternal(x, y)
 		val nmi = normalization match {
 			case SQRT => mi / sqrt(hu * hv)
 			case MAX => mi / max(hu, hv)
@@ -59,8 +59,19 @@ object ExternalIndicesLocal {
 		nmi
 	}
 	/**
+	 * @return (MI, NMI_sqrt, NMI_max)
+	 */
+	def everyMI(x: GenSeq[Int], y: GenSeq[Int]) = {
+		val (mi, hu, hv) =  mutualInformationInternal(x, y)
+		(
+			mi,
+			mi / sqrt(hu * hv),
+			mi / max(hu, hv)
+		)
+	}
+	/**
 	 * Compute the normalize mutual entropy
-	 * @param normalization : nature of normalization, either sqrt or max
+	 * @param normalization nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 */
 	def nmi[S <: GenSeq[Int]](xy: Seq[(Int, Int)], normalization: Normalization): Double = {

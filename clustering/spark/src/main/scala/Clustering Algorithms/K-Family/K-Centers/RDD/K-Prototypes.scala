@@ -25,5 +25,5 @@ import org.clustering4ever.vectors.{GVector, MixtVector}
  */
 case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]])(protected implicit val ctV: ClassTag[MixtVector[Vb, Vs]]) extends KCentersAncestor[MixtVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
 
-	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, MixtVector[Vb, Vs]]])(implicit ct: ClassTag[Cz[ID, O, MixtVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, MixtVector[Vb, Vs]]])(implicit ct: ClassTag[Cz[O, MixtVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }

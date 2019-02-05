@@ -40,7 +40,7 @@ object VectorsAddOperationsImplicits extends Serializable {
 	 * Check perf before use it
 	 */
 	private def addRawSimpleVector[N, V <: Seq[N]](v1: V, v2: V)(implicit num: SNumeric[N]): V = {
-		val builder = v1.genericBuilder.asInstanceOf[mutable.Builder[N, V]]
+		val builder = v1.genericBuilder[N].asInstanceOf[mutable.Builder[N, V]]
 		builder.sizeHint(v1.size)
 		(0 until v1.size).foreach( i => builder += num.plus(v1(i), v2(i)) )
 		builder.result
@@ -97,7 +97,7 @@ object SumVectors extends Serializable {
 	 */
 	def sumAlignedVectorsMatrice[V <: Seq[Double], S[X] <: Seq[X]](a: S[V], b: S[V])(implicit f: (V, V) => V) = {	
 		val range = (0 until a.size)
-		val builder = a.genericBuilder.asInstanceOf[mutable.Builder[V, S[V]]]
+		val builder = a.genericBuilder[V].asInstanceOf[mutable.Builder[V, S[V]]]
 		builder.sizeHint(a.size)
 		range.foreach{ i => builder += sumVectors(a(i), b(i)) }
 		builder.result

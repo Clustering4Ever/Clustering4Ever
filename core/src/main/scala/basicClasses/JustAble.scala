@@ -10,13 +10,12 @@ import org.clustering4ever.clusterizables.Clusterizable
  *
  */
 trait GeneralPurposable[
-	ID,
 	O,
 	V <: GVector[V],
-	Self[A, B, C <: GVector[C]] <: GeneralPurposable[A, B, C, Self]
-] extends Clusterizable[ID, O, V, Self] with Supervizable[ID, O, V, Self] {
+	Self[B, C <: GVector[C]] <: GeneralPurposable[B, C, Self]
+] extends Clusterizable[O, V, Self] with Supervizable[O, V, Self] {
 	/**
 	 *
 	 */
-	this: Self[ID, O, V] =>
+	this: Self[O, V] =>
 }

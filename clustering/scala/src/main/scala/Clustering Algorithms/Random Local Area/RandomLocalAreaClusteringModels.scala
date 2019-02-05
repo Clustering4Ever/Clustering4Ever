@@ -1,4 +1,4 @@
-package org.clustering4ever.scala.clustering.rla
+package org.clustering4ever.clustering.rla
 /**
  * @author Beck Gaël
  */
@@ -26,7 +26,7 @@ trait RLAModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringMode
 	/**
 	 *
 	 */
-	def obtainClustering[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]]): GS[Cz[ID, O, V]] = centerPredict(data)
+	protected[clustering] def obtainClustering[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = centerPredict(data)
 }
 /**
  *

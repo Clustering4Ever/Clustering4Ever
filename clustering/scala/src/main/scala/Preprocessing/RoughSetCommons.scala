@@ -18,7 +18,7 @@ trait RoughSetCommons extends Serializable {
   /**
    * Compute dependency
    */
-  protected def dependency[ID](indecability: GenIterable[Seq[ID]], indDecisionClasses: Iterable[Seq[ID]]) = {
+  protected def dependency(indecability: GenIterable[Seq[Long]], indDecisionClasses: Iterable[Seq[Long]]) = {
     var dependency = 0
     indDecisionClasses.foreach( indCl => indecability.foreach( i => if(i.intersect(indCl).size != i.size) dependency += i.size ) )
     dependency
@@ -26,13 +26,13 @@ trait RoughSetCommons extends Serializable {
   /**
    * Define a function to calculate the Indecability of each element in the list indDecisionClasses
    */
-  protected def obtainIndecability[ID, O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](f: mutable.ArrayBuffer[Int], data: GenSeq[Sz[ID, O, V[T, S]]]): GenIterable[Seq[ID]] = {
+  protected def obtainIndecability[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](f: mutable.ArrayBuffer[Int], data: GenSeq[Sz[O, V[T, S]]]): GenIterable[Seq[Long]] = {
     data.groupBy( l => keyValueExtract(f, l.v.vector) ).map{ case (listValues, aggregates) => aggregates.map(_.id).seq }
   }
   /**
    *
    */
-  protected def generateIndecidabilityDecisionClasses[ID, O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: GenSeq[Sz[ID, O, V[T, S]]]): Iterable[Seq[ID]] = {
+  protected def generateIndecidabilityDecisionClasses[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]]): Iterable[Seq[Long]] = {
     data.groupBy(_.label).map{ case (label, aggregate) => aggregate.map(_.id).seq }.seq
   }
 

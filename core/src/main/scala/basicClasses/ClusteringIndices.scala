@@ -19,32 +19,30 @@ import org.clustering4ever.enums.ExternalsIndices._
  *
  */
 trait ClustersIndicesAnalysisAncestor[
-    ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
 ] extends ClusteringSharedTypes {
     /**
      *
      */
-    val data: Collection[Cz[ID, O, V]]
+    val clusterized: Collection[Cz[O, V]]
     // val clusteringInformations: ClusteringInformations[ID, O, V, Cz, Collection]
 }
 /**
  *
  */
 trait ClustersInternalIndicesAnalysis[
-    ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
-] extends ClustersIndicesAnalysisAncestor[ID, O, V, Cz, Collection] {
+] extends ClustersIndicesAnalysisAncestor[O, V, Cz, Collection] {
     /**
 	 *
 	 */
-	type Self <: ClustersInternalIndicesAnalysis[ID, O, V, Cz, Collection]
+	type Self <: ClustersInternalIndicesAnalysis[O, V, Cz, Collection]
 	/**
 	 *
 	 */
@@ -53,31 +51,30 @@ trait ClustersInternalIndicesAnalysis[
      * Compute given internals indices and add result to internalsIndicesByClusteringNumber
      * @return A Map which link internal indices to its associate value 
      */
-    def saveInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): Self
+    def saveInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): Self
     /**
      *
      */
-    def computeInternalsIndicesForEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]]
+    def computeInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]]
 	/**
 	 *
 	 */
-	def obtainInternalsIndices[D <: Distance[V]](metric: D, indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): immutable.Map[InternalsIndicesType, Double]
+	def obtainInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): immutable.Map[InternalsIndicesType, Double]
 
 }
 /**
  *
  */
 trait ClustersExternalIndicesAnalysis[
-    ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
-] extends ClustersIndicesAnalysisAncestor[ID, O, V, Cz, Collection] {
+] extends ClustersIndicesAnalysisAncestor[O, V, Cz, Collection] {
 	/**
 	 *
 	 */
-	type Self <: ClustersExternalIndicesAnalysis[ID, O, V, Cz, Collection]
+	type Self <: ClustersExternalIndicesAnalysis[O, V, Cz, Collection]
 	/**
 	 *
 	 */
@@ -85,7 +82,7 @@ trait ClustersExternalIndicesAnalysis[
     /**
      *
      */
-    def saveInternalsIndicesForEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Self
+    def saveInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): Self
     /**
      * Compute given externals indices and add result to externalsIndicesByClusteringNumber
      * @return A Map which link external indices to its associate value 
@@ -101,15 +98,14 @@ trait ClustersExternalIndicesAnalysis[
  *
  */
 trait ClustersIndicesAnalysis[
-    ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
-] extends ClustersInternalIndicesAnalysis[ID, O, V, Cz, Collection] with ClustersExternalIndicesAnalysis[ID, O, V, Cz, Collection] {
+] extends ClustersInternalIndicesAnalysis[O, V, Cz, Collection] with ClustersExternalIndicesAnalysis[O, V, Cz, Collection] {
 	/**
 	 *
 	 */
-	type Self <: ClustersIndicesAnalysis[ID, O, V, Cz, Collection]
+	type Self <: ClustersIndicesAnalysis[O, V, Cz, Collection]
 
 }

@@ -72,21 +72,21 @@ trait KCommons[V <: GVector[V], D <: Distance[V]] extends ClusteringSharedTypes 
 }
 /**
  * The famous K-Centers using a user-defined dissmilarity measure.
- * @param data : preferably and ArrayBuffer or ParArray of Clusterizable
- * @param k : number of clusters
- * @param epsilon : minimal threshold under which we consider a centroid has converged
- * @param maxIterations : maximal number of iteration
- * @param metric : a defined dissimilarity measure
+ * @param data preferably and ArrayBuffer or ParArray of Clusterizable
+ * @param k number of clusters
+ * @param epsilon minimal threshold under which we consider a centroid has converged
+ * @param maxIterations maximal number of iteration
+ * @param metric a defined dissimilarity measure
  */
 trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CM <: KCentersModelAncestor[V, D]] extends KCommons[V, D] with ClusteringAlgorithmLocal[V, CM] {
 	/**
 	 * Run the K-Centers
 	 */
-	protected def obtainCenters[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
+	protected def obtainCenters[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): immutable.HashMap[Int, V] = {
 		/**
 		 *
 		 */
-		val centers: immutable.HashMap[Int, V] = if(customCenters.isEmpty) KPPInitializer.kppInit[ID, O, V, Cz, D](data, metric, k) else customCenters
+		val centers: immutable.HashMap[Int, V] = if(customCenters.isEmpty) KPPInitializer.kppInit(data, metric, k) else customCenters
 		/**
 		 * KCenters heart in tailrec style
 		 */
@@ -116,5 +116,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CM <: KCentersModelAnc
  */
 case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, V] = immutable.HashMap.empty[Int, V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
 
-	def run[ID, O, Cz[A, B, C <: GVector[C]] <: Clusterizable[A, B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[ID, O, V]]): KCentersModel[V, D] = KCentersModel(k, metric, epsilon, maxIterations, obtainCenters(data))
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
+
+	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): KCentersModel[V, D] = KCentersModel(k, metric, epsilon, maxIterations, obtainCenters(data))
 }

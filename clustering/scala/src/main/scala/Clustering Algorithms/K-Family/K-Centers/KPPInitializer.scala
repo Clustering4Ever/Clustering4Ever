@@ -30,12 +30,11 @@ object KPPInitializer extends Serializable {
 	 * </ol>
 	 */
 	def kppInit[
-		ID,
 		O,
 		V <: GVector[V],
-		Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+		Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
 		D <: Distance[V]
-	](data: GenSeq[Cz[ID, O, V]], metric: D, k: Int): immutable.HashMap[Int, V] = {
+	](data: GenSeq[Cz[O, V]], metric: D, k: Int): immutable.HashMap[Int, V] = {
 
 		// def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 		def obtainNearestCenter(v: V, centers: immutable.Vector[V]): V = centers.minBy(metric.d(_, v))

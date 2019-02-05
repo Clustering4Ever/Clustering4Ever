@@ -8,6 +8,7 @@ import org.clustering4ever.util.SumVectors
 /**
  * The Generic Vector trait
  * If you want to apply algorithms on other vector nature as time series, you've just need to write a case class which inherit GVector which describe your vectorization withou forget the corresponding distance which inherit Distance
+ * @tparam Self the concrete implementation of GVector
  */
 trait GVector[Self <: GVector[Self]] extends Serializable {
 	/**
@@ -20,7 +21,8 @@ trait GVector[Self <: GVector[Self]] extends Serializable {
 	def pickFeatures(indices: Int*): Self
 }
 /**
- *
+ * @tparam N the type object composing the vector
+ * @tparam V the vector type
  */
 trait GSimpleVector[N, V <: Seq[N], Self <: GSimpleVector[N, V, Self]] extends GVector[Self] {
 	/**
@@ -28,7 +30,7 @@ trait GSimpleVector[N, V <: Seq[N], Self <: GSimpleVector[N, V, Self]] extends G
 	 */
 	this: Self =>
 	/**
-	 *
+	 * A vector taking the form of Seq[N] for any N
 	 */
 	val vector: V
 }
@@ -59,21 +61,20 @@ trait GMixtVector[Vb <: Seq[Int], Vs <: Seq[Double], Self <: GMixtVector[Vb, Vs,
 	 */
 	this: Self =>
 	/**
-	 *
+	 * The binary part of this mixt vector as <: Seq[Int] 
 	 */
 	val binary: Vb
 	/**
-	 *
+	 * The scalar part of this mixt vector as <: Seq[Double] 
 	 */
 	val scalar: Vs
 }
 /**
  * Vector for binary data taking represented as a vector on {0, 1}<sup>d</sup>
+ * @tparam Vb the type of this vector
  */
 case class BinaryVector[Vb <: Seq[Int]](val vector: Vb) extends GBinaryVector[Vb, BinaryVector[Vb]] {
-	/**
-	 *
-	 */
+
 	def pickFeatures(indices: Int*): BinaryVector[Vb] = {
 		BinaryVector{
 			val builder = vector.genericBuilder.asInstanceOf[mutable.Builder[Int, Vb]]
@@ -85,11 +86,10 @@ case class BinaryVector[Vb <: Seq[Int]](val vector: Vb) extends GBinaryVector[Vb
 }
 /**
  * Vector for continuous data represented as a vector on R<sup>d</sup>
+ * @tparam Vs the type of this vector
  */
 case class ScalarVector[Vs <: Seq[Double]](val vector: Vs) extends GScalarVector[Vs, ScalarVector[Vs]] {
-	/**
-	 *
-	 */
+
 	def pickFeatures(indices: Int*): ScalarVector[Vs] = {
 		ScalarVector{
 			val builder = vector.genericBuilder.asInstanceOf[mutable.Builder[Double, Vs]]
@@ -101,6 +101,8 @@ case class ScalarVector[Vs <: Seq[Double]](val vector: Vs) extends GScalarVector
 }
 /**
  * Vector for binary and continuous data represented as 2 vectors, one on R<sup>d1</sup> Vs, the other on {0, 1}<sup>d2</sup> Vb
+ * @tparam Vb binary part type of this mixt vector
+ * @tparam Vs scalar part type of this mixt vector
  */
 case class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](val binary: Vb, val scalar: Vs) extends GMixtVector[Vb, Vs, MixtVector[Vb, Vs]] {
 	/**
@@ -121,9 +123,7 @@ case class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](val binary: Vb, val sca
  *
  */
 case class SupervizedVector[N, V[X] <: Seq[X]](val vector: V[N]) extends GSimpleVector[N, V[N], SupervizedVector[N, V]] {
-	/**
-	 *
-	 */
+
 	def pickFeatures(indices: Int*): SupervizedVector[N, V] = {
 		SupervizedVector{
 			val builder = vector.genericBuilder.asInstanceOf[mutable.Builder[N, V[N]]]
@@ -137,8 +137,6 @@ case class SupervizedVector[N, V[X] <: Seq[X]](val vector: V[N]) extends GSimple
  *
  */
 case class GenericObjectVector[O](val rawObject: O) extends GVector[GenericObjectVector[O]] {
-	/**
-	 *
-	 */
+
 	def pickFeatures(indices: Int*): GenericObjectVector[O] = this.copy()
 }

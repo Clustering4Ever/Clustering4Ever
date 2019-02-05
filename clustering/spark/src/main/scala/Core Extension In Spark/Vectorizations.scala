@@ -8,21 +8,17 @@ import org.apache.spark.rdd.RDD
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.shapeless.ClusteringInformationsMapping
 import org.clustering4ever.types.VectorizationIDTypes._
+import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
  */
-trait VectorizationDistributed[O, V <: GVector[V], Self[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Self]] extends Vectorization[O, V, Self[O, V]] {
-	/**
-	 *
-	 */
+trait VectorizationDistributed[O, V <: GVector[V], Self[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Self]] extends VectorizationToRevise[O, V, Self[O, V]] {
+
 	this: Self[O, V] =>
-	/**
-	 *
-	 */
-	def getInformationMapping[ID, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](cz: Option[RDD[Cz[ID, O, V]]] = None): ClusteringInformationsMapping[VectorizationID, Self[O, V]] = {
-		ClusteringInformationsMapping[VectorizationID, Self[O, V]]
-	}
+
+	val informationMapping = ClusteringInformationsMapping[VectorizationID, Self[O, V]]
+
 }
 /**
  *

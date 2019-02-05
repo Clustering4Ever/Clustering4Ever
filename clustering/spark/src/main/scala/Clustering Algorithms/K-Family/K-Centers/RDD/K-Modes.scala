@@ -20,7 +20,7 @@ case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: I
 	/**
 	 *
 	 */
-	def run[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[ID, O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }
 /**
  *

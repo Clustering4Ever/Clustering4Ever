@@ -24,13 +24,12 @@ import org.clustering4ever.clustering.{ClustersAnalysis, ClusteringModel, Cluste
  *
  */
 trait ClustersAnalysisLocal[
-    ID,
     O,
     V <: GVector[V],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     GS[X] <: GenSeq[X]
-] extends ClustersAnalysis[ID, O, V, Cz, GS] {
+] extends ClustersAnalysis[O, V, Cz, GS] {
     /**
      *
      */
@@ -58,7 +57,7 @@ trait ClustersAnalysisLocal[
     /**
      *
      */
-    def groupedByClusterID(clusteringNumber: ClusteringNumber): GenMap[Int, GenSeq[Cz[ID, O, V]]] = {
+    def groupedByClusterID(clusteringNumber: ClusteringNumber): GenMap[Int, GenSeq[Cz[O, V]]] = {
         if(lastGroupedByClusterID.isDefined && lastGroupedByClusterID.get._1 == clusteringNumber) lastGroupedByClusterID.get._2
         else {
             val res = data.groupBy(_.clusterIDs(clusteringNumber))
@@ -75,7 +74,7 @@ trait ClustersAnalysisLocal[
     /**
      *
      */
-    var lastGroupedByClusterID: Option[(Int, GenMap[Int, GenSeq[Cz[ID, O, V]]])] = None
+    var lastGroupedByClusterID: Option[(Int, GenMap[Int, GenSeq[Cz[O, V]]])] = None
     /**
      *
      */
@@ -97,18 +96,17 @@ trait ClustersAnalysisLocal[
  * Specific class for real vector datasets
  */
 case class RealClustersAnalysis[
-    ID,
     O,
     V <: Seq[Double],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     GS[X] <: GenSeq[X]
 ](
-    val data: GS[Cz[ID, O, ScalarVector[V]]],
+    val data: GS[Cz[O, ScalarVector[V]]],
     val currentVectorization: Vecto[O, ScalarVector[V]],
     val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
     val clusteringInformations: HMap[ClusteringInformationsMapping]
-) extends ClustersAnalysisLocal[ID, O, ScalarVector[V], Cz, Vecto, GS] {
+) extends ClustersAnalysisLocal[O, ScalarVector[V], Cz, Vecto, GS] {
     /**
      *
      */
@@ -136,18 +134,17 @@ case class RealClustersAnalysis[
  * Specific class for binary vector datasets
  */
 case class BinaryClustersAnalysis[
-    ID,
     O,
     V <: Seq[Int],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz],
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     GS[X] <: GenSeq[X]
 ](  
-    val data: GS[Cz[ID, O, BinaryVector[V]]],
+    val data: GS[Cz[O, BinaryVector[V]]],
     val currentVectorization: Vecto[O, BinaryVector[V]],
     val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
     val clusteringInformations: HMap[ClusteringInformationsMapping]
-) extends ClustersAnalysisLocal[ID, O, BinaryVector[V], Cz, Vecto, GS] {
+) extends ClustersAnalysisLocal[O, BinaryVector[V], Cz, Vecto, GS] {
     /**
      * Field which regroup all analysis made in this class
      */
@@ -167,7 +164,7 @@ case class BinaryClustersAnalysis[
      */
     def switchForExistingVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, BinaryVector[S]]) = {
         BinaryClustersAnalysis(
-            data.map(_.updateVectorization(vectorization)).asInstanceOf[GS[Cz[ID, O, BinaryVector[S]]]],
+            data.map(_.updateVectorization(vectorization)).asInstanceOf[GS[Cz[O, BinaryVector[S]]]],
             vectorization,
             vectorizations,
             clusteringInformations
@@ -226,7 +223,7 @@ case class BinaryClustersAnalysis[
     /**
      *
      */
-    def updateBinaryStatsByClusteringNumber(clusteringNumber: ClusteringNumber): BinaryClustersAnalysis[ID, O, V, Cz, Vecto, GS] = {
+    def updateBinaryStatsByClusteringNumber(clusteringNumber: ClusteringNumber): BinaryClustersAnalysis[O, V, Cz, Vecto, GS] = {
         val (opfcn, fpfcn) = frequencyPerFeatureByClusteringNumber(clusteringNumber)
         val eca = EveryClusteringBinaryAnalysis(immutable.HashMap(currentVectorization.vectorizationID -> immutable.HashMap(clusteringNumber -> ClusteringBinaryAnalysis(clusteringNumber, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn))))
         val updatedBinaryStats = mergeBinaryStats(binaryStats, eca)
@@ -237,7 +234,7 @@ case class BinaryClustersAnalysis[
     /**
      *
      */
-    def updateBinaryStatsOnAllClusteringNumberForGivenVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, BinaryVector[S]]): BinaryClustersAnalysis[ID, O, S, Cz, OtherVecto, GS] = {
+    def updateBinaryStatsOnAllClusteringNumberForGivenVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, BinaryVector[S]]): BinaryClustersAnalysis[O, S, Cz, OtherVecto, GS] = {
         val requiredVecto = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
         val updatedBinaryClustersAnalysis@BinaryClustersAnalysis(updtData, updtCurrentVectorization, updtVectorizations, updtClusteringInformations) = switchForExistingVectorization(vectorization)
         val statsByCn = updatedBinaryClustersAnalysis.frequencyPerEveryFeatureMultipleClusteringNumbers(requiredVecto.clusteringNumbers.toSeq:_*)

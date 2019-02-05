@@ -10,11 +10,11 @@ import org.clustering4ever.vectors.GVector
 /**
  * HashCode of IdentifiedRawObject descendant is fixed to ID hashcode
  */
-trait IdentifiedRawObject[ID, O] {
+trait IdentifiedRawObject[O] {
 	/**
 	 * The ID of the container class
 	 */
-	val id: ID
+	val id: Long
 	/**
 	 * The raw object of the container class
 	 */
@@ -27,15 +27,15 @@ trait IdentifiedRawObject[ID, O] {
 /**
  *
  */
-case class EasyIdentifiedRawObject[ID, O](val id: ID, val o: O) extends IdentifiedRawObject[ID, O]
+case class EasyIdentifiedRawObject[O](val id: Long, val o: O) extends IdentifiedRawObject[O]
 /**
  * Identified Vectorizable Object
  */
-trait IdentifiedVectorizableObject[ID, O] extends IdentifiedRawObject[ID, Vectorizable[O]]
+trait IdentifiedVectorizableObject[O] extends IdentifiedRawObject[Vectorizable[O]]
 /**
  *
  */
-trait IdentifiedVector[ID, O, V] extends IdentifiedRawObject[ID, Vectorizable[O]] {
+trait IdentifiedVector[O, V] extends IdentifiedRawObject[Vectorizable[O]] {
 	/**
 	 * The working vector of the container
 	 */
@@ -48,11 +48,11 @@ trait IdentifiedVector[ID, O, V] extends IdentifiedRawObject[ID, Vectorizable[O]
 /**
  * Restrict V to be a GVector descendant
  */
-trait IdentifiedGVector[ID, O, V <: GVector[V]] extends IdentifiedVector[ID, O, V]
+trait IdentifiedGVector[O, V <: GVector[V]] extends IdentifiedVector[O, V]
 /**
  *
  */
-trait IdentifiedWithVectorizations[ID, O, V <: GVector[V]] extends IdentifiedGVector[ID, O, V] {
+trait IdentifiedWithVectorizations[O, V <: GVector[V]] extends IdentifiedGVector[O, V] {
 	/**
 	 * HMap containing various vectorization of the raw object as descendant of GVector
 	 */
@@ -61,9 +61,9 @@ trait IdentifiedWithVectorizations[ID, O, V <: GVector[V]] extends IdentifiedGVe
 /**
  *
  */
-case class EasyIdentifiedVector[ID, O, V <: GVector[V]](
-	val id: ID,
+case class EasyIdentifiedVector[O, V <: GVector[V]](
+	val id: Long,
 	val v: V,
 	val o: Vectorizable[O],
 	val vectorized: HMap[VMapping] = HMap.empty[VMapping]
-) extends IdentifiedWithVectorizations[ID, O, V]
+) extends IdentifiedWithVectorizations[O, V]

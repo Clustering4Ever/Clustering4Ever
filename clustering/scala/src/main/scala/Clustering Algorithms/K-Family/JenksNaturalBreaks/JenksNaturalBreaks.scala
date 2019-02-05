@@ -8,11 +8,11 @@ import org.clustering4ever.clustering.{ClusteringAlgorithmAncestor, ClusteringMo
 /**
  *
  */
-class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorithmAncestor {
+case class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorithmAncestor {
   /**
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
    * Return breaks position in the sorted GenSeq
-   * @param data : a sorted GenSeq
+   * @param data a sorted GenSeq
    * @param desiredNumberCategories : number of breaks user desire
    * @return Indices of breaks in data sequence
    */
@@ -78,7 +78,7 @@ class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorit
 
     (1 to nbCat).foreach( i => res += data(kclass2(i - 1).toInt - 1) )
     
-    new JenksNaturalBreaksModel[N](res)
+    JenksNaturalBreaksModel(res)
   }
 }
 /**
@@ -86,7 +86,7 @@ class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorit
  */
 object JenksNaturalBreaks {
 
-  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = (new JenksNaturalBreaks(desiredNumberCategories)).run(data)
+  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = JenksNaturalBreaks(desiredNumberCategories).run(data)
 
   def apply[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = run(data, desiredNumberCategories)
 
@@ -94,8 +94,10 @@ object JenksNaturalBreaks {
 /**
  *
  */
-class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](val breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModelAncestor {
-
+case class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModelAncestor {
+  /**
+   *
+   */
   private val breaksIndexed = breaks.zipWithIndex
   /**
    * Predict between which breaks fall a new point, 0 stands for -infinity/1st-Break and breaks.size for last-Break/+infinity

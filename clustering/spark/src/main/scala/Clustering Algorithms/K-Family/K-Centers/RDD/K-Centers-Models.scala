@@ -34,11 +34,11 @@ trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersM
 	/**
 	 *
 	 */
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): RDD[Cz[ID, O, V]] = centerPredictCz(data)
+	protected[clustering] def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): RDD[Cz[O, V]] = centerPredictCz(data)
 	/**
 	 *
 	 */
-	def prototypesDistancePerPoint[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]]): RDD[(Cz[ID, O, V], immutable.HashMap[ClusterID, Double])] = {
+	def prototypesDistancePerPoint[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]]): RDD[(Cz[O, V], immutable.HashMap[ClusterID, Double])] = {
 		data.map( cz => (cz, centers.map{ case (clusterID, center) => (clusterID, metric.d(cz.v, center)) } ) )
 	}
 }

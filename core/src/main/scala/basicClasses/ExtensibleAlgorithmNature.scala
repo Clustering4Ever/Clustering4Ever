@@ -34,6 +34,10 @@ object RLA extends ClusteringAlgorithmNature
 /**
  *
  */
+object RLAScalar extends ClusteringAlgorithmNature
+/**
+ *
+ */
 object EpsilonProximity extends ClusteringAlgorithmNature
 /**
  *

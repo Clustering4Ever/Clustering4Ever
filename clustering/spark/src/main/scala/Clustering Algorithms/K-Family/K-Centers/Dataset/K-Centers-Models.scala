@@ -23,20 +23,20 @@ trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersM
 	/**
 	 *
 	 */
-	def obtainClustering[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): Dataset[Cz[ID, O, V]] = {
+	protected[clustering] def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): Dataset[Cz[O, V]] = {
 		/**
 		 * kryo Serialization if true, java one else
 		 */
-		val czEncoder = if(kryoSerialization) Encoders.kryo[Cz[ID, O, V]] else Encoders.javaSerialization[Cz[ID, O, V]]
+		val czEncoder = if(kryoSerialization) Encoders.kryo[Cz[O, V]] else Encoders.javaSerialization[Cz[O, V]]
 	
 		data.map( cz => cz.addClusterIDs(centerPredict(cz.v)) )(czEncoder)
 	}
 	/**
 	 *
 	 */
-	def prototypesDistancePerPoint[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]]): Dataset[(Cz[ID, O, V], immutable.HashMap[ClusterID, Double])] = {
+	def prototypesDistancePerPoint[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]]): Dataset[(Cz[O, V], immutable.HashMap[ClusterID, Double])] = {
 		
-		val speEncoder = if(kryoSerialization) Encoders.kryo[(Cz[ID, O, V], immutable.HashMap[ClusterID, Double])] else Encoders.javaSerialization[(Cz[ID, O, V], immutable.HashMap[ClusterID, Double])]
+		val speEncoder = if(kryoSerialization) Encoders.kryo[(Cz[O, V], immutable.HashMap[ClusterID, Double])] else Encoders.javaSerialization[(Cz[O, V], immutable.HashMap[ClusterID, Double])]
 
 		data.map( cz => (cz, centers.map{ case (clusterID, center) => (clusterID, metric.d(cz.v, center)) } ) )(speEncoder)
 	}

@@ -10,6 +10,7 @@ import org.clustering4ever.vectors.GVector
 sealed trait VectorizableOrNot extends Serializable
 /**
  * The container of the raw object
+ * @tparam O the raw object type
  */
 case class Vectorizable[O](val o: O) extends VectorizableOrNot {
 	/**

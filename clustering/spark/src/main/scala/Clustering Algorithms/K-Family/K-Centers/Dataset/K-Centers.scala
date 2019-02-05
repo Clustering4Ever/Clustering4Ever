@@ -39,15 +39,15 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 	/**
 	 *
 	 */
-	protected def obtainCenters[ID, O, Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: Dataset[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]): immutable.HashMap[Int, V] = {
+	protected def obtainCenters[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
 		/**
 		 * kryo Serialization if true, java one else
 		 */
-		// val encoder = if(kryoSerialization) Encoders.kryo[Cz[ID, O, V]] else Encoders.javaSerialization[Cz[ID, O, V]]
+		// val encoder = if(kryoSerialization) Encoders.kryo[Cz[O, V]] else Encoders.javaSerialization[Cz[O, V]]
 
 		data.persist(persistanceLVL)
 
-		def computeCenters(key: ClusterID, values: Iterator[Cz[ID, O, V]]): (ClusterID, Long, V) = {
+		def computeCenters(key: ClusterID, values: Iterator[Cz[O, V]]): (ClusterID, Long, V) = {
 				val agg = values.toBuffer
 				val s = agg.size.toLong
 				if(s <= 20000) (key, s, ClusterBasicOperations.obtainCenter(agg.map(_.v), metric))

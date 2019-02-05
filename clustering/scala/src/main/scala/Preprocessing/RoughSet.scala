@@ -22,7 +22,7 @@ trait RoughSet extends RoughSetCommons {
   /**
    *
    */
-  private def obtainReductSet[ID, O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: GenSeq[Sz[ID, O, V[T, S]]], indDecisionClasses: Iterable[Seq[ID]], everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]]): parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = {
+  private def obtainReductSet[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]], indDecisionClasses: Iterable[Seq[Long]], everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]]): parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = {
     
     val indEveryCombinations = everyCombinations.map( f => (f, obtainIndecability(f, data)) )
     val dependencyAll = indEveryCombinations.map{ case (features, indecability) => (features, dependency(indecability, indDecisionClasses)) }
@@ -48,8 +48,8 @@ trait RoughSet extends RoughSetCommons {
   /**
    * Rought Set feature selection classical algorithm
    */
-  protected def roughSet[ID, O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: GenSeq[Sz[ID, O, V[T, S]]]): GenSeq[mutable.ArrayBuffer[Int]] = {
-    val indDecisionClasses: Iterable[Seq[ID]] = generateIndecidabilityDecisionClasses(data)
+  protected def roughSet[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]]): GenSeq[mutable.ArrayBuffer[Int]] = {
+    val indDecisionClasses: Iterable[Seq[Long]] = generateIndecidabilityDecisionClasses(data)
     val everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = obtainEveryFeaturesCombinations(data.head.v.vector.size)
     val allReductSet = obtainReductSet(data, indDecisionClasses, everyCombinations)
     allReductSet    
@@ -57,7 +57,7 @@ trait RoughSet extends RoughSetCommons {
   /**
    * Pure scala functions to apply on each node locally
    */
-  protected def roughSetPerBucketOfFeatures[ID, O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: GenSeq[Sz[ID, O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = {
+  protected def roughSetPerBucketOfFeatures[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = {
     
     val computedColumns: GenSeq[Int] = if(columnToCompute.isDefined) columnToCompute.get else parallel.mutable.ParArray.range(0, columnsOfFeats.size)
 
@@ -101,11 +101,11 @@ object RoughSet extends RoughSet {
   /**
    * Rought Set feature selection classical algorithm
    */
-  def run[ID, O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: GenSeq[Sz[ID, O, V[T, S]]])(implicit di: DummyImplicit): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
+  def run[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]])(implicit di: DummyImplicit): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
   /**
    *
    */
-  def runHeuristic[ID, O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: GenSeq[Sz[ID, O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = roughSetPerBucketOfFeatures(data, columnsOfFeats, columnToCompute)
+  def runHeuristic[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = roughSetPerBucketOfFeatures(data, columnsOfFeats, columnToCompute)
   /**
    *
    */

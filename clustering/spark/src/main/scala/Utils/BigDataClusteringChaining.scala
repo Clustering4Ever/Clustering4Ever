@@ -22,17 +22,16 @@ import org.clustering4ever.types.VectorizationIDTypes._
  * This classe intend to run many distributed algorithms in Spark sequentially through a distributed system for large size datasets
  */
 case class BigDataClusteringChaining[
-    ID,
     O,
     V <: GVector[V],
     Vecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Vecto],
-    Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]
+    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]
 ](
-    val data: RDD[Cz[ID, O, V]],
+    val data: RDD[Cz[O, V]],
     val chainableID: Int,
     val currentVectorization: Vecto[O, V],
     val clusteringInformations: HMap[ClusteringInformationsMapping] = HMap.empty[ClusteringInformationsMapping]
-)(implicit val ct: ClassTag[Cz[ID, O, V]]) extends ClusteringChaining[ID, O, V, Cz, Vecto[O, V], RDD] {
+)(implicit val ct: ClassTag[Cz[O, V]]) extends ClusteringChaining[O, V, Cz, Vecto[O, V], RDD] {
     /**
      *
      */
@@ -52,7 +51,7 @@ case class BigDataClusteringChaining[
     /**
      *
      */
-    type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]] = BigDataClusteringChaining[ID, O, GV, OtherVecto, Cz]
+    type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]] = BigDataClusteringChaining[O, GV, OtherVecto, Cz]
     /**
      *
      */
@@ -140,7 +139,7 @@ case class BigDataClusteringChaining[
     /**
      * Update working vector with given vectorization without saving neither previous working vector and new vector in clusterizable vectorized field to prevent clusterizable to becomes heavier and then slowing down clustering algorithms
      */
-    def updateVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto] = {
+    def updateVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[O, GV]]): Self[GV, OtherVecto] = {
 
         val (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity) = internalUpdating(vectorization)
         new BigDataClusteringChaining(
@@ -175,7 +174,7 @@ case class BigDataClusteringChaining[
     /**
      * Update the current working vector for another existing vector in clusterizable vectorized field
      */
-    def switchForExistingVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[ID, O, GV]]): Self[GV, OtherVecto] = {
+    def switchForExistingVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, OtherVecto]](vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[O, GV]]): Self[GV, OtherVecto] = {
         val updatedVectorData = data.map(_.switchForExistingVectorization(vectorization))
         val updatedCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
         val updatedGlobalRunNumber = clusteringRunNumber
@@ -193,7 +192,7 @@ case class BigDataClusteringChaining[
  *
  */
 object BigDataClusteringChaining extends Serializable {
-    def apply[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz]](data: RDD[Cz[ID, O, V]])(implicit ct: ClassTag[Cz[ID, O, V]]) = {
+    def apply[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]) = {
         new BigDataClusteringChaining(
             data,
             scala.util.Random.nextInt,
