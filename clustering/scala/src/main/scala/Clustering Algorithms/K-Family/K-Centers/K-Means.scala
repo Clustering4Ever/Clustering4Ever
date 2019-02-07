@@ -11,7 +11,7 @@ import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 import org.clustering4ever.util.FromArrayToSeq
-import org.clustering4ever.vectorizations.VectorizationWithAlgorithmLocal
+import org.clustering4ever.vectorizations.VectorizationWithAlgorithmLocalScalar
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringNumberType._
 /**
@@ -21,8 +21,9 @@ case class KMeansVectorization[O, V <: Seq[Double], D[X <: Seq[Double]] <: Conti
 	val vectorizationID: VectorizationID,
 	val vectorizationFct: Option[O => ScalarVector[V]] = None,
 	val metricEmployed: D[V],
+	val models: mutable.HashMap[ClusteringNumber, KMeansModel[V, D]] = mutable.HashMap.empty[ClusteringNumber, KMeansModel[V, D]],
 	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
-) extends VectorizationWithAlgorithmLocal[O, ScalarVector[V], KMeansModel[V, D], KMeansVectorization[O, V, D]]
+) extends VectorizationWithAlgorithmLocalScalar[O, V, KMeansModel[V, D], KMeansVectorization[O, V, D]]
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data GenSeq of Clusterizable descendant, the EasyClusterizable is the basic reference
@@ -41,7 +42,7 @@ case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]
 	 * No need to generate a vectorization per algorithm combination of arguments, except the metric
 	 */
 	def obtainAssociateVectorization[O](vectorizationID: VectorizationID, vectorizationFct: Option[O => ScalarVector[V]] = None, outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]): KMeansVectorization[O, V, D] = {
-		KMeansVectorization[O, V, D](vectorizationID, vectorizationFct, metric, outputFeaturesNames)
+		KMeansVectorization[O, V, D](vectorizationID, vectorizationFct, metric, mutable.HashMap.empty[ClusteringNumber, KMeansModel[V, D]], outputFeaturesNames)
 	}
 }
 /**

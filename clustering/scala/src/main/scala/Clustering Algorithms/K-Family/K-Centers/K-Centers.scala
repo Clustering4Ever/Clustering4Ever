@@ -48,26 +48,8 @@ trait KCommons[V <: GVector[V], D <: Distance[V]] extends ClusteringSharedTypes 
 	 * Check if centers move enough
 	 * @return true if every centers move less than epsilon
 	 */
-	protected def areCentersNotMovingEnough(kCentersBeforeUpdate: immutable.HashMap[Int, V], centers: immutable.HashMap[Int, V], epsilon: Double, metric: D) = {
-		kCentersBeforeUpdate.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, centers(clusterID)) <= epsilon }
-	}
-	/**
-	 * Check if there are empty centers and remove them
-	 */
-	protected def removeEmptyClusters(centers: immutable.HashMap[Int, V], kCentersBeforeUpdate: immutable.HashMap[Int, V], centersCardinality: immutable.HashMap[Int, Long]): (immutable.HashMap[Int, V], immutable.HashMap[Int, V]) = {
-		val emptyCenterIDs = centersCardinality.collect{ case (clusterID, cardinality) if(cardinality == 0) => clusterID }
-		if(!emptyCenterIDs.isEmpty) {
-			(
-				centers -- emptyCenterIDs,
-				kCentersBeforeUpdate -- emptyCenterIDs
-			)
-		}
-		else {
-			(
-				centers,
-				kCentersBeforeUpdate
-			)
-		}
+	protected def areCentersNotMovingEnough(updatedCenters: immutable.HashMap[Int, V], previousCenters: immutable.HashMap[Int, V], epsilon: Double, metric: D) = {
+		updatedCenters.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, previousCenters(clusterID)) <= epsilon }
 	}
 }
 /**
@@ -92,18 +74,15 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CM <: KCentersModelAnc
 		 */
 		@annotation.tailrec
 		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
-			val centersInfo = data.groupBy( cz => obtainNearestCenterID(cz.v, centers, metric) ).map{ case (clusterID, aggregate) =>
-				(clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric), aggregate.size)
-			}.toSeq.seq
-			val newCenters = immutable.HashMap(centersInfo.map{ case (clusterID, center, _) => (clusterID, center) }:_*)
-			val newCardinalities = immutable.HashMap(centersInfo.map{ case (clusterID, _, cardinality) => (clusterID, cardinality.toLong) }:_*)
-			val (newCentersPruned, newKCentersBeforUpdatePruned) = removeEmptyClusters(newCenters, centers, newCardinalities)
-			val shiftingEnough = areCentersNotMovingEnough(newKCentersBeforUpdatePruned, newCentersPruned, epsilon, metric)
+			val updatedCenters = immutable.HashMap(data.groupBy( cz => obtainNearestCenterID(cz.v, centers, metric) ).map{ case (clusterID, aggregate) =>
+				(clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric))
+			}.seq.toSeq:_*)
+			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, centers, epsilon, metric)
 			if(cpt < maxIterations && !shiftingEnough) {
-				go(cpt + 1, shiftingEnough, newCentersPruned)
+				go(cpt + 1, shiftingEnough, updatedCenters)
 			}
 			else {
-				newCentersPruned.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
+				updatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
 			}
 		}
 		go(0, false, centers)

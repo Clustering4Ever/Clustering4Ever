@@ -57,12 +57,16 @@ trait ClustersAnalysisLocal[
     /**
      *
      */
+    var lastGroupedByClusterID: Option[(Int, GenMap[Int, GenSeq[Cz[O, V]]])] = None
+    /**
+     *
+     */
     def groupedByClusterID(clusteringNumber: ClusteringNumber): GenMap[Int, GenSeq[Cz[O, V]]] = {
         if(lastGroupedByClusterID.isDefined && lastGroupedByClusterID.get._1 == clusteringNumber) lastGroupedByClusterID.get._2
         else {
-            val res = data.groupBy(_.clusterIDs(clusteringNumber))
-            lastGroupedByClusterID = Some(clusteringNumber, res)
-            res
+            val groupedByClusterID = data.groupBy(_.clusterIDs(clusteringNumber))
+            lastGroupedByClusterID = Some(clusteringNumber, groupedByClusterID)
+            groupedByClusterID
         }
     }
     /**
@@ -74,22 +78,18 @@ trait ClustersAnalysisLocal[
     /**
      *
      */
-    var lastGroupedByClusterID: Option[(Int, GenMap[Int, GenSeq[Cz[O, V]]])] = None
-    /**
-     *
-     */
     def cardinalities(clusteringNumber: ClusteringNumber): immutable.Map[Int, Long] = {
-        val res = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size.toLong) }.seq.toMap
-        cardinalitiesByClusteringNumber += ((clusteringNumber, res))
-        res
+        val cardinalitiesByClusterID = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size.toLong) }.seq.toMap
+        cardinalitiesByClusteringNumber += ((clusteringNumber, cardinalitiesByClusterID))
+        cardinalitiesByClusterID
     }
     /**
      *
      */
     def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[Int, Double] = {
-        val res = cardinalities(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
-        clustersProportionsByClusteringNumber += ((clusteringNumber, res))
-        res
+        val clustersProportionsByClusterID = cardinalities(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+        clustersProportionsByClusteringNumber += ((clusteringNumber, clustersProportionsByClusterID))
+        clustersProportionsByClusterID
     }
 }
 /**
@@ -153,12 +153,27 @@ case class BinaryClustersAnalysis[
      *
      */
     private def mergeBinaryStats(bs1: EveryClusteringBinaryAnalysis, bs2: EveryClusteringBinaryAnalysis): EveryClusteringBinaryAnalysis = {
-        val keys1 = bs1.byVectorizationByClusteringNumber.keys.toSet
-        val keys2 = bs2.byVectorizationByClusteringNumber.keys.toSet
+        val keys1 = bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
+        val keys2 = bs2.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
         val commonsKeys = (keys1 & keys2).toSeq
-        EveryClusteringBinaryAnalysis(immutable.HashMap((bs1.byVectorizationByClusteringNumber.map{ case (k, m1) => (k, immutable.HashMap((m1 ++ bs2.byVectorizationByClusteringNumber(k)).toSeq:_*)) } ++ (bs2.byVectorizationByClusteringNumber -- commonsKeys)).toSeq:_*))
+        EveryClusteringBinaryAnalysis(mutable.HashMap((bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.map{ case (k, m1) => (k, mutable.HashMap((m1 ++ bs2.clusteringBinaryAnalysisByClusteringNumberByVectorization(k)).toSeq:_*)) } ++ (bs2.clusteringBinaryAnalysisByClusteringNumberByVectorization -- commonsKeys)).toSeq:_*))
 
     }
+    /**
+     *
+     */
+    // private def updateBinaryStats(bs1: EveryClusteringBinaryAnalysis): Unit = {
+    //     val keysIn = binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
+    //     val keys1 = bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
+    //     val commonsKeys = (keys1 & keysIn).toSeq
+    //     binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization ++= 
+            
+    //         EveryClusteringBinaryAnalysis(
+    //             mutable.HashMap(
+    //                 (bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.map{ case (k, m1) => (k, mutable.HashMap((m1 ++ binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization(k)).toSeq:_*)) } ++ (binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization -- commonsKeys)).toSeq
+    //                 :_*)
+    //         )
+    // }
     /**
      * Switch the working vector for the one given by vectorization
      */
@@ -223,13 +238,9 @@ case class BinaryClustersAnalysis[
     /**
      *
      */
-    def updateBinaryStatsByClusteringNumber(clusteringNumber: ClusteringNumber): BinaryClustersAnalysis[O, V, Cz, Vecto, GS] = {
+    def updateBinaryStatsByClusteringNumber(clusteringNumber: ClusteringNumber): Unit = {
         val (opfcn, fpfcn) = frequencyPerFeatureByClusteringNumber(clusteringNumber)
-        val eca = EveryClusteringBinaryAnalysis(immutable.HashMap(currentVectorization.vectorizationID -> immutable.HashMap(clusteringNumber -> ClusteringBinaryAnalysis(clusteringNumber, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn))))
-        val updatedBinaryStats = mergeBinaryStats(binaryStats, eca)
-        new BinaryClustersAnalysis(data, currentVectorization, vectorizations, clusteringInformations) {
-            override val binaryStats = updatedBinaryStats
-        }
+        binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization(currentVectorization.vectorizationID) += (clusteringNumber -> ClusteringBinaryAnalysis(clusteringNumber, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn))
     }
     /**
      *
@@ -238,10 +249,13 @@ case class BinaryClustersAnalysis[
         val requiredVecto = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
         val updatedBinaryClustersAnalysis@BinaryClustersAnalysis(updtData, updtCurrentVectorization, updtVectorizations, updtClusteringInformations) = switchForExistingVectorization(vectorization)
         val statsByCn = updatedBinaryClustersAnalysis.frequencyPerEveryFeatureMultipleClusteringNumbers(requiredVecto.clusteringNumbers.toSeq:_*)
-        val cbaByCN = immutable.HashMap(statsByCn.map{ case (cn, (opfcn, fpfcn)) => (cn, ClusteringBinaryAnalysis(cn, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn)) }:_*)
+        val cbaByCN = statsByCn.map{ case (cn, (opfcn, fpfcn)) => (cn, ClusteringBinaryAnalysis(cn, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn)) }
+        
+        binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization(requiredVecto.vectorizationID) ++= cbaByCN
+        val newBinaryStats = binaryStats 
 
         new BinaryClustersAnalysis(updtData, updtCurrentVectorization, updtVectorizations, updtClusteringInformations) {
-            override val binaryStats = EveryClusteringBinaryAnalysis(updatedBinaryClustersAnalysis.binaryStats.byVectorizationByClusteringNumber + ((currentVectorization.vectorizationID, cbaByCN)))
+            override val binaryStats = newBinaryStats
         }
     }
 }

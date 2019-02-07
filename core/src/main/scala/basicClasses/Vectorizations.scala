@@ -3,7 +3,7 @@ package org.clustering4ever.vectorizations
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.vectors.{GVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import scala.collection.{mutable, immutable, GenSeq}
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.types.VectorizationIDTypes._
@@ -78,22 +78,26 @@ trait VectorizationLocal[O, V <: GVector[V], Self[A, B <: GVector[B]] <: Vectori
  */
 trait VectorizationWithAlgorithmGenLocal[O, V <: GVector[V], CM <: ClusteringModelLocal[V], Self <: VectorizationWithAlgorithmGenLocal[O, V, CM, Self]] extends VectorizationGenLocal[O, V, Self] {
 	this: Self =>
+	/**
+	 * HashMap of models obtained after the clustering algorithm corresponding to this Vectorization
+	 */
+	val models: mutable.HashMap[ClusteringNumber, CM]
+	/**
+	 *
+	 */
+	def addModels(newModels: (ClusteringNumber, CM)*): Unit = models ++= newModels
 }
 /**
  *
  */
 trait VectorizationWithAlgorithmLocal[O, V <: GVector[V], CM <: ClusteringModelLocal[V], Self <: VectorizationWithAlgorithmLocal[O, V, CM, Self]] extends VectorizationWithAlgorithmGenLocal[O, V, CM, Self] {
-
 	this: Self =>
-	/**
-	 * Buffer of models obtained after the clustering algorithm corresponding to this Vectorization
-	 */
-	val models: mutable.ArrayBuffer[CM] = mutable.ArrayBuffer.empty[CM]
-	/**
-	 *
-	 */
-	def addModels(newModels: CM*): Unit = models ++= newModels
-
+}
+/**
+ *
+ */
+trait VectorizationWithAlgorithmLocalScalar[O, V <: Seq[Double], CM <: ClusteringModelLocal[ScalarVector[V]], Self <: VectorizationWithAlgorithmLocalScalar[O, V, CM, Self]] extends VectorizationWithAlgorithmLocal[O, ScalarVector[V], CM, Self] {
+	this: Self =>
 }
 /**
  * @tparam O the raw object from which vectorization are made

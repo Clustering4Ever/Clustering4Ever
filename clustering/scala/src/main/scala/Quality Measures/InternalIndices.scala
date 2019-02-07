@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.math.{max, min}
 import scala.collection.{GenSeq, GenMap, mutable}
 import scala.language.higherKinds
-import org.clustering4ever.vectors.GVector
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.binary.Hamming
@@ -137,6 +137,14 @@ trait InternalIndicesAncestorLocal[V <: GVector[V], D <: Distance[V]] extends In
  * @tparam D
  */
 case class InternalIndicesLocal[V <: GVector[V], D[A <: GVector[A]] <: Distance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[V, D[V]]
+/**
+ *
+ */
+case class InternalIndicesScalarLocal[V <: Seq[Double], D[A <: Seq[Double]] <: ContinuousDistance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[ScalarVector[V], D[V]]
+/**
+ *
+ */
+case class InternalIndicesBinaryLocal[V <: Seq[Int], D[A <: Seq[Int]] <: BinaryDistance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[BinaryVector[V], D[V]]
 /**
  *
  */

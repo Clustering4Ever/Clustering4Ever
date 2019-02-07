@@ -2,7 +2,7 @@ package org.clustering4ever.clusteringanalysis
 /**
  * @author Beck Gaël
  */
-import scala.collection.immutable
+import scala.collection.{mutable, immutable}
 import org.clustering4ever.clustering.ClusteringSharedTypes
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringNumberType._
@@ -34,7 +34,9 @@ trait ClusteringBinaryAnalysisAncestor extends ClusteringSharedTypes {
 	/**
 	 * HashMap of each feature occurence ratio by clusterID, compared to global features 
 	 */
-	val occurencesRatioPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Double]]
+	lazy val occurencesRatioPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Double]] = {
+		occurencesPerFeatureByClusterID.map{ case (clusterID, featsOcc) => (clusterID, featsOcc.zip(occurencesPerFeature).map{ case (a, b) => a.toDouble / b }) }
+	}
 }
 /**
  * This class gather various informations about a specific clustering on binary data 
@@ -45,10 +47,7 @@ case class ClusteringBinaryAnalysis(
 	val frequencyPerFeature: Seq[Double],
 	val occurencesPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Int]],
 	val frequencyPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Double]]
-) extends ClusteringBinaryAnalysisAncestor {
-
-	lazy val occurencesRatioPerFeatureByClusterID = occurencesPerFeatureByClusterID.map{ case (clusterID, featsOcc) => (clusterID, featsOcc.zip(occurencesPerFeature).map{ case (a, b) => a.toDouble / b }) }
-}
+) extends ClusteringBinaryAnalysisAncestor
 /**
  *
  */
@@ -56,17 +55,17 @@ trait EveryClusteringBinaryAnalysisAncestor extends ClusteringSharedTypes {
 	/**
 	 * ClusteringBinaryAnalysis by clusteringNumber by vectorizationID
 	 */
-	val byVectorizationByClusteringNumber: immutable.HashMap[VectorizationID, immutable.HashMap[ClusteringNumber, ClusteringBinaryAnalysis]]
+	val clusteringBinaryAnalysisByClusteringNumberByVectorization: mutable.HashMap[VectorizationID, mutable.HashMap[ClusteringNumber, ClusteringBinaryAnalysis]]
 	/**
 	 * @return an Option of the ClusteringBinaryAnalysis corresponding to given ClusteringNumber
 	 */
 	def getStatsByClusteringNumber(clusteringNumber: ClusteringNumber): Option[ClusteringBinaryAnalysis] = {
-		byVectorizationByClusteringNumber.find(_._2.contains(clusteringNumber)).map(_._2(clusteringNumber))
+		clusteringBinaryAnalysisByClusteringNumberByVectorization.find(_._2.contains(clusteringNumber)).map(_._2(clusteringNumber))
 	}
 }
 /**
  *
  */
 case class EveryClusteringBinaryAnalysis(
-	val byVectorizationByClusteringNumber: immutable.HashMap[VectorizationID, immutable.HashMap[ClusteringNumber, ClusteringBinaryAnalysis]] = immutable.HashMap.empty[VectorizationID, immutable.HashMap[ClusteringNumber, ClusteringBinaryAnalysis]]
+	val clusteringBinaryAnalysisByClusteringNumberByVectorization: mutable.HashMap[VectorizationID, mutable.HashMap[ClusteringNumber, ClusteringBinaryAnalysis]] = mutable.HashMap.empty[VectorizationID, mutable.HashMap[ClusteringNumber, ClusteringBinaryAnalysis]]
 ) extends EveryClusteringBinaryAnalysisAncestor

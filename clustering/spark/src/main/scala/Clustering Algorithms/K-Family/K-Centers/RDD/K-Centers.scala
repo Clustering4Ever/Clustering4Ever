@@ -76,19 +76,17 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 		 */
 		@annotation.tailrec
 		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
-			val centersInfo = data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), (1L, cz.v)) )
-				.reduceByKeyLocally{ case ((card1, v1), (card2, v2)) => ((card1 + card2), ClusterBasicOperations.obtainCenter(Seq(v1, v2), metric)) }
-				.map{ case (clusterID, (cardinality, center)) => (clusterID, center, cardinality) }
+			val updatedCenters = immutable.HashMap(
+				data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), cz.v) )
+				.reduceByKeyLocally{ case (v1, v2) => ClusterBasicOperations.obtainCenter(Seq(v1, v2), metric) }
 				.toArray
-			val newCenters = immutable.HashMap(centersInfo.map{ case (clusterID, center, _) => (clusterID, center) }:_*)
-			val newCardinalities = immutable.HashMap(centersInfo.map{ case (clusterID, _, cardinality) => (clusterID, cardinality) }:_*)
-			val (newCentersPruned, newKCentersBeforUpdatePruned) = removeEmptyClusters(newCenters, centers, newCardinalities)
-			val shiftingEnough = areCentersNotMovingEnough(newKCentersBeforUpdatePruned, newCentersPruned, epsilon, metric)
+			:_*)
+			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, centers, epsilon, metric)
 			if(cpt < maxIterations && !shiftingEnough) {
-				go(cpt + 1, shiftingEnough, newCentersPruned)
+				go(cpt + 1, shiftingEnough, updatedCenters)
 			}
 			else {
-				centers.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
+				updatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
 			}
 		}
 		go(0, false, centers)
