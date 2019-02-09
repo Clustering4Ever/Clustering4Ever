@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Clustering4Ever.iml" filepath="$PROJECT_DIR$/.idea/modules/Clustering4Ever.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/c4e-waris.iml" filepath="$PROJECT_DIR$/.idea/modules/c4e-waris.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/c4e-waris-build.iml" filepath="$PROJECT_DIR$/.idea/modules/c4e-waris-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/clusteringScala.iml" filepath="$PROJECT_DIR$/.idea/modules/clusteringScala.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/clusteringSpark.iml" filepath="$PROJECT_DIR$/.idea/modules/clusteringSpark.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core.iml" filepath="$PROJECT_DIR$/.idea/modules/core.iml" />
+    </modules>
+  </component>
+</project>

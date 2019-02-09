@@ -21,6 +21,7 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 		"org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 		"org.typelevel" %% "spire" % "0.16.0",
 		"com.chuusai" %% "shapeless" % "2.3.3",
+	  "org.scala-graph" %% "graph-core" % "1.12.5",
 		compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 	  	// "com.beachape" %% "enumeratum" % "1.5.13"
 )
