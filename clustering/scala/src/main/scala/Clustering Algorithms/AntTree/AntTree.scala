@@ -16,7 +16,7 @@ object AntTree {
   def algorithm(xi: Int, xpos: Int, tree: Tree): Int = {
     if (tree.directSuccessors(xpos).size < 2){
       tree.connect(xi, xpos)
-      return -1
+      -1
     }
     lazy val TDissim = tree.dissimilar_value(xpos)
     lazy val xplus = tree.most_similar_node(xi, xpos)

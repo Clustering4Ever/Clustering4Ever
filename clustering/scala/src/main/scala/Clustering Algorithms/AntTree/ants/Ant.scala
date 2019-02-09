@@ -6,7 +6,7 @@ package ants
   * @param features the ant features's.
   * @param cluster the ant cluster's.
   */
-class Ant(val features: Vector[Double], val cluster: Any) {
+case class Ant(val features: Vector[Double], val cluster: Any) {
   var first_time = true
 }
 
