@@ -16,9 +16,9 @@ class Tree(dataSet: String) {
   // The support is the starting point of the tree.
   private val x0 = new Support
   // ants contains the list of all the objects in the tree with an id.
-  val ants: Map[Int, Ant] = init_ants(dataSet) + (0 -> x0)
+  val ants: Map[Int, Ant] = initAnts(dataSet) + (0 -> x0)
   val cluster: Set[Any] = ants.values.map(ant => ant.cluster).toSet
-  val not_connected_ants: mutable.Queue[Int]= {
+  val notConnectedAnts: mutable.Queue[Int]= {
     val keys = scala.util.Random.shuffle(ants.keys.toSeq.filter(int => int != 0))
     mutable.Queue(keys: _*)}
   // branch represent ant connections in the tree by means of a graph.
@@ -33,7 +33,7 @@ class Tree(dataSet: String) {
     val datas = csv.split(",")
     val features = datas.slice(0, datas.length - 1).map(_.toDouble).toVector
     val cluster = datas.last
-    new Ant(features, cluster)
+    Ant(features, cluster)
   }
 
   /** Create a Map where each Ant object has a unique ID key.
@@ -41,9 +41,9 @@ class Tree(dataSet: String) {
     * @param csvfile The path of the csv file.
     * @return A Map where each Ant object has a unique ID key.
     */
-  private def init_ants(csvfile: String): Map[Int, Ant] = {
-    val ant_list = (for (line <- Source.fromFile(csvfile).getLines()) yield csvToAnt(line)).toArray
-    1.until(ant_list.length + 1).zip(ant_list).toMap
+  private def initAnts(csvfile: String): Map[Int, Ant] = {
+    val antList = (for (line <- Source.fromFile(csvfile).getLines()) yield csvToAnt(line)).toArray
+    1.until(antList.length + 1).zip(antList).toMap
   }
 
   /** Determine all successors (direct and indirect) of a node.
@@ -79,7 +79,7 @@ class Tree(dataSet: String) {
   def disconnect(xpos: Int): Unit = {
     val node = branch.get(xpos)
     val successors = allSuccessors(xpos) + node
-    for (key <- successors) ants(key).first_time = true
+    for (key <- successors) ants(key).firstTime = true
     branch --= successors
   }
 
@@ -88,7 +88,7 @@ class Tree(dataSet: String) {
     * @param xpos The parent.
     * @return Rate of data that do not have the same cluster as their parents.
     */
-  def error_rate(xpos: Int): Float = {
+  def errorRate(xpos: Int): Float = {
     val successors = allSuccessors(xpos)
     if (successors.isEmpty) return 0
     (successors.count(successor => ants(successor).cluster != ants(xpos).cluster) / successors.size) * 100
@@ -99,9 +99,9 @@ class Tree(dataSet: String) {
     * @param xpos The node.
     * @return The dissimilar value observed on all the children of xpos.
     */
-  def dissimilar_value(xpos: Int): Double = {
+  def dissimilarValue(xpos: Int): Double = {
     val successors = directSuccessors(xpos)
-    successors.map(successor => Similarity.cosine_similarity(ants(xpos).features, ants(successor).features)).min
+    successors.map(successor => Similarity.cosineSimilarity(ants(xpos).features, ants(successor).features)).min
   }
 
   /** Find the most similar node of xi with the children of xpos.
@@ -110,13 +110,13 @@ class Tree(dataSet: String) {
     * @param xpos xpos.
     * @return The most similar node of xi with the children of xpos.
     */
-  def most_similar_node(xi: Int, xpos: Int): Int = {
+  def mostSimilarNode(xi: Int, xpos: Int): Int = {
     val successors = directSuccessors(xpos)
 
     var xplus = successors.head
     for (node <- successors.tail) {
-      if (Similarity.cosine_similarity(ants(xi).features, ants(node).features) >
-        Similarity.cosine_similarity(ants(xi).features, ants(xplus).features)) xplus = node
+      if (Similarity.cosineSimilarity(ants(xi).features, ants(node).features) >
+        Similarity.cosineSimilarity(ants(xi).features, ants(xplus).features)) xplus = node
     }
     xplus
   }

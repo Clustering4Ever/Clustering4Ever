@@ -7,7 +7,7 @@ package ants
   * @param cluster the ant cluster's.
   */
 case class Ant(val features: Vector[Double], val cluster: Any) {
-  var first_time = true
+  var firstTime = true
 }
 
 /** The support is the starting point of the tree. */

@@ -17,7 +17,7 @@ object Similarity {
     * @param y A vector.
     * @return Cosine similarity.
     */
-    def cosine_similarity(x: Vector[Double], y: Vector[Double]): Double = {
+    def cosineSimilarity(x: Vector[Double], y: Vector[Double]): Double = {
       val numerator = (for ((a, b) <- x zip y) yield a * b).sum
       val denominator = square_rooted(x) * square_rooted(y)
       (math rint { numerator / denominator } * 1000) / 1000

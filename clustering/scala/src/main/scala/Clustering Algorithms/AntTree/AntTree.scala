@@ -18,21 +18,21 @@ object AntTree {
       tree.connect(xi, xpos)
       return -1
     }
-    lazy val TDissim = tree.dissimilar_value(xpos)
-    lazy val xplus = tree.most_similar_node(xi, xpos)
+    lazy val tDissim = tree.dissimilarValue(xpos)
+    lazy val xplus = tree.mostSimilarNode(xi, xpos)
 
-    if (tree.ants(xpos).first_time){
-      if (Similarity.cosine_similarity(tree.ants(xi).features, tree.ants(xplus).features) < TDissim){
+    if (tree.ants(xpos).firstTime){
+      if (Similarity.cosineSimilarity(tree.ants(xi).features, tree.ants(xplus).features) < tDissim){
         tree.disconnect(xplus)
         tree.connect(xi, xpos)
-        tree.ants(xpos).first_time = false
+        tree.ants(xpos).firstTime = false
         -1
       } else {
-        tree.ants(xpos).first_time = false
+        tree.ants(xpos).firstTime = false
         xplus
       }
     } else {
-      if (Similarity.cosine_similarity(tree.ants(xi).features, tree.ants(xplus).features) < TDissim){
+      if (Similarity.cosineSimilarity(tree.ants(xi).features, tree.ants(xplus).features) < tDissim){
         tree.connect(xi, xpos)
         -1
       } else {
@@ -46,8 +46,8 @@ object AntTree {
     * @param tree The tree to be classified.
     */
   def classify(tree: Tree): Unit = {
-    while (tree.not_connected_ants.nonEmpty){
-      val xi = tree.not_connected_ants.dequeue
+    while (tree.notConnectedAnts.nonEmpty){
+      val xi = tree.notConnectedAnts.dequeue
       var xpos = 0
       while (xpos >= 0) xpos = algorithm(xi, xpos, tree)
     }
