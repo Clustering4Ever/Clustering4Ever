@@ -16,27 +16,28 @@ object AntTree {
   def algorithm(xi: Int, xpos: Int, tree: Tree): Int = {
     if (tree.directSuccessors(xpos).size < 2){
       tree.connect(xi, xpos)
-      return -1
-    }
-    lazy val tDissim = tree.dissimilarValue(xpos)
-    lazy val xplus = tree.mostSimilarNode(xi, xpos)
-
-    if (tree.ants(xpos).firstTime){
-      if (Similarity.cosineSimilarity(tree.ants(xi).features, tree.ants(xplus).features) < tDissim){
-        tree.disconnect(xplus)
-        tree.connect(xi, xpos)
-        tree.ants(xpos).firstTime = false
-        -1
-      } else {
-        tree.ants(xpos).firstTime = false
-        xplus
-      }
+      -1
     } else {
-      if (Similarity.cosineSimilarity(tree.ants(xi).features, tree.ants(xplus).features) < tDissim){
-        tree.connect(xi, xpos)
-        -1
+      lazy val tDissim = tree.dissimilarValue(xpos)
+      lazy val xplus = tree.mostSimilarNode(xi, xpos)
+
+      if (tree.ants(xpos).firstTime) {
+        if (Similarity.cosineSimilarity(tree.ants(xi).features, tree.ants(xplus).features) < tDissim) {
+          tree.disconnect(xplus)
+          tree.connect(xi, xpos)
+          tree.ants(xpos).firstTime = false
+          -1
+        } else {
+          tree.ants(xpos).firstTime = false
+          xplus
+        }
       } else {
-        xplus
+        if (Similarity.cosineSimilarity(tree.ants(xi).features, tree.ants(xplus).features) < tDissim) {
+          tree.connect(xi, xpos)
+          -1
+        } else {
+          xplus
+        }
       }
     }
   }

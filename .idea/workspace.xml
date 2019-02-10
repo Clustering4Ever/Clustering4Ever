@@ -3,9 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="43ca3e32-0a44-4747-bfcd-4d6e4a8cbc27" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/ants/Ant.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/ants/Ant.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/calculations/Similarity.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/calculations/Similarity.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/project/project/target/" />
@@ -30,8 +27,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1785">
-              <caret line="105" lean-forward="true" selection-start-line="105" selection-end-line="105" />
+            <state relative-caret-position="343">
+              <caret line="112" column="47" selection-start-line="112" selection-start-column="47" selection-end-line="112" selection-end-column="47" />
               <folding>
                 <element signature="e#20#33#0" expanded="true" />
               </folding>
@@ -42,8 +39,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="561">
-              <caret line="34" column="92" selection-start-line="34" selection-start-column="92" selection-end-line="34" selection-end-column="92" />
+            <state relative-caret-position="238">
+              <caret line="15" column="55" lean-forward="true" selection-start-line="15" selection-start-column="55" selection-end-line="15" selection-end-column="55" />
             </state>
           </provider>
         </entry>
@@ -61,12 +58,17 @@
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/calculations/Similarity.scala">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="425">
-              <caret line="25" lean-forward="true" selection-start-line="25" selection-end-line="25" />
+              <caret line="25" selection-start-line="25" selection-end-line="25" />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>retur</find>
+    </findStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -76,8 +78,8 @@
       <list>
         <option value="$PROJECT_DIR$/build.sbt" />
         <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/ants/Ant.scala" />
-        <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala" />
         <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/calculations/Similarity.scala" />
+        <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala" />
         <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala" />
       </list>
     </option>
@@ -226,7 +228,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1549804891817" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1549805367614" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
@@ -309,12 +311,12 @@
       <option name="presentableId" value="Default" />
       <updated>1549748458182</updated>
       <workItem from="1549748463088" duration="999000" />
-      <workItem from="1549803715018" duration="1122000" />
+      <workItem from="1549803715018" duration="1641000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2121000" />
+    <option name="totallyTimeSpent" value="2640000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -377,6 +379,23 @@
         <state relative-caret-position="-601" />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="343">
+          <caret line="112" column="47" selection-start-line="112" selection-start-column="47" selection-end-line="112" selection-end-column="47" />
+          <folding>
+            <element signature="e#20#33#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/calculations/Similarity.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="425">
+          <caret line="25" selection-start-line="25" selection-end-line="25" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/ants/Ant.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
@@ -384,27 +403,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/calculations/Similarity.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="25" lean-forward="true" selection-start-line="25" selection-end-line="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1785">
-          <caret line="105" lean-forward="true" selection-start-line="105" selection-end-line="105" />
-          <folding>
-            <element signature="e#20#33#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="561">
-          <caret line="34" column="92" selection-start-line="34" selection-start-column="92" selection-end-line="34" selection-end-column="92" />
+        <state relative-caret-position="238">
+          <caret line="15" column="55" lean-forward="true" selection-start-line="15" selection-start-column="55" selection-end-line="15" selection-end-column="55" />
         </state>
       </provider>
     </entry>
