@@ -42,20 +42,22 @@ object AntTree {
     }
   }
 
+  @annotation.tailrec
+  private def place(xi: Int, xpos: Int, tree: Tree): Int = if (xpos >= 0) place(xi, algorithm(xi, xpos, tree), tree) else xpos
+
   /** Classify a tree.
     *
     * @param tree The tree to be classified.
     */
   def classify(tree: Tree): Unit = {
-    while (tree.notConnectedAnts.nonEmpty){
+    while (tree.notConnectedAnts.nonEmpty) {
       val xi = tree.notConnectedAnts.dequeue
-      var xpos = 0
-      while (xpos >= 0) xpos = algorithm(xi, xpos, tree)
+      place(xi, 0, tree)
     }
   }
 
   def main(args: Array[String]): Unit = {
-    val tree = new Tree("C:\\Users\\Waris\\Desktop\\untitled\\src\\main\\scala\\iris.csv")
+    val tree = new Tree("C:\\Users\\Waris\\Desktop\\anttree-scala\\src\\main\\scala\\iris.csv")
     classify(tree)
 
     val branch = tree.branch.clone()
