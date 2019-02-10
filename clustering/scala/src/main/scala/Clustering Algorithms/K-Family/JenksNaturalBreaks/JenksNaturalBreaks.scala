@@ -4,11 +4,13 @@ package org.clustering4ever.scala.clustering
  */
 import scala.collection.{mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
-import org.clustering4ever.clustering.{ClusteringAlgorithmAncestor, ClusteringModelAncestor}
+import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel}
 /**
  *
  */
-case class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorithmAncestor {
+case class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorithm {
+
+  val algorithmID = org.clustering4ever.extensibleAlgorithmNature.JenksNaturalBreaks
   /**
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
    * Return breaks position in the sorted GenSeq
@@ -94,7 +96,9 @@ object JenksNaturalBreaks {
 /**
  *
  */
-case class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModelAncestor {
+case class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModel {
+
+  val algorithmID = org.clustering4ever.extensibleAlgorithmNature.JenksNaturalBreaks
   /**
    *
    */

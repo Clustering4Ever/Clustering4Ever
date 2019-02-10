@@ -4,8 +4,8 @@ package org.clustering4ever.math.distances.mixt
  */
 import scala.language.higherKinds
 import scala.math.{pow, sqrt}
-import org.clustering4ever.math.distances.MixtDistance
-import org.clustering4ever.vectors.MixtVector
+import org.clustering4ever.math.distances.MixedDistance
+import org.clustering4ever.vectors.MixedVector
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.types.MetricIDType._
 /**
@@ -19,7 +19,7 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Seriali
 	/**
 	 *
 	 */
-	protected def hammingAndEuclidean(dot1: MixtVector[Vb, Vs], dot2: MixtVector[Vb, Vs]): Double = {
+	protected def hammingAndEuclidean(dot1: MixedVector[Vb, Vs], dot2: MixedVector[Vb, Vs]): Double = {
 
 		@annotation.tailrec
 		def goEuclidean(d: Double, i: Int): Double = {
@@ -51,13 +51,13 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Seriali
 /**
  *
  */
-case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](final val alpha: Double = 0D, final val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixtDistance[Vb, Vs] {
+case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](final val alpha: Double = 0D, final val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixedDistance[Vb, Vs] {
 	/**
 	 *	
 	 */
-	def d(dot1: (Vb, Vs), dot2: (Vb, Vs)): Double = hammingAndEuclidean(MixtVector(dot1._1, dot1._2), MixtVector(dot2._1, dot2._2))	
+	def d(dot1: (Vb, Vs), dot2: (Vb, Vs)): Double = hammingAndEuclidean(MixedVector(dot1._1, dot1._2), MixedVector(dot2._1, dot2._2))	
 	/**
 	 *	
 	 */
-	def d(dot1: MixtVector[Vb, Vs], dot2: MixtVector[Vb, Vs]): Double = hammingAndEuclidean(dot1, dot2)	
+	def d(dot1: MixedVector[Vb, Vs], dot2: MixedVector[Vb, Vs]): Double = hammingAndEuclidean(dot1, dot2)	
 }

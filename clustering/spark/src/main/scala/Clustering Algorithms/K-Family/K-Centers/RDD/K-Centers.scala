@@ -97,5 +97,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
  */
 case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, V])(implicit val ctV: ClassTag[V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
 
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
+
 	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }

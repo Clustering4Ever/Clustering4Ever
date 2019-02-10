@@ -7,7 +7,7 @@ import scala.collection.{immutable, mutable}
 import shapeless.HMap
 import org.clustering4ever.shapeless.VMapping
 import org.clustering4ever.clustering.ClusteringModel
-import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.supervizables.Supervizable
 import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.vectorizables.Vectorizable
@@ -46,18 +46,18 @@ object EasyClusterizable {
 	/**
 	 * Simplest way to generate an EasyClusterizable
 	 */
-	def apply[V <: GVector[V]](id: Long, v: V): EasyClusterizable[V, V] = new EasyClusterizable(id, Vectorizable(v), v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
+	def apply[V <: GVector[V]](id: Long, v: V): EasyClusterizable[V, V] = EasyClusterizable(id, Vectorizable(v), v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
 	/**
 	 * Generate a proper EasyClusterizable
 	 */
-	def apply[O, V <: GVector[V]](id: Long, o: O, v: V): EasyClusterizable[O, V] = new EasyClusterizable(id, Vectorizable(o), v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
+	def apply[O, V <: GVector[V]](id: Long, o: O, v: V): EasyClusterizable[O, V] = EasyClusterizable(id, Vectorizable(o), v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
 	/**
 	 *
 	 */
-	def apply[O, V <: GVector[V]](id: Long, o: O, towardVector: O => V) = {
-		val vecto = Vectorizable(o)
-		val v = vecto.toVector(towardVector)
-		new EasyClusterizable(id, vecto, v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
+	def apply[O, V <: GVector[V]](id: Long, o: O, towardVector: O => V): EasyClusterizable[O, V] = {
+		val vectorizable = Vectorizable(o)
+		val v = vectorizable.toVector(towardVector)
+		EasyClusterizable(id, vectorizable, v, HMap[VMapping](0 -> v)(VMapping[Int, V]))
 	}
 	/**
 	 * Simplest way to generate an EasyClusterizable for real vectors
@@ -70,7 +70,7 @@ object EasyClusterizable {
 	/**
 	 * Simplest way to generate an EasyClusterizable for mixt vectors
 	 */
-	def rawApplyMixt[Vb <: Seq[Int], Vs <: Seq[Double]](id: Long, binary: Vb, scalar: Vs) = apply(id, MixtVector(binary, scalar))
+	def rawApplyMixed[Vb <: Seq[Int], Vs <: Seq[Double]](id: Long, binary: Vb, scalar: Vs) = apply(id, MixedVector(binary, scalar))
 }
 /**
  * A ready to work case class of Clusterizable trait for cluster without limits
@@ -125,6 +125,10 @@ case class EasyClusterizable[O, V <: GVector[V]](
 	}
 
 	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasyClusterizable[O, GV] = {
+		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
+	}
+
+	final def updateVectorizationOfSameNature[Vecto <: Vectorization[O, V, Vecto]](vectorization: Vecto): EasyClusterizable[O, V] = {
 		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
 	}
 

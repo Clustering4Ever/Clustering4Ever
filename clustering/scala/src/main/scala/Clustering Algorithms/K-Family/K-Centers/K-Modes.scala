@@ -10,6 +10,7 @@ import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, BinaryVector}
+import org.clustering4ever.clustering.ClusteringAlgorithmLocalBinary
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data GenSeq of Clusterizable descendant, the EasyClusterizable is the basic reference
@@ -18,7 +19,7 @@ import org.clustering4ever.vectors.{GVector, BinaryVector}
  * @param maxIterations maximal number of iteration
  * @param metric a defined binary dissimilarity measure on a GVector descendant
  */
-case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] {
+case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] with ClusteringAlgorithmLocalBinary[V, KModesModel[V, D]] {
 
 	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
 

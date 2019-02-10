@@ -101,4 +101,9 @@ case class EasySupervizable[O, V <: GVector[V]](
 	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[O, GV] = {
 		EasySupervizable(id, o, label, o.toVector(vectorization.vectorizationFct.get), mutable.ArrayBuffer.empty[GV], vectorized)
 	}
+
+	final def updateVectorizationOfSameNature[Vecto <: Vectorization[O, V, Vecto]](vectorization: Vecto): EasySupervizable[O, V] = {
+		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
+	}
+
 }

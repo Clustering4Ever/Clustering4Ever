@@ -48,9 +48,9 @@ trait ClustersAnalysisDistributed[
     /**
      *
      */
-    def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, Double] = {
-        cardinalitiesByClusteringNumber(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
-    }
+    // def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, Double] = {
+        // cardinalitiesByClusteringNumber(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+    // }
     /**
      *
      */

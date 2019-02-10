@@ -11,14 +11,14 @@ import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.vectorizables.Vectorizable
 import org.clustering4ever.math.distances.Distance
-import org.clustering4ever.vectorizations.{Vectorization, VectorizationLocal, VectorizationWithAlgorithmLocal, EasyVectorizationLocal}
+import org.clustering4ever.vectorizations.{VectorizationAncestor, Vectorization, VectorizationLocal, EasyVectorizationLocal}
 import org.clustering4ever.types.MetricIDType._
 import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.enums.ExternalsIndices._
-import  org.clustering4ever.extensibleAlgorithmNature.ClusteringAlgorithmNature
+import org.clustering4ever.extensibleAlgorithmNature.ClusteringAlgorithmNature
 /**
  * Commons properties of all clustering linked class
  */
@@ -33,35 +33,33 @@ trait ClusteringSharedTypes extends Serializable {
  */
 trait CollectionNature[Collection[_]] extends ClusteringSharedTypes
 /**
- * The basic trait shared by all clustering algorithms
- */
-trait ClusteringAlgorithmAncestor extends ClusteringSharedTypes
-/**
  * Statistic obtained during clustering algorithm executions
  */
 trait ClusteringStats extends ClusteringSharedTypes
 /**
- * The basic trait shared by all clustering algorithm arguments
+ * The basic trait shared by all clustering algorithms
  */
-trait ClusteringModelAncestor extends ClusteringSharedTypes
+trait ClusteringAlgorithm extends ClusteringSharedTypes {
+	/**
+	 * The algorithm identifier
+	 */
+	val algorithmID: ClusteringAlgorithmNature
+}
 /**
- * Neccessary clustering algorithm arguments to launch it 
+ * The basic trait shared by all clustering algorithm models
  */
-trait ClusteringModel[V <: GVector[V]] extends ClusteringModelAncestor
-/**
- * The basic trait shared by all clustering algorithms working on Clusterizable
- */
-trait ClusteringAlgorithm[V <: GVector[V], CM <: ClusteringModel[V]] extends ClusteringAlgorithmAncestor
+trait ClusteringModel extends ClusteringSharedTypes {
+	/**
+	 * The algorithm identifier
+	 */
+	val algorithmID: ClusteringAlgorithmNature	
+}
 /**
  * The basic trait shared by all local clustering algorithms
  * @tparam V the nature of the vector used in this algorithm
  * @tparam CM the corresponding Clustering Model to this algorithm
  */
-trait ClusteringAlgorithmLocal[V <: GVector[V], CM <: ClusteringModelLocal[V]] extends ClusteringAlgorithm[V, CM] {
-	/**
-	 * The algorithm identifier
-	 */
-	val algorithmID: ClusteringAlgorithmNature
+trait ClusteringAlgorithmLocal[V <: GVector[V], CM <: ClusteringModelLocal[V]] extends ClusteringAlgorithm {
 	/**
 	 * Execute the algorithm on the given dataset
 	 * @tparam O the raw object from where vectorizations algorithm are obtained
@@ -80,7 +78,15 @@ trait ClusteringAlgorithmLocal[V <: GVector[V], CM <: ClusteringModelLocal[V]] e
 /**
  *
  */
-trait ClusteringModelLocal[V <: GVector[V]] extends ClusteringModel[V] {
+trait ClusteringAlgorithmLocalScalar[V <: Seq[Double], CM <: ClusteringModelLocalScalar[V]] extends ClusteringAlgorithmLocal[ScalarVector[V], CM]
+/**
+ *
+ */
+trait ClusteringAlgorithmLocalBinary[V <: Seq[Int], CM <: ClusteringModelLocalBinary[V]] extends ClusteringAlgorithmLocal[BinaryVector[V], CM]
+/**
+ *
+ */
+trait ClusteringModelLocal[V <: GVector[V]] extends ClusteringModel {
 	/**
 	 * General methods to obtain a clustering on input dataset from the given model in order to measure performances scores
 	 */
@@ -93,6 +99,14 @@ trait ClusteringModelLocal[V <: GVector[V]] extends ClusteringModel[V] {
 	}
 }
 /**
+ *
+ */
+trait ClusteringModelLocalScalar[V <: Seq[Double]] extends ClusteringModelLocal[ScalarVector[V]]
+/**
+ *
+ */
+trait ClusteringModelLocalBinary[V <: Seq[Int]] extends ClusteringModelLocal[BinaryVector[V]]
+/**
  * Generic concept of data which is a Collection (distributed or not) of Clusterizable
  */
 trait DataExplorator[O,	V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], Collection[_]] extends CollectionNature[Collection] {
@@ -100,6 +114,11 @@ trait DataExplorator[O,	V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable
 	 * The local or distributed collection of clusterizable
 	 */
 	val data: Collection[Cz[O, V]]
+}
+/**
+ *
+ */
+trait DataExploratorWithVectorization[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], Collection[_]] extends DataExplorator[O, V, Cz, Collection] {
 	/**
 	 * The HMap of vectorizations given by users
 	 */
@@ -108,41 +127,50 @@ trait DataExplorator[O,	V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable
 /**
  *
  */
-trait ClusteringInformationsGenericNew[V <: GVector[V], CM <: ClusteringModel[V]] extends ClusteringSharedTypes {
+trait ClusteringInformationsGenericNew[CM <: ClusteringModel] extends ClusteringSharedTypes {
 	val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, CM)]
 }
 /**
  *
  */
-trait SpecificClusteringInformationsLocalNew[V <: GVector[V], CM <: ClusteringModelLocal[V]] extends ClusteringInformationsGenericNew[V, CM]
+// trait SpecificClusteringInformationsLocalNew[CM <: ClusteringModelLocal] extends ClusteringInformationsGenericNew[V, CM]
 /**
  *
  */
-case class ConcreteSpecificClusteringInformationsLocalNew[V <: GVector[V], CM <: ClusteringModelLocal[V]](
-	val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, CM)] = immutable.HashSet.empty[(ClusteringRunNumber, CM)]
-) extends SpecificClusteringInformationsLocalNew[V, CM]
+// case class ConcreteSpecificClusteringInformationsLocalNew[CM <: ClusteringModelLocal](
+// 	val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, CM)] = immutable.HashSet.empty[(ClusteringRunNumber, CM)]
+// ) extends SpecificClusteringInformationsLocalNew[V, CM]
 /**
  *
  */
-trait ClusteringInformations[O, V <: GVector[V], Vecto <: Vectorization[O, V, Vecto], CM <: ClusteringModel[V]] extends ClusteringSharedTypes {
-	val clusteringInformations: immutable.HashSet[
-		(
-			ClusteringRunNumber,
-			Vecto,
-			CM
-		)
-	]
+trait ModelsInformationsPerVectorizationAncestor extends ClusteringSharedTypes 
+/**
+ *
+ */
+trait ModelsInformationsPerVectorization[Vecto <: VectorizationAncestor[Vecto], CM <: ClusteringModel] extends ModelsInformationsPerVectorizationAncestor {
+	/**
+	 *
+	 */
+	val vectorization: Vecto
+	/**
+	 *
+	 */
+	val modelsInformationsPerVectorization: mutable.ArrayBuffer[(ClusteringRunNumber, CM)]
+	/**
+	 *
+	 */
+	def updateModelsInformationsPerVectorization(cnWithModels: (ClusteringRunNumber, CM)*): Unit = modelsInformationsPerVectorization ++= cnWithModels
 }
 /**
  *
  */
-trait ClusteringInformationsLocalGen[O, V <: GVector[V], Vecto <: Vectorization[O, V, Vecto], CM <: ClusteringModel[V]] extends ClusteringInformations[O, V, Vecto, CM]
+trait ClusteringInformations[Vecto <: VectorizationAncestor[Vecto], CM <: ClusteringModel] extends ClusteringSharedTypes {
+	val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, Vecto, CM)]
+}
 /**
  *
  */
-case class SpecificClusteringInformationsLocal[O, V <: GVector[V], CM <: ClusteringModelLocal[V], Vecto <: VectorizationWithAlgorithmLocal[O, V, CM, Vecto]](
-	val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, Vecto, CM)] = immutable.HashSet.empty[(ClusteringRunNumber, Vecto, CM)]
-) extends ClusteringInformationsLocalGen[O, V, Vecto, CM]
+trait ClusteringInformationsLocalGen[O, V <: GVector[V], Vecto <: Vectorization[O, V, Vecto], CM <: ClusteringModel] extends ClusteringInformations[Vecto, CM]
 /**
  *
  */
@@ -265,56 +293,4 @@ trait BinaryDataExplorator[
 
 	// def featuresOccurences: Any
     
-}
-/**
- *
- * Are undeclared val, which are defined as lazy in descendant class are really lazy ?
- */
-trait ClustersAnalysis[
-    O,
-    V <: GVector[V],
-    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
-    Collection[_]
-] extends DataExplorator[O, V, Cz, Collection] {
-	/**
-	 *
-	 */
-    // val clusteringInfo: ClusteringInformations[ID, O, V, Cz, Collection]
-    /**
-     *
-     */
-	// type DistanceRestriction <: Distance[V]
-    /**
-     *
-     */
-    val datasetSize: Long
-    /**
-     *
-     */
-    // def groupedByClusterID(clusteringNumber: Int)(implicit ct: ClassTag[Cz[O, V]]): Collection[(Int, mutable.ArrayBuffer[Cz[ID,O,V]])]
-    /**
-     *
-     */
-    def cardinalities(clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, Long]
-    /**
-     *
-     */
-    val cardinalitiesByClusteringNumber = mutable.HashMap.empty[ClusteringNumber, immutable.Map[ClusterID, Long]]
-    /**
-     *
-     */
-    def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[Int, Double]
-    /**
-     *
-     */
-    val clustersProportionsByClusteringNumber = mutable.HashMap.empty[ClusteringNumber, immutable.Map[ClusterID, Double]]
-    /**
-     *
-     */
-    def centroids[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, V]
-    /**
-     *
-     */
-    val centroidsByClusteringNumber = mutable.HashMap.empty[(ClusteringNumber, MetricID), immutable.Map[Int, V]]
-
 }

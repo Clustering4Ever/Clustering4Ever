@@ -4,7 +4,7 @@ package org.clustering4ever.hashing
  */
 import scala.collection.{mutable, immutable}
 import scala.util.Random
-import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 /**
  *
  */
@@ -34,7 +34,7 @@ trait HashingBinary[V <: Seq[Int]] extends Hashing[BinaryVector[V]]
 /**
  * Trait for mixt data hashing
  */
-trait HashingMixt[Vb <: Seq[Int], Vs <: Seq[Double]] extends Hashing[MixtVector[Vb, Vs]]
+trait HashingMixed[Vb <: Seq[Int], Vs <: Seq[Double]] extends Hashing[MixedVector[Vb, Vs]]
 /**
  * A basic implementation of Locality Sensitive Hashing for low dimensions vectors
  */

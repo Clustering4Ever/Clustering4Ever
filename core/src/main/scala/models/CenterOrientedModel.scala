@@ -3,9 +3,9 @@ package org.clustering4ever.clustering.models
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.math.distances.{GSimpleVectorDistance, Distance, ContinuousDistance, BinaryDistance, MixtDistance}
+import org.clustering4ever.math.distances.{GSimpleVectorDistance, Distance, ContinuousDistance, BinaryDistance, MixedDistance}
 import scala.collection.{mutable, immutable, GenSeq}
-import org.clustering4ever.vectors.{GVector, GSimpleVector,ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, GSimpleVector,ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.clusterizables.Clusterizable
 /**
  *
@@ -42,7 +42,7 @@ trait CenterModelBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends CenterMod
 /**
  *
  */
-trait CenterModelMixt[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]] extends CenterModel[MixtVector[Vb, Vs], D] {
+trait CenterModelMixed[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends CenterModel[MixedVector[Vb, Vs], D] {
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
@@ -83,7 +83,7 @@ trait CenterModelSimpleVLocal[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <
 /**
  *
  */
-trait CenterModelMixtLocal[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]] extends CenterModelMixt[Vb, Vs, D] {
+trait CenterModelMixedLocal[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends CenterModelMixed[Vb, Vs, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method

@@ -9,7 +9,7 @@ import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
-import org.clustering4ever.vectors.{GVector, MixtVector, ScalarVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, MixedVector, ScalarVector, BinaryVector}
 /**
  * Type Class is probably the solution to this casting meli melo, but it is hard to apply in such complex case without any usefull ressources
  */
@@ -25,7 +25,7 @@ object ClusterBasicOperations extends Serializable {
 	    metric match {
 	      case euclidean: Euclidean[_] => obtainMean(cluster.asInstanceOf[GenSeq[ScalarVector[Seq[Double]]]]).asInstanceOf[O]
 	      case hamming: Hamming[_] => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[O]
-	      case hammingAndEuclidean: HammingAndEuclidean[_, _] => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixtVector[Seq[Int], Seq[Double]]]]).asInstanceOf[O]
+	      case hammingAndEuclidean: HammingAndEuclidean[_, _] => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixedVector[Seq[Int], Seq[Double]]]]).asInstanceOf[O]
 	      // Look for point which minimize its distance to all others points
 	      case _ => cluster.minBy{ v1 => cluster.map(metric.d(v1, _)).sum }
 	    }
@@ -73,11 +73,11 @@ object ClusterBasicOperations extends Serializable {
 	/**
 	 *
 	 */
-	 def obtainMixtCenter[Vb <: Seq[Int], Vs <: Seq[Double]](cluster: GenSeq[MixtVector[Vb, Vs]]): MixtVector[Vb, Vs] = {
-	 	val mixtVector: MixtVector[Vb, Vs] = SumVectors.sumColumnMatrix(cluster)
+	 def obtainMixtCenter[Vb <: Seq[Int], Vs <: Seq[Double]](cluster: GenSeq[MixedVector[Vb, Vs]]): MixedVector[Vb, Vs] = {
+	 	val mixtVector: MixedVector[Vb, Vs] = SumVectors.sumColumnMatrix(cluster)
 	 	val binaryPart = transformPreModeAndCastIt(mixtVector.binary, cluster.size)
 	 	val realPart = transformPreMeanAndCastIt(mixtVector.scalar, cluster.size)
-	 	MixtVector(binaryPart, realPart)
+	 	MixedVector(binaryPart, realPart)
 	}
 
 }

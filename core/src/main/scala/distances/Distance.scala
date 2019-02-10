@@ -4,7 +4,7 @@ package org.clustering4ever.math.distances
  */
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.vectors.{GVector, GSimpleVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, GSimpleVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.types.MetricIDType._
 /**
  *
@@ -58,7 +58,7 @@ trait BinaryDistance[V <: Seq[Int]] extends GSimpleVectorDistance[Int, V, Binary
 /**
  *
  */
-trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVector[Vb, Vs]] {
+trait MixedDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixedVector[Vb, Vs]] {
 	/**
 	 * Distance on raw vector nature
 	 */

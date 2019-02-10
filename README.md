@@ -33,20 +33,26 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
   * **_K-Means_** *
   * **_K-Modes_** *
   * **_K-Prototypes_** *
-* _Tensor Biclustering algorithms_
+* **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
+* **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
+* **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
+* _Random Local Area_ *
+* **Clusterwize** 
+* _Tensor Biclustering algorithms_ ([Original project](https://github.com/SoheilFeizi/Tensor-Biclustering))
   * _Folding-Spectral_
   * _Unfolding-Spectral_
   * _Thresholding Sum Of Squared Trajectory Length_
   * _Thresholding Individuals Trajectory Length_
   * _Recursive Biclustering_
   * _Multiple Biclustering_
-* **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
-* **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
-* **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
-* _Random Local Area_ *
-* **Clusterwize** 
+
 
 Algorithm followed with a * implement _ClusteringAlgorithm_ trait and can be run by benchmarking classes.
+
+### Preprocessing
+
+* **_Gradient Ascent_** (Mean-Shift related)
+* **_Rough Set Features Selection_**
 
 ### Quality Indices
 
@@ -60,10 +66,6 @@ Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ 
   * **_Ball Hall_**
   * _Silhouette_
 
-### Preprocessing
-
-* _Gradient Ascent_
-* **_Rough Set Features Selection_**
 
 ### Clustering benchmarking and analysis
 

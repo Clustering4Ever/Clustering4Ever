@@ -8,11 +8,13 @@ import breeze.numerics._
 import scala.collection.mutable
 import breeze.linalg.svd.SVD
 import breeze.stats._
-import org.clustering4ever.clustering.ClusteringAlgorithmAncestor
+import org.clustering4ever.clustering.ClusteringAlgorithm
 /**
  *
  */
-class ThIndFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithmAncestor {
+class ThIndFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
+
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.TensorBiclustering
 	/**
 	 *
 	 */

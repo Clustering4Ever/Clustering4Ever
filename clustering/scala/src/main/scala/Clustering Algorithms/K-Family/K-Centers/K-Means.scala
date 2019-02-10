@@ -11,19 +11,9 @@ import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 import org.clustering4ever.util.FromArrayToSeq
-import org.clustering4ever.vectorizations.VectorizationWithAlgorithmLocalScalar
+import org.clustering4ever.clustering.ClusteringAlgorithmLocalScalar
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringNumberType._
-/**
- *
- */
-case class KMeansVectorization[O, V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](
-	val vectorizationID: VectorizationID,
-	val vectorizationFct: Option[O => ScalarVector[V]] = None,
-	val metricEmployed: D[V],
-	val models: mutable.HashMap[ClusteringNumber, KMeansModel[V, D]] = mutable.HashMap.empty[ClusteringNumber, KMeansModel[V, D]],
-	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
-) extends VectorizationWithAlgorithmLocalScalar[O, V, KMeansModel[V, D], KMeansVectorization[O, V, D]]
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data GenSeq of Clusterizable descendant, the EasyClusterizable is the basic reference
@@ -32,18 +22,12 @@ case class KMeansVectorization[O, V <: Seq[Double], D[X <: Seq[Double]] <: Conti
  * @param maxIterations maximal number of iteration
  * @param metric a defined continuous dissimilarity measure on a GVector descendant
  */
-case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] {
+case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] with ClusteringAlgorithmLocalScalar[V, KMeansModel[V, D]] {
 
 	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 
 	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel(k, metric, epsilon, maxIterations, obtainCenters(data))
-	/**
-	 * Helper to generate a vectorization associate to this KMeans version with this specific metric
-	 * No need to generate a vectorization per algorithm combination of arguments, except the metric
-	 */
-	def obtainAssociateVectorization[O](vectorizationID: VectorizationID, vectorizationFct: Option[O => ScalarVector[V]] = None, outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]): KMeansVectorization[O, V, D] = {
-		KMeansVectorization[O, V, D](vectorizationID, vectorizationFct, metric, mutable.HashMap.empty[ClusteringNumber, KMeansModel[V, D]], outputFeaturesNames)
-	}
+
 }
 /**
  *

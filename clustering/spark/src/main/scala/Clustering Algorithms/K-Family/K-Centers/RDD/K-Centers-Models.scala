@@ -10,8 +10,8 @@ import org.apache.spark.sql.Dataset
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.sql.Encoders
 import org.apache.spark.sql.SparkSession
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
-import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixedDistance}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.kcenters.scala.KCentersModelCommons
@@ -45,16 +45,24 @@ trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersM
 /**
  *
  */
-case class KCentersModel[V <: GVector[V] : ClassTag, D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel, val centers: immutable.HashMap[Int, V]) extends KCentersModelAncestor[V, D[V]]
+case class KCentersModel[V <: GVector[V] : ClassTag, D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel, val centers: immutable.HashMap[Int, V]) extends KCentersModelAncestor[V, D[V]] {
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
+}
 /**
  *
  */
-case class KMeansModel[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val centers: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersModelAncestor[ScalarVector[V], D[V]]
+case class KMeansModel[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val centers: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersModelAncestor[ScalarVector[V], D[V]] {
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
+}
 /**
  *
  */
-case class KModesModel[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val centers: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersModelAncestor[BinaryVector[V], D[V]]
+case class KModesModel[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val centers: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersModelAncestor[BinaryVector[V], D[V]] {
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
+}
 /**
  *
  */
-case class KPrototypesModels[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val centers: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersModelAncestor[MixtVector[Vb, Vs], D[Vb, Vs]]
+case class KPrototypesModels[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val centers: immutable.HashMap[Int, MixedVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixedVector[Vb, Vs]]) extends KCentersModelAncestor[MixedVector[Vb, Vs], D[Vb, Vs]] {
+	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
+}

@@ -8,7 +8,7 @@ import org.clustering4ever.vectors.GVector
 /**
  *
  */
-trait MetricModel[V <: GVector[V], D <: Distance[V]] extends ClusteringModel[V] {
+trait MetricModel[V <: GVector[V], D <: Distance[V]] extends ClusteringModel {
 	/**
 	 * A metric defined on any object which inherit GVector
 	 */

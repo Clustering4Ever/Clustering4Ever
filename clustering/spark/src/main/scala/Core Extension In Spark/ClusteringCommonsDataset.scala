@@ -24,7 +24,7 @@ import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel}
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait ClusteringAlgorithmDistributedDS[V <: GVector[V], CA <: ClusteringModelDistributedDS[V]] extends ClusteringAlgorithm[V, CA] {
+trait ClusteringAlgorithmDistributedDS[V <: GVector[V], CA <: ClusteringModelDistributedDS[V]] extends ClusteringAlgorithm {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return GenericClusteringModel
@@ -35,7 +35,7 @@ trait ClusteringAlgorithmDistributedDS[V <: GVector[V], CA <: ClusteringModelDis
 /**
  *
  */
-trait ClusteringModelDistributedDS[V <: GVector[V]] extends ClusteringModel[V] {
+trait ClusteringModelDistributedDS[V <: GVector[V]] extends ClusteringModel {
 	/**
 	 * kryo Serialization if true, java one else
 	 */

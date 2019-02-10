@@ -7,7 +7,7 @@ import scala.math.sqrt
 import scala.collection.GenSeq
 import scala.language.higherKinds
 import spire.math.{Numeric => SNumeric}
-import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, MixedVector}
 import scala.collection.mutable
 /**
  *
@@ -17,9 +17,9 @@ object FromArrayToSeq extends Serializable {
 	 *
 	 */
 	def arrayToSimpleSeq[N, V <: Seq[N]](a: Array[N]) = {
-		val builder = a.genericBuilder.asInstanceOf[mutable.Builder[N, V]]
+		val builder = a.genericBuilder[N].asInstanceOf[mutable.Builder[N, V]]
 		builder.sizeHint(a.size)
-		(0 until a.size).foreach( i => builder += a(i) )
+		builder ++= a
 		builder.result
 	}
 	/**
@@ -72,10 +72,10 @@ object VectorsAddOperationsImplicits extends Serializable {
 	/**
 	 *
 	 */
-	implicit def addMixtVectors[Vb <: Seq[Int], Vs <: Seq[Double]](v1: MixtVector[Vb, Vs], v2: MixtVector[Vb, Vs]): MixtVector[Vb, Vs] = {
+	implicit def addMixedVectors[Vb <: Seq[Int], Vs <: Seq[Double]](v1: MixedVector[Vb, Vs], v2: MixedVector[Vb, Vs]): MixedVector[Vb, Vs] = {
 		val binaryPart = addRawBinaryVectors(v1.binary, v2.binary)
 		val scalarPart = addRawScalarVectors(v1.scalar, v2.scalar)
-		MixtVector(binaryPart, scalarPart)
+		MixedVector(binaryPart, scalarPart)
 	}
 }
 /**

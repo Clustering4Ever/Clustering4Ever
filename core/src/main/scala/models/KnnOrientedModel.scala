@@ -3,8 +3,8 @@ package org.clustering4ever.clustering.models
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import org.clustering4ever.math.distances.{GenericDistance, Distance, GSimpleVectorDistance, ContinuousDistance, BinaryDistance, MixtDistance}
-import org.clustering4ever.vectors.{GVector, GSimpleVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.math.distances.{GenericDistance, Distance, GSimpleVectorDistance, ContinuousDistance, BinaryDistance, MixedDistance}
+import org.clustering4ever.vectors.{GVector, GSimpleVector, ScalarVector, BinaryVector, MixedVector}
 import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.clusterizables.Clusterizable
 /**
@@ -45,7 +45,7 @@ trait KnnModelModelBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends KnnMode
 /**
  *
  */
-trait KnnModelModelMixt[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixtDistance[Vb, Vs]] extends KnnModelModel[MixtVector[Vb, Vs], D] {
+trait KnnModelModelMixed[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends KnnModelModel[MixedVector[Vb, Vs], D] {
 	/**
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors

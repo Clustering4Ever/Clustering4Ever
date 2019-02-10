@@ -24,7 +24,7 @@ import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel, Clu
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait ClusteringAlgorithmDistributed[V <: GVector[V], CA <: ClusteringModelDistributed[V]] extends ClusteringAlgorithm[V, CA] {
+trait ClusteringAlgorithmDistributed[V <: GVector[V], CA <: ClusteringModelDistributed[V]] extends ClusteringAlgorithm {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
@@ -35,13 +35,7 @@ trait ClusteringAlgorithmDistributed[V <: GVector[V], CA <: ClusteringModelDistr
 /**
  *
  */
-trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel[V] {
-
-	// type Self <: ClusteringModelDistributed[V]
-
-	// type AssociateAlgorithm <: ClusteringAlgorithmDistributed[V, Self]
-
-	// def obtainAlgorithm: AssociateAlgorithm
+trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel {
 	/**
 	 * General methods to obtain a clustering from the model in order to measure performances scores
 	 */
