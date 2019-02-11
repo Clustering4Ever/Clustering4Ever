@@ -23,7 +23,7 @@ trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersM
 	/**
 	 *
 	 */
-	protected[clustering] def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): Dataset[Cz[O, V]] = {
+	protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): Dataset[Cz[O, V]] = {
 		/**
 		 * kryo Serialization if true, java one else
 		 */
@@ -44,6 +44,6 @@ trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersM
 /**
  *
  */
-case class KMeansModel[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val kryoSerialization: Boolean = false, val centers: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersModelAncestor[ScalarVector[V], D[V]] {
-	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
+final case class KMeansModel[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val kryoSerialization: Boolean = false, val centers: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersModelAncestor[ScalarVector[V], D[V]] {
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 }

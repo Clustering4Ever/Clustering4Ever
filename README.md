@@ -8,7 +8,7 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.4"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.0"` to your `libraryDependencies`
 
 Eventually add this resolver :
 
@@ -33,6 +33,7 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
   * **_K-Means_** *
   * **_K-Modes_** *
   * **_K-Prototypes_** *
+  * **_Any Object K-Centers_** *
 * **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
 * **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
 * **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
@@ -52,6 +53,10 @@ Algorithm followed with a * implement _ClusteringAlgorithm_ trait and can be run
 ### Preprocessing
 
 * **_Gradient Ascent_** (Mean-Shift related)
+  * **_Scalar Gradient Ascent_**
+  * _Binary Gradient Ascent_
+  * _Mixed Gradient Ascent_
+  * _Any Object Gradient Ascent_
 * **_Rough Set Features Selection_**
 
 ### Quality Indices
@@ -69,7 +74,7 @@ Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ 
 
 ### Clustering benchmarking and analysis
 
-Using classes _ClusteringChainingLocal_, _BigDataClusteringChaining_, and _DistributedClusteringChaining_ you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
+Using classes _ClusteringChainingLocal_, _BigDataClusteringChaining_, _DistributedClusteringChaining_, and _ChainingOneAlgorithm_ descendants you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, **locally and parallely**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
 
 Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ are devoted for clustering indices analysis.
 
@@ -105,7 +110,3 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 * ArrayBuffer as vector are a good start
 * ArrayBuffer, ParArray or ParSeq as vector containers are recommended
-
-### Others recommendations
-
-* It is advise to use Numeric value for the ID generic, else depending the case you will have to provide an according Ordering on ID.

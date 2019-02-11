@@ -15,9 +15,6 @@ import org.clustering4ever.vectorizations.Vectorization
  *
  */
 trait Supervizable[O, V <: GVector[V], Self[B, C <: GVector[C]] <: Supervizable[B, C, Self]] extends Preprocessable[O, V, Self] {
-	/**
-	 *
-	 */
 	this: Self[O, V] =>
 	/**
 	 *
@@ -44,17 +41,17 @@ object EasySupervizable {
 	/**
 	 * Simplest way to generate an EasySupervizable
 	 */
-	def apply[V <: GVector[V]](id: Long, v: V, label: Int): EasySupervizable[V, V] = new EasySupervizable(id, Vectorizable(v), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(VMapping[Int, V]))
+	final def apply[V <: GVector[V]](id: Long, v: V, label: Int): EasySupervizable[None.type, V] = EasySupervizable(id, Vectorizable(None), label, v, mutable.ArrayBuffer.empty[V], HMap.empty[VMapping])
 	/**
 	 * Generate a proper EasySupervizable
 	 */
-	def apply[O, V <: GVector[V]](id: Long, o: O, v: V, label: Int): EasySupervizable[O, V] = new EasySupervizable(id, Vectorizable(o), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(VMapping[Int, V]))
+	final def apply[O, V <: GVector[V]](id: Long, o: O, v: V, label: Int): EasySupervizable[O, V] = EasySupervizable(id, Vectorizable(o), label, v, mutable.ArrayBuffer.empty[V], HMap.empty[VMapping])
 
 }
 /**
  *
  */
-case class EasySupervizable[O, V <: GVector[V]](
+final case class EasySupervizable[O, V <: GVector[V]](
 	final val id: Long,
 	final val o: Vectorizable[O],
 	final val label: Int,

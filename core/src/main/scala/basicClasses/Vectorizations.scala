@@ -106,7 +106,7 @@ trait VectorizationLocalBinary[O, V <: Seq[Int], Self <: VectorizationLocalBinar
  * @tparam O the raw object from which vectorization are made
  * @tparam V the type of the vector resulting of this vectorization
  */
-case class EasyVectorizationLocalGenScalar[O, V <: Seq[Double]](
+final case class EasyVectorizationLocalGenScalar[O, V <: Seq[Double]](
 	val vectorizationID: VectorizationID,
 	val vectorizationFct: Option[O => ScalarVector[V]] = None,
 	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
@@ -119,7 +119,7 @@ case class EasyVectorizationLocalGenScalar[O, V <: Seq[Double]](
  * @tparam O the raw object from which vectorization are made
  * @tparam V the type of the vector resulting of this vectorization
  */
-case class EasyVectorizationLocalGenBinary[O, V <: Seq[Int]](
+final case class EasyVectorizationLocalGenBinary[O, V <: Seq[Int]](
 	val vectorizationID: VectorizationID,
 	val vectorizationFct: Option[O => BinaryVector[V]] = None,
 	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
@@ -132,7 +132,7 @@ case class EasyVectorizationLocalGenBinary[O, V <: Seq[Int]](
  * @tparam O the raw object from which vectorization are made
  * @tparam V the type of the vector resulting of this vectorization
  */
-case class EasyVectorizationLocal[O, V <: GVector[V]](
+final case class EasyVectorizationLocal[O, V <: GVector[V]](
 	val vectorizationID: VectorizationID,
 	val vectorizationFct: Option[O => V] = None,
 	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],

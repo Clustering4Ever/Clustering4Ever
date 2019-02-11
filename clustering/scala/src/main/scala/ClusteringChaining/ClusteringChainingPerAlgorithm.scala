@@ -20,7 +20,7 @@ import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.vectorizations.{VectorizationGenLocal, VectorizationLocalScalar, VectorizationLocalBinary}
-import org.clustering4ever.indices.ExternalIndicesLocal
+import org.clustering4ever.clustering.indices.ExternalIndicesLocal
 import org.clustering4ever.clustering.keeper.ModelsKeeper
 import org.clustering4ever.extensibleAlgorithmNature.ClusteringAlgorithmNature
 import org.clustering4ever.utils.SortGsCz
@@ -38,7 +38,7 @@ import org.clustering4ever.utils.SortGsCz
  * @param algorithms the sequence of algorithms which will be executed at the instantiation of the class
  * @param isDatasetSortedByID a neccessary security due to specific algorithm where model is the entire dataset and then require to be aligned with input data
  */
-trait ChainingOneOneAlgorithm[
+trait ChainingOneAlgorithm[
     O,
     V <: GVector[V],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
@@ -172,7 +172,7 @@ trait ChainingOneOneAlgorithm[
  * @param algorithms the sequence of algorithms which will be executed at the instantiation of the class
  * @param isDatasetSortedByID a neccessary security due to specific algorithm where model is the entire dataset and then require to be aligned with input data
  */
-case class LocalClusteringChainingScalar[
+final case class LocalClusteringChainingScalar[
     O,
     V <: Seq[Double],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
@@ -186,7 +186,7 @@ case class LocalClusteringChainingScalar[
     val vectorizations: Seq[Vecto[O, V]],
     val algorithms: Seq[Algorithms[V, CM]],
     val modelsKeeper: ModelsKeeper = new ModelsKeeper
-) extends ChainingOneOneAlgorithm[O, ScalarVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]
+) extends ChainingOneAlgorithm[O, ScalarVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]
 /**
  * This classe intend to run many algorithms parallely on a local system for medium size datasets, it works for one version of an algorithm with various parameters
  * @tparam O the raw object from which vectorizations came from
@@ -201,7 +201,7 @@ case class LocalClusteringChainingScalar[
  * @param algorithms the sequence of algorithms which will be executed at the instantiation of the class
  * @param isDatasetSortedByID a neccessary security due to specific algorithm where model is the entire dataset and then require to be aligned with input data
  */
-case class LocalClusteringChainingBinary[
+final case class LocalClusteringChainingBinary[
     O,
     V <: Seq[Int],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
@@ -215,4 +215,4 @@ case class LocalClusteringChainingBinary[
     val vectorizations: Seq[Vecto[O, V]],
     val algorithms: Seq[Algorithms[V, CM]],
     val modelsKeeper: ModelsKeeper = new ModelsKeeper
-) extends ChainingOneOneAlgorithm[O, BinaryVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]
+) extends ChainingOneAlgorithm[O, BinaryVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]

@@ -22,11 +22,11 @@ import org.clustering4ever.types.ClusteringNumberType._
  * @param maxIterations maximal number of iteration
  * @param metric a defined continuous dissimilarity measure on a GVector descendant
  */
-case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] with ClusteringAlgorithmLocalScalar[V, KMeansModel[V, D]] {
+final case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val k: Int, final val metric: D[V], final val epsilon: Double, final val maxIterations: Int, final val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] with ClusteringAlgorithmLocalScalar[V, KMeansModel[V, D]] {
 
-	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 
-	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel(k, metric, epsilon, maxIterations, obtainCenters(data))
+	final def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel(k, metric, epsilon, maxIterations, obtainCenters(data))
 
 }
 /**
@@ -40,7 +40,7 @@ object KMeans {
 	 * @param maxIterationsValues
 	 * @param customCentersValues
 	 */
-	def generateAnyAlgorithmArgumentsCombination[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](kValues: Seq[Int] = Seq(4, 6, 8), metricValues: Seq[D[V]] = Seq(Euclidean[V](false)), epsilonValues: Seq[Double] = Seq(0.0001), maxIterationsValues: Seq[Int] = Seq(40, 100), customCentersValues: Seq[immutable.HashMap[Int, ScalarVector[V]]] = Seq(immutable.HashMap.empty[Int, ScalarVector[V]])): Seq[KMeans[V, D]] = {
+	final def generateAnyAlgorithmArgumentsCombination[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](kValues: Seq[Int] = Seq(4, 6, 8), metricValues: Seq[D[V]] = Seq(Euclidean[V](false)), epsilonValues: Seq[Double] = Seq(0.0001), maxIterationsValues: Seq[Int] = Seq(40, 100), customCentersValues: Seq[immutable.HashMap[Int, ScalarVector[V]]] = Seq(immutable.HashMap.empty[Int, ScalarVector[V]])): Seq[KMeans[V, D]] = {
 		for(
 			k <- kValues;
 			metric <- metricValues;
@@ -52,7 +52,7 @@ object KMeans {
 	/**
 	 * Run the K-Means with any ContinuousDistance[V <: Seq[Double]]
 	 */
-	def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
+	final def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
 		data: GS[V],
 		k: Int,
 		metric: D[V],
@@ -64,7 +64,7 @@ object KMeans {
 	/**
 	 * Run the K-Means with any ContinuousDistance[V <: Seq[Double]] with Array[Double] as input vectors
 	 */
-	def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
+	final def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](
 		data: GS[Array[Double]],
 		k: Int,
 		metric: D[V],

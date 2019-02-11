@@ -1,4 +1,4 @@
-package org.clustering4ever.indices
+package org.clustering4ever.clustering.indices
 /**
  * @author Beck Gaël
  */
@@ -17,12 +17,12 @@ trait InternalIndicesCommons[V <: GVector[V], D <: Distance[V]] extends Clusteri
    *  scatter1,scatter2: Double - the scatter value of cluster 1 and cluster 2
    *  center1,center2: Array[Double] - The centroid of cluster 1 and cluster 2
    */
-  protected def good(scatter1: Double, scatter2: Double, center1: V, center2: V, metric: D): Double = (scatter1 + scatter2) / metric.d(center1, center2)
+  protected final def good(scatter1: Double, scatter2: Double, center1: V, center2: V, metric: D): Double = (scatter1 + scatter2) / metric.d(center1, center2)
   /**
    * Scatter of point in cluster
    * Measure average distance to centroïd
    * @return Double - Scatter value
    */
-  protected def scatter(cluster: GenSeq[V], centroid: V, metric: D): Double = cluster.map(metric.d(centroid, _)).sum / cluster.size
+  protected final def scatter(cluster: GenSeq[V], centroid: V, metric: D): Double = cluster.map(metric.d(centroid, _)).sum / cluster.size
 
 }

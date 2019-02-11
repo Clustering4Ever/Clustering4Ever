@@ -9,7 +9,7 @@ import org.clustering4ever.vectors.GVector
 /**
  *
  */
-class VMapping[K, V] extends Serializable
+final class VMapping[K, V] extends Serializable
 /**
  *
  */
@@ -19,7 +19,7 @@ object VMapping extends Serializable {
 /**
  *
  */
-class VectorizationMapping[K, V] extends Serializable
+final class VectorizationMapping[K, V] extends Serializable
 /**
  *
  */
@@ -29,7 +29,7 @@ object VectorizationMapping extends Serializable {
 /**
  *
  */
-class ClusteringInformationsMapping[K, +V] extends Serializable
+final class ClusteringInformationsMapping[K, +V] extends Serializable
 /**
  *
  */
@@ -39,11 +39,11 @@ object ClusteringInformationsMapping extends Serializable {
 /**
  *
  */
-class DistancesMapping[K, V] extends Serializable
+final class DistancesMapping[K, V] extends Serializable
 /**
  *
  */
-class ModelsMapping[K, V] extends Serializable
+final class ModelsMapping[K, V] extends Serializable
 /**
  *
  */
@@ -53,7 +53,7 @@ object ModelsMapping extends Serializable {
 /**
  *
  */
-class InformationsMapping[K, V] extends Serializable
+final class InformationsMapping[K, V] extends Serializable
 /**
  *
  */

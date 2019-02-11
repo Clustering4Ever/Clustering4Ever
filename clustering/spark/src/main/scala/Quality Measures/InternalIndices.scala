@@ -1,4 +1,4 @@
-package org.clustering4ever.indices
+package org.clustering4ever.clustering.indices
 /**
  * @author Beck Gaël
  */
@@ -45,17 +45,17 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
   /**
    *
    */
-  def clustersIDs[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int) = if(clustersIDsOp.isDefined) clustersIDsOp.get else mutable.ArraySeq(clusterized.map(_.clusterIDs(clusteringNumber)).distinct.collect:_*).sorted
+  final def clustersIDs[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int) = if(clustersIDsOp.isDefined) clustersIDsOp.get else mutable.ArraySeq(clusterized.map(_.clusterIDs(clusteringNumber)).distinct.collect:_*).sorted
   /**
    *
    */
-  def obtainVectorsByClusterID[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int): RDD[(ClusterID, mutable.ArrayBuffer[V])] = {
+  final def obtainVectorsByClusterID[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int): RDD[(ClusterID, mutable.ArrayBuffer[V])] = {
     clusterized.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
   }
   /**
    *
    */
-  def daviesBouldin[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](sc: SparkContext, clusterized: RDD[Cz[O, V]], clusteringNumber: Int): Double = {
+  final def daviesBouldin[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](sc: SparkContext, clusterized: RDD[Cz[O, V]], clusteringNumber: Int): Double = {
     if(clustersIDs(clusterized, clusteringNumber).size == 1) {
       println(" One Cluster found")
       0D
@@ -87,7 +87,7 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
     }
   }
 
-  def ballHall[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int): Double = {
+  final def ballHall[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int): Double = {
     val neutralElement = mutable.ArrayBuffer.empty[V]
     val clusters = obtainVectorsByClusterID(clusterized, clusteringNumber).cache
     val prototypes = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainCenter(cluster, metric)) }.collectAsMap
@@ -97,7 +97,7 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
 /**
  * This object is used to compute internals clustering indices as Davies Bouldin or Silhouette
  */
-case class InternalIndicesDistributed[V <: GVector[V], D[A <: GVector[A]] <: Distance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArraySeq[Int]] = None)(implicit val ct: ClassTag[V]) extends InternalIndicesAncestorDistributed[V, D[V]]
+final case class InternalIndicesDistributed[V <: GVector[V], D[A <: GVector[A]] <: Distance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArraySeq[Int]] = None)(implicit val ct: ClassTag[V]) extends InternalIndicesAncestorDistributed[V, D[V]]
 /**
  *
  */
@@ -106,13 +106,13 @@ object InternalIndicesDistributed extends ClusteringSharedTypes {
    * Monothreaded version of davies bouldin index
    * Complexity O(n.c<sup>2</sup>) with n number of individuals and c the number of clusters
    */
-  def daviesBouldin[O, V <: GVector[V] : ClassTag, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], D[A <: GVector[A]] <: Distance[A]](sc: SparkContext, clusterized: RDD[Cz[O, V]], metric: D[V], clusteringNumber: Int): Double = { 
+  final def daviesBouldin[O, V <: GVector[V] : ClassTag, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], D[A <: GVector[A]] <: Distance[A]](sc: SparkContext, clusterized: RDD[Cz[O, V]], metric: D[V], clusteringNumber: Int): Double = { 
     InternalIndicesDistributed(metric).daviesBouldin(sc, clusterized, clusteringNumber)
   }
   /**
    *
    */
-  def ballHall[O, V <: GVector[V] : ClassTag, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], D[A <: GVector[A]] <: Distance[A]](clusterized: RDD[Cz[O, V]], metric: D[V], clusteringNumber: Int): Double = {
+  final def ballHall[O, V <: GVector[V] : ClassTag, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], D[A <: GVector[A]] <: Distance[A]](clusterized: RDD[Cz[O, V]], metric: D[V], clusteringNumber: Int): Double = {
     InternalIndicesDistributed(metric).ballHall(clusterized, clusteringNumber)
   }
 

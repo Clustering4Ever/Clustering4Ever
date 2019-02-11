@@ -12,7 +12,7 @@ import org.clustering4ever.types.VectorizationIDTypes._
 /**
  *
  */
-case class VectorizationsKeeper(var vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping]) extends Serializable {
+final case class VectorizationsKeeper(var vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping]) extends Serializable {
     /**
 	 *
 	 */
@@ -29,17 +29,17 @@ case class VectorizationsKeeper(var vectorizations: HMap[VectorizationMapping] =
 	/**
 	 *
 	 */
-	def addVectorization[Vecto <: VectorizationAncestor[Vecto]](vecto: Vecto): Unit = {
+	final def addVectorization[Vecto <: VectorizationAncestor[Vecto]](vecto: Vecto): Unit = {
 		implicit val mapping = VectorizationMapping[VectorizationID, Vecto]
 		vectorizations = vectorizations + ((vecto.vectorizationID, vecto))
 	}
 	/**
 	 *
 	 */
-	def getVectorization[Vecto <: VectorizationAncestor[Vecto]](vecto: Vecto): Option[Vecto] = vectorizations.get(vecto.vectorizationID)(vecto.vectoMapping)
+	final def getVectorization[Vecto <: VectorizationAncestor[Vecto]](vecto: Vecto): Option[Vecto] = vectorizations.get(vecto.vectorizationID)(vecto.vectoMapping)
 
 }
 /**
  *
  */
-case class SameNatureVectorizationsKeeper[O, V <: GVector[V], Vecto <: Vectorization[O, V, Vecto]](val vectorizations: mutable.ArrayBuffer[Vecto])
+final case class SameNatureVectorizationsKeeper[O, V <: GVector[V], Vecto <: Vectorization[O, V, Vecto]](val vectorizations: mutable.ArrayBuffer[Vecto])

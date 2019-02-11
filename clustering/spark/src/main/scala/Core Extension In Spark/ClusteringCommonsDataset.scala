@@ -43,7 +43,7 @@ trait ClusteringModelDistributedDS[V <: GVector[V]] extends ClusteringModel {
 	/**
 	 * kryo Serialization if true, java one else
 	 */
-	val encoderClusterIDs = if(kryoSerialization) Encoders.kryo[Int] else Encoders.javaSerialization[Int]
+	final val encoderClusterIDs = if(kryoSerialization) Encoders.kryo[Int] else Encoders.javaSerialization[Int]
 	/**
 	 * General methods to obtain a clustering from the model in order to measure performances scores
 	 */
@@ -51,7 +51,7 @@ trait ClusteringModelDistributedDS[V <: GVector[V]] extends ClusteringModel {
 	/**
 	 *
 	 */
-	protected[clustering] def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): Dataset[ClusterID] = {
+	protected[clustering] final def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): Dataset[ClusterID] = {
 		obtainClustering(data).map(_.clusterIDs.last)(encoderClusterIDs)
 	}
 }

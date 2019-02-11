@@ -14,11 +14,11 @@ import  org.clustering4ever.extensibleAlgorithmNature.ClusteringAlgorithmNature
 /**
  *
  */
-case class ModelsKeeper(val clusteringNumbersAndNature: mutable.ArrayBuffer[(ClusteringNumber, ClusteringAlgorithmNature)] = mutable.ArrayBuffer.empty[(Int, ClusteringAlgorithmNature)], var models: HMap[ModelsMapping] = HMap.empty[ModelsMapping]) extends Serializable {
+final case class ModelsKeeper(val clusteringNumbersAndNature: mutable.ArrayBuffer[(ClusteringNumber, ClusteringAlgorithmNature)] = mutable.ArrayBuffer.empty[(Int, ClusteringAlgorithmNature)], var models: HMap[ModelsMapping] = HMap.empty[ModelsMapping]) extends Serializable {
 	/**
 	 *
 	 */
-	def addModel[CM <: ClusteringModel](clusteringNumber: ClusteringNumber, model: CM): Unit = {
+	final def addModel[CM <: ClusteringModel](clusteringNumber: ClusteringNumber, model: CM): Unit = {
 		implicit val mapping = ModelsMapping[ClusteringNumber, CM]
 		models = models + ((clusteringNumber, model))
 		clusteringNumbersAndNature += ((clusteringNumber, model.algorithmID))
@@ -26,7 +26,7 @@ case class ModelsKeeper(val clusteringNumbersAndNature: mutable.ArrayBuffer[(Clu
 	/**
 	 *
 	 */
-	def addModels[CM <: ClusteringModel](newModels: (CM, ClusteringNumber)*): Unit = {
+	final def addModels[CM <: ClusteringModel](newModels: (CM, ClusteringNumber)*): Unit = {
 		implicit val mapping = ModelsMapping[ClusteringNumber, CM]
 		@annotation.tailrec
 		def go(hm: HMap[ModelsMapping], newModels: List[(CM, ClusteringNumber)]): HMap[ModelsMapping] = {
@@ -43,23 +43,23 @@ case class ModelsKeeper(val clusteringNumbersAndNature: mutable.ArrayBuffer[(Clu
 	/**
 	 *
 	 */
-	def getModel[CM <: ClusteringModel](clusteringNumber: ClusteringNumber, mapping: ModelsMapping[ClusteringNumber, CM]): Option[CM] = models.get(clusteringNumber)(mapping)
+	final def getModel[CM <: ClusteringModel](clusteringNumber: ClusteringNumber, mapping: ModelsMapping[ClusteringNumber, CM]): Option[CM] = models.get(clusteringNumber)(mapping)
 	/**
 	 *
 	 */
-	def getModels[CM <: ClusteringModel](mapping: ModelsMapping[ClusteringNumber, CM], clusteringNumbers: ClusteringNumber*): Seq[(ClusteringNumber, CM)] = {
+	final def getModels[CM <: ClusteringModel](mapping: ModelsMapping[ClusteringNumber, CM], clusteringNumbers: ClusteringNumber*): Seq[(ClusteringNumber, CM)] = {
 		clusteringNumbers.map( cn => models.get(cn)(mapping).map(((cn, _))) ).flatten
 	}
 	/**
 	 *
 	 */
-	def getClusteringNumbersFromAlgorithmID(algorithmID: ClusteringAlgorithmNature): mutable.ArrayBuffer[ClusteringNumber] = {
+	final def getClusteringNumbersFromAlgorithmID(algorithmID: ClusteringAlgorithmNature): mutable.ArrayBuffer[ClusteringNumber] = {
 		clusteringNumbersAndNature.collect{ case (clusteringNumber, algoNature) if algoNature == algorithmID => clusteringNumber }
 	}
 	/**
 	 *
 	 */
-	def getModelsFromAlgorithmID[CM <: ClusteringModel](algorithmID: ClusteringAlgorithmNature, mapping: ModelsMapping[ClusteringNumber, CM]): Seq[(ClusteringNumber, CM)] = {
+	final def getModelsFromAlgorithmID[CM <: ClusteringModel](algorithmID: ClusteringAlgorithmNature, mapping: ModelsMapping[ClusteringNumber, CM]): Seq[(ClusteringNumber, CM)] = {
 		val clusteringNumbers = getClusteringNumbersFromAlgorithmID(algorithmID)
 		getModels(mapping, clusteringNumbers:_*)
 	}

@@ -16,7 +16,7 @@ trait CommonPLSTypes {
 /**
  *
  */
-class PLS[V <: Seq[Double]](
+final case class PLS[V <: Seq[Double]](
 	dsXi: GenSeq[(Int, V)],
 	dsY: GenSeq[V],
 	n: Int,
@@ -24,7 +24,7 @@ class PLS[V <: Seq[Double]](
 	lw: Double,
 	ktabXdudiY: (Int, Double, Double)
 ) extends AbstractRegression with CommonPLSTypes {
-	def regression: (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	final def regression: (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val (idxDsX, dsX) = dsXi.unzip
 		val ncolX = dsX.head.size
 		val nrowX = dsX.size
@@ -225,7 +225,7 @@ class PLS[V <: Seq[Double]](
 
 object PLS extends CommonPLSTypes {
 
-	def runClusterwisePLS[V <: Seq[Double]](dsX: Array[IdWithX[V]], dsY: Array[Y[V]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	final def runClusterwisePLS[V <: Seq[Double]](dsX: Array[IdWithX[V]], dsY: Array[Y[V]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
 		val lw = 1D / n
@@ -233,7 +233,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	def runPLS[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	final def runPLS[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX.size
 		val lw = 1D / n
 		val ktabXdudiYvalues = ktabXdudiY(dsX, dsY, n)
@@ -241,7 +241,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	def ktabXdudiY[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], n: Int): (Int, Double, Double) = {
+	final def ktabXdudiY[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], n: Int): (Int, Double, Double) = {
 		val lw = 1D / n
 		val cw = dsX.head._2.size
 		val colw = dsY.head.size

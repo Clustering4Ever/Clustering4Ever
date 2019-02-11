@@ -14,7 +14,7 @@ import org.clustering4ever.clustering.ClusteringAlgorithm
  */
 class ThIndFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
 
-	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.TensorBiclustering
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.TensorBiclustering
 	/**
 	 *
 	 */

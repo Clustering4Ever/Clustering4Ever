@@ -26,33 +26,33 @@ trait RLAModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringMode
 	/**
 	 *
 	 */
-	protected[clustering] def obtainClustering[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = centerPredict(data)
+	protected[clustering] final def obtainClustering[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = centerPredict(data)
 }
 /**
  *
  */
 case class RLAModel[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val metric: D[V], val epsilon: Double, centers: immutable.HashMap[Int, V]) extends RLAModelAncestor[V, D[V]] with KnnModelModel[V, D[V]] {
-  val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLA
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLA
 
 }
 /**
  *
  */
 case class RLAModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val metric: D[V], val epsilon: Double, centers: immutable.HashMap[Int, ScalarVector[V]]) extends ClusteringModelLocalScalar[V] with RLAModelAncestor[ScalarVector[V], D[V]] with CenterModelLocalReal[V, D[V]] with KnnModelModelReal[V, D[V]] {
-  val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLAScalar
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLAScalar
 
 }
 /**
  *
  */
 case class RLAModelBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val metric: D[V], val epsilon: Double, centers: immutable.HashMap[Int, BinaryVector[V]]) extends ClusteringModelLocalBinary[V] with RLAModelAncestor[BinaryVector[V], D[V]] with CenterModelLocalBinary[V, D[V]] with KnnModelModelBinary[V, D[V]] {
-  val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLABinary
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLABinary
 
 }
 /**
  *
  */
 case class RLAModelMixed[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](val metric: D[Vb, Vs], val epsilon: Double, centers: immutable.HashMap[Int, MixedVector[Vb, Vs]]) extends RLAModelAncestor[MixedVector[Vb, Vs], D[Vb, Vs]] with CenterModelMixedLocal[Vb, Vs, D[Vb, Vs]] with KnnModelModelMixed[Vb, Vs, D[Vb, Vs]] {
-  val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLAMixt
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLAMixt
 
 }

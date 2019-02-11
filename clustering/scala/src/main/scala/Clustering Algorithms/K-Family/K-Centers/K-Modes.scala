@@ -19,11 +19,11 @@ import org.clustering4ever.clustering.ClusteringAlgorithmLocalBinary
  * @param maxIterations maximal number of iteration
  * @param metric a defined binary dissimilarity measure on a GVector descendant
  */
-case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] with ClusteringAlgorithmLocalBinary[V, KModesModel[V, D]] {
+final case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val k: Int, final val metric: D[V], final val epsilon: Double, final val maxIterations: Int, final val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] with ClusteringAlgorithmLocalBinary[V, KModesModel[V, D]] {
 
-	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
 
-	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel(k, metric, epsilon, maxIterations, obtainCenters(data))
+	final def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel(k, metric, epsilon, maxIterations, obtainCenters(data))
 }
 /**
  *
@@ -32,7 +32,7 @@ object KModes {
 	/**
 	 *
 	 */
-	def generateAnyAlgorithmArgumentsCombination[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](
+	final def generateAnyAlgorithmArgumentsCombination[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](
 		kValues: Seq[Int] = Seq(4, 6, 8),
 		metricValues: Seq[D[V]] = Seq(Hamming[V] _),
 		epsilonValues: Seq[Double] = Seq(0.0001),
@@ -49,7 +49,7 @@ object KModes {
 	/**
 	 * Run the K-Modes with any binary distance
 	 */
-	def run[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X], GS[Y] <: GenSeq[Y]](
+	final def run[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X], GS[Y] <: GenSeq[Y]](
 		data: GS[V],
 		k: Int,
 		metric: D[V],

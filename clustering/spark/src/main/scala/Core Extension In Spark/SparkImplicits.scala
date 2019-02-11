@@ -14,26 +14,25 @@ object SparkImplicits {
 	/**
 	 *
 	 */
-	implicit def scalarDataWithIDToClusterizable[V <: Seq[Double]](rdd: RDD[(V, Long)]): RDD[EasyClusterizable[ScalarVector[V], ScalarVector[V]]] = {
+	final implicit def scalarDataWithIDToClusterizable[V <: Seq[Double]](rdd: RDD[(V, Long)]): RDD[EasyClusterizable[None.type, ScalarVector[V]]] = {
 		rdd.map{ case (vector, id) => EasyClusterizable(id, ScalarVector(vector)) }
 	}
 	/**
 	 *
 	 */
-	implicit def binaryDataWithIDToClusterizable[V <: Seq[Int]](rdd: RDD[(V, Long)]): RDD[EasyClusterizable[BinaryVector[V], BinaryVector[V]]] = {
+	final implicit def binaryDataWithIDToClusterizable[V <: Seq[Int]](rdd: RDD[(V, Long)]): RDD[EasyClusterizable[None.type, BinaryVector[V]]] = {
 		rdd.map{ case (vector, id) => EasyClusterizable(id, BinaryVector(vector)) }
 	}
 	/**
 	 *
 	 */
-	implicit def scalarDataToClusterizable[V <: Seq[Double]](rdd: RDD[V]): RDD[EasyClusterizable[ScalarVector[V], ScalarVector[V]]] = {
+	final implicit def scalarDataToClusterizable[V <: Seq[Double]](rdd: RDD[V]): RDD[EasyClusterizable[None.type, ScalarVector[V]]] = {
 		rdd.zipWithIndex
 	}
-
 	/**
 	 *
 	 */
-	implicit def binaryDataToClusterizable[V <: Seq[Int]](rdd: RDD[V]): RDD[EasyClusterizable[BinaryVector[V], BinaryVector[V]]] = {
+	final implicit def binaryDataToClusterizable[V <: Seq[Int]](rdd: RDD[V]): RDD[EasyClusterizable[None.type, BinaryVector[V]]] = {
 		rdd.zipWithIndex
 	}
 }

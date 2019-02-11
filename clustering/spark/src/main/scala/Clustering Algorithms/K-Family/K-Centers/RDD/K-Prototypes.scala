@@ -23,9 +23,9 @@ import org.clustering4ever.vectors.{GVector, MixedVector}
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, MixedVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixedVector[Vb, Vs]])(protected implicit val ctV: ClassTag[MixedVector[Vb, Vs]]) extends KCentersAncestor[MixedVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
+final case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, MixedVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixedVector[Vb, Vs]])(protected implicit val ctV: ClassTag[MixedVector[Vb, Vs]]) extends KCentersAncestor[MixedVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
 
-	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
 
-	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, MixedVector[Vb, Vs]]])(implicit ct: ClassTag[Cz[O, MixedVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	final def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, MixedVector[Vb, Vs]]])(implicit ct: ClassTag[Cz[O, MixedVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }

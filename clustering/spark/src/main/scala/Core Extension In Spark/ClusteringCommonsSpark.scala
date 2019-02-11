@@ -43,7 +43,7 @@ trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel {
 	/**
 	 * @return a RDD of clusterIDs 
 	 */
-	protected[clustering] def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): RDD[ClusterID] = {
+	protected[clustering] final def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): RDD[ClusterID] = {
 		obtainClustering(data).map(_.clusterIDs.last)
 	}
 }
@@ -66,9 +66,9 @@ object RowToCz extends Serializable {
 	/**
 	 *
 	 */
-	def fromRawToEasyClusterizable[GV <: GVector[GV]](row: Row, id: Int, vectorIDInRow: Int) = EasyClusterizable(row.getAs[Long](id), row, row.getAs[GV](vectorIDInRow))
+	final def fromRawToEasyClusterizable[GV <: GVector[GV]](row: Row, id: Int, vectorIDInRow: Int) = EasyClusterizable(row.getAs[Long](id), row, row.getAs[GV](vectorIDInRow))
 	/**
 	 *
 	 */
-	def fromCzToRaw[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](cz: Cz[O, V]) = Row(cz)
+	final def fromCzToRaw[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](cz: Cz[O, V]) = Row(cz)
 }

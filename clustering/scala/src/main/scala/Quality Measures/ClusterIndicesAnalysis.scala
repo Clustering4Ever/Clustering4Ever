@@ -6,7 +6,6 @@ import scala.language.higherKinds
 import scala.collection.{GenSeq, immutable, mutable}
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.Distance
-import org.clustering4ever.indices.{ExternalIndicesLocal, InternalIndicesLocal}
 import org.clustering4ever.enums.NmiNormalizationNature
 import org.clustering4ever.enums.InternalsIndices.InternalsIndicesType
 import org.clustering4ever.clustering.ClusteringInformationsLocal

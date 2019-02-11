@@ -40,7 +40,7 @@ trait KCommonsSpark[V <: GVector[V], D <: Distance[V]] extends KCommons[V, D] {
 	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
 	 * </ol>
 	 */
-	protected def kmppInitializationRDD(vectorizedDataset: RDD[V], k: Int, metric: D): immutable.HashMap[Int, V] = {
+	protected final def kmppInitializationRDD(vectorizedDataset: RDD[V], k: Int, metric: D): immutable.HashMap[Int, V] = {
 
 		def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
 		
@@ -66,38 +66,41 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 	/**
 	 *
 	 */
-	protected def obtainCenters[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
+	protected final def obtainCenters[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
 		
 		data.persist(persistanceLVL)
 
-		val centers: immutable.HashMap[Int, V] = if(customCenters.isEmpty) kmppInitializationRDD(data.map(_.v), k, metric) else customCenters
+		val unSortedCenters: mutable.ArrayBuffer[(Int, V)] = if(customCenters.isEmpty) mutable.ArrayBuffer(kmppInitializationRDD(data.map(_.v), k, metric).toSeq:_*) else mutable.ArrayBuffer(customCenters.toSeq:_*)
+		val centers = unSortedCenters.sortBy(_._1)
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
-			val updatedCenters = immutable.HashMap(
+		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
+			val preUpdatedCenters = mutable.ArrayBuffer(
 				data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), cz.v) )
 				.reduceByKeyLocally{ case (v1, v2) => ClusterBasicOperations.obtainCenter(Seq(v1, v2), metric) }
 				.toArray
-			:_*)
-			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, centers, epsilon, metric)
+			:_*).sortBy(_._1)
+			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
+			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
+			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, epsilon, metric)
 			if(cpt < maxIterations && !shiftingEnough) {
 				go(cpt + 1, shiftingEnough, updatedCenters)
 			}
 			else {
-				updatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
+				updatedCenters
 			}
 		}
-		go(0, false, centers)
+		immutable.HashMap(go(0, false, centers):_*)
 	}
 }
 /**
  *
  */
-case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, V])(implicit val ctV: ClassTag[V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
+final case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, V])(implicit val ctV: ClassTag[V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
 
-	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
 
-	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	final def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }

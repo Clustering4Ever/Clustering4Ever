@@ -23,7 +23,7 @@ trait VectorizationDistributed[O, V <: GVector[V], Self[A, B <: GVector[B]] <: V
 /**
  *
  */
-case class EasyVectorizationDistributed[O, V <: GVector[V]] (
+final case class EasyVectorizationDistributed[O, V <: GVector[V]] (
 	val vectorizationID: VectorizationID,
 	val vectorizationFct: Option[O => V] = None,
 	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
@@ -32,6 +32,6 @@ case class EasyVectorizationDistributed[O, V <: GVector[V]] (
 	/**
 	 *
 	 */
-	def updateClustering(clusteringIDs: Int*): EasyVectorizationDistributed[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
+	final def updateClustering(clusteringIDs: Int*): EasyVectorizationDistributed[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
 }
 

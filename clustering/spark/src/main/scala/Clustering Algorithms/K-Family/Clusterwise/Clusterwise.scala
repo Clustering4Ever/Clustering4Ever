@@ -18,7 +18,7 @@ import org.clustering4ever.vectors.{ScalarVector, GScalarVector}
 /**
  *
  */
-class Clusterwise[V <: Seq[Double]](
+final case class Clusterwise[V <: Seq[Double]](
 	@(transient @param) sc: SparkContext,
 	dataXY: GenSeq[(Int, (V, V))],
 	g: Int,
@@ -34,8 +34,14 @@ class Clusterwise[V <: Seq[Double]](
 	iterMaxKmeans: Int,
 	logOn: Boolean = false
 	)(implicit ev: ClassTag[V]) extends Serializable {
-	type SqRmseCal = Double
-	type SqRmseVal = Double
+	/**
+	 *
+	 */
+	final type SqRmseCal = Double
+	/**
+	 *
+	 */
+	final type SqRmseVal = Double
 
 	def run: (Array[(SqRmseCal, SqRmseVal)], Array[ClusterwiseModel[V]]) = {
 		val n = dataXY.size

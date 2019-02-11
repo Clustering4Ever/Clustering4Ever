@@ -12,7 +12,7 @@ sealed trait VectorizableOrNot extends Serializable
  * The container of the raw object
  * @tparam O the raw object type
  */
-case class Vectorizable[O](val o: O) extends VectorizableOrNot {
+final case class Vectorizable[O](val o: O) extends VectorizableOrNot {
 	/**
 	 * Methods which transform the raw object toward a GVector descendant given the towardVector function
 	 */

@@ -12,7 +12,7 @@ import org.clustering4ever.types.VectorizationIDTypes._
 /**
  *
  */
-case class ClusteringInformationsKeeperHMap(var infos: HMap[InformationsMapping] = HMap.empty[InformationsMapping]) extends Serializable {
+final case class ClusteringInformationsKeeperHMap(var infos: HMap[InformationsMapping] = HMap.empty[InformationsMapping]) extends Serializable {
 	/**
 	 *
 	 */

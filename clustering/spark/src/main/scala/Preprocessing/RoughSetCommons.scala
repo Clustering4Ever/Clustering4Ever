@@ -17,7 +17,7 @@ trait DistributedRoughSetCommons extends RoughSetCommons {
   /**
    * Define a function to calculate the IND of each element in the list indDecisionClasses
    */
-  protected def obtainIndecabilityD[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](f: mutable.ArrayBuffer[Int], data: RDD[Sz[O, V[T, S]]])(implicit ct: ClassTag[S[T]]) = {
+  protected final def obtainIndecabilityD[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](f: mutable.ArrayBuffer[Int], data: RDD[Sz[O, V[T, S]]])(implicit ct: ClassTag[S[T]]) = {
 
     val neutralElement = mutable.ArrayBuffer.empty[Long]
     def addToBuffer(buff: mutable.ArrayBuffer[Long], elem: Long) = buff += elem
@@ -28,7 +28,7 @@ trait DistributedRoughSetCommons extends RoughSetCommons {
   /**
    *
    */
-  protected def generateIndecidabilityDecisionClassesD[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T, S]]]): mutable.Buffer[mutable.ArrayBuffer[Long]] = {
+  protected final def generateIndecidabilityDecisionClassesD[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T, S]]]): mutable.Buffer[mutable.ArrayBuffer[Long]] = {
 
     val neutralElement = mutable.ArrayBuffer.empty[Long]
     def addToBuffer(buff: mutable.ArrayBuffer[Long], elem: Long) = buff += elem

@@ -15,7 +15,7 @@ import org.clustering4ever.clustering.ClusteringAlgorithm
  */
 class MultipleBiclusters(val k1: Array[Int], val k2: Array[Int]) extends ClusteringAlgorithm {
 
-  val algorithmID = org.clustering4ever.extensibleAlgorithmNature.TensorBiclustering
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.TensorBiclustering
 
   def run(data: mutable.ArrayBuffer[DenseMatrix[Double]])/*: Unit*/ = {
 

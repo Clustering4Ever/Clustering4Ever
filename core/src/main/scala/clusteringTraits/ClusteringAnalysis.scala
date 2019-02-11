@@ -2,9 +2,9 @@ package org.clustering4ever.clustering
 /**
  * @author Beck Gaël
  */
-import scala.language.higherKinds
-import scala.reflect.ClassTag
-import scala.collection.{GenSeq, mutable, immutable, Map}
+import _root_.scala.language.higherKinds
+import _root_.scala.reflect.ClassTag
+import _root_.scala.collection.{GenSeq, mutable, immutable, Map}
 import shapeless.HMap
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
@@ -30,7 +30,7 @@ trait ClusteringBasicStats extends ClusteringSharedTypes {
     /**
      *
      */
-    def addCardinalities(clusteringNumber: ClusteringNumber, cardinalities: immutable.Map[ClusterID, Long]) = cardinalitiesByClusteringNumber += ((clusteringNumber, cardinalities))
+    final def addCardinalities(clusteringNumber: ClusteringNumber, cardinalities: immutable.Map[ClusterID, Long]) = cardinalitiesByClusteringNumber += ((clusteringNumber, cardinalities))
     /**
      * Map of clusters size proportion by clusteringNumber
      */
@@ -38,7 +38,7 @@ trait ClusteringBasicStats extends ClusteringSharedTypes {
     /**
      *
      */
-    def addClustersProportions(clusteringNumber: ClusteringNumber, clustersProportions: immutable.Map[ClusterID, Double]) = clustersProportionsByClusteringNumber += ((clusteringNumber, clustersProportions))
+    final def addClustersProportions(clusteringNumber: ClusteringNumber, clustersProportions: immutable.Map[ClusterID, Double]) = clustersProportionsByClusteringNumber += ((clusteringNumber, clustersProportions))
 }
 /**
  *
@@ -51,22 +51,22 @@ trait ClusteringBasicStatsExtended[V <: GVector[V]] extends ClusteringBasicStats
     /**
      *
      */
-    def addCentroids(clusteringNumber: ClusteringNumber, metricID: MetricID, centroids: immutable.Map[ClusterID, V]) = centroidsByClusteringNumber += (((clusteringNumber, metricID), centroids))
+    final def addCentroids(clusteringNumber: ClusteringNumber, metricID: MetricID, centroids: immutable.Map[ClusterID, V]) = centroidsByClusteringNumber += (((clusteringNumber, metricID), centroids))
 }
 /**
  *
  */
-case class ClusteringAnalysisBasicStatsKeeper(
-    val cardinalitiesByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Long]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Long]],
-    val clustersProportionsByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Double]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Double]]
+final case class ClusteringAnalysisBasicStatsKeeper(
+    final val cardinalitiesByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Long]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Long]],
+    final val clustersProportionsByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Double]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Double]]
 ) extends ClusteringBasicStats
 /**
  *
  */
-case class ClusteringBasicStatsKeeper[V <: GVector[V]](
-    val cardinalitiesByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Long]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Long]],
-    val clustersProportionsByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Double]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Double]],
-    val centroidsByClusteringNumber: mutable.HashMap[(ClusteringNumber, MetricID), immutable.Map[Int, V]] = mutable.HashMap.empty[(ClusteringNumber, MetricID), immutable.Map[Int, V]]
+final case class ClusteringBasicStatsKeeper[V <: GVector[V]](
+    final val cardinalitiesByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Long]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Long]],
+    final val clustersProportionsByClusteringNumber: mutable.HashMap[ClusteringNumber, immutable.Map[Int, Double]] = mutable.HashMap.empty[ClusteringNumber, immutable.Map[Int, Double]],
+    final val centroidsByClusteringNumber: mutable.HashMap[(ClusteringNumber, MetricID), immutable.Map[Int, V]] = mutable.HashMap.empty[(ClusteringNumber, MetricID), immutable.Map[Int, V]]
 ) extends ClusteringBasicStatsExtended[V]
 /**
  *

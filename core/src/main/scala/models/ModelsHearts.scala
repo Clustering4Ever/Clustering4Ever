@@ -6,7 +6,8 @@ import org.clustering4ever.math.distances.{GenericDistance, Distance}
 import org.clustering4ever.clustering.ClusteringModel
 import org.clustering4ever.vectors.GVector
 /**
- *
+ * @tparam V
+ * @tparam D
  */
 trait MetricModel[V <: GVector[V], D <: Distance[V]] extends ClusteringModel {
 	/**
