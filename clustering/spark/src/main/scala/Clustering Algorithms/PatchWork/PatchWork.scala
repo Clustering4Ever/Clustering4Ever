@@ -28,7 +28,7 @@ import PatchWorkUtils._
  * A cell (or hypercube) in the n-dimensional feature space
  * @param cellNumber The ID of the cell. Array of size n.
  */
-class PatchWorkCell(val cellNumber: Array[Int]) extends Serializable {
+final case class PatchWorkCell(val cellNumber: Array[Int]) extends Serializable {
   /* Number of data points in the cell */
   var ptsInCell: Int = 0
 
@@ -72,14 +72,14 @@ class PatchWorkCellKey(var cellNumber: String, var cellArray: Array[Int], var cl
  * A cluster is defined by the list of cells within.
  * @param id
  */
-class PatchWorkCluster(private var id: Int) extends Serializable {
+final case class PatchWorkCluster(private var id: Int) extends Serializable {
   def getID: Int = this.id
   val cellsList: ListBuffer[PatchWorkCellKey] = new ListBuffer[PatchWorkCellKey]
 }
 /**
  *
  */
-class PatchWorkModel(private var epsilon: Epsilon,
+final case class PatchWorkModel(private var epsilon: Epsilon,
     var cardinalsPatchwork: RDD[(String, Int)],
     var clusters: List[PatchWorkCluster]) extends Serializable {
 
@@ -90,7 +90,7 @@ class PatchWorkModel(private var epsilon: Epsilon,
    * @param point A data point
    * @return The cluster the data point belongs to
    */
-  def predict(point: DataPoint): PatchWorkCluster = {
+  final def predict(point: DataPoint): PatchWorkCluster = {
     val cellKey = new PatchWorkCellKey(point.zipWithIndex.map( x => math.ceil(x._1 / this.epsilon(x._2)).toInt ))
     val cl = this.clusters.filter(cluster => cluster.cellsList.contains(cellKey))
     if (cl.isEmpty) {

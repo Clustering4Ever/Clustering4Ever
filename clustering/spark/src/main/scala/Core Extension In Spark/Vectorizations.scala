@@ -17,7 +17,7 @@ trait VectorizationDistributed[O, V <: GVector[V], Self[A, B <: GVector[B]] <: V
 
 	this: Self[O, V] =>
 
-	val informationMapping = ClusteringInformationsMapping[VectorizationID, Self[O, V]]
+	final val informationMapping = ClusteringInformationsMapping[VectorizationID, Self[O, V]]
 
 }
 /**

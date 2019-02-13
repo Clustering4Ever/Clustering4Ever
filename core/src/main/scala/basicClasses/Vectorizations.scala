@@ -46,7 +46,7 @@ trait Vectorization[O, V <: GVector[V], Self <: Vectorization[O, V, Self]] exten
 	/**
 	 * Used mapping to obtain this vectorization vector on vectorized HMAP field in clusterizable
 	 */
-	val vMapping = VMapping[VectorizationID, V]
+	final val vMapping = VMapping[VectorizationID, V]
 }
 /**
  *
@@ -71,11 +71,11 @@ trait VectorizationGenLocal[O, V <: GVector[V], Self <: VectorizationGenLocal[O,
 	/**
 	 *
 	 */
-	val runnedAlgorithms: mutable.ArrayBuffer[(ClusteringNumber, ClusteringAlgorithmNature)] = mutable.ArrayBuffer.empty[(ClusteringNumber, ClusteringAlgorithmNature)]
+	final val runnedAlgorithms: mutable.ArrayBuffer[(ClusteringNumber, ClusteringAlgorithmNature)] = mutable.ArrayBuffer.empty[(ClusteringNumber, ClusteringAlgorithmNature)]
 	/**
 	 *
 	 */
-	def updateAlgorithms(cnWithAlgo: (ClusteringNumber, ClusteringAlgorithmNature)*): Unit = runnedAlgorithms ++= cnWithAlgo
+	final def updateAlgorithms(cnWithAlgo: (ClusteringNumber, ClusteringAlgorithmNature)*): Unit = runnedAlgorithms ++= cnWithAlgo
 }
 /**
  * @tparam O the raw object from which vectorization are made
@@ -86,7 +86,7 @@ trait VectorizationLocal[O, V <: GVector[V], Self[A, B <: GVector[B]] <: Vectori
 	/**
 	 * InformationMapping to obtain ClusteringInformationsLocal object for this given vectorization in ClusterAnalysisLocal HMap
 	 */
-	val informationMapping = ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[O, V, Self]]
+	final val informationMapping = ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[O, V, Self]]
 }
 /**
  * @tparam O the raw object from which vectorization are made
@@ -107,39 +107,39 @@ trait VectorizationLocalBinary[O, V <: Seq[Int], Self <: VectorizationLocalBinar
  * @tparam V the type of the vector resulting of this vectorization
  */
 final case class EasyVectorizationLocalGenScalar[O, V <: Seq[Double]](
-	val vectorizationID: VectorizationID,
-	val vectorizationFct: Option[O => ScalarVector[V]] = None,
-	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
-	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
+	final val vectorizationID: VectorizationID,
+	final val vectorizationFct: Option[O => ScalarVector[V]] = None,
+	final val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
+	final val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
 ) extends VectorizationLocalScalar[O, V, EasyVectorizationLocalGenScalar[O, V]] {
 	
-	def updateClustering(clusteringIDs: ClusteringNumber*): EasyVectorizationLocalGenScalar[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
+	final def updateClustering(clusteringIDs: ClusteringNumber*): EasyVectorizationLocalGenScalar[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
 }
 /**
  * @tparam O the raw object from which vectorization are made
  * @tparam V the type of the vector resulting of this vectorization
  */
 final case class EasyVectorizationLocalGenBinary[O, V <: Seq[Int]](
-	val vectorizationID: VectorizationID,
-	val vectorizationFct: Option[O => BinaryVector[V]] = None,
-	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
-	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
+	final val vectorizationID: VectorizationID,
+	final val vectorizationFct: Option[O => BinaryVector[V]] = None,
+	final val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
+	final val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
 ) extends VectorizationLocalBinary[O, V, EasyVectorizationLocalGenBinary[O, V]] {
 	
-	def updateClustering(clusteringIDs: ClusteringNumber*): EasyVectorizationLocalGenBinary[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
+	final def updateClustering(clusteringIDs: ClusteringNumber*): EasyVectorizationLocalGenBinary[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
 }
 /**
  * @tparam O the raw object from which vectorization are made
  * @tparam V the type of the vector resulting of this vectorization
  */
 final case class EasyVectorizationLocal[O, V <: GVector[V]](
-	val vectorizationID: VectorizationID,
-	val vectorizationFct: Option[O => V] = None,
-	val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
-	val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
+	final val vectorizationID: VectorizationID,
+	final val vectorizationFct: Option[O => V] = None,
+	final val clusteringNumbers: immutable.HashSet[Int] = immutable.HashSet.empty[Int],
+	final val outputFeaturesNames: immutable.Vector[String] = immutable.Vector.empty[String]
 ) extends VectorizationLocal[O, V, EasyVectorizationLocal] {
 
-	def updateClustering(clusteringIDs: ClusteringNumber*): EasyVectorizationLocal[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
+	final def updateClustering(clusteringIDs: ClusteringNumber*): EasyVectorizationLocal[O, V] = copy(clusteringNumbers = clusteringNumbers ++ clusteringIDs)
 
 }
 /**

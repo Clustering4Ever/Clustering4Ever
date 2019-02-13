@@ -16,7 +16,7 @@ final case class Vectorizable[O](val o: O) extends VectorizableOrNot {
 	/**
 	 * Methods which transform the raw object toward a GVector descendant given the towardVector function
 	 */
-	def toVector[V <: GVector[V]](towardVector: O => V): V = towardVector(o)
+	final def toVector[V <: GVector[V]](towardVector: O => V): V = towardVector(o)
 }
 /**
  *

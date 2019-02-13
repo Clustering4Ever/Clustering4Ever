@@ -20,7 +20,7 @@ trait CenterModel[V <: GVector[V], D <: Distance[V]] extends MetricModel[V, D] {
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	def centerPredict(v: V): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid, v) }._1
+	final def centerPredict(v: V): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid, v) }._1
 }
 /**
  * @tparam T

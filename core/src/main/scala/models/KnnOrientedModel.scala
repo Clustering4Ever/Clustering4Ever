@@ -16,14 +16,14 @@ trait KnnModelModel[V <: GVector[V], D <: Distance[V]] extends MetricModel[V, D]
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors with its KNN
 	 */
-	def knnPredictWithNN(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): (ClusterID, Seq[(ClusterID, V)]) = {
+	final def knnPredictWithNN(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): (ClusterID, Seq[(ClusterID, V)]) = {
 		trainDS.sortBy{ case (_, vTrain) => metric.d(vTrain, v) }.take(k).groupBy(_._1).maxBy(_._2.size)
 	}
 	/**
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors
 	 */
-	def knnPredict(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): ClusterID = knnPredictWithNN(v, k, trainDS)._1
+	final def knnPredict(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): ClusterID = knnPredictWithNN(v, k, trainDS)._1
 }
 /**
  * @tparam T
@@ -36,7 +36,7 @@ trait KnnModelSimpleV[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <: GSimpl
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors
 	 */
-	def knnPredict(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): ClusterID = knnPredict(v, k, trainDS)
+	final def knnPredict(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): ClusterID = knnPredict(v, k, trainDS)
 }
 /**
  * @tparam V

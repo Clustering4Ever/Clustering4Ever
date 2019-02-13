@@ -50,7 +50,7 @@ trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel {
 /**
  *
  */
-case class ClusteringInformationsDistributed[O, V <: GVector[V], Vecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Vecto]](
+final case class ClusteringInformationsDistributed[O, V <: GVector[V], Vecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Vecto]](
 	val clusteringInformations: immutable.HashSet[
 		(
 			ClusteringRunNumber,

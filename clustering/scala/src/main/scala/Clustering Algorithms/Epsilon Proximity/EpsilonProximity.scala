@@ -25,8 +25,8 @@ trait EpsilonProximityAncestor[V <: GVector[V], D <: Distance[V], Model <: Epsil
 	 * Desired value of epsilon
 	 *
 	 * Two option for epsilon choice
-	 *  * eps:value with value a numeric value ie eps:8.8, eps:1 which run the algorithm with the defined epsilon
-	 *  * knn:intValue ie knn:20 which will define epsilon as the mean of the 20 nearest neighbors of every points
+	 *  - eps:value with value a numeric value ie eps:8.8, eps:1 which run the algorithm with the defined epsilon
+	 *  - knn:intValue ie knn:20 which will define epsilon as the mean of the 20 nearest neighbors of every points
 	 */
 	val epsilonChoice: String
 	/**

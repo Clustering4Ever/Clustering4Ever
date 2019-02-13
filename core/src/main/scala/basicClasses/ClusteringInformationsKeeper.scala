@@ -16,13 +16,13 @@ final case class ClusteringInformationsKeeperHMap(var infos: HMap[InformationsMa
 	/**
 	 *
 	 */
-	def addInformations[MI <: ModelsInformationsPerVectorizationAncestor](id: VectorizationID, info: MI): Unit = {
+	final def addInformations[MI <: ModelsInformationsPerVectorizationAncestor](id: VectorizationID, info: MI): Unit = {
 		implicit val mapping = InformationsMapping[VectorizationID, MI]
 		infos = infos + ((id, info))
 	}
 	/**
 	 *
 	 */
-	def getInformations[MI <: ModelsInformationsPerVectorizationAncestor](id: VectorizationID, mapping: InformationsMapping[Int, MI]): Option[MI] = infos.get(id)(mapping)
+	final def getInformations[MI <: ModelsInformationsPerVectorizationAncestor](id: VectorizationID, mapping: InformationsMapping[Int, MI]): Option[MI] = infos.get(id)(mapping)
 
 }

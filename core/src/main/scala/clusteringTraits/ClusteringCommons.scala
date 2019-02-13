@@ -27,7 +27,7 @@ trait ClusteringSharedTypes extends Serializable {
 	/**
 	 * Clustering Identifier, an Int which define in which cluster is fallen a point
 	 */
-	type ClusterID = Int
+	final type ClusterID = Int
 }
 /**
  * Type of collection used, <: GenSeq, RDD, Dataset
@@ -72,10 +72,10 @@ trait ClusteringAlgorithmLocal[V <: GVector[V], CM <: ClusteringModelLocal[V]] e
 	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): CM
 	/**
 	 * A helper function to cast a specific model knowing from which algorithm it came from.
-	 * It is usefull only for clustering chaining when models are kept into clusteringInformation HMap under their generic form ClusteringModelLocal[V]
+	 * It is usefull for clustering chaining when models are kept into clusteringInformation HMap under their generic form ClusteringModelLocal[V]
 	 * @param model: a model corresponding to this algorithm run method output, if not the cast will fail
 	 */
-	def castModel(model: ClusteringModelLocal[V]): Option[CM] = Try(model.asInstanceOf[CM]).toOption
+	final def castModel(model: ClusteringModelLocal[V]): Option[CM] = Try(model.asInstanceOf[CM]).toOption
 }
 /**
  * @tparam V
