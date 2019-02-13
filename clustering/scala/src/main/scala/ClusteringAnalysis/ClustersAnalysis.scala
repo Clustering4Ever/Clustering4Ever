@@ -220,7 +220,10 @@ case class BinaryClustersAnalysis[
     /**
      * Update AdvancedBinaryStats internal object for every clusteringNumber corresponding to associate vectorization
      */
-    def everyClusteringUpdateBinaryStats: Unit = allClusteringNumbers.par.foreach(updateBinaryStatsByClusteringNumber(_))
+    def everyClusteringUpdateBinaryStats: Unit = {
+        clustersProportionsForEveryClusteringNumber
+        allClusteringNumbers.par.foreach(updateBinaryStatsByClusteringNumber(_))
+    }
     /**
      * @return cluster's modes in the sense of Hamming (majority vote) for every clustering corresponding to the given vectorization
      */

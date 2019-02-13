@@ -29,6 +29,11 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 ### Clustering algorithms
 
 * _Jenks Natural Breaks_
+* **_Epsilon Proximity_** *
+* * **_Scalar Epsilon Proximity_** *
+* * _Binary Epsilon Proximity_ *
+* * _Mixed Epsilon Proximity_ *
+* * _Any Object Epsilon Proximity_ *
 * **_K-Centers_** *
   * **_K-Means_** *
   * **_K-Modes_** *
@@ -82,8 +87,6 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
 
 ### Incoming soon
 
-* **Improved Spark Gradient Ascent**
-* **new scalable clustering algorithms**
 * **_Gaussian Mixture Models_**
 * _Meta heuristic_
 * **More clustering indices**

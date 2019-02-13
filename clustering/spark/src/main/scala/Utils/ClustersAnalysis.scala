@@ -27,8 +27,8 @@ trait ClustersAnalysisDistributed[
 ] extends ClustersAnalysis[O, V, Cz, RDD] {
 
     private val neutralElement = mutable.ArrayBuffer.empty[Cz[O, V]]
-    def addToBuffer(buff: mutable.ArrayBuffer[Cz[O, V]], elem: Cz[O, V]) = buff += elem
-    def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[O, V]], buff2: mutable.ArrayBuffer[Cz[O, V]]) = buff1 ++= buff2
+    final def addToBuffer(buff: mutable.ArrayBuffer[Cz[O, V]], elem: Cz[O, V]) = buff += elem
+    final def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[O, V]], buff2: mutable.ArrayBuffer[Cz[O, V]]) = buff1 ++= buff2
     /**
      *
      */

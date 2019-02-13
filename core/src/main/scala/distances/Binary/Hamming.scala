@@ -34,7 +34,7 @@ final case class RawHamming[V <: Seq[Int]](final val id: MetricID = 4) extends H
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between v1 and v2
 	  */
-	def d(v1: V, v2: V): Double = hamming(v1, v2)
+	final def d(v1: V, v2: V): Double = hamming(v1, v2)
 }
 /**
  * @tparam V
@@ -44,10 +44,10 @@ final case class Hamming[V <: Seq[Int]](final val id: MetricID = 4) extends Hamm
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between v1 and v2
 	  */
-	def d(v1: V, v2: V): Double = hamming(v1, v2)
+	final def d(v1: V, v2: V): Double = hamming(v1, v2)
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between v1 and v2
 	  */
-	def d(v1: BinaryVector[V], v2: BinaryVector[V]): Double = hamming(v1.vector, v2.vector)
+	final def d(v1: BinaryVector[V], v2: BinaryVector[V]): Double = hamming(v1.vector, v2.vector)
 }

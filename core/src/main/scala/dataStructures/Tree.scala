@@ -12,11 +12,11 @@ sealed trait Tree[+T] {
 /**
  * Generic definition of a Leaf
  */
-case class Leaf[T](val id: Int, val value: T) extends Tree[T]
+final case class Leaf[T](val id: Int, val value: T) extends Tree[T]
 /**
  * Generic definition of a Node
  */
-case class Node[T](val id: Int, var childrens: List[Tree[T]]) extends Tree[T]
+final case class Node[T](val id: Int, var childrens: List[Tree[T]]) extends Tree[T]
 /**
  * Some basic methods linked to tree
  */
@@ -24,7 +24,7 @@ object Tree {
   /**
    * @return the size of the tree
    */
-  def size[T](t: Tree[T]): Int = {
+  final def size[T](t: Tree[T]): Int = {
     @annotation.tailrec
     def go(l: List[Tree[T]], acc: Int): Int = { 
       l match {
@@ -38,7 +38,7 @@ object Tree {
   /**
    * @return ids of traversed nodes using depth traversal
    */
-  def depthTraversal[T](t: Tree[T]) = {
+  final def depthTraversal[T](t: Tree[T]) = {
     @annotation.tailrec
     def go(l: List[Tree[T]], ids: mutable.Buffer[Int]): mutable.Buffer[Int] = {
       l match {

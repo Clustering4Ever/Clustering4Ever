@@ -66,11 +66,11 @@ trait ChainingOneAlgorithm[
     /**
      *
      */
-    private val previousClusteringNumber: Int = data.head.clusterIDs.size
+    private final val previousClusteringNumber: Int = data.head.clusterIDs.size
     /**
      * Indices of launched algorithm, ie (previousClusteringNumber until previousClusteringNumber + algorithms.size)
      */
-    val algorithmsIndices: Seq[Seq[Int]] = {
+    final val algorithmsIndices: Seq[Seq[Int]] = {
         @annotation.tailrec
         def go(i: Int, buff: Seq[Seq[Int]]): Seq[Seq[Int]] = {
             if(i == 0) go(i + 1, buff :+ (previousClusteringNumber until (previousClusteringNumber + algorithms.size)))
@@ -82,11 +82,11 @@ trait ChainingOneAlgorithm[
     /**
      *
      */
-    val algorithmNature: ClusteringAlgorithmNature = algorithms.head.algorithmID
+    final val algorithmNature: ClusteringAlgorithmNature = algorithms.head.algorithmID
     /**
      * Model Mapping required to access to specific model in ModelsKeeper HMAP
      */
-    val modelMapping: ModelsMapping[Int, CM] = ModelsMapping[Int, CM]
+    final val modelMapping: ModelsMapping[Int, CM] = ModelsMapping[Int, CM]
     /**
      *
      */
@@ -94,7 +94,7 @@ trait ChainingOneAlgorithm[
     /**
      *
      */
-    val dataSortedByID: GS[Cz[O, V]] = if(!isDatasetSortedByID) SortGsCz.sortByID(data) else data
+    final val dataSortedByID: GS[Cz[O, V]] = if(!isDatasetSortedByID) SortGsCz.sortByID(data) else data
     /**
      * Add to current vectorization algorithm made with their indices
      */
@@ -102,7 +102,7 @@ trait ChainingOneAlgorithm[
     /**
      * ParSeq of Collection of ClusterID,  each ParSeq elem correspond to the given algorithms order
      */
-    val clusteringIDsResults: parallel.ParSeq[GS[ClusterID]] = {
+    final val clusteringIDsResults: parallel.ParSeq[GS[ClusterID]] = {
 
         if(vectorizations.size == 1) {   
             val (modelsIn, clusteringIDsResultsIn) = algorithms.par.map{ alg =>
@@ -132,28 +132,28 @@ trait ChainingOneAlgorithm[
     /**
      * get one model from those resulting from given clustering algorithm
      */
-    def getModel(i: Int): Option[CM] = modelsKeeper.getModel(i, modelMapping)
+    final def getModel(i: Int): Option[CM] = modelsKeeper.getModel(i, modelMapping)
     /**
      * get all models resulting from given clustering algorithm for a particular vectorization
      */
-    def getModelsFromVecto(vecto: Vecto): Seq[CM] = vecto.runnedAlgorithms.map(_._1).map( algIdx => modelsKeeper.getModel(algIdx, modelMapping).get )
+    final def getModelsFromVecto(vecto: Vecto): Seq[CM] = vecto.runnedAlgorithms.map(_._1).map( algIdx => modelsKeeper.getModel(algIdx, modelMapping).get )
     /**
      * get all models resulting from given clustering algorithm
      */
-    def getAllModels: Seq[CM] = algorithmsIndices.flatten.map(getModel(_).get) 
+    final def getAllModels: Seq[CM] = algorithmsIndices.flatten.map(getModel(_).get) 
     /**
      * The Dataset vectorization is the original one
      *
      * @return the linked dataset between clusterizable and their associate clusteringIDs sorted by clusterizable ID
      */
-    def obtainSortedClusterizedData: GS[Cz[O, V]] = {
+    final def obtainSortedClusterizedData: GS[Cz[O, V]] = {
         val allClusteringIDs = clusteringIDsResults.map( clusteringIDsFromOneAlgo => clusteringIDsFromOneAlgo.map(mutable.ArrayBuffer(_)) ).reduce( (a, b) => a.zip(b).map{ case (c, d) => c ++= d } )
         dataSortedByID.zip(allClusteringIDs).map{ case (cz, clusteringIDs) => cz.addClusterIDs(clusteringIDs:_*) }.asInstanceOf[GS[Cz[O, V]]]
     }
     /**
      *
      */
-    def getEveryMIPerClustering(groundTruth: GenSeq[Int]): GenSeq[(Double, Double, Double)] = {
+    final def getEveryMIPerClustering(groundTruth: GenSeq[Int]): GenSeq[(Double, Double, Double)] = {
         clusteringIDsResults.map( clusteringIDsFromOneAlgo => ExternalIndicesLocal.everyMI(groundTruth, clusteringIDsFromOneAlgo)  )
     }
 
@@ -181,11 +181,11 @@ final case class LocalClusteringChainingScalar[
     GS[X] <: GenSeq[X],
     Algorithms[A <: Seq[Double], B <: ClusteringModelLocalScalar[A]] <: ClusteringAlgorithmLocalScalar[A, B]
 ](
-    val data: GS[Cz[O, ScalarVector[V]]],
-    val isDatasetSortedByID: Boolean,
-    val vectorizations: Seq[Vecto[O, V]],
-    val algorithms: Seq[Algorithms[V, CM]],
-    val modelsKeeper: ModelsKeeper = new ModelsKeeper
+    final val data: GS[Cz[O, ScalarVector[V]]],
+    final val isDatasetSortedByID: Boolean,
+    final val vectorizations: Seq[Vecto[O, V]],
+    final val algorithms: Seq[Algorithms[V, CM]],
+    final val modelsKeeper: ModelsKeeper = new ModelsKeeper
 ) extends ChainingOneAlgorithm[O, ScalarVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]
 /**
  * This classe intend to run many algorithms parallely on a local system for medium size datasets, it works for one version of an algorithm with various parameters
@@ -210,9 +210,9 @@ final case class LocalClusteringChainingBinary[
     GS[X] <: GenSeq[X],
     Algorithms[A <: Seq[Int], B <: ClusteringModelLocalBinary[A]] <: ClusteringAlgorithmLocalBinary[A, B]
 ](
-    val data: GS[Cz[O, BinaryVector[V]]],
-    val isDatasetSortedByID: Boolean,
-    val vectorizations: Seq[Vecto[O, V]],
-    val algorithms: Seq[Algorithms[V, CM]],
-    val modelsKeeper: ModelsKeeper = new ModelsKeeper
+    final val data: GS[Cz[O, BinaryVector[V]]],
+    final val isDatasetSortedByID: Boolean,
+    final val vectorizations: Seq[Vecto[O, V]],
+    final val algorithms: Seq[Algorithms[V, CM]],
+    final val modelsKeeper: ModelsKeeper = new ModelsKeeper
 ) extends ChainingOneAlgorithm[O, BinaryVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]

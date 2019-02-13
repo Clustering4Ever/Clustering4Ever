@@ -7,7 +7,7 @@ import scala.reflect.runtime.universe.TypeTag
 import scala.util.Random
 import scala.reflect.ClassTag
 import scala.collection.{GenSeq, mutable}
-import org.clustering4ever.clusterizables.Clusterizable
+import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.hashing.HashingScalar
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 
@@ -22,12 +22,12 @@ object UtilSpark
 	final def generateDataLocalityOnHashsedDS[
 		O,
 		V <: Seq[Double],
-		Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]
+		Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz]
 	](
-		rddToPartitioned: RDD[Cz[O, ScalarVector[V]]],
+		rddToPartitioned: RDD[Pz[O, ScalarVector[V]]],
 		nbblocs1: Int,
 		nbBucketRange: Int
-	): RDD[(IndexPartition, (Cz[O, ScalarVector[V]], IsOriginalDot, HasConverged))] = {
+	): RDD[(IndexPartition, (Pz[O, ScalarVector[V]], IsOriginalDot, HasConverged))] = {
 		val isOriginalPoint = true
 		val hasConverged = true
 		val bucketRange = 1 to nbBucketRange
@@ -52,14 +52,14 @@ object UtilSpark
 	final def generateDataLocalityLD[
 		O,
 		V <: Seq[Double],
-		Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz],
+		Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz],
 		Hasher <: HashingScalar[V]
 	](
-		rddToPartitioned: RDD[Cz[O, ScalarVector[V]]],
+		rddToPartitioned: RDD[Pz[O, ScalarVector[V]]],
 		hashing: Hasher,
 		nbblocs1: Int,
 		nbBucketRange: Int
-	): RDD[(IndexPartition, (Cz[O, ScalarVector[V]], IsOriginalDot, HasConverged))] = {
+	): RDD[(IndexPartition, (Pz[O, ScalarVector[V]], IsOriginalDot, HasConverged))] = {
 		val hashedRDD = rddToPartitioned.sortBy( cz => hashing.hf(cz.v) , ascending = true, nbblocs1 )
 		generateDataLocalityOnHashsedDS(hashedRDD, nbblocs1, nbBucketRange)
 	}

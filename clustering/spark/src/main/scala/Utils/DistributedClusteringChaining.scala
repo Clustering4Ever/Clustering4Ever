@@ -59,7 +59,7 @@ case class DistributedClusteringChaining[
     /**
      *
      */
-    type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]] = DistributedClusteringChaining[O, GV, Cz, OtherVecto, S]
+    final type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]] = DistributedClusteringChaining[O, GV, Cz, OtherVecto, S]
     /**
      * Run one algorithm defined by user
      */

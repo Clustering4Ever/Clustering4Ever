@@ -166,7 +166,7 @@ trait KnnKernel[V <: GVector[V], D <: Distance[V], Args <: KernelArgsKnn[V, D]] 
 	 */
 	final def obtainMode(v: V, env: GenSeq[V]): V = {
 		val knn = obtainKnn(v, env.seq)
-		ClusterBasicOperations.obtainCenter(env, kernelArgs.metric)
+		ClusterBasicOperations.obtainCenter(knn, kernelArgs.metric)
 	}
 }
 /**
