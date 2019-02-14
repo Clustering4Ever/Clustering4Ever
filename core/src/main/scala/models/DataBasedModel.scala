@@ -14,7 +14,7 @@ import org.clustering4ever.clusterizables.Clusterizable
  */
 trait DataBasedModel[V <: GVector[V], D <: Distance[V]] extends KnnModelModelCz[V, D] {
 	/**
-	 * The whole dataset sorted by clusterizable IDs as a ollection [(ID, Vector, ClusterID)]
+	 * The whole dataset sorted by clusterizable IDs as a collection [(ID, Vector, ClusterID)]
 	 */
 	val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (V, ClusterID))]
 	/**

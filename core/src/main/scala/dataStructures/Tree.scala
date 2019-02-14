@@ -12,11 +12,11 @@ sealed trait Tree[+T] {
 /**
  * Generic definition of a Leaf
  */
-final case class Leaf[T](val id: Int, val value: T) extends Tree[T]
+final case class Leaf[T](final val id: Int, final val value: T) extends Tree[T]
 /**
  * Generic definition of a Node
  */
-final case class Node[T](val id: Int, var childrens: List[Tree[T]]) extends Tree[T]
+final case class Node[T](final val id: Int, var childrens: List[Tree[T]]) extends Tree[T]
 /**
  * Some basic methods linked to tree
  */

@@ -8,11 +8,12 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.2"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.3"` to your `libraryDependencies`
 
-Eventually add this resolver :
+Eventually add one of these resolvers :
 
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "C4E")`
+* `resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/"`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 
