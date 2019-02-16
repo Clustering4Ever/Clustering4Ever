@@ -27,9 +27,9 @@ trait Tree[V <: GVector[V], D <: Distance[V]]{
 
     val x0 = Support
 
-    val ants: immutable.Map[Int, Ant] = (1 to (data.size + 1)).zip(data.map( cz => new Ant(Some(cz)))).toMap
+    val ants: immutable.Map[Long, Ant] = (data.map(cz => cz.id)).zip(data.map( cz => new Ant(Some(cz)))).toMap + (0L -> x0)
 
-    val notConnectedAnts = mutable.Queue(ants.keys.toSeq:_*)
+    val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != 0).toSeq:_*)
 
     val branch: Graph[Int, UnDiEdge] = Graph[Int,UnDiEdge](0)
 
