@@ -8,11 +8,12 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.8.4"` to your `libraryDependencies`
+* `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.3"` to your `libraryDependencies`
 
-Eventually add this resolver :
+Eventually add one of these resolvers :
 
 * `resolvers += Resolver.bintrayRepo("clustering4ever", "C4E")`
+* `resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/"`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 
@@ -29,24 +30,40 @@ You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 ### Clustering algorithms
 
 * _Jenks Natural Breaks_
+* **_Epsilon Proximity_** *
+* * **_Scalar Epsilon Proximity_** *
+* * _Binary Epsilon Proximity_ *
+* * _Mixed Epsilon Proximity_ *
+* * _Any Object Epsilon Proximity_ *
 * **_K-Centers_** *
   * **_K-Means_** *
   * **_K-Modes_** *
   * **_K-Prototypes_** *
-* _Tensor Biclustering algorithms_
+  * **_Any Object K-Centers_** *
+* **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
+* **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
+* **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
+* _Random Local Area_ *
+* **Clusterwize** 
+* _Tensor Biclustering algorithms_ ([Original project](https://github.com/SoheilFeizi/Tensor-Biclustering))
   * _Folding-Spectral_
   * _Unfolding-Spectral_
   * _Thresholding Sum Of Squared Trajectory Length_
   * _Thresholding Individuals Trajectory Length_
   * _Recursive Biclustering_
   * _Multiple Biclustering_
-* **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
-* **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
-* **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
-* _Random Local Area_ *
-* **Clusterwize** 
+
 
 Algorithm followed with a * implement _ClusteringAlgorithm_ trait and can be run by benchmarking classes.
+
+### Preprocessing
+
+* **_Gradient Ascent_** (Mean-Shift related)
+  * **_Scalar Gradient Ascent_**
+  * _Binary Gradient Ascent_
+  * _Mixed Gradient Ascent_
+  * _Any Object Gradient Ascent_
+* **_Rough Set Features Selection_**
 
 ### Quality Indices
 
@@ -60,14 +77,10 @@ Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ 
   * **_Ball Hall_**
   * _Silhouette_
 
-### Preprocessing
-
-* _Gradient Ascent_
-* **_Rough Set Features Selection_**
 
 ### Clustering benchmarking and analysis
 
-Using classes _ClusteringChainingLocal_, _BigDataClusteringChaining_, and _DistributedClusteringChaining_ you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
+Using classes _ClusteringChainingLocal_, _BigDataClusteringChaining_, _DistributedClusteringChaining_, and _ChainingOneAlgorithm_ descendants you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, **locally and parallely**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
 
 Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ are devoted for clustering indices analysis.
 
@@ -75,8 +88,6 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
 
 ### Incoming soon
 
-* **Improved Spark Gradient Ascent**
-* **new scalable clustering algorithms**
 * **_Gaussian Mixture Models_**
 * _Meta heuristic_
 * **More clustering indices**
@@ -103,7 +114,3 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 * ArrayBuffer as vector are a good start
 * ArrayBuffer, ParArray or ParSeq as vector containers are recommended
-
-### Others recommendations
-
-* It is advise to use Numeric value for the ID generic, else depending the case you will have to provide an according Ordering on ID.

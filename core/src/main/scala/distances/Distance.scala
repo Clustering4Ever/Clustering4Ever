@@ -4,7 +4,7 @@ package org.clustering4ever.math.distances
  */
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.vectors.{GVector, GSimpleVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, GSimpleVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.types.MetricIDType._
 /**
  *
@@ -12,6 +12,7 @@ import org.clustering4ever.types.MetricIDType._
 trait MetricArgs extends Serializable
 /**
  * Most general notion of Distance, taking two object of type O and returning a Double
+ * @tparam O the object on which is apply the distance method
  */
 trait GenericDistance[O] extends Serializable {
 // trait Distance[O, MA <: MetricArgs] extends Serializable {
@@ -21,7 +22,7 @@ trait GenericDistance[O] extends Serializable {
 	 */
 	def d(o1: O, o2: O): Double
 	/**
-	 * The ID of the metric, it is used for internal clustering indices 
+	 * The unique ID of the metric, it is used for internal clustering indices
 	 */
 	val id: MetricID
 }
@@ -36,10 +37,13 @@ object EmptyDistance extends GenericDistance[Nothing] {
 }
 /**
  * Distance trait for applicable on GVector descendant as objects
+ * @tparam V the GVector on which is apply the distance method
  */
 trait Distance[V <: GVector[V]] extends GenericDistance[V]
 /**
- *
+ * @tparam SV the GVector on which is apply the distance method
+ * @tparam T the nature of object inside vector field of GVector
+ * @tparam V the nature of collection for vector field of GVector
  */
 trait GSimpleVectorDistance[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV]] extends Distance[SV] {
 	/**
@@ -58,7 +62,7 @@ trait BinaryDistance[V <: Seq[Int]] extends GSimpleVectorDistance[Int, V, Binary
 /**
  *
  */
-trait MixtDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixtVector[Vb, Vs]] {
+trait MixedDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixedVector[Vb, Vs]] {
 	/**
 	 * Distance on raw vector nature
 	 */

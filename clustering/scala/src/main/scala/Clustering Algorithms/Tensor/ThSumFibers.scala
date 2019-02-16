@@ -7,11 +7,13 @@ import breeze.math._
 import breeze.numerics._
 import scala.collection.mutable
 import breeze.stats.mean
-import org.clustering4ever.clustering.ClusteringAlgorithmAncestor
+import org.clustering4ever.clustering.ClusteringAlgorithm
 /**
  *
  */
-class ThSumFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithmAncestor {
+class ThSumFibers(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
+
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.TensorBiclustering
 	/**
 	 *
 	 */

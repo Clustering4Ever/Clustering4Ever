@@ -31,19 +31,15 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 	/**
 	 * kryo Serialization if true, java one else
 	 */
-	val encoder = if(kryoSerialization) Encoders.kryo[(Int, V)] else Encoders.javaSerialization[(Int, V)]
+	final val encoder = if(kryoSerialization) Encoders.kryo[(Int, V)] else Encoders.javaSerialization[(Int, V)]
 	/**
 	 * kryo Serialization if true, java one else
 	 */
-	private val encoderInt = if(kryoSerialization) Encoders.kryo[Int] else Encoders.javaSerialization[Int]
+	private final val encoderInt = if(kryoSerialization) Encoders.kryo[Int] else Encoders.javaSerialization[Int]
 	/**
 	 *
 	 */
-	protected def obtainCenters[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
-		/**
-		 * kryo Serialization if true, java one else
-		 */
-		// val encoder = if(kryoSerialization) Encoders.kryo[Cz[O, V]] else Encoders.javaSerialization[Cz[O, V]]
+	protected final def obtainCenters[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
 
 		data.persist(persistanceLVL)
 
@@ -54,25 +50,30 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 				else (key, ClusterBasicOperations.obtainCenter(agg.par.map(_.v), metric))
 		}
 
-		val centers: immutable.HashMap[Int, V] = if(customCenters.isEmpty) kmppInitializationRDD(data.rdd.map(_.v), k, metric) else customCenters
+		val unSortedCenters: mutable.ArrayBuffer[(Int, V)] = if(customCenters.isEmpty) mutable.ArrayBuffer(kmppInitializationRDD(data.rdd.map(_.v), k, metric).toSeq:_*) else mutable.ArrayBuffer(customCenters.toSeq:_*)
+		val centers = unSortedCenters.sortBy(_._1)
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: immutable.HashMap[Int, V]): immutable.HashMap[Int, V] = {
-			val updatedCenters = immutable.HashMap(
+		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
+			val preUpdatedCenters = mutable.ArrayBuffer(
 				data.groupByKey( cz => obtainNearestCenterID(cz.v, centers, metric) )(encoderInt)
 					.mapGroups(computeCenters)(encoder)
 					.collect
-				:_*)
-			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, centers, epsilon, metric)
+				:_*).sortBy(_._1)
+			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
+			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
+			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, epsilon, metric)
 			if(cpt < maxIterations && !shiftingEnough) {
 				go(cpt + 1, shiftingEnough, updatedCenters)
 			}
 			else {
-				updatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
+				updatedCenters
 			}
 		}
-		go(0, false, centers)
+
+		immutable.HashMap(go(0, false, centers):_*)
+
 	}
 }

@@ -9,7 +9,7 @@ import scala.util.Random
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.Dataset
 import org.apache.spark.storage.StorageLevel
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixedDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
@@ -22,9 +22,11 @@ import org.clustering4ever.vectors.{GVector, ScalarVector}
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]])(protected implicit val ctV: ClassTag[ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] {
+final case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]])(protected implicit val ctV: ClassTag[ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] {
 
-	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
+
+	final def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
@@ -38,7 +40,7 @@ object KMeans {
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
-	def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](
+	final def run[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](
 		data: RDD[V],
 		k: Int,
 		metric: D[V],

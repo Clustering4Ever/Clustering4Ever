@@ -40,8 +40,8 @@ object Stats extends ClusteringSharedTypes {
 		val dim = data.head.size
 		val range = (0 until dim)
 		val (minValues, maxValues) = data.map( v => (v, v) ).reduce{ (minMaxa, minMaxb) =>
-			val builderMin = data.head.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
-			val builderMax = data.head.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
+			val builderMin = data.head.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, V]]
+			val builderMax = data.head.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, V]]
 			builderMin.sizeHint(dim)
 			builderMax.sizeHint(dim)
 			range.foreach{ i => 

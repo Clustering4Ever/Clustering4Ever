@@ -16,11 +16,11 @@ import org.clustering4ever.vectors.{GVector, BinaryVector}
 /**
  *
  */
-case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]])(protected implicit val ctV: ClassTag[BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] {
-	/**
-	 *
-	 */
-	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+final case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val k: Int, final val metric: D[V], final val epsilon: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]])(protected implicit final val ctV: ClassTag[BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] {
+
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
+
+	final def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }
 /**
  *
@@ -29,7 +29,7 @@ object KModes {
 	/**
 	 * Run the K-Modes with any binary distance
 	 */
-	def run[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](
+	final def run[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](
 		data: RDD[V],
 		k: Int,
 		metric: D[V],

@@ -6,11 +6,11 @@ import scala.language.higherKinds
 import scala.reflect.ClassTag
 import scala.collection.{immutable, GenSeq}
 import scala.util.Random
-import org.clustering4ever.math.distances.{MixtDistance, Distance}
+import org.clustering4ever.math.distances.{MixedDistance, Distance}
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaCollectionImplicits._
-import org.clustering4ever.vectors.{GVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, MixedVector}
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data GenSeq of Clusterizable descendant, the EasyClusterizable is the basic reference
@@ -19,10 +19,10 @@ import org.clustering4ever.vectors.{GVector, MixtVector}
  * @param maxIterations maximal number of iteration
  * @param metric a defined dissimilarity measure
  */
-case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val customCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]]) extends KCentersAncestor[MixtVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
+final case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val k: Int, final val metric: D[Vb, Vs], final val epsilon: Double, final val maxIterations: Int, final val customCenters: immutable.HashMap[Int, MixedVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixedVector[Vb, Vs]]) extends KCentersAncestor[MixedVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
 
-	val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
 
-	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, MixtVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels(k, metric, epsilon, maxIterations, obtainCenters(data))
+	final def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, MixedVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels(k, metric, epsilon, maxIterations, obtainCenters(data))
 
 }

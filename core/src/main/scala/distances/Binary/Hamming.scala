@@ -9,45 +9,45 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{BinaryVector, GVector}
 import org.clustering4ever.types.MetricIDType._
 /**
- *
+ * @tparam V
  */
-trait HammingMeta extends Serializable {
-
-	protected def hamming[V <: Seq[Int]](dot1: V, dot2: V): Double = {
-
+trait HammingMeta[V <: Seq[Int]] extends Serializable {
+	/**
+	 *
+	 */
+	protected final def hamming(v1: V, v2: V): Double = {
 		@annotation.tailrec
 		def go(d: Double, i: Int): Double = {
-			if( i < dot1.size ) {
-			  go(d + (dot1(i) ^ dot2(i)), i + 1)
+			if( i < v1.size ) {
+			  go(d + (v1(i) ^ v2(i)), i + 1)
 			}
 			else d
 		}
 		go(0D, 0)
-
 	}
 }
 /**
- *
+ * @tparam V
  */
-class RawHamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta with RawBinaryDistance[V] {
+final case class RawHamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta[V] with RawBinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
-	  * @return The Hamming distance between dot1 and dot2
+	  * @return The Hamming distance between v1 and v2
 	  */
-	def d(dot1: V, dot2: V): Double = hamming(dot1, dot2)
+	final def d(v1: V, v2: V): Double = hamming(v1, v2)
 }
 /**
- *
+ * @tparam V
  */
-case class Hamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta with BinaryDistance[V] {
+final case class Hamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta[V] with BinaryDistance[V] {
 	/**
 	  * The Hamming distance with or without squareRoot
-	  * @return The Hamming distance between dot1 and dot2
+	  * @return The Hamming distance between v1 and v2
 	  */
-	def d(dot1: V, dot2: V): Double = hamming(dot1, dot2)
+	final def d(v1: V, v2: V): Double = hamming(v1, v2)
 	/**
 	  * The Hamming distance with or without squareRoot
-	  * @return The Hamming distance between dot1 and dot2
+	  * @return The Hamming distance between v1 and v2
 	  */
-	def d(dot1: BinaryVector[V], dot2: BinaryVector[V]): Double = hamming(dot1.vector, dot2.vector)
+	final def d(v1: BinaryVector[V], v2: BinaryVector[V]): Double = hamming(v1.vector, v2.vector)
 }

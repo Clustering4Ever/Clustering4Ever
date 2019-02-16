@@ -7,11 +7,13 @@ import breeze.linalg.svd.SVD
 import breeze.stats.mean
 import breeze.linalg._
 import scala.math._
-import org.clustering4ever.clustering.ClusteringAlgorithmAncestor
+import org.clustering4ever.clustering.ClusteringAlgorithm
 /**
  * Suppose that we have the matrix T_1 and T_2 from a higher data of dimension n1xn2xn3
  */
-class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithmAncestor {
+class TensorFoldSpectral(val k1: Int, val k2: Int) extends ClusteringAlgorithm {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.TensorBiclustering
 
   def run(data: mutable.ArrayBuffer[DenseMatrix[Double]]) = {
 

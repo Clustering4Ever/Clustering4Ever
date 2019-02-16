@@ -6,39 +6,63 @@ trait ClusteringAlgorithmNature extends Serializable
 /**
  *
  */
-object KCenters extends ClusteringAlgorithmNature
+final case object JenksNaturalBreaks extends ClusteringAlgorithmNature
 /**
  *
  */
-object KMeans extends ClusteringAlgorithmNature
+final case object TensorBiclustering extends ClusteringAlgorithmNature
 /**
  *
  */
-object KModes extends ClusteringAlgorithmNature
+final case object KCenters extends ClusteringAlgorithmNature
 /**
  *
  */
-object KPrototypes extends ClusteringAlgorithmNature
+final case object KMeans extends ClusteringAlgorithmNature
 /**
  *
  */
-object GaussianMixtures extends ClusteringAlgorithmNature
+final case object KModes extends ClusteringAlgorithmNature
 /**
  *
  */
-object AnAlgoWithoutArgs extends ClusteringAlgorithmNature
+final case object KPrototypes extends ClusteringAlgorithmNature
 /**
  *
  */
-object RLA extends ClusteringAlgorithmNature
+final case object GaussianMixtures extends ClusteringAlgorithmNature
 /**
  *
  */
-object RLAScalar extends ClusteringAlgorithmNature
+final case object RLA extends ClusteringAlgorithmNature
 /**
  *
  */
-object EpsilonProximity extends ClusteringAlgorithmNature
+final case object RLAScalar extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object RLABinary extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object RLAMixt extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object EpsilonProximity extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object EpsilonProximityScalar extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object EpsilonProximityBinary extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object EpsilonProximityMixt extends ClusteringAlgorithmNature
 /**
  *
  */
@@ -46,4 +70,4 @@ trait PreprocessingAlgorithmNature extends Serializable
 /**
  *
  */
-object GradientAscent extends PreprocessingAlgorithmNature
+final case object GradientAscent extends PreprocessingAlgorithmNature

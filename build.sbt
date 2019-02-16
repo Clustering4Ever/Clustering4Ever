@@ -23,7 +23,6 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 		"com.chuusai" %% "shapeless" % "2.3.3",
 	  "org.scala-graph" %% "graph-core" % "1.12.5",
 		compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
-	  	// "com.beachape" %% "enumeratum" % "1.5.13"
 )
 
 lazy val commonCredentialsAndResolvers = Seq(
@@ -41,7 +40,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.8.5-SNAPSHOT",
+	 	version := "0.9.3",
 		scalaVersion := "2.11.12",
 		conflictManager := ConflictManager.all,
 		autoAPIMappings := true,

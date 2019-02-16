@@ -24,7 +24,7 @@ import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel, Clu
 /**
  * The basic trait shared by all distributed clustering algorithms
  */
-trait ClusteringAlgorithmDistributed[V <: GVector[V], CA <: ClusteringModelDistributed[V]] extends ClusteringAlgorithm[V, CA] {
+trait ClusteringAlgorithmDistributed[V <: GVector[V], CA <: ClusteringModelDistributed[V]] extends ClusteringAlgorithm {
 	/**
 	 * Execute the corresponding clustering algorithm
 	 * @return ClusteringModel
@@ -35,13 +35,7 @@ trait ClusteringAlgorithmDistributed[V <: GVector[V], CA <: ClusteringModelDistr
 /**
  *
  */
-trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel[V] {
-
-	// type Self <: ClusteringModelDistributed[V]
-
-	// type AssociateAlgorithm <: ClusteringAlgorithmDistributed[V, Self]
-
-	// def obtainAlgorithm: AssociateAlgorithm
+trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel {
 	/**
 	 * General methods to obtain a clustering from the model in order to measure performances scores
 	 */
@@ -49,14 +43,14 @@ trait ClusteringModelDistributed[V <: GVector[V]] extends ClusteringModel[V] {
 	/**
 	 * @return a RDD of clusterIDs 
 	 */
-	protected[clustering] def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): RDD[ClusterID] = {
+	protected[clustering] final def obtainClusteringIDs[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): RDD[ClusterID] = {
 		obtainClustering(data).map(_.clusterIDs.last)
 	}
 }
 /**
  *
  */
-case class ClusteringInformationsDistributed[O, V <: GVector[V], Vecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Vecto]](
+final case class ClusteringInformationsDistributed[O, V <: GVector[V], Vecto[A, B <: GVector[B]] <: VectorizationDistributed[A, B, Vecto]](
 	val clusteringInformations: immutable.HashSet[
 		(
 			ClusteringRunNumber,
@@ -72,9 +66,9 @@ object RowToCz extends Serializable {
 	/**
 	 *
 	 */
-	def fromRawToEasyClusterizable[GV <: GVector[GV]](row: Row, id: Int, vectorIDInRow: Int) = EasyClusterizable(row.getAs[Long](id), row, row.getAs[GV](vectorIDInRow))
+	final def fromRawToEasyClusterizable[GV <: GVector[GV]](row: Row, id: Int, vectorIDInRow: Int) = EasyClusterizable(row.getAs[Long](id), row, row.getAs[GV](vectorIDInRow))
 	/**
 	 *
 	 */
-	def fromCzToRaw[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](cz: Cz[O, V]) = Row(cz)
+	final def fromCzToRaw[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](cz: Cz[O, V]) = Row(cz)
 }

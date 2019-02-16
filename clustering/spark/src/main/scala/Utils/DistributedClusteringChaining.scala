@@ -30,11 +30,11 @@ case class DistributedClusteringChaining[
     Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
     S[X] <: Seq[X]
 ](
-    @transient val sc: SparkContext,
-    val data: S[Cz[O, V]],
-    val chainableID: Int,
-    val currentVectorization: Vecto[O, V],
-    val clusteringInformations: HMap[ClusteringInformationsMapping] = HMap.empty[ClusteringInformationsMapping]
+    @transient final val sc: SparkContext,
+    final val data: S[Cz[O, V]],
+    final val chainableID: Int,
+    final val currentVectorization: Vecto[O, V],
+    final val clusteringInformations: HMap[ClusteringInformationsMapping] = HMap.empty[ClusteringInformationsMapping]
 )(implicit ct: ClassTag[Cz[O, V]], ct2: ClassTag[S[Cz[O, V]]]) extends DataExplorator[O, V, Cz, S] {
     /**
      *
@@ -59,11 +59,11 @@ case class DistributedClusteringChaining[
     /**
      *
      */
-    type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]] = DistributedClusteringChaining[O, GV, Cz, OtherVecto, S]
+    final type Self[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]] = DistributedClusteringChaining[O, GV, Cz, OtherVecto, S]
     /**
      * Run one algorithm defined by user
      */
-    def runAlgorithm(algorithm: ClusteringAlgorithmLocal[V, _ <: ClusteringModelLocal[V]]): Self[V, Vecto] = {
+    final def runAlgorithm(algorithm: ClusteringAlgorithmLocal[V, _ <: ClusteringModelLocal[V]]): Self[V, Vecto] = {
         val model = algorithm.run(data)
         val updatedRunNumber = clusteringRunNumber + 1
         val updatedData = model.obtainClustering(data)
@@ -86,7 +86,7 @@ case class DistributedClusteringChaining[
     /**
      *
      */
-    def runAlgorithms(defaultParallelism: Int, argsModels: ClusteringAlgorithmLocal[V, _ <: ClusteringModelLocal[V]]*): Self[V, Vecto] = {
+    final def runAlgorithms(defaultParallelism: Int, argsModels: ClusteringAlgorithmLocal[V, _ <: ClusteringModelLocal[V]]*): Self[V, Vecto] = {
 
         val dataBrodcasted = sc.broadcast(data)
         val clusteringChainingLocalFinal@ClusteringChainingLocal(dataFinal, chainableIDFinal, currentVectorizationFinal, clusteringInformationsFinal) = sc.parallelize(argsModels.zipWithIndex, defaultParallelism).map{ case (algorithm, algIdx) =>
@@ -109,7 +109,7 @@ case class DistributedClusteringChaining[
     /**
      *
      */
-    private def internalUpdating[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]) = {
+    final private def internalUpdating[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]) = {
         val updatedRunNumber = clusteringRunNumber
         val updatedVectorizations = vectorizations.+((vectorization.vectorizationID, vectorization))(vectorization.vectoMapping)
         val updatedFusionChainableSecurity = fusionChainableSecurity
@@ -118,7 +118,7 @@ case class DistributedClusteringChaining[
     /**
      *
      */
-    def addVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]): Self[V, Vecto] = {
+    final def addVectorizationOnData[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]): Self[V, Vecto] = {
 
         val (updatedRunNumber, updatedVectorizations, updatedFusionChainableSecurity) = internalUpdating(vectorization)
         new DistributedClusteringChaining(
@@ -137,7 +137,7 @@ case class DistributedClusteringChaining[
     /**
      * Update the current working vector for another existing vector in clusterizable vectorized field
      */
-    def switchForExistingVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]] (vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[O, GV]], ct2: ClassTag[S[Cz[O, GV]]]): Self[GV, OtherVecto] = {
+    final def switchForExistingVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]] (vectorization: OtherVecto[O, GV])(implicit ct: ClassTag[Cz[O, GV]], ct2: ClassTag[S[Cz[O, GV]]]): Self[GV, OtherVecto] = {
 
         val updatedVectorData = data.map(_.switchForExistingVectorization(vectorization)).asInstanceOf[S[Cz[O, GV]]]
         val updatedCurrentVectorization = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
@@ -156,7 +156,7 @@ case class DistributedClusteringChaining[
  *
  */
 object DistributedClusteringChaining extends Serializable {
-    def apply[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], S[X] <: Seq[X]](@(transient @param) sc: SparkContext, data: S[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]], ct2: ClassTag[S[Cz[O, V]]]) = {
+    final def apply[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], S[X] <: Seq[X]](@(transient @param) sc: SparkContext, data: S[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]], ct2: ClassTag[S[Cz[O, V]]]) = {
         new DistributedClusteringChaining(
             sc,
             data,

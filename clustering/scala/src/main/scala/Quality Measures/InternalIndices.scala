@@ -1,4 +1,4 @@
-package org.clustering4ever.indices
+package org.clustering4ever.clustering.indices
 /**
  * @author Beck Gaël
  */
@@ -136,15 +136,15 @@ trait InternalIndicesAncestorLocal[V <: GVector[V], D <: Distance[V]] extends In
  * @tparam V
  * @tparam D
  */
-case class InternalIndicesLocal[V <: GVector[V], D[A <: GVector[A]] <: Distance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[V, D[V]]
+final case class InternalIndicesLocal[V <: GVector[V], D[A <: GVector[A]] <: Distance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[V, D[V]]
 /**
  *
  */
-case class InternalIndicesScalarLocal[V <: Seq[Double], D[A <: Seq[Double]] <: ContinuousDistance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[ScalarVector[V], D[V]]
+final case class InternalIndicesScalarLocal[V <: Seq[Double], D[A <: Seq[Double]] <: ContinuousDistance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[ScalarVector[V], D[V]]
 /**
  *
  */
-case class InternalIndicesBinaryLocal[V <: Seq[Int], D[A <: Seq[Int]] <: BinaryDistance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[BinaryVector[V], D[V]]
+final case class InternalIndicesBinaryLocal[V <: Seq[Int], D[A <: Seq[Int]] <: BinaryDistance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArrayBuffer[Int]] = None) extends InternalIndicesAncestorLocal[BinaryVector[V], D[V]]
 /**
  *
  */

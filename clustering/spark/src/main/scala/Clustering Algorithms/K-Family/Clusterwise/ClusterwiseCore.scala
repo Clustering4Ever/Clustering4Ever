@@ -6,11 +6,11 @@ import scala.util.control.Breaks._
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
 
-class ClusterwiseCore[V <: Seq[Double]](
-	val dsXYTrain: GenSeq[(Int, (V, V))],
-	val h: Int,
-	val g: Int,
-	val nbMaxAttemps: Int,
+final case class ClusterwiseCore[V <: Seq[Double]](
+	final val dsXYTrain: GenSeq[(Int, (V, V))],
+	final val h: Int,
+	final val g: Int,
+	final val nbMaxAttemps: Int,
 	logOn: Boolean = false
 )  extends ClusterwiseTypes[V] with Serializable {
 	val rangeOverClasses = (0 until g).toArray

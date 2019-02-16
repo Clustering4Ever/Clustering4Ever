@@ -27,7 +27,7 @@ trait IdentifiedRawObject[O] {
 /**
  *
  */
-case class EasyIdentifiedRawObject[O](val id: Long, val o: O) extends IdentifiedRawObject[O]
+final case class EasyIdentifiedRawObject[O](final val id: Long, final val o: O) extends IdentifiedRawObject[O]
 /**
  * Identified Vectorizable Object
  */
@@ -35,7 +35,7 @@ trait IdentifiedVectorizableObject[O] extends IdentifiedRawObject[Vectorizable[O
 /**
  *
  */
-trait IdentifiedVector[O, V] extends IdentifiedRawObject[Vectorizable[O]] {
+trait IdentifiedVector[O, V] extends IdentifiedVectorizableObject[O] {
 	/**
 	 * The working vector of the container
 	 */
@@ -43,7 +43,7 @@ trait IdentifiedVector[O, V] extends IdentifiedRawObject[Vectorizable[O]] {
 	/**
 	 * Second hashCode just in case if IDs are more than 2^32
 	 */
-	final val hashCode2: Int = v.hashCode
+	final def hashCode2: Int = v.hashCode
 }
 /**
  * Restrict V to be a GVector descendant
@@ -61,9 +61,9 @@ trait IdentifiedWithVectorizations[O, V <: GVector[V]] extends IdentifiedGVector
 /**
  *
  */
-case class EasyIdentifiedVector[O, V <: GVector[V]](
-	val id: Long,
-	val v: V,
-	val o: Vectorizable[O],
-	val vectorized: HMap[VMapping] = HMap.empty[VMapping]
+final case class EasyIdentifiedVector[O, V <: GVector[V]](
+	final val id: Long,
+	final val v: V,
+	final val o: Vectorizable[O],
+	final val vectorized: HMap[VMapping] = HMap.empty[VMapping]
 ) extends IdentifiedWithVectorizations[O, V]

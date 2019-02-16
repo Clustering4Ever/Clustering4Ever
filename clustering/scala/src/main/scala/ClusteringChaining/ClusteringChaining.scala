@@ -10,7 +10,7 @@ import org.clustering4ever.clustering.ClusteringModelLocal
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.shapeless.{VMapping, VectorizationMapping, ClusteringInformationsMapping}
 import org.clustering4ever.extensibleAlgorithmNature._
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixtDistance}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixedDistance}
 import org.clustering4ever.clustering.kcenters.scala.KCenters
 import org.clustering4ever.clustering.{ClusteringChaining, ClusteringAlgorithm, ClusteringAlgorithmLocal, ClusteringInformationsLocal}
 import org.clustering4ever.types.VectorizationIDTypes._
@@ -18,7 +18,7 @@ import org.clustering4ever.types.ClusteringInformationTypes._
 import org.clustering4ever.enums.ClusteringIndices
 import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.enums.InternalsIndices._
-import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.vectorizations.{VectorizationLocal, EasyVectorizationLocal}
 /**
  * This classe intend to run many algorithms parallely on a local system for medium size datasets

@@ -29,30 +29,32 @@ object KPPInitializer extends Serializable {
 	 * <li> Anna D. Peterson, Arka P. Ghosh and Ranjan Maitra. A systematic evaluation of different methods for initializing the K-means clustering algorithm. 2010.</li>
 	 * </ol>
 	 */
-	def kppInit[
+	final def kppInit[
 		O,
 		V <: GVector[V],
 		Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
 		D <: Distance[V]
 	](data: GenSeq[Cz[O, V]], metric: D, k: Int): immutable.HashMap[Int, V] = {
 
-		// def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
-		def obtainNearestCenter(v: V, centers: immutable.Vector[V]): V = centers.minBy(metric.d(_, v))
+		val centers = mutable.ArrayBuffer(data(Random.nextInt(data.size)).v)
+
+		def obtainNearestCenter(v: V): V = centers.minBy(metric.d(_, v))
 
 		@annotation.tailrec
-		def go(i: Int, centers: immutable.Vector[V]): immutable.Vector[V] = {
-			val updatedCenters = centers :+ Stats.obtainCenterFollowingWeightedDistribution[V]{
+		def go(i: Int): Unit = {
+			centers += Stats.obtainCenterFollowingWeightedDistribution[V]{
 				data.map{ cz =>
-					val toPow2 = metric.d(cz.v, obtainNearestCenter(cz.v, centers))
+					val toPow2 = metric.d(cz.v, obtainNearestCenter(cz.v))
 					(cz.v, toPow2 * toPow2)
 				}.seq
 			}
-			if(i < k - 2) go(i + 1, updatedCenters)
-			else updatedCenters
+			if(i < k - 2) go(i + 1)
+			else Unit
 		}
 
+		go(0)
 		
-		immutable.HashMap(go(0, immutable.Vector(data(Random.nextInt(data.size)).v)).zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
+		immutable.HashMap(centers.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
 
 	}
 }

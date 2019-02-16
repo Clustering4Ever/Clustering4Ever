@@ -12,16 +12,28 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 /**
  *
  */
-class ClusterwiseModel[V <: Seq[Double]](
+final case class ClusterwiseModel[V <: Seq[Double]](
 	val xyTrain: GenSeq[(Int, (V, V, Int))],
 	interceptXYcoefPredByClass: immutable.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.IndexedSeq[(Int, Array[Double])])],
 	standardizationParameters: Option[(mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double])] = None,
 	metric: ContinuousDistance[V] = new Euclidean[V]
 ) {
-	type Xvector = V
-	type Yvector = V
-	type IDXtest = Seq[(Long, Xvector)]
-	type IDXYtest = ParSeq[(Int, (Xvector, Yvector))]
+	/**
+	 *
+	 */
+	final type Xvector = V
+	/**
+	 *
+	 */
+	final type Yvector = V
+	/**
+	 *
+	 */
+	final type IDXtest = Seq[(Long, Xvector)]
+	/**
+	 *
+	 */
+	final type IDXYtest = ParSeq[(Int, (Xvector, Yvector))]
 
 	private[this] def knn(v: V, neighbors: Seq[(V, Int)], k:Int) = neighbors.sortBy{ case (altVectors, clusterID) => metric.d(v, altVectors) }.take(k)
 

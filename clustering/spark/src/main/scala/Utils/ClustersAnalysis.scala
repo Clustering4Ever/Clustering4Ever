@@ -27,8 +27,8 @@ trait ClustersAnalysisDistributed[
 ] extends ClustersAnalysis[O, V, Cz, RDD] {
 
     private val neutralElement = mutable.ArrayBuffer.empty[Cz[O, V]]
-    def addToBuffer(buff: mutable.ArrayBuffer[Cz[O, V]], elem: Cz[O, V]) = buff += elem
-    def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[O, V]], buff2: mutable.ArrayBuffer[Cz[O, V]]) = buff1 ++= buff2
+    final def addToBuffer(buff: mutable.ArrayBuffer[Cz[O, V]], elem: Cz[O, V]) = buff += elem
+    final def aggregateBuff(buff1: mutable.ArrayBuffer[Cz[O, V]], buff2: mutable.ArrayBuffer[Cz[O, V]]) = buff1 ++= buff2
     /**
      *
      */
@@ -36,25 +36,25 @@ trait ClustersAnalysisDistributed[
     /**
      *
      */
-    def groupedByClusterID(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]]): RDD[(ClusterID, mutable.ArrayBuffer[Cz[O, V]])] = {
+    final def groupedByClusterID(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]]): RDD[(ClusterID, mutable.ArrayBuffer[Cz[O, V]])] = {
         data.map( cz => (cz.clusterIDs(clusteringNumber), cz) ).aggregateByKey(neutralElement)(addToBuffer, aggregateBuff)
     }
     /**
      *
      */
-    def cardinalities(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]]): immutable.Map[ClusterID, Int] = {
+    final def cardinalities(clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]]): immutable.Map[ClusterID, Int] = {
         groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size) }.collect.toMap
     }
     /**
      *
      */
-    def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, Double] = {
-        cardinalitiesByClusteringNumber(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
-    }
+    // def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, Double] = {
+        // cardinalitiesByClusteringNumber(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+    // }
     /**
      *
      */
-    def centroids[D[X <: GVector[X]] <: Distance[X]](metric: D[V], clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]], ct2: ClassTag[V]): immutable.Map[ClusterID, V] = {
+    final def centroids[D[X <: GVector[X]] <: Distance[X]](metric: D[V], clusteringNumber: ClusteringNumber)(implicit ct: ClassTag[Cz[O, V]], ct2: ClassTag[V]): immutable.Map[ClusterID, V] = {
         groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.collect.toMap
     }
     // def cardinalities(clusteringNumber: Int): Map[Int, Long]

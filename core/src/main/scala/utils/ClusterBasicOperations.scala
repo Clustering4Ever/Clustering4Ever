@@ -4,12 +4,12 @@ package org.clustering4ever.util
  */
 import scala.language.higherKinds
 import scala.collection.GenSeq
-import org.clustering4ever.math.distances.{GenericDistance, Distance}
+import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
-import org.clustering4ever.vectors.{GVector, MixtVector, ScalarVector, BinaryVector}
+import org.clustering4ever.vectors.{GVector, MixedVector, ScalarVector, BinaryVector}
 /**
  * Type Class is probably the solution to this casting meli melo, but it is hard to apply in such complex case without any usefull ressources
  */
@@ -21,11 +21,11 @@ object ClusterBasicOperations extends Serializable {
 	 * Many attemps with defining type V <: Seq[Double] but implicit calls are refused
 	 * Someone to render it more proper would be cool :)
 	 */
-	def obtainCenter[O, D <: GenericDistance[O]](cluster: GenSeq[O], metric: D): O = {
+	final def obtainCenter[V <: GVector[V], D <: Distance[V]](cluster: GenSeq[V], metric: D): V = {
 	    metric match {
-	      case euclidean: Euclidean[_] => obtainMean(cluster.asInstanceOf[GenSeq[ScalarVector[Seq[Double]]]]).asInstanceOf[O]
-	      case hamming: Hamming[_] => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[O]
-	      case hammingAndEuclidean: HammingAndEuclidean[_, _] => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixtVector[Seq[Int], Seq[Double]]]]).asInstanceOf[O]
+	      case euclidean: Euclidean[_] => obtainMean(cluster.asInstanceOf[GenSeq[ScalarVector[Seq[Double]]]]).asInstanceOf[V]
+	      case hamming: Hamming[_] => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[V]
+	      case hammingAndEuclidean: HammingAndEuclidean[_, _] => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixedVector[Seq[Int], Seq[Double]]]]).asInstanceOf[V]
 	      // Look for point which minimize its distance to all others points
 	      case _ => cluster.minBy{ v1 => cluster.map(metric.d(v1, _)).sum }
 	    }
@@ -33,51 +33,51 @@ object ClusterBasicOperations extends Serializable {
 	/**
 	 *
 	 */
-	private def transformPreMeanAndCastIt[V <: Seq[Double]](preMean: V, clusterSize: Int) = preMean.map(_ / clusterSize).asInstanceOf[V]
+	private final def transformPreMeanAndCastIt[V <: Seq[Double]](preMean: V, clusterSize: Int) = preMean.map(_ / clusterSize).asInstanceOf[V]
 	/**
 	 *
 	 */
-	private def transformPreMeanAndCastIt[V <: Seq[Double]](preMean: ScalarVector[V], clusterSize: Int) = ScalarVector(preMean.vector.map(_ / clusterSize).asInstanceOf[V])
+	private final def transformPreMeanAndCastIt[V <: Seq[Double]](preMean: ScalarVector[V], clusterSize: Int) = ScalarVector(preMean.vector.map(_ / clusterSize).asInstanceOf[V])
 	/**
-	 * @return the centroid of the given cluster composed by real vectors
-	 * 
 	 * It has sense only with Euclidean distance
-	 */
-	def obtainMean[V <: Seq[Double]](cluster: GenSeq[V]): V = transformPreMeanAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
-	/**
+	 * 
 	 * @return the centroid of the given cluster composed by real vectors
-	 * 
+	 */
+	final def obtainMean[V <: Seq[Double]](cluster: GenSeq[V]): V = transformPreMeanAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
+	/**
 	 * It has sense only with Euclidean distance
-	 */
-	def obtainMean[V <: Seq[Double]](cluster: GenSeq[ScalarVector[V]]): ScalarVector[V] = transformPreMeanAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
-	/**
-	 *
-	 */
-	private def transformPreModeAndCastIt[V <: Seq[Int]](preMode: V, clusterSize: Int) = preMode.map( v => if( 2 * v >= clusterSize ) 1 else 0 ).asInstanceOf[V]
-	/**
-	 *
-	 */
-	private def transformPreModeAndCastIt[V <: Seq[Int]](preMode: BinaryVector[V], clusterSize: Int) = BinaryVector(preMode.vector.map( v => if( 2 * v >= clusterSize ) 1 else 0 ).asInstanceOf[V])
-	/**
-	 * @return the centroid of the given cluster composed by binary vectors
 	 * 
-	 * It has sense only with Hamming distance
+	 * @return the centroid of the given cluster composed by real vectors
 	 */
-	def obtainMode[V <: Seq[Int]](cluster: GenSeq[V]): V = transformPreModeAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
-	/**
-	 * @return the centroid of the given cluster composed by binary vectors
-	 * 
-	 * It has sense only with Hamming distance
-	 */
-	def obtainMode[V <: Seq[Int]](cluster: GenSeq[BinaryVector[V]]): BinaryVector[V] = transformPreModeAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
+	final def obtainMean[V <: Seq[Double]](cluster: GenSeq[ScalarVector[V]]): ScalarVector[V] = transformPreMeanAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
 	/**
 	 *
 	 */
-	 def obtainMixtCenter[Vb <: Seq[Int], Vs <: Seq[Double]](cluster: GenSeq[MixtVector[Vb, Vs]]): MixtVector[Vb, Vs] = {
-	 	val mixtVector: MixtVector[Vb, Vs] = SumVectors.sumColumnMatrix(cluster)
+	private final def transformPreModeAndCastIt[V <: Seq[Int]](preMode: V, clusterSize: Int) = preMode.map( v => if( 2 * v >= clusterSize ) 1 else 0 ).asInstanceOf[V]
+	/**
+	 *
+	 */
+	private final def transformPreModeAndCastIt[V <: Seq[Int]](preMode: BinaryVector[V], clusterSize: Int) = BinaryVector(preMode.vector.map( v => if( 2 * v >= clusterSize ) 1 else 0 ).asInstanceOf[V])
+	/**
+	 * It has sense only with Hamming distance
+	 * 
+	 * @return the centroid of the given cluster composed by binary vectors
+	 */
+	final def obtainMode[V <: Seq[Int]](cluster: GenSeq[V]): V = transformPreModeAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
+	/**
+	 * It has sense only with Hamming distance
+	 * 
+	 * @return the centroid of the given cluster composed by binary vectors
+	 */
+	final def obtainMode[V <: Seq[Int]](cluster: GenSeq[BinaryVector[V]]): BinaryVector[V] = transformPreModeAndCastIt(SumVectors.sumColumnMatrix(cluster), cluster.size)
+	/**
+	 *
+	 */
+	final def obtainMixtCenter[Vb <: Seq[Int], Vs <: Seq[Double]](cluster: GenSeq[MixedVector[Vb, Vs]]): MixedVector[Vb, Vs] = {
+	 	val mixtVector: MixedVector[Vb, Vs] = SumVectors.sumColumnMatrix(cluster)
 	 	val binaryPart = transformPreModeAndCastIt(mixtVector.binary, cluster.size)
 	 	val realPart = transformPreMeanAndCastIt(mixtVector.scalar, cluster.size)
-	 	MixtVector(binaryPart, realPart)
+	 	MixedVector(binaryPart, realPart)
 	}
 
 }

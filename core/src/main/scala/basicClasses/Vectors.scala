@@ -25,9 +25,6 @@ trait GVector[Self <: GVector[Self]] extends Serializable {
  * @tparam V the vector type
  */
 trait GSimpleVector[N, V <: Seq[N], Self <: GSimpleVector[N, V, Self]] extends GVector[Self] {
-	/**
-	 *
-	 */
 	this: Self =>
 	/**
 	 * A vector taking the form of Seq[N] for any N
@@ -38,27 +35,18 @@ trait GSimpleVector[N, V <: Seq[N], Self <: GSimpleVector[N, V, Self]] extends G
  *
  */
 trait GBinaryVector[Vb <: Seq[Int], Self <: GBinaryVector[Vb, Self]] extends GSimpleVector[Int, Vb, Self] {
-	/**
-	 *
-	 */
 	this: Self =>
 }
 /**
  *
  */
 trait GScalarVector[Vs <: Seq[Double], Self <: GScalarVector[Vs, Self]] extends GSimpleVector[Double, Vs, Self] {
-	/**
-	 *
-	 */
 	this: Self =>
 }
 /**
  *
  */
-trait GMixtVector[Vb <: Seq[Int], Vs <: Seq[Double], Self <: GMixtVector[Vb, Vs, Self]] extends GVector[Self] {
-	/**
-	 *
-	 */
+trait GMixedVector[Vb <: Seq[Int], Vs <: Seq[Double], Self <: GMixedVector[Vb, Vs, Self]] extends GVector[Self] {
 	this: Self =>
 	/**
 	 * The binary part of this mixt vector as <: Seq[Int] 
@@ -73,11 +61,11 @@ trait GMixtVector[Vb <: Seq[Int], Vs <: Seq[Double], Self <: GMixtVector[Vb, Vs,
  * Vector for binary data taking represented as a vector on {0, 1}<sup>d</sup>
  * @tparam Vb the type of this vector
  */
-case class BinaryVector[Vb <: Seq[Int]](val vector: Vb) extends GBinaryVector[Vb, BinaryVector[Vb]] {
+final case class BinaryVector[Vb <: Seq[Int]](final val vector: Vb) extends GBinaryVector[Vb, BinaryVector[Vb]] {
 
-	def pickFeatures(indices: Int*): BinaryVector[Vb] = {
+	final def pickFeatures(indices: Int*): BinaryVector[Vb] = {
 		BinaryVector{
-			val builder = vector.genericBuilder.asInstanceOf[mutable.Builder[Int, Vb]]
+			val builder = vector.genericBuilder[Int].asInstanceOf[mutable.Builder[Int, Vb]]
 			builder.sizeHint(indices.size)
 			indices.foreach( i => builder += vector(i) )
 			builder.result
@@ -88,11 +76,11 @@ case class BinaryVector[Vb <: Seq[Int]](val vector: Vb) extends GBinaryVector[Vb
  * Vector for continuous data represented as a vector on R<sup>d</sup>
  * @tparam Vs the type of this vector
  */
-case class ScalarVector[Vs <: Seq[Double]](val vector: Vs) extends GScalarVector[Vs, ScalarVector[Vs]] {
+final case class ScalarVector[Vs <: Seq[Double]](final val vector: Vs) extends GScalarVector[Vs, ScalarVector[Vs]] {
 
-	def pickFeatures(indices: Int*): ScalarVector[Vs] = {
+	final def pickFeatures(indices: Int*): ScalarVector[Vs] = {
 		ScalarVector{
-			val builder = vector.genericBuilder.asInstanceOf[mutable.Builder[Double, Vs]]
+			val builder = vector.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, Vs]]
 			builder.sizeHint(indices.size)
 			indices.foreach( i => builder += vector(i) )
 			builder.result
@@ -104,29 +92,29 @@ case class ScalarVector[Vs <: Seq[Double]](val vector: Vs) extends GScalarVector
  * @tparam Vb binary part type of this mixt vector
  * @tparam Vs scalar part type of this mixt vector
  */
-case class MixtVector[Vb <: Seq[Int], Vs <: Seq[Double]](val binary: Vb, val scalar: Vs) extends GMixtVector[Vb, Vs, MixtVector[Vb, Vs]] {
+final case class MixedVector[Vb <: Seq[Int], Vs <: Seq[Double]](final val binary: Vb, final val scalar: Vs) extends GMixedVector[Vb, Vs, MixedVector[Vb, Vs]] {
 	/**
 	 * Features are indexed as follow, first one are the binary features, rest are scalar features
 	 */
-	def pickFeatures(indices: Int*): MixtVector[Vb, Vs] = {
+	final def pickFeatures(indices: Int*): MixedVector[Vb, Vs] = {
 			val (binaries, scalars) = indices.partition(_ < binary.size)
-			val binBuilder = binary.genericBuilder.asInstanceOf[mutable.Builder[Int, Vb]]
+			val binBuilder = binary.genericBuilder[Int].asInstanceOf[mutable.Builder[Int, Vb]]
 			binBuilder.sizeHint(binaries.size)
 			binaries.foreach( i => binBuilder += binary(i) )
-			val scaBuilder = scalar.genericBuilder.asInstanceOf[mutable.Builder[Double, Vs]]
+			val scaBuilder = scalar.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, Vs]]
 			scaBuilder.sizeHint(scalars.size)
 			scalars.foreach( i => scaBuilder += scalar(i - binary.size - 1) )
-			MixtVector(binBuilder.result, scaBuilder.result)
+			MixedVector(binBuilder.result, scaBuilder.result)
 	}
 }
 /**
  *
  */
-case class SupervizedVector[N, V[X] <: Seq[X]](val vector: V[N]) extends GSimpleVector[N, V[N], SupervizedVector[N, V]] {
+final case class SupervizedVector[N, V[X] <: Seq[X]](final val vector: V[N]) extends GSimpleVector[N, V[N], SupervizedVector[N, V]] {
 
-	def pickFeatures(indices: Int*): SupervizedVector[N, V] = {
+	final def pickFeatures(indices: Int*): SupervizedVector[N, V] = {
 		SupervizedVector{
-			val builder = vector.genericBuilder.asInstanceOf[mutable.Builder[N, V[N]]]
+			val builder = vector.genericBuilder[N].asInstanceOf[mutable.Builder[N, V[N]]]
 			builder.sizeHint(indices.size)
 			indices.foreach( i => builder += vector(i) )
 			builder.result
@@ -136,7 +124,7 @@ case class SupervizedVector[N, V[X] <: Seq[X]](val vector: V[N]) extends GSimple
 /**
  *
  */
-case class GenericObjectVector[O](val rawObject: O) extends GVector[GenericObjectVector[O]] {
+final case class GenericObjectVector[O](final val rawObject: O) extends GVector[GenericObjectVector[O]] {
 
-	def pickFeatures(indices: Int*): GenericObjectVector[O] = this.copy()
+	final def pickFeatures(indices: Int*): GenericObjectVector[O] = this.copy()
 }

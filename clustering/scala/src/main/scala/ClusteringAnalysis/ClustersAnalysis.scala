@@ -14,12 +14,12 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.util.ClusterBasicOperations
 import org.clustering4ever.util.SumVectors
-import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, GMixtVector}
+import org.clustering4ever.vectors.{GVector, BinaryVector, ScalarVector, GMixedVector}
 import org.clustering4ever.types.MetricIDType._
 import org.clustering4ever.types.ClusteringNumberType._
 import org.clustering4ever.types.VectorizationIDTypes._
-import org.clustering4ever.vectorizations.{Vectorization, VectorizationLocal, EasyVectorizationLocal}
-import org.clustering4ever.clustering.{ClustersAnalysis, ClusteringModel, ClusteringInformationsLocal}
+import org.clustering4ever.vectorizations.{Vectorization, VectorizationGenLocal, VectorizationLocalBinary, VectorizationLocal, EasyVectorizationLocal}
+import org.clustering4ever.clustering.{ClusteringBasicStatsKeeper, ClustersAnalysis, ClusteringModel, ClusteringInformationsLocal}
 /**
  *
  */
@@ -27,29 +27,33 @@ trait ClustersAnalysisLocal[
     O,
     V <: GVector[V],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
-    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
+    Vecto <: VectorizationGenLocal[O, V, Vecto],
     GS[X] <: GenSeq[X]
 ] extends ClustersAnalysis[O, V, Cz, GS] {
     /**
      *
      */
-    // val currentVectorization: Vectorization[O, V]
+    val vectorization: Vecto
     /**
      *
      */
-    val clusteringInformations: HMap[ClusteringInformationsMapping]
+    protected val allClusteringNumbers: Seq[Int] = vectorization.runnedAlgorithms.map(_._1)
     /**
      *
      */
-    def getClusterinfInformationsForVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[O, GV, OtherVecto]] = {
-        clusteringInformations.get(vectorization.vectorizationID)(ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[O, GV, OtherVecto]])
-    }
+    // val clusteringInformations: HMap[ClusteringInformationsMapping]
     /**
      *
      */
-    def getClusterinfInformationsForClustering[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](clusteringNumber: ClusteringNumber, vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[O, GV, OtherVecto]] = {
-        getClusterinfInformationsForVectorization(vectorization).find(_.clusteringInformations.exists(_._1 == clusteringNumber))
-    }
+    // def getClusterinfInformationsForVectorization[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationGenLocal[A, B, OtherVecto[A, B]]](vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[O, GV, OtherVecto]] = {
+    //     clusteringInformations.get(vectorization.vectorizationID)(ClusteringInformationsMapping[VectorizationID, ClusteringInformationsLocal[O, GV, OtherVecto]])
+    // }
+    /**
+     *
+     */
+    // def getClusterinfInformationsForClustering[GV <: GVector[GV], OtherVecto[A, B <: GVector[B]] <: VectorizationGenLocal[A, B, OtherVecto[A, B]]](clusteringNumber: ClusteringNumber, vectorization: OtherVecto[O, GV]): Option[ClusteringInformationsLocal[O, GV, OtherVecto]] = {
+    //     getClusterinfInformationsForVectorization(vectorization).find(_.clusteringInformations.exists(_._1 == clusteringNumber))
+    // }
     /**
      *
      */
@@ -69,28 +73,36 @@ trait ClustersAnalysisLocal[
             groupedByClusterID
         }
     }
-    /**
-     *
-     */
+
     def centroids[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, V] = {
-        groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.seq.toMap
+        val centroids = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.seq.toMap
+        clustersBasicStatsKeeper.addCentroids(clusteringNumber, metric.id, centroids)
+        centroids
     }
-    /**
-     *
-     */
+
     def cardinalities(clusteringNumber: ClusteringNumber): immutable.Map[Int, Long] = {
         val cardinalitiesByClusterID = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, aggregate.size.toLong) }.seq.toMap
-        cardinalitiesByClusteringNumber += ((clusteringNumber, cardinalitiesByClusterID))
+        clustersBasicStatsKeeper.addCardinalities(clusteringNumber, cardinalitiesByClusterID)
         cardinalitiesByClusterID
+    }
+
+    def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[Int, Double] = {
+        val clustersProportionsByClusterID = cardinalities(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
+        clustersBasicStatsKeeper.addClustersProportions(clusteringNumber, clustersProportionsByClusterID)
+        clustersProportionsByClusterID
     }
     /**
      *
      */
-    def clustersProportions(clusteringNumber: ClusteringNumber): immutable.Map[Int, Double] = {
-        val clustersProportionsByClusterID = cardinalities(clusteringNumber).map{ case (clusterID, cardinality) => (clusterID, cardinality.toDouble / datasetSize) }
-        clustersProportionsByClusteringNumber += ((clusteringNumber, clustersProportionsByClusterID))
-        clustersProportionsByClusterID
-    }
+    def centroidsForEveryClusteringNumber[D <: Distance[V]](metric: D): Unit = allClusteringNumbers.par.foreach(centroids(metric, _))
+    /**
+     *
+     */
+    def cardinalitiesForEveryClusteringNumber: Unit = allClusteringNumbers.par.foreach(cardinalities(_))
+    /**
+     *
+     */
+    def clustersProportionsForEveryClusteringNumber: Unit = allClusteringNumbers.par.foreach(clustersProportions(_))
 }
 /**
  * Specific class for real vector datasets
@@ -99,22 +111,13 @@ case class RealClustersAnalysis[
     O,
     V <: Seq[Double],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
-    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
+    Vecto[A, B <: GVector[B]] <: VectorizationGenLocal[A, B, Vecto[A, B]],
     GS[X] <: GenSeq[X]
 ](
     val data: GS[Cz[O, ScalarVector[V]]],
-    val currentVectorization: Vecto[O, ScalarVector[V]],
-    val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
-    val clusteringInformations: HMap[ClusteringInformationsMapping]
-) extends ClustersAnalysisLocal[O, ScalarVector[V], Cz, Vecto, GS] {
-    /**
-     *
-     */
-    // def centroids[D[X <: Seq[Double]] <: ContinuousDistance[X]](metric: D[V], clusteringNumber: ClusteringNumber): immutable.Map[Int, ScalarVector[V]] = {
-    //     val res = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMean(aggregate.map(_.v))) }.seq.toMap
-    //     centroidsByClusteringNumber += (((clusteringNumber, metric.id), res))
-    //     res
-    // }
+    val vectorization: Vecto[O, ScalarVector[V]],
+    val clustersBasicStatsKeeper: ClusteringBasicStatsKeeper[ScalarVector[V]] = new ClusteringBasicStatsKeeper[ScalarVector[V]]
+) extends ClustersAnalysisLocal[O, ScalarVector[V], Cz, Vecto[O, ScalarVector[V]], GS] {
     /**
      * @return cluster's means
      */
@@ -137,52 +140,23 @@ case class BinaryClustersAnalysis[
     O,
     V <: Seq[Int],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
-    Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto],
+    Vecto[A, B <: Seq[Int]] <: VectorizationLocalBinary[A, B, Vecto[A, B]],
     GS[X] <: GenSeq[X]
 ](  
     val data: GS[Cz[O, BinaryVector[V]]],
-    val currentVectorization: Vecto[O, BinaryVector[V]],
-    val vectorizations: HMap[VectorizationMapping] = HMap.empty[VectorizationMapping],
-    val clusteringInformations: HMap[ClusteringInformationsMapping]
-) extends ClustersAnalysisLocal[O, BinaryVector[V], Cz, Vecto, GS] {
-    /**
-     * Field which regroup all analysis made in this class
-     */
-    val binaryStats = new EveryClusteringBinaryAnalysis
-    /**
-     *
-     */
-    private def mergeBinaryStats(bs1: EveryClusteringBinaryAnalysis, bs2: EveryClusteringBinaryAnalysis): EveryClusteringBinaryAnalysis = {
-        val keys1 = bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
-        val keys2 = bs2.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
-        val commonsKeys = (keys1 & keys2).toSeq
-        EveryClusteringBinaryAnalysis(mutable.HashMap((bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.map{ case (k, m1) => (k, mutable.HashMap((m1 ++ bs2.clusteringBinaryAnalysisByClusteringNumberByVectorization(k)).toSeq:_*)) } ++ (bs2.clusteringBinaryAnalysisByClusteringNumberByVectorization -- commonsKeys)).toSeq:_*))
-
-    }
-    /**
-     *
-     */
-    // private def updateBinaryStats(bs1: EveryClusteringBinaryAnalysis): Unit = {
-    //     val keysIn = binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
-    //     val keys1 = bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.keys.toSet
-    //     val commonsKeys = (keys1 & keysIn).toSeq
-    //     binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization ++= 
-            
-    //         EveryClusteringBinaryAnalysis(
-    //             mutable.HashMap(
-    //                 (bs1.clusteringBinaryAnalysisByClusteringNumberByVectorization.map{ case (k, m1) => (k, mutable.HashMap((m1 ++ binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization(k)).toSeq:_*)) } ++ (binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization -- commonsKeys)).toSeq
-    //                 :_*)
-    //         )
-    // }
+    val vectorization: Vecto[O, V],
+    val clustersBasicStatsKeeper: ClusteringBasicStatsKeeper[BinaryVector[V]] = new ClusteringBasicStatsKeeper[BinaryVector[V]],
+    val advancedBinaryStats: EveryClusteringBinaryAnalysis = new EveryClusteringBinaryAnalysis
+) extends ClustersAnalysisLocal[O, BinaryVector[V], Cz, Vecto[O, V], GS] {
     /**
      * Switch the working vector for the one given by vectorization
      */
-    def switchForExistingVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, BinaryVector[S]]) = {
+    def switchForSameVectorizationNature(newVectorization: Vecto[O, V]) = {
         BinaryClustersAnalysis(
-            data.map(_.updateVectorization(vectorization)).asInstanceOf[GS[Cz[O, BinaryVector[S]]]],
-            vectorization,
-            vectorizations,
-            clusteringInformations
+            data.map(_.updateVectorizationOfSameNature(newVectorization)).asInstanceOf[GS[Cz[O, BinaryVector[V]]]],
+            newVectorization,
+            clustersBasicStatsKeeper,
+            advancedBinaryStats
         )
     }
     /**
@@ -192,13 +166,12 @@ case class BinaryClustersAnalysis[
         immutable.HashMap(groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMode(aggregate.map(_.v))) }.toSeq.seq:_*)
     }
     /**
-     *
-     */
-    import org.clustering4ever.util.VectorsAddOperationsImplicits._
-    /**
      * Occurences of every features for the current working vector
      */
-    lazy val occurencesPerFeature: Seq[Int] = data.map(_.v.vector).reduce(SumVectors.sumVectors(_, _)) 
+    lazy val occurencesPerFeature: Seq[Int] = {
+        import org.clustering4ever.util.VectorsAddOperationsImplicits._
+        data.map(_.v.vector).reduce(SumVectors.sumVectors(_, _)) 
+    }
     /**
      * Frequencies of every features for the current working vector
      */
@@ -207,6 +180,7 @@ case class BinaryClustersAnalysis[
      * @return occurencesPerFeatureByClusteringNumber
      */
     def occurencesPerFeatureByClusteringNumber(clusteringNumber: ClusteringNumber): immutable.HashMap[ClusterID, Seq[Int]] = {
+        import org.clustering4ever.util.VectorsAddOperationsImplicits._
         immutable.HashMap(
             groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) =>
                 (
@@ -224,7 +198,7 @@ case class BinaryClustersAnalysis[
         val fpfcn = opfcn.map{ case (clusterID, occurences) =>
             (
                 clusterID,
-                occurences.map(_.toDouble / cardinalitiesByClusteringNumber(clusteringNumber)(clusterID))
+                occurences.map(_.toDouble / clustersBasicStatsKeeper.cardinalitiesByClusteringNumber.getOrElse(clusteringNumber, cardinalities(clusteringNumber))(clusterID))
             )
         }
         (opfcn, fpfcn)
@@ -232,30 +206,71 @@ case class BinaryClustersAnalysis[
     /**
      *
      */
-    def frequencyPerEveryFeatureMultipleClusteringNumbers(clusteringNumber: ClusteringNumber*): Seq[(ClusteringNumber, (immutable.HashMap[ClusterID, Seq[Int]], immutable.HashMap[ClusterID, Seq[Double]]))] = {
-        clusteringNumber.par.map( cn => (cn, frequencyPerFeatureByClusteringNumber(cn)) ).seq
-    }
-    /**
-     *
-     */
     def updateBinaryStatsByClusteringNumber(clusteringNumber: ClusteringNumber): Unit = {
         val (opfcn, fpfcn) = frequencyPerFeatureByClusteringNumber(clusteringNumber)
-        binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization(currentVectorization.vectorizationID) += (clusteringNumber -> ClusteringBinaryAnalysis(clusteringNumber, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn))
+        val cba = ClusteringBinaryAnalysis(clusteringNumber, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn)
+        advancedBinaryStats.addCBA(vectorization.vectorizationID, clusteringNumber, cba)
     }
     /**
      *
      */
-    def updateBinaryStatsOnAllClusteringNumberForGivenVectorization[S <: Seq[Int], OtherVecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, OtherVecto]](vectorization: OtherVecto[O, BinaryVector[S]]): BinaryClustersAnalysis[O, S, Cz, OtherVecto, GS] = {
-        val requiredVecto = vectorizations.get(vectorization.vectorizationID)(vectorization.vectoMapping).get
-        val updatedBinaryClustersAnalysis@BinaryClustersAnalysis(updtData, updtCurrentVectorization, updtVectorizations, updtClusteringInformations) = switchForExistingVectorization(vectorization)
-        val statsByCn = updatedBinaryClustersAnalysis.frequencyPerEveryFeatureMultipleClusteringNumbers(requiredVecto.clusteringNumbers.toSeq:_*)
-        val cbaByCN = statsByCn.map{ case (cn, (opfcn, fpfcn)) => (cn, ClusteringBinaryAnalysis(cn, occurencesPerFeature, frequencyPerFeature, opfcn, fpfcn)) }
-        
-        binaryStats.clusteringBinaryAnalysisByClusteringNumberByVectorization(requiredVecto.vectorizationID) ++= cbaByCN
-        val newBinaryStats = binaryStats 
-
-        new BinaryClustersAnalysis(updtData, updtCurrentVectorization, updtVectorizations, updtClusteringInformations) {
-            override val binaryStats = newBinaryStats
-        }
+    def everyClusteringFrequencyPerEveryFeature: Seq[(ClusteringNumber, (immutable.HashMap[ClusterID, Seq[Int]], immutable.HashMap[ClusterID, Seq[Double]]))] = {
+        allClusteringNumbers.par.map( cn => (cn, frequencyPerFeatureByClusteringNumber(cn)) ).seq
     }
+    /**
+     * Update AdvancedBinaryStats internal object for every clusteringNumber corresponding to associate vectorization
+     */
+    def everyClusteringUpdateBinaryStats: Unit = {
+        clustersProportionsForEveryClusteringNumber
+        allClusteringNumbers.par.foreach(updateBinaryStatsByClusteringNumber(_))
+    }
+    /**
+     * @return cluster's modes in the sense of Hamming (majority vote) for every clustering corresponding to the given vectorization
+     */
+    def everyClusteringObtainAllCentroidsModes: immutable.Map[ClusteringNumber, immutable.HashMap[ClusterID, BinaryVector[V]]] = allClusteringNumbers.par.map( cn => (cn, obtainCentroidsModes(cn)) ).seq.toMap
+
+}
+/**
+ *
+ */
+object BinaryClustersAnalysis extends Serializable {
+    /**
+     *
+     */
+    def obtainManyStats[
+        O,
+        V <: Seq[Int],
+        Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
+        Vecto[A, B <: Seq[Int]] <: VectorizationLocalBinary[A, B, Vecto[A, B]],
+        GS[X] <: GenSeq[X]
+    ](data: GS[Cz[O, BinaryVector[V]]], vectorization: Vecto[O, V]): (ClusteringBasicStatsKeeper[BinaryVector[V]], EveryClusteringBinaryAnalysis) = {
+        val bca = BinaryClustersAnalysis(data, vectorization)
+        bca.cardinalitiesForEveryClusteringNumber
+        bca.clustersProportionsForEveryClusteringNumber
+        bca.everyClusteringUpdateBinaryStats
+        (
+            bca.clustersBasicStatsKeeper,
+            bca.advancedBinaryStats
+        )
+    }
+    /**
+     *
+     */
+    def obtainManyStats[
+        O,
+        V <: Seq[Int],
+        Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
+        Vecto[A, B <: Seq[Int]] <: VectorizationLocalBinary[A, B, Vecto[A, B]],
+        GS[X] <: GenSeq[X]
+    ](data: GS[Cz[O, BinaryVector[V]]], vectorization: Vecto[O, V], clustersBasicStatsKeeper: ClusteringBasicStatsKeeper[BinaryVector[V]] = new ClusteringBasicStatsKeeper[BinaryVector[V]], advancedBinaryStats: EveryClusteringBinaryAnalysis = new EveryClusteringBinaryAnalysis): (ClusteringBasicStatsKeeper[BinaryVector[V]], EveryClusteringBinaryAnalysis) = {
+        val bca = BinaryClustersAnalysis(data, vectorization, clustersBasicStatsKeeper, advancedBinaryStats)
+        bca.cardinalitiesForEveryClusteringNumber
+        bca.clustersProportionsForEveryClusteringNumber
+        bca.everyClusteringUpdateBinaryStats
+        (
+            bca.clustersBasicStatsKeeper,
+            bca.advancedBinaryStats
+        )
+    }
+
 }

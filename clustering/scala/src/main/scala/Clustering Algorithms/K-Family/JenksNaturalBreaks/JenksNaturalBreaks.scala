@@ -4,11 +4,13 @@ package org.clustering4ever.scala.clustering
  */
 import scala.collection.{mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
-import org.clustering4ever.clustering.{ClusteringAlgorithmAncestor, ClusteringModelAncestor}
+import org.clustering4ever.clustering.{ClusteringAlgorithm, ClusteringModel}
 /**
  *
  */
-case class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorithmAncestor {
+final case class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAlgorithm {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.JenksNaturalBreaks
   /**
    * Look at https://en.wikipedia.org/wiki/Jenks_natural_breaks_optimization for more details 
    * Return breaks position in the sorted GenSeq
@@ -16,7 +18,7 @@ case class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAl
    * @param desiredNumberCategories : number of breaks user desire
    * @return Indices of breaks in data sequence
    */
-  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N])(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = {
+  final def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N])(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = {
 
     val nbCat = desiredNumberCategories - 1
     val nbValues = data.size
@@ -86,15 +88,17 @@ case class JenksNaturalBreaks(desiredNumberCategories: Int) extends ClusteringAl
  */
 object JenksNaturalBreaks {
 
-  def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = JenksNaturalBreaks(desiredNumberCategories).run(data)
+  final def run[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = JenksNaturalBreaks(desiredNumberCategories).run(data)
 
-  def apply[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = run(data, desiredNumberCategories)
+  final def apply[@specialized(Int, Double, Long, Float) N](data: GenSeq[N], desiredNumberCategories: Int)(implicit num: Numeric[N]): JenksNaturalBreaksModel[N] = run(data, desiredNumberCategories)
 
 }
 /**
  *
  */
-case class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModelAncestor {
+final case class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](breaks: mutable.ArrayBuffer[N])(implicit num: Numeric[N]) extends ClusteringModel {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.JenksNaturalBreaks
   /**
    *
    */
@@ -102,6 +106,6 @@ case class JenksNaturalBreaksModel[@specialized(Int, Double, Long, Float) N](bre
   /**
    * Predict between which breaks fall a new point, 0 stands for -infinity/1st-Break and breaks.size for last-Break/+infinity
    */
-  def predict(v: N): Int = breaksIndexed.find{ case (break, _) => num.lteq(v, break) }.map(_._2).getOrElse(breaksIndexed.size)
+  final def predict(v: N): Int = breaksIndexed.find{ case (break, _) => num.lteq(v, break) }.map(_._2).getOrElse(breaksIndexed.size)
 
 }

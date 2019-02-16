@@ -8,13 +8,13 @@ import scala.collection.immutable
 import scala.util.Random
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-import org.clustering4ever.math.distances.MixtDistance
+import org.clustering4ever.math.distances.MixedDistance
 import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.util.SparkImplicits._
-import org.clustering4ever.vectors.{GVector, MixtVector}
+import org.clustering4ever.vectors.{GVector, MixedVector}
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :
@@ -23,7 +23,9 @@ import org.clustering4ever.vectors.{GVector, MixtVector}
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixtDistance[X, Y]](val k: Int, val metric: D[Vb, Vs], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, MixtVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixtVector[Vb, Vs]])(protected implicit val ctV: ClassTag[MixtVector[Vb, Vs]]) extends KCentersAncestor[MixtVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
+final case class KPrototypes[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val k: Int, final val metric: D[Vb, Vs], final val epsilon: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, MixedVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixedVector[Vb, Vs]])(protected implicit final val ctV: ClassTag[MixedVector[Vb, Vs]]) extends KCentersAncestor[MixedVector[Vb, Vs], D[Vb, Vs], KPrototypesModels[Vb, Vs, D]] {
 
-	def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, MixtVector[Vb, Vs]]])(implicit ct: ClassTag[Cz[O, MixtVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
+
+	final def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, MixedVector[Vb, Vs]]])(implicit ct: ClassTag[Cz[O, MixedVector[Vb, Vs]]]): KPrototypesModels[Vb, Vs, D] = KPrototypesModels[Vb, Vs, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
 }
