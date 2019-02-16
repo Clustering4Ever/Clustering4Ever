@@ -21,7 +21,9 @@ trait Tree[V <: GVector[V], D <: Distance[V]]{
       // def update
     // }
 
-    class Ant(val clusterizable: Option[Cz[O, V]], var firstTime: Boolean = true)// extends AntTreeObject
+    class Ant(final val clusterizable: Option[Cz[O, V]], final var firstTime: Boolean = true) {
+      final val id = if(clusterizable.isDefined) clusterizable.get.id else Long.MinValue
+    }
 
     object Support extends Ant(None, true)
 
