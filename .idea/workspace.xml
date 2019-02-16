@@ -37,11 +37,35 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/K-Family/K-Centers/K-Centers.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1717">
+              <caret line="101" column="1" lean-forward="true" selection-start-line="101" selection-start-column="1" selection-end-line="101" selection-end-column="1" />
+              <folding>
+                <element signature="e#83#116#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="399">
+              <caret line="45" column="6" selection-start-line="44" selection-end-line="65" selection-end-column="3" />
+              <folding>
+                <element signature="e#0#30#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/NewTree.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="282">
-              <caret line="27" column="20" lean-forward="true" selection-start-line="27" selection-start-column="20" selection-end-line="27" selection-end-column="20" />
+            <state relative-caret-position="788">
+              <caret line="119" column="1" lean-forward="true" selection-start-line="119" selection-start-column="1" selection-end-line="119" selection-end-column="1" />
               <folding>
                 <element signature="e#48#81#0" expanded="true" />
               </folding>
@@ -76,6 +100,7 @@
         <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch.scala" />
         <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/structures/Tree.scala" />
+        <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/K-Family/K-Centers/K-Centers.scala" />
         <option value="$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/NewTree.scala" />
       </list>
     </option>
@@ -211,7 +236,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1550339750266" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1550345916022" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Scala" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -328,18 +353,18 @@
       <workItem from="1550059412639" duration="1628000" />
       <workItem from="1550229708559" duration="376000" />
       <workItem from="1550239656243" duration="796000" />
-      <workItem from="1550318659893" duration="13946000" />
+      <workItem from="1550318659893" duration="19903000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="27282000" />
+    <option name="totallyTimeSpent" value="33239000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2835821" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2835821" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -411,16 +436,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/K-Family/K-Centers/K-Centers.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1100">
-          <caret line="77" column="84" selection-start-line="77" selection-start-column="83" selection-end-line="77" selection-end-column="84" />
-          <folding>
-            <element signature="e#83#116#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/calculations/Similarity.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="425">
@@ -428,20 +443,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/ants/Ant.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="13" column="42" selection-start-line="13" selection-start-column="42" selection-end-line="13" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/AntTree.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="20" column="26" selection-start-line="20" selection-start-column="26" selection-end-line="20" selection-end-column="26" />
+        <state relative-caret-position="399">
+          <caret line="45" column="6" selection-start-line="44" selection-end-line="65" selection-end-column="3" />
           <folding>
             <element signature="e#0#30#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/ants/Ant.scala">
+    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/K-Family/K-Centers/K-Centers.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="13" column="42" selection-start-line="13" selection-start-column="42" selection-end-line="13" selection-end-column="42" />
+        <state relative-caret-position="1717">
+          <caret line="101" column="1" lean-forward="true" selection-start-line="101" selection-start-column="1" selection-end-line="101" selection-end-column="1" />
+          <folding>
+            <element signature="e#83#116#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -457,8 +482,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/NewTree.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="282">
-          <caret line="27" column="20" lean-forward="true" selection-start-line="27" selection-start-column="20" selection-end-line="27" selection-end-column="20" />
+        <state relative-caret-position="788">
+          <caret line="119" column="1" lean-forward="true" selection-start-line="119" selection-start-column="1" selection-end-line="119" selection-end-column="1" />
           <folding>
             <element signature="e#48#81#0" expanded="true" />
           </folding>
