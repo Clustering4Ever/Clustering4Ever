@@ -43,7 +43,8 @@ object AntTree {
   }
 
   @annotation.tailrec
-  private def place(xi: Int, xpos: Int, tree: Tree): Int = if (xpos >= 0) place(xi, algorithm(xi, xpos, tree), tree) else xpos
+  private def place(xi: Int, xpos: Int, tree: Tree): Int = if (xpos >= 0) place(xi, algorithm(xi, xpos, tree), tree)
+  else xpos
 
   /** Classify a tree.
     *
