@@ -97,11 +97,11 @@ object RoughSet extends RoughSet {
   /**
    * Rought Set feature selection classical algorithm
    */
-  final def run[S[X] <: Seq[X]](data: GenSeq[(S[Int], Int)]): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(rawDataToSupervizable(data))
+  final def fit[S[X] <: Seq[X]](data: GenSeq[(S[Int], Int)]): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(rawDataToSupervizable(data))
   /**
    * Rought Set feature selection classical algorithm
    */
-  final def run[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]])(implicit di: DummyImplicit): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
+  final def fit[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]])(implicit di: DummyImplicit): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
   /**
    *
    */

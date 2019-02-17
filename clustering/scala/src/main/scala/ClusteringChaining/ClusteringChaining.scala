@@ -112,7 +112,7 @@ case class ClusteringChainingLocal[
      * Run one algorithm defined by user
      */
     def runAlgorithm(algorithm: ClusteringAlgorithmLocal[V, _ <: ClusteringModelLocal[V]]): Self[V, Vecto] = {
-        val model = algorithm.run(dataSortedByID)
+        val model = algorithm.fit(dataSortedByID)
         val updatedRunNumber = clusteringRunNumber + 1
         val updatedData = model.obtainClustering(dataSortedByID)
         val updatedCurrentVectorization = currentVectorization.updateClustering(updatedRunNumber)

@@ -121,7 +121,7 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
    * @param data Input dataset
    * @return The model
    */
-  def run(data: RDD[DataPoint]): PatchWorkModel = {
+  def fit(data: RDD[DataPoint]): PatchWorkModel = {
     if (data.getStorageLevel == StorageLevel.NONE) {
       val log = LogManager.getRootLogger
       log.warn("The input data is not cached, which may impact performance.")

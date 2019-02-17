@@ -34,7 +34,7 @@ trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersM
 	/**
 	 *
 	 */
-	def prototypesDistancePerPoint[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]]): Dataset[(Cz[O, V], immutable.HashMap[ClusterID, Double])] = {
+	final def prototypesDistancePerPoint[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]]): Dataset[(Cz[O, V], immutable.HashMap[ClusterID, Double])] = {
 		
 		val speEncoder = if(kryoSerialization) Encoders.kryo[(Cz[O, V], immutable.HashMap[ClusterID, Double])] else Encoders.javaSerialization[(Cz[O, V], immutable.HashMap[ClusterID, Double])]
 
@@ -44,6 +44,6 @@ trait KCentersModelAncestor[V <: GVector[V], D <: Distance[V]] extends KCentersM
 /**
  *
  */
-final case class KMeansModel[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val kryoSerialization: Boolean = false, val centers: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersModelAncestor[ScalarVector[V], D[V]] {
+final case class KMeansModel[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val kryoSerialization: Boolean = false, final val centers: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersModelAncestor[ScalarVector[V], D[V]] {
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 }

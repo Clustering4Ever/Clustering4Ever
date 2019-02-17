@@ -64,7 +64,7 @@ case class DistributedClusteringChaining[
      * Run one algorithm defined by user
      */
     final def runAlgorithm(algorithm: ClusteringAlgorithmLocal[V, _ <: ClusteringModelLocal[V]]): Self[V, Vecto] = {
-        val model = algorithm.run(data)
+        val model = algorithm.fit(data)
         val updatedRunNumber = clusteringRunNumber + 1
         val updatedData = model.obtainClustering(data)
         val updatedCurrentVectorization = currentVectorization.updateClustering(updatedRunNumber)

@@ -103,4 +103,9 @@ final case class EasySupervizable[O, V <: GVector[V]](
 		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
 	}
 
+	final def updateWorkingVector[GV <: GVector[GV]](newWorkingVector: GV): EasySupervizable[O, GV] = {
+		EasySupervizable(id, o, label, newWorkingVector, mutable.ArrayBuffer.empty[GV], vectorized)
+	}
+
+
 }

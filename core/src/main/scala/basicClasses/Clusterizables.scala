@@ -131,4 +131,8 @@ final case class EasyClusterizable[O, V <: GVector[V]](
 		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
 	}
 
+	final def updateWorkingVector[GV <: GVector[GV]](newWorkingVector: GV): EasyClusterizable[O, GV] = {
+		EasyClusterizable(id, o, newWorkingVector, vectorized, clusterIDs)
+	}
+
 }

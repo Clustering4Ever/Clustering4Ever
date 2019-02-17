@@ -37,7 +37,7 @@ trait EuclideanAncestor[V <: Seq[Double]] extends Serializable {
 /**
  * @tparam V
  */
-trait EuclideanMeta[V <: Seq[Double]] extends EuclideanAncestor[V] {
+trait EuclideanSubAncestor[V <: Seq[Double]] extends EuclideanAncestor[V] {
 	/**
 	 *
 	 */
@@ -51,7 +51,7 @@ trait EuclideanMeta[V <: Seq[Double]] extends EuclideanAncestor[V] {
  * @tparam V
  * The Euclidean distance with or without squareRoot
  */
-final case class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanMeta[V] with RawContinuousDistance[V] {
+final case class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanSubAncestor[V] with RawContinuousDistance[V] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between v1 and v2
@@ -66,7 +66,7 @@ final case class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = 
  * @tparam V
  * The Euclidean distance with or without squareRoot
  */
-final case class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanMeta[V] with ContinuousDistance[V] {
+final case class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanSubAncestor[V] with ContinuousDistance[V] {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between v1 and v2

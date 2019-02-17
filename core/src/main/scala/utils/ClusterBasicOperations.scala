@@ -15,11 +15,10 @@ import org.clustering4ever.vectors.{GVector, MixedVector, ScalarVector, BinaryVe
  */
 object ClusterBasicOperations extends Serializable {
 	/**
-	 * @return the center which minimize its distance from all others cluster members for any space
-	 * When it is euclidean or hamming distance which is used, the linear way to compute the center is applied, aka the mean and mode (majority vote)
-	 * Tried to avoid cast with typeClass Medoid[O, D <: [O]] but didn't succeed to implement a generic form with Objects extending Medoid[...]
-	 * Many attemps with defining type V <: Seq[Double] but implicit calls are refused
-	 * Someone to render it more proper would be cool :)
+	 * @return an existing or the thoeritical center which minimize its distance from all others cluster members for any space
+	 * When it is euclidean or hamming or both combined distance which is used, the linear way to compute the center is applied, aka the mean and/or majority vote
+	 *
+	 * A major contribution will be to find heuristics in non trivial case, ie not Hamming or Euclidean distance, when the similarity matrix is compute (O(n<sup>2</sup>)) which will allow to drastically improve custom metrics and many many algorithms
 	 */
 	final def obtainCenter[V <: GVector[V], D <: Distance[V]](cluster: GenSeq[V], metric: D): V = {
 	    metric match {
@@ -27,7 +26,7 @@ object ClusterBasicOperations extends Serializable {
 	      case hamming: Hamming[_] => obtainMode(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[V]
 	      case hammingAndEuclidean: HammingAndEuclidean[_, _] => obtainMixtCenter(cluster.asInstanceOf[GenSeq[MixedVector[Seq[Int], Seq[Double]]]]).asInstanceOf[V]
 	      // Look for point which minimize its distance to all others points
-	      case _ => cluster.minBy{ v1 => cluster.map(metric.d(v1, _)).sum }
+	      case _ => cluster.minBy( v1 => cluster.map(metric.d(v1, _)).sum )
 	    }
 	}
 	/**

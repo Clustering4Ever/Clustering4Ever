@@ -16,11 +16,11 @@ import org.clustering4ever.vectors.{GVector, BinaryVector}
 /**
  *
  */
-final case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val k: Int, final val metric: D[V], final val epsilon: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]])(protected implicit final val ctV: ClassTag[BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] {
+final case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]])(protected implicit final val ctV: ClassTag[BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
 
-	final def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainCenters(data))
 }
 /**
  *
@@ -29,14 +29,14 @@ object KModes {
 	/**
 	 * Run the K-Modes with any binary distance
 	 */
-	final def run[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](
+	final def fit[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](
 		data: RDD[V],
 		k: Int,
 		metric: D[V],
-		epsilon: Double,
+		minShift: Double,
 		maxIterations: Int,
 		persistanceLVL: StorageLevel
 	): KModesModel[V, D] = {
-		KModes(k, metric, epsilon, maxIterations, persistanceLVL).run(binaryDataWithIDToClusterizable(data.zipWithIndex))
+		KModes(k, metric, minShift, maxIterations, persistanceLVL).fit(binaryDataWithIDToClusterizable(data.zipWithIndex))
 	}
 }

@@ -16,7 +16,7 @@ object Stats extends ClusteringSharedTypes {
 	/**
 	 * @return the standard deviation between vectors and a mean
 	 */
-	def sd(vectors: GenSeq[mutable.ArrayBuffer[Double]], mean: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = {
+	final def sd(vectors: GenSeq[mutable.ArrayBuffer[Double]], mean: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = {
 		val sd = mutable.ArrayBuffer.fill(vectors.head.size)(0D)
 		vectors.foreach( v => v.indices.foreach{ i => 
 			val toPow2 = v(i) - mean(i)
@@ -27,7 +27,7 @@ object Stats extends ClusteringSharedTypes {
 	/**
 	 * @return min and max for the ith component in reduce style
 	 */
-	def obtainIthMinMax[V <: Seq[Double]](idx: Int, vminMax1: (V, V), vminMax2: (V, V)): (Double, Double) = {
+	final def obtainIthMinMax[V <: Seq[Double]](idx: Int, vminMax1: (V, V), vminMax2: (V, V)): (Double, Double) = {
 		(
 			min(vminMax1._1(idx), vminMax2._1(idx)),
 			max(vminMax1._2(idx), vminMax2._2(idx))
@@ -36,7 +36,7 @@ object Stats extends ClusteringSharedTypes {
 	/**
 	 *
 	 */
-	def obtainMinAndMax[V <: Seq[Double]](data: GenSeq[V]): (V, V) = {
+	final def obtainMinAndMax[V <: Seq[Double]](data: GenSeq[V]): (V, V) = {
 		val dim = data.head.size
 		val range = (0 until dim)
 		val (minValues, maxValues) = data.map( v => (v, v) ).reduce{ (minMaxa, minMaxb) =>
@@ -56,8 +56,8 @@ object Stats extends ClusteringSharedTypes {
 	/**
 	 *
 	 */
-	def obtainCenterFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
-		val p = scala.util.Random.nextDouble * distribution.view.map(_._2).sum
+	final def obtainCenterFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
+		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
 		@annotation.tailrec
 		def go(accum: Double, i: Int): Int = {
 			if(accum < p) go(accum + distribution(i)._2, i + 1)
