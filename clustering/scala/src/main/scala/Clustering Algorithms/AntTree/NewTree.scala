@@ -1,15 +1,22 @@
 package org.clustering4ever.clustering.anttree
 
+import org.clustering4ever.clustering.{ClusteringAlgorithmLocal, ClusteringModelLocal}
+
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.math.distances.Distance
+import org.clustering4ever.math.distances.{ContinuousDistance, Distance}
 import org.clustering4ever.vectors.GVector
 import scalax.collection.mutable.Graph
-import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
+import scalax.collection.GraphPredef._
+import scalax.collection.GraphEdge._
+
 import scala.collection.{GenSeq, mutable}
 
+trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V]{
+  protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = centerPredict(data)
+}
 
-trait Tree[V <: GVector[V], D <: Distance[V]]{
+trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAncestor[V, D]] extends ClusteringAlgorithmLocal[V, CM]{
 
   val metric: D
 
@@ -118,3 +125,5 @@ trait Tree[V <: GVector[V], D <: Distance[V]]{
 
   }
 }
+
+final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V])
