@@ -31,6 +31,10 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 
   // }
 }
+// La classe en dehors peux être mieux pour de futur applications si il faut la complexifier, pour l'instant elle a juste l'idée
+final class Ant2[O, V <: GVector[V], Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](final val clusterizable: Option[Cz[O, V]], final var firstTime: Boolean = true) {
+    final val id = if(clusterizable.isDefined) clusterizable.get.id else Long.MinValue
+}
 /**
  * @tparm V
  * @tparm D
@@ -39,6 +43,7 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAncestor[V, D]] extends ClusteringAlgorithmLocal[V, CM]{
 
   val metric: D
+
 
   final def train[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): Unit = {
 
