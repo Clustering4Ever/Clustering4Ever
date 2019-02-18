@@ -22,23 +22,29 @@ import scalax.collection.mutable.{Graph => MutableGraph}
  */
 trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] {
 
-  final val tree: MutableGraph[Long, UnDiEdge]
-  
-  protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
-   def allSuccessors(xpos: Long): Set[Long] = {
-     val node = tree.get(xpos)
-     node.withSubgraph().toSet.map(long => long.asInstanceOf[Long])
-   }
+  val tree: MutableGraph[Long, UnDiEdge]
 
+  private val supportID = Long.MinValue
+
+  protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
+
+    // pe final private si l'user n'en à pas besoin et en dehors de obtainCLustering, à voir plus tard si tu t'en ressert pour d'autre méthode de prédiction
+    def allSuccessors(xpos: Long): Set[Long] = {
+      // val node = tree.get(xpos)
+      // node.withSubgraph().toSet.map(long => long.asInstanceOf[Long])
+      tree.get(xpos).withSubgraph().map(_.asInstanceOf[Long]).toSet
+    }
+
+    // pe final private si l'user n'en à pas besoin et en dehors de obtainCLustering, à voir plus tard si tu t'en ressert pour d'autre méthode de prédiction
     def directSuccessors(xpos: Long): Set[tree.NodeT] = tree.get(xpos).diSuccessors
 
-    val supportChild = directSuccessors(Long.MinValue).map(e => allSuccessors(e)).toArray
+    val supportChild: mutable.Buffer[Set[Long]] = directSuccessors(supportID).map(e => allSuccessors(e)).toBuffer
 
-    data.map(cz => cz.addClusterIDs(supportChild.indexWhere(subSeq => subSeq.contains(cz.id))))
+    data.map( cz => cz.addClusterIDs(supportChild.indexWhere(_.contains(cz.id))) ).asInstanceOf[GS[Cz[O, V]]]
 
   }
 
-  final def predict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {}
+  // final def predict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {}
    // use tree
 
   // }
@@ -74,8 +80,10 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     val support = Support
 
     val ants = {
-      val dataToAnts = scala.util.Random.shuffle(data.map(cz => new Ant(Some(cz))))
-      dataToAnts.map(_.id).toArray.zip(dataToAnts).toMap + (support.id -> support)
+      val dataToAnts = scala.util.Random.shuffle(data.map(cz => new Ant(Some(cz))).toIterator)
+      // evites de zip quand tu peux faire direct un map ça économise des parcours de data
+      // dataToAnts.map(_.id).toArray.zip(dataToAnts).toMap + (support.id -> support)
+      dataToAnts.map( ant => (ant.id, ant) ).toMap + (support.id -> support)
     }
 
     val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
