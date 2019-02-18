@@ -9,11 +9,12 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{ContinuousDistance, Distance}
 import org.clustering4ever.vectors.GVector
 import scala.collection.GenSeq
-import scalax.collection.mutable.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
 import scala.collection.mutable
 
+
+import scalax.collection.mutable.{Graph => MutableGraph}
 /**
  * @tparm V
  * @tparm D
@@ -21,7 +22,7 @@ import scala.collection.mutable
  */
 trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] {
 
-  final val tree: Graph[Long, UnDiEdge]
+  final val tree: MutableGraph[Long, UnDiEdge]
   
   protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
    def allSuccessors(xpos: Long): Set[Long] = {
@@ -37,10 +38,14 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 
   }
 
-  final def predict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
+  final def predict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {}
    // use tree
 
-  }
+  // }
+}
+// La classe en dehors peux être mieux pour de futur applications si il faut la complexifier, pour l'instant elle a juste l'idée
+final class Ant2[O, V <: GVector[V], Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](final val clusterizable: Option[Cz[O, V]], final var firstTime: Boolean = true) {
+    final val id = if(clusterizable.isDefined) clusterizable.get.id else Long.MinValue
 }
 /**
  * @tparm V
@@ -49,7 +54,8 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
  */
 trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAncestor[V, D]] extends ClusteringAlgorithmLocal[V, CM]{
 
-  final val metric: D
+  val metric: D
+
 
   final def train[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): Unit = {
 
@@ -74,7 +80,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
 
     val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
 
-    val branch: Graph[Long, UnDiEdge] = Graph[Long, UnDiEdge](support.id)
+    val branch: MutableGraph[Long, UnDiEdge] = MutableGraph[Long, UnDiEdge](support.id)
 
     def allSuccessors(xpos: Long): Set[branch.NodeT] = {
       val node = branch.get(xpos)
@@ -97,8 +103,10 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
 
     def dissimilarValue(xpos: Long): Double = {
       val successors = directSuccessors(xpos)
-      successors.map(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v)).min
-      // successors.minBy(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v))
+
+      // successors.map(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v)).min
+      val minSuccessor = successors.minBy(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v))
+      metric.d(ants(xpos).clusterizable.get.v, ants(minSuccessor).clusterizable.get.v)
     }
 
     @annotation.tailrec
@@ -173,4 +181,5 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
   }
 }
 
-final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Graph[Long, UnDiEdge])
+
+final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: MutableGraph[Long, UnDiEdge])

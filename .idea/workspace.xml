@@ -70,10 +70,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/NewTree.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="710">
-              <caret line="63" column="5" lean-forward="true" selection-start-line="63" selection-start-column="5" selection-end-line="63" selection-end-column="5" />
+            <state relative-caret-position="688">
+              <caret line="180" column="3" lean-forward="true" selection-start-line="180" selection-start-column="3" selection-end-line="180" selection-end-column="3" />
               <folding>
-                <element signature="e#100#186#0" expanded="true" />
+                <element signature="e#99#185#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -256,7 +256,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1550522597236" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1550523266473" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Scala" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -377,12 +377,12 @@
       <workItem from="1550436942969" duration="45000" />
       <workItem from="1550437824004" duration="28000" />
       <workItem from="1550498230128" duration="2029000" />
-      <workItem from="1550512859382" duration="9311000" />
+      <workItem from="1550512859382" duration="9977000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="48068000" />
+    <option name="totallyTimeSpent" value="48734000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -418,8 +418,8 @@
       <window_info anchor="right" id="Palette" order="4" />
       <window_info anchor="right" id="sbt" order="5" />
       <window_info anchor="right" id="Capture Analysis" order="6" />
-      <window_info anchor="right" id="CDI" order="7" />
-      <window_info anchor="right" id="Gradle" order="8" />
+      <window_info anchor="right" id="Gradle" order="7" />
+      <window_info anchor="right" id="CDI" order="8" weight="0.32995737" />
       <window_info anchor="right" id="Bean Validation" order="9" weight="0.32995737" />
       <window_info anchor="right" id="Database" order="10" />
       <window_info anchor="right" id="Palette&#9;" order="11" />
@@ -552,10 +552,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/Clustering Algorithms/AntTree/NewTree.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="710">
-          <caret line="63" column="5" lean-forward="true" selection-start-line="63" selection-start-column="5" selection-end-line="63" selection-end-column="5" />
+        <state relative-caret-position="688">
+          <caret line="180" column="3" lean-forward="true" selection-start-line="180" selection-start-column="3" selection-end-line="180" selection-end-column="3" />
           <folding>
-            <element signature="e#100#186#0" expanded="true" />
+            <element signature="e#99#185#0" expanded="true" />
           </folding>
         </state>
       </provider>
