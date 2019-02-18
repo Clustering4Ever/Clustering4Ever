@@ -1,24 +1,43 @@
 package org.clustering4ever.clustering.anttree
-
+/**
+ * @author Warris Radji
+ * @author Beck Gaël
+ */
 import org.clustering4ever.clustering.{ClusteringAlgorithmLocal, ClusteringModelLocal}
-
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{ContinuousDistance, Distance}
 import org.clustering4ever.vectors.GVector
+import scala.collection.GenSeq
 import scalax.collection.mutable.Graph
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
+/**
+ * @tparm V
+ * @tparm D
+ * Fais un fichier model et un pour l'algo lui meme
+ */
+trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] {
 
-import scala.collection.{GenSeq, mutable}
+  final val tree: mutable.Graph[Long, UnDiEdge]
+  
+  protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
+   // use tree
+  }
 
-trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V]{
-  protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = centerPredict(data)
+  final def predictNewPoints[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
+   // use tree
+
+  }
 }
-
+/**
+ * @tparm V
+ * @tparm D
+ * @tparm CM
+ */
 trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAncestor[V, D]] extends ClusteringAlgorithmLocal[V, CM]{
 
-  val metric: D
+  final val metric: D
 
   final def train[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): Unit = {
 
@@ -29,21 +48,21 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     // }
 
     class Ant(final val clusterizable: Option[Cz[O, V]], final var firstTime: Boolean = true) {
-      final val id = if (clusterizable.isDefined) clusterizable.get.id else Long.MinValue
+      final val id = if(clusterizable.isDefined) clusterizable.get.id else Long.MinValue
     }
 
     object Support extends Ant(None, true)
 
-    val x0 = Support
+    val support = Support
 
     val ants = {
       val dataToAnts = data.map(cz => new Ant(Some(cz)))
-      dataToAnts.map(cz => cz.id).toArray.zip(dataToAnts).toMap + (x0.id -> x0)
+      dataToAnts.map(_.id).toArray.zip(dataToAnts).toMap + (support.id -> support)
     }
 
-    val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != x0.id).toSeq: _*)
+    val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
 
-    val branch: Graph[Long, UnDiEdge] = Graph[Long, UnDiEdge](x0.id)
+    val branch: mutable.Graph[Long, UnDiEdge] = mutable.Graph[Long, UnDiEdge](support.id)
 
     def allSuccessors(xpos: Long): Set[branch.NodeT] = {
       val node = branch.get(xpos)
@@ -59,22 +78,31 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     def disconnect(xpos: Long): Unit = {
       val node = branch.get(xpos)
       val successors = allSuccessors(xpos) + node
-      for (key <- successors) ants(key).firstTime = true
+      // for (key <- successors) ants(key).firstTime = true
+      successors.foreach(key => ants(key).firstTime = true)
       branch --= successors
     }
 
     def dissimilarValue(xpos: Long): Double = {
       val successors = directSuccessors(xpos)
-      successors.map(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v)).min
+      // successors.map(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v)).min
+      successors.minBy(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v))
     }
 
     @annotation.tailrec
     def findxplus(xi: Long, xplus: Long, successors: Set[branch.NodeT]): Long = {
-      if (successors.isEmpty) xplus
+      if(successors.isEmpty) xplus
       else {
-        if (metric.d(ants(xi).clusterizable.get.v, ants(successors.head).clusterizable.get.v) >
-          metric.d(ants(xi).clusterizable.get.v, ants(xplus).clusterizable.get.v)) findxplus(xi, successors.head, successors.tail)
-        else findxplus(xi, xplus, successors.tail)
+        if(
+          metric.d(ants(xi).clusterizable.get.v, ants(successors.head).clusterizable.get.v)
+          >
+          metric.d(ants(xi).clusterizable.get.v, ants(xplus).clusterizable.get.v)
+        ) {
+          findxplus(xi, successors.head, successors.tail)
+        }
+        else {
+          findxplus(xi, xplus, successors.tail)
+        }
       }
     }
 
@@ -84,7 +112,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     }
 
     def algorithm(xi: Long, xpos: Long): Long = {
-      if (directSuccessors(xpos).size < 2){
+      if (directSuccessors(xpos).size < 2) {
         connect(xi, xpos)
         -1L
       } else {
@@ -92,21 +120,23 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
         lazy val xplus = mostSimilarNode(xi, xpos)
 
         if (ants(xpos).firstTime) {
-
           if (metric.d(ants(xi).clusterizable.get.v, ants(xplus).clusterizable.get.v) < tDissim) {
             disconnect(xplus)
             connect(xi, xpos)
             ants(xpos).firstTime = false
             -1L
-          } else {
+          }
+          else {
             ants(xpos).firstTime = false
             xplus
           }
-        } else {
+        }
+        else {
           if (metric.d(ants(xi).clusterizable.get.v, ants(xplus).clusterizable.get.v) < tDissim) {
             connect(xi, xpos)
             -1L
-          } else {
+          }
+          else {
             xplus
           }
         }
@@ -119,11 +149,16 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     def classify(): Unit = {
       while (notConnectedAnts.nonEmpty) {
         val xi = notConnectedAnts.dequeue
-        place(xi, x0.id)
+        place(xi, support.id)
       }
     }
+    def classify2(): Unit = {
+      // PE que c'est plus adapté si tu te ressert plus de notConnectedAnts après
+      notConnectedAnts.foreach( ant => place(ant, support.id))
+    }
+    
 
   }
 }
 
-final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V])
+final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: mutable.Graph[Long, UnDiEdge])
