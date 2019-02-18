@@ -18,10 +18,6 @@ trait DataBasedModel[V <: GVector[V], D <: Distance[V]] extends KnnModelModelCz[
 	 */
 	val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (V, ClusterID))]
 	/**
-	 * A metric defined on any object which inherit GVector
-	 */
-	val metric: D
-	/**
 	 * @return clusterID associate to obj and its knn containing (ClusterID, Seq[(ID, Vector)])
 	 */
 	final def knnPredictWithNN(v: V, k: Int): (ClusterID, Seq[(Long, V)]) = {

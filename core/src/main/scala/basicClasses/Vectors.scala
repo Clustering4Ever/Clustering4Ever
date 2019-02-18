@@ -106,6 +106,16 @@ final case class MixedVector[Vb <: Seq[Int], Vs <: Seq[Double]](final val binary
 			scalars.foreach( i => scaBuilder += scalar(i - binary.size - 1) )
 			MixedVector(binBuilder.result, scaBuilder.result)
 	}
+	/**
+	 * @return ScalarVector[Vs] with binary features first then scalar ones
+	 */
+	final def toScalarVector: ScalarVector[Vs] = {
+		val builder = scalar.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, Vs]]
+		builder.sizeHint(scalar.size + binary.size)
+		builder ++= binary.map(_.toDouble)
+		builder ++= scalar
+		ScalarVector(builder.result)
+	}
 }
 /**
  *

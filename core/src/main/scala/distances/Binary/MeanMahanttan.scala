@@ -15,9 +15,7 @@ final case class MeanMahanttan[V <: Seq[Int]](val id: MetricID = 5) extends Bina
 		val (a, b, c, d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)
 		(b + c).toDouble / (a + b + c + d)
 	}
-	/**
-	 *
-	 */
+
 	final def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = d(vector1.vector, vector2.vector)
 
 }

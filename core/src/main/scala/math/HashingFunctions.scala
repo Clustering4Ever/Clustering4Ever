@@ -27,7 +27,12 @@ trait Hashing[V <: GVector[V]] extends GenericHashing[V]
  * @tparam V
  * Trait for continuous data hashing
  */
-trait HashingScalar[V <: Seq[Double]] extends Hashing[ScalarVector[V]]
+trait HashingScalar[V <: Seq[Double]] extends Hashing[ScalarVector[V]] {
+  /**
+   *
+   */
+  def hf(v: V): Double
+}
 /**
  * @tparam V
  * Trait for binary data hashing
@@ -43,6 +48,7 @@ trait HashingMixed[Vb <: Seq[Int], Vs <: Seq[Double]] extends Hashing[MixedVecto
  * A basic implementation of Locality Sensitive Hashing for low dimensions vectors
  */
 final case class LDLSH[V <: Seq[Double]](final val dim: Int, final val w: Double = 1D) extends HashingScalar[V] {
+  require(dim <= 3, println("This hashfunction only works well on law dimentional space"))
   /**
    *
    */
@@ -70,17 +76,17 @@ final case class LDLSH[V <: Seq[Double]](final val dim: Int, final val w: Double
 /**
  *
  */
-trait RealSpacePartionner extends Serializable {
-  def obtainBucketPerLevel[V <: Seq[Double]](v: V): immutable.IndexedSeq[Int]
+trait RealSpacePartionner[V <: Seq[Double]] extends Serializable {
+  def obtainBucketPerLevel(v: V): immutable.IndexedSeq[Int]
 }
 /**
  *
  */
-final case class HDLSH(val l: Int, val dim: Int, buckets: Int, w: Double = 1D) extends RealSpacePartionner {
+final case class HDLSH[V <: Seq[Double]](final val l: Int, final val dim: Int, buckets: Int, w: Double = 1D) extends RealSpacePartionner[V] {
 
   final val hvs = (0 until l).map( hfid => (mutable.ArrayBuffer.fill(dim)(Random.nextGaussian), Random.nextDouble * w, hfid) )
 
-  final val quasiExtremum = dim.toDouble
+  private final val quasiExtremum = dim.toDouble
   final val bucketRange = (2D * quasiExtremum) / buckets
   final val bucketsLimits = (0 until buckets).map( l => - quasiExtremum + bucketRange * l ).zipWithIndex
   /**
@@ -95,7 +101,7 @@ final case class HDLSH(val l: Int, val dim: Int, buckets: Int, w: Double = 1D) e
     (go(0D, 0) + hvs(j)._2) / w
   }
 
-  final def obtainBucketPerLevel[V <: Seq[Double]](v: V): immutable.IndexedSeq[Int] = {
+  final def obtainBucketPerLevel(v: V): immutable.IndexedSeq[Int] = {
     hvs.map{ case (rv, _, hfid) => 
       val bucketID = bucketsLimits.find{ case (th, _) => hf(v, hfid) <= th }
       if(bucketID.isDefined) bucketID.get._2 else buckets

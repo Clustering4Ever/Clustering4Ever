@@ -55,5 +55,9 @@ trait Preprocessable[O, V <: GVector[V], Self[B, C <: GVector[C]] <: Preprocessa
 	 * @tparam Vecto the type of given vectorization
 	 */
 	def updateVectorizationOfSameNature[Vecto <: Vectorization[O, V, Vecto]](vectorization: Vecto): Self[O, V]
+	/**
+	 *
+	 */
+	def updateWorkingVector[GV <: GVector[GV]](newWorkingVector: GV): Self[O, GV]
 
 }

@@ -23,12 +23,12 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Euclide
 	/**
 	 *
 	 */
-	protected final def hammingAndEuclidean(v1: MixedVector[Vb, Vs], v2: MixedVector[Vb, Vs]): Double = {
-		val ds = euclidean(v1.scalar, v2.scalar)
-		val db = hamming(v1.binary, v2.binary)
+	protected final def hammingAndEuclidean(v1: (Vb, Vs), v2: (Vb, Vs)): Double = {
+		val ds = euclidean(v1._2, v2._2)
+		val db = hamming(v1._1, v2._1)
 		if(alpha == 0) {
-			val nbDim = v1.binary.size + v1.scalar.size
-			db * (v1.binary.size.toDouble / nbDim) + ds * (v1.scalar.size.toDouble / nbDim) 
+			val nbDim = v1._1.size + v1._2.size
+			db * (v1._1.size.toDouble / nbDim) + ds * (v1._2.size.toDouble / nbDim)
 		}
 		else db + alpha * ds
 	}
@@ -44,9 +44,13 @@ final case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](final va
 	/**
 	 *	
 	 */
-	final def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double = hammingAndEuclidean(MixedVector(v1._1, v1._2), MixedVector(v2._1, v2._2))	
+	final def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double = hammingAndEuclidean(v1, v2)	
 	/**
 	 *	
 	 */
-	final def d(v1: MixedVector[Vb, Vs], v2: MixedVector[Vb, Vs]): Double = hammingAndEuclidean(v1, v2)	
+	final def d(v1: MixedVector[Vb, Vs], v2: MixedVector[Vb, Vs]): Double = {
+		val MixedVector(binary1, scalar1) = v1
+		val MixedVector(binary2, scalar2) = v2
+		hammingAndEuclidean((binary1, scalar1), (binary2, scalar2))
+	}
 }

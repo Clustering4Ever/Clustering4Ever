@@ -50,8 +50,8 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 				else (key, ClusterBasicOperations.obtainCenter(agg.par.map(_.v), metric))
 		}
 
-		val unSortedCenters: mutable.ArrayBuffer[(Int, V)] = if(customCenters.isEmpty) mutable.ArrayBuffer(kmppInitializationRDD(data.rdd.map(_.v), k, metric).toSeq:_*) else mutable.ArrayBuffer(customCenters.toSeq:_*)
-		val centers = unSortedCenters.sortBy(_._1)
+		val unSortedCenters = if(customCenters.isEmpty) kmppInitializationRDD(data.rdd.map(_.v), k, metric) else customCenters
+		val centers = mutable.ArrayBuffer(unSortedCenters.toSeq:_*).sortBy(_._1)
 		/**
 		 * KCenters heart in tailrec style
 		 */
@@ -64,7 +64,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 				:_*).sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
 			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
-			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, epsilon, metric)
+			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, minShift, metric)
 			if(cpt < maxIterations && !shiftingEnough) {
 				go(cpt + 1, shiftingEnough, updatedCenters)
 			}

@@ -106,7 +106,7 @@ trait ChainingOneAlgorithm[
 
         if(vectorizations.size == 1) {   
             val (modelsIn, clusteringIDsResultsIn) = algorithms.par.map{ alg =>
-                val model = alg.run(dataSortedByID)
+                val model = alg.fit(dataSortedByID)
                 val clusteringIDs = model.obtainClusteringIDs(dataSortedByID)
                 (model, clusteringIDs)
             }.unzip
@@ -118,7 +118,7 @@ trait ChainingOneAlgorithm[
             vectorizations.zipWithIndex.par.map{ case (vecto, vectoIdx) =>
                 val newVectorizationDS = dataSortedByID.map(_.updateVectorizationOfSameNature(vecto)).asInstanceOf[GS[Cz[O, V]]]
                 val (modelsIn, clusteringIDsResultsIn) = algorithms.par.map{ alg =>
-                    val model = alg.run(newVectorizationDS)
+                    val model = alg.fit(newVectorizationDS)
                     val clusteringIDs = model.obtainClusteringIDs(newVectorizationDS)
                     (model, clusteringIDs)
                 }.unzip

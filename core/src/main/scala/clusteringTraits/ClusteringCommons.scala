@@ -69,7 +69,7 @@ trait ClusteringAlgorithmLocal[V <: GVector[V], CM <: ClusteringModelLocal[V]] e
 	 * @tparam GS the nature of the collection which descent from GenSeq
 	 * @return the Clustering Model resulting from this clustering
 	 */
-	def run[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): CM
+	def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): CM
 	/**
 	 * A helper function to cast a specific model knowing from which algorithm it came from.
 	 * It is usefull for clustering chaining when models are kept into clusteringInformation HMap under their generic form ClusteringModelLocal[V]
@@ -147,16 +147,6 @@ trait ClusteringInformationsGenericNew[CM <: ClusteringModel] extends Clustering
 /**
  *
  */
-// trait SpecificClusteringInformationsLocalNew[CM <: ClusteringModelLocal] extends ClusteringInformationsGenericNew[V, CM]
-/**
- *
- */
-// case class ConcreteSpecificClusteringInformationsLocalNew[CM <: ClusteringModelLocal](
-// 	val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, CM)] = immutable.HashSet.empty[(ClusteringRunNumber, CM)]
-// ) extends SpecificClusteringInformationsLocalNew[V, CM]
-/**
- *
- */
 trait ModelsInformationsPerVectorizationAncestor extends ClusteringSharedTypes 
 /**
  *
@@ -188,14 +178,14 @@ trait ClusteringInformationsLocalGen[O, V <: GVector[V], Vecto <: Vectorization[
 /**
  *
  */
-case class ClusteringInformationsLocal[O, V <: GVector[V], Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto]](
+final case class ClusteringInformationsLocal[O, V <: GVector[V], Vecto[A, B <: GVector[B]] <: VectorizationLocal[A, B, Vecto]](
 	final val clusteringInformations: immutable.HashSet[(ClusteringRunNumber, Vecto[O, V], ClusteringModelLocal[V])] =
 		immutable.HashSet.empty[(ClusteringRunNumber, Vecto[O, V], ClusteringModelLocal[V])]
 ) extends ClusteringInformationsLocalGen[O, V, Vecto[O, V], ClusteringModelLocal[V]]
 /**
  *
  */
-case class ClusteringIndicesLocal(
+final case class ClusteringIndicesLocal(
 	final val internalsIndicesByClusteringNumberMetricVectorizationIDIndex: immutable.HashMap[(ClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double] =
 		immutable.HashMap.empty[(ClusteringRunNumber, MetricID, VectorizationID, InternalsIndicesType), Double],
 	final val externalsIndicesByClusteringNumberVectorizationIDIndex: immutable.HashMap[(ClusteringRunNumber, VectorizationID, ExternalsIndicesType), Double] =
@@ -227,58 +217,16 @@ trait ClusteringChaining[
 	 * A securty value in order to allow proper reduce of Chaining models
 	 */
 	protected val fusionChainableSecurity: Int
-	/**
-	 * Internal methods to merge models when runAlgorithms is launched
-	 */
-    // protected def fusionChainable(anotherClusterChaining: Self[V, Vecto]): Self[V, Vecto]
     /**
      * HMap containing initial and added vectorization
      * Vectorizations are accessible using corresponding vectorizationID and VectorizationMapping explicitly or implicitly (Int -> Desired-GVector)
      */
 	val vectorizations: HMap[VectorizationMapping]
 	/**
-	 *
-	 */
-	// val clusteringInformations: ClusteringInformations[ID, O, Cz, Collection]
-	/**
 	 * Total number of algorithms launched, first run is equivalent to 0
 	 */
 	val clusteringRunNumber: ClusteringRunNumber = -1
-	/**
-	 * Run one algorithm on the current vectorization
-	 */
-	// def runAlgorithm(algorithm: AlgorithmsRestrictions[V]): Self[V, Vecto]
-    /**
-	 * Run multiples algorithms on the current vectorization
-     */
-    // def runAlgorithms(algorithms: AlgorithmsRestrictions[V]*): Self[V, Vecto]
-   	/**
-	 * @return new ClusteringChaining object with a vector of type GV and the VectorizationMapping to extract the specific vectorization
-	 */
-    // def addAnyVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto[O, GV]): Self[V]
-	/**
-	 * @return new ClusteringChaining object with a vector of type same nature than current one and the VectorizationMapping to extract the specific vectorization
-	 */
-	// def addVectorization[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto): Self[V] = {
-	// 	addAnyVectorization(vectorization)
-	// }
-	/**
-	 * Actualize the data set with a new vector of any nature
-	 */
-    // def updateAnyVector[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto[O, GV])(implicit ct: ClassTag[Cz[O, GV]]): Self[GV]
-	/**
-	 * Actualize the data set with a new vector of the same nature than previous one
-	 */
-    // def updateVector[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](vectorization: Vecto): Self[V] = {
-    // 	updateAnyVector[V, Vecto](vectorization)
-    // }
-    /**
-     *
-     */
-    // def runAlgorithmsOnMultipleVectorizations[Vecto[A, B <: GVector[B]] <: Vectorization[A, B]](
-    //     vectorizations: Seq[Vecto],
-    //     algorithms: AlgorithmsRestrictions[V]*
-    // ): Self[V]
+
 }
 /**
  *

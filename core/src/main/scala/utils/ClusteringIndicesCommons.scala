@@ -30,7 +30,7 @@ object ClusteringIndicesCommons extends Serializable {
   final def nmiIn2(moi: Array[Int], mti: Array[Int], count: mutable.ArrayBuffer[mutable.ArrayBuffer[Double]], s: Double, bj: Array[Double]) = {
     def computeVal(i: Int, j: Int, v: Double): Double = {
       val tmp = count(i)(j)
-      if(tmp > 0) v - tmp / s * log( tmp / bj(j) ) else v
+      if(tmp > 0) v - tmp / s * log(tmp / bj(j)) else v
     }
     RecursivFunctions.goOverMatrix(moi.size - 1, mti.size - 1, 0D, mti.size, computeVal)
   }

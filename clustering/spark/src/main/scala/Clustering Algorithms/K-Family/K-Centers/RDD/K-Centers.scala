@@ -70,8 +70,8 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 		
 		data.persist(persistanceLVL)
 
-		val unSortedCenters: mutable.ArrayBuffer[(Int, V)] = if(customCenters.isEmpty) mutable.ArrayBuffer(kmppInitializationRDD(data.map(_.v), k, metric).toSeq:_*) else mutable.ArrayBuffer(customCenters.toSeq:_*)
-		val centers = unSortedCenters.sortBy(_._1)
+		val unSortedCenters = if(customCenters.isEmpty) kmppInitializationRDD(data.map(_.v), k, metric) else customCenters
+		val centers = mutable.ArrayBuffer(unSortedCenters.toSeq:_*).sortBy(_._1)
 		/**
 		 * KCenters heart in tailrec style
 		 */
@@ -84,7 +84,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 			:_*).sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
 			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
-			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, epsilon, metric)
+			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, minShift, metric)
 			if(cpt < maxIterations && !shiftingEnough) {
 				go(cpt + 1, shiftingEnough, updatedCenters)
 			}
@@ -98,9 +98,9 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 /**
  *
  */
-final case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val k: Int, val metric: D[V], val epsilon: Double, val maxIterations: Int, val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, val customCenters: immutable.HashMap[Int, V])(implicit val ctV: ClassTag[V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
+final case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, V])(implicit final val ctV: ClassTag[V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
 
-	final def run[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, epsilon, maxIterations, persistanceLVL, obtainCenters(data))
+	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainCenters(data))
 }
