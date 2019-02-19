@@ -15,12 +15,22 @@ import scala.collection.{mutable, immutable}
 
 
 import scalax.collection.mutable.{Graph => MutableGraph}
-/**
- * @tparm V
- * @tparm D
- * Fais un fichier model et un pour l'algo lui meme
- */
-trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] {
+
+
+trait AntTreeAlgoModelAncestor[V <: GVector[V], D <: Distance[V]]{
+  val tree: MutableGraph[Long, UnDiEdge]
+
+  final def allSuccessors(xpos: Long): Set[Long] = {
+    val node = tree.get(xpos)
+    node.withSubgraph().map(_.asInstanceOf[Long]).toSet - node
+  }
+
+  final def directSuccessors(xpos: Long): Set[tree.NodeT] = tree.get(xpos).diSuccessors
+
+}
+
+
+trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] with AntTreeAlgoModelAncestor[V, D] {
 
   val tree: MutableGraph[Long, UnDiEdge]
 
@@ -46,10 +56,11 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 
   }
 
-  // final def predict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {}
-   // use tree
+/*
+  protected[clustering] final def predict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
 
-  // }
+  }
+*/
 }
 // La classe en dehors peux être mieux pour de futur applications si il faut la complexifier, pour l'instant elle a juste l'idée
 final class Ant2[O, V <: GVector[V], Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](final val clusterizable: Option[Cz[O, V]], final var firstTime: Boolean = true) {
@@ -60,7 +71,7 @@ final class Ant2[O, V <: GVector[V], Cz[B, C <: GVector[C]] <: Clusterizable[B, 
  * @tparm D
  * @tparm CM
  */
-trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAncestor[V, D]] extends ClusteringAlgorithmLocal[V, CM]{
+trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAncestor[V, D]] extends ClusteringAlgorithmLocal[V, CM] with AntTreeAlgoModelAncestor[V, D]{
 
   val metric: D
 
@@ -90,25 +101,18 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
 
     val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
 
-    val branch: MutableGraph[Long, UnDiEdge] = MutableGraph[Long, UnDiEdge](support.id)
-
-    def allSuccessors(xpos: Long): Set[branch.NodeT] = {
-      val node = branch.get(xpos)
-      node.withSubgraph().toSet - node
-    }
-
-    def directSuccessors(xpos: Long): Set[branch.NodeT] = branch.get(xpos).diSuccessors
+    val tree: MutableGraph[Long, UnDiEdge] = MutableGraph[Long, UnDiEdge](support.id)
 
     def connect(xi: Long, xpos: Long): Unit = {
-      branch += xpos ~> xi
+      tree += xpos ~> xi
     }
 
     def disconnect(xpos: Long): Unit = {
-      val node = branch.get(xpos)
+      val node = tree.get(xpos)
       val successors = allSuccessors(xpos) + node
       // for (key <- successors) ants(key).firstTime = true
       successors.foreach(key => ants(key).firstTime = true)
-      branch --= successors
+      tree --= successors.asInstanceOf[Set[tree.NodeT]]
     }
 
     def dissimilarValue(xpos: Long): Double = {
@@ -120,7 +124,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     }
 
     @annotation.tailrec
-    def findxplus(xi: Long, xplus: Long, successors: Set[branch.NodeT]): Long = {
+    def findxplus(xi: Long, xplus: Long, successors: Set[tree.NodeT]): Long = {
       if(successors.isEmpty) xplus
       else {
         if(
@@ -137,7 +141,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     }
 
     def mostSimilarNode(xi: Long, xpos: Long): Long = {
-      val successors = directSuccessors(xpos)
+      val successors = directSuccessors(xpos).asInstanceOf[Set[tree.NodeT]]
       findxplus(xi, successors.head, successors.tail)
     }
 
