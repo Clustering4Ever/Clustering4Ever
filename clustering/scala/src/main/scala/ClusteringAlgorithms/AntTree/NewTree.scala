@@ -18,41 +18,29 @@ import scalax.collection.mutable.{Graph => MutableGraph}
 
 
 trait AntTreeAlgoModelAncestor[V <: GVector[V], D <: Distance[V]]{
-  val tree: MutableGraph[Long, UnDiEdge]
+  val tree: MutableGraph[(Long, Option[V]), UnDiEdge]
 
-  final def allSuccessors(xpos: Long): Set[Long] = {
+  final def allSuccessors(xpos: (Long, Option[V])): immutable.Set[(Long, Option[V])] = {
     val node = tree.get(xpos)
-    node.withSubgraph().map(_.asInstanceOf[Long]).toSet - node
+    node.withSubgraph().map(_.value).toSet - node
   }
 
-  final def directSuccessors(xpos: Long): Set[tree.NodeT] = tree.get(xpos).diSuccessors
+  final def directSuccessors(xpos: (Long, Option[V])): Set[tree.NodeT] = tree.get(xpos).diSuccessors
 
 }
 
 
 trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] with AntTreeAlgoModelAncestor[V, D] {
 
-  val tree: MutableGraph[Long, UnDiEdge]
+  val tree: MutableGraph[(Long, Option[V]), UnDiEdge]
 
   private val supportID = Long.MinValue
 
   protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
 
-    // pe final private si l'user n'en à pas besoin et en dehors de obtainCLustering, à voir plus tard si tu t'en ressert pour d'autre méthode de prédiction
-    def allSuccessors(xpos: Long): immutable.Set[Long] = {
+    val supportChild: mutable.Buffer[Set[(Long, Option[V])]] = directSuccessors((supportID, None)).map(e => allSuccessors(e)).toBuffer
 
-      // tree.get(xpos).withSubgraph().map(_.asInstanceOf[Long]).toSet
-      tree.get(xpos).withSubgraph().map(_.value).toSet
-      // val node = tree.get(xpos)
-      // node.withSubgraph().toSet.map(long => long.asInstanceOf[Long])
-    }
-
-    // pe final private si l'user n'en à pas besoin et en dehors de obtainCLustering, à voir plus tard si tu t'en ressert pour d'autre méthode de prédiction
-    def directSuccessors(xpos: Long): immutable.Set[tree.NodeT] = tree.get(xpos).diSuccessors
-
-    val supportChild: mutable.Buffer[immutable.Set[Long]] = directSuccessors(supportID).map(e => allSuccessors(e)).toBuffer
-
-    data.map( cz => cz.addClusterIDs(supportChild.indexWhere(_.contains(cz.id))) ).asInstanceOf[GS[Cz[O, V]]]
+    data.map( cz => cz.addClusterIDs(supportChild.indexWhere(_.contains((cz.id, Some(cz.v))))) ).asInstanceOf[GS[Cz[O, V]]]
 
   }
 
@@ -101,26 +89,29 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
 
     val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
 
-    val tree: MutableGraph[Long, UnDiEdge] = MutableGraph[Long, UnDiEdge](support.id)
+    val tree: MutableGraph[(Long, Option[V]), UnDiEdge] = MutableGraph[(Long, Option[V]), UnDiEdge]((support.id, None))
+
+    def longToNode(l: Long): (Long, Option[V]) = (l, Option(ants(l).clusterizable.get.v))
 
     def connect(xi: Long, xpos: Long): Unit = {
-      tree += xpos ~> xi
+
+      tree += longToNode(xpos) ~> longToNode(xi)
     }
 
     def disconnect(xpos: Long): Unit = {
-      val node = tree.get(xpos)
-      val successors = allSuccessors(xpos) + node
+      val node = tree.get(longToNode(xpos))
+      val successors = allSuccessors(longToNode(xpos)) + node
       // for (key <- successors) ants(key).firstTime = true
-      successors.foreach(key => ants(key).firstTime = true)
+      successors.foreach(key => ants(key._1).firstTime = true)
       tree --= successors.asInstanceOf[Set[tree.NodeT]]
     }
 
     def dissimilarValue(xpos: Long): Double = {
-      val successors = directSuccessors(xpos)
+      val successors = directSuccessors(longToNode(xpos))
 
       // successors.map(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v)).min
-      val minSuccessor = successors.minBy(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor).clusterizable.get.v))
-      metric.d(ants(xpos).clusterizable.get.v, ants(minSuccessor).clusterizable.get.v)
+      val minSuccessor = successors.minBy(successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor._1).clusterizable.get.v))
+      metric.d(ants(xpos).clusterizable.get.v, ants(minSuccessor._1).clusterizable.get.v)
     }
 
     @annotation.tailrec
@@ -128,11 +119,11 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
       if(successors.isEmpty) xplus
       else {
         if(
-          metric.d(ants(xi).clusterizable.get.v, ants(successors.head).clusterizable.get.v)
+          metric.d(ants(xi).clusterizable.get.v, ants(successors.head._1).clusterizable.get.v)
           >
           metric.d(ants(xi).clusterizable.get.v, ants(xplus).clusterizable.get.v)
         ) {
-          findxplus(xi, successors.head, successors.tail)
+          findxplus(xi, successors.head._1, successors.tail)
         }
         else {
           findxplus(xi, xplus, successors.tail)
@@ -141,12 +132,12 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     }
 
     def mostSimilarNode(xi: Long, xpos: Long): Long = {
-      val successors = directSuccessors(xpos).asInstanceOf[Set[tree.NodeT]]
-      findxplus(xi, successors.head, successors.tail)
+      val successors = directSuccessors(longToNode(xpos)).asInstanceOf[Set[tree.NodeT]]
+      findxplus(xi, successors.head._1, successors.tail)
     }
 
     def algorithm(xi: Long, xpos: Long): Long = {
-      if (directSuccessors(xpos).size < 2) {
+      if (directSuccessors(longToNode(xpos)).size < 2) {
         connect(xi, xpos)
         -1L
       } else {
