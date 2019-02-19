@@ -54,8 +54,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/NewTree.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2618">
-              <caret line="154" column="40" lean-forward="true" selection-start-line="154" selection-start-column="40" selection-end-line="154" selection-end-column="40" />
+            <state relative-caret-position="-1709">
+              <caret line="48" column="15" lean-forward="true" selection-start-line="48" selection-start-column="15" selection-end-line="48" selection-end-column="15" />
               <folding>
                 <element signature="e#99#185#0" expanded="true" />
               </folding>
@@ -98,7 +98,13 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="MavenProjectNavigator">
+    <treeState>
+      <expand />
+      <select />
+    </treeState>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="260" />
     <option name="y" value="20" />
     <option name="width" value="1400" />
@@ -177,6 +183,29 @@
               <item name="c4e-waris" type="b2602c69:ProjectViewProjectNode" />
               <item name="C4E-Waris" type="462c0819:PsiDirectoryNode" />
               <item name="clustering" type="462c0819:PsiDirectoryNode" />
+              <item name="scala" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="scala" type="462c0819:PsiDirectoryNode" />
+              <item name="ClusteringAlgorithms" type="462c0819:PsiDirectoryNode" />
+              <item name="K-Family" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="c4e-waris" type="b2602c69:ProjectViewProjectNode" />
+              <item name="C4E-Waris" type="462c0819:PsiDirectoryNode" />
+              <item name="clustering" type="462c0819:PsiDirectoryNode" />
+              <item name="scala" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="scala" type="462c0819:PsiDirectoryNode" />
+              <item name="ClusteringAlgorithms" type="462c0819:PsiDirectoryNode" />
+              <item name="K-Family" type="462c0819:PsiDirectoryNode" />
+              <item name="K-Centers" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="c4e-waris" type="b2602c69:ProjectViewProjectNode" />
+              <item name="C4E-Waris" type="462c0819:PsiDirectoryNode" />
+              <item name="clustering" type="462c0819:PsiDirectoryNode" />
               <item name="spark" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -189,7 +218,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1550595668171" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1550618516635" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Scala" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -272,7 +301,7 @@
     </option>
     <option name="modificationStamps">
       <map>
-        <entry key="$PROJECT_DIR$" value="4651712794550" />
+        <entry key="$PROJECT_DIR$" value="4651801907111" />
         <entry key="$PROJECT_DIR$/build.sbt" value="1359408094" />
         <entry key="$PROJECT_DIR$/project/build.properties" value="2567920773" />
         <entry key="$PROJECT_DIR$/project/plugins.sbt" value="945217855" />
@@ -319,17 +348,18 @@
       <workItem from="1550570725489" duration="1185000" />
       <workItem from="1550575314249" duration="999000" />
       <workItem from="1550592953586" duration="2529000" />
+      <workItem from="1550600676424" duration="613000" />
+      <workItem from="1550614839510" duration="3654000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="60878000" />
+    <option name="totallyTimeSpent" value="65145000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23134328" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.23667377" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -355,16 +385,16 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="1" weight="0.25" />
       <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
-      <window_info anchor="right" id="Maven" order="3" />
-      <window_info anchor="right" id="Palette" order="4" />
+      <window_info anchor="right" id="Palette" order="3" />
+      <window_info anchor="right" id="Maven" order="4" weight="0.32995737" />
       <window_info anchor="right" id="sbt" order="5" />
       <window_info anchor="right" id="Capture Analysis" order="6" />
       <window_info anchor="right" id="Gradle" order="7" />
       <window_info anchor="right" id="CDI" order="8" weight="0.32995737" />
-      <window_info anchor="right" id="Bean Validation" order="9" weight="0.32995737" />
-      <window_info anchor="right" id="Palette&#9;" order="10" />
-      <window_info anchor="right" id="Theme Preview" order="11" />
-      <window_info anchor="right" id="Database" order="12" weight="0.32995737" />
+      <window_info anchor="right" id="Palette&#9;" order="9" />
+      <window_info anchor="right" id="Theme Preview" order="10" />
+      <window_info anchor="right" id="Database" order="11" weight="0.32995737" />
+      <window_info anchor="right" id="Bean Validation" order="12" weight="0.32995737" />
     </layout>
     <layout-to-restore>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2835821" />
@@ -451,10 +481,28 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Centers-Models.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#83#116#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Means.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#83#116#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/NewTree.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2618">
-          <caret line="154" column="40" lean-forward="true" selection-start-line="154" selection-start-column="40" selection-end-line="154" selection-end-column="40" />
+        <state relative-caret-position="-1709">
+          <caret line="48" column="15" lean-forward="true" selection-start-line="48" selection-start-column="15" selection-end-line="48" selection-end-column="15" />
           <folding>
             <element signature="e#99#185#0" expanded="true" />
           </folding>

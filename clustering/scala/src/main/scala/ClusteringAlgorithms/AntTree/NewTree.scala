@@ -4,52 +4,68 @@ package org.clustering4ever.clustering.anttree
  * @author Beck Gaël
  */
 import org.clustering4ever.clustering.{ClusteringAlgorithmLocal, ClusteringModelLocal}
+
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{ContinuousDistance, Distance}
 import org.clustering4ever.vectors.GVector
+
 import scala.collection.GenSeq
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
-import scala.collection.{mutable, immutable}
 
-
+import scala.collection.{immutable, mutable}
 import scalax.collection.mutable.{Graph => MutableGraph}
 
+import scala.collection.mutable.ArrayBuffer
+
+class Tree[T, E[X] <: EdgeLikeIn[X]](node : MutableGraph[T,E]) {
+  final protected[clustering] val graph = node
+  final private val principalsCLuster = ArrayBuffer[graph.NodeT]()
+
+  final def obtainPrincipalCluster(support: T): Unit = principalsCLuster ++= graph.get(support).diSuccessors
+
+  final def getPrincipalCluster: ArrayBuffer[graph.NodeT] = principalsCLuster
+}
 
 trait AntTreeAlgoModelAncestor[V <: GVector[V], D <: Distance[V]] {
 
-  val tree: MutableGraph[(Long, Option[V]), UnDiEdge]
+  val tree: Tree[(Long, Option[V]), UnDiEdge]
 
   final def allSuccessors(xpos: (Long, Option[V])): immutable.Set[(Long, Option[V])] = {
-    val node = tree.get(xpos)
+    val node = tree.graph.get(xpos)
     node.withSubgraph().map(_.value).toSet - node
   }
 
-  final def directSuccessors(xpos: (Long, Option[V])): immutable.Set[(Long, Option[V])] = tree.get(xpos).diSuccessors.map(_.value)
+  final def directSuccessors(xpos: (Long, Option[V])): immutable.Set[(Long, Option[V])] = tree.graph.get(xpos).diSuccessors.map(_.value)
 
 }
 
 
 trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] with AntTreeAlgoModelAncestor[V, D] {
 
-  val tree: MutableGraph[(Long, Option[V]), UnDiEdge]
+  val tree: Tree[(Long, Option[V]), UnDiEdge]
+
+  val metric: D
 
   private val supportID = Long.MinValue
 
   protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
 
-    val supportChild: mutable.Buffer[Set[(Long, Option[V])]] = directSuccessors((supportID, None)).map(e => allSuccessors(e)).toBuffer
+    val supportChild= tree.getPrincipalCluster.map(e => allSuccessors(e))
 
     data.map( cz => cz.addClusterIDs(supportChild.indexWhere(_.contains((cz.id, Some(cz.v))))) ).asInstanceOf[GS[Cz[O, V]]]
 
   }
 
-/*
+
   protected[clustering] final def predict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
+    def predictOnePoint(point: Cz[O, V]): Int = tree.getPrincipalCluster.indexOf(tree.getPrincipalCluster.maxBy(c =>metric.d(c._2.get, point.v)))
+    // à simplifier !
+    data.map(cz => cz.addClusterIDs(predictOnePoint(cz))).asInstanceOf[GS[Cz[O, V]]]
 
   }
-*/
+
 }
 /**
  * @tparm V
@@ -78,19 +94,20 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
 
     val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
 
-    val tree: MutableGraph[(Long, Option[V]), UnDiEdge] = MutableGraph[(Long, Option[V]), UnDiEdge]((support.id, None))
+    val tree: Tree[(Long, Option[V]), UnDiEdge] = new Tree[(Long, Option[V]), UnDiEdge](MutableGraph[(Long, Option[V]), UnDiEdge]((support.id, None)))
+
 
     def longToNode(l: Long): (Long, Option[V]) = (l, Option(ants(l).clusterizable.get.v))
 
     def connect(xi: Long, xpos: Long): Unit = {
-      tree += longToNode(xpos) ~> longToNode(xi)
+      tree.graph += longToNode(xpos) ~> longToNode(xi)
     }
 
     def disconnect(xpos: Long): Unit = {
-      val node = tree.get(longToNode(xpos))
+      val node = tree.graph.get(longToNode(xpos))
       val successors = allSuccessors(longToNode(xpos)) + node
       successors.foreach(key => ants(key._1).firstTime = true)
-      tree --= successors.asInstanceOf[Set[tree.NodeT]]
+      tree.graph --= successors.asInstanceOf[Set[tree.graph.NodeT]]
     }
 
     def dissimilarValue(xpos: Long): Double = {
@@ -161,10 +178,12 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
         val xi = notConnectedAnts.dequeue
         place(xi, support.id)
       }
+      tree.obtainPrincipalCluster(longToNode(support.id))
     }
     def classify2(): Unit = {
       // PE que c'est plus adapté si tu te ressert plus de notConnectedAnts après
       notConnectedAnts.foreach( ant => place(ant, support.id))
+      tree.obtainPrincipalCluster(longToNode(support.id))
     }
     
 
