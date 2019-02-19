@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-val sparkVersion = "2.3.0"
+val sparkVersion = "2.3.3"
 
 lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 	case PathList("org", "xmlpull", xs @ _*) => MergeStrategy.last

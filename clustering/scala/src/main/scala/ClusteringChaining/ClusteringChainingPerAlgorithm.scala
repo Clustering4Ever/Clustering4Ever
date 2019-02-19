@@ -154,7 +154,10 @@ trait ChainingOneAlgorithm[
      *
      */
     final def getEveryMIPerClustering(groundTruth: GenSeq[Int]): GenSeq[(Double, Double, Double)] = {
-        clusteringIDsResults.map( clusteringIDsFromOneAlgo => ExternalIndicesLocal.everyMI(groundTruth, clusteringIDsFromOneAlgo)  )
+        clusteringIDsResults.map{ clusteringIDsFromOneAlgo => 
+            val externalIndices = ExternalIndicesLocal(groundTruth.zip(clusteringIDsFromOneAlgo))
+            (externalIndices.mutualInformation, externalIndices.nmiSQRT, externalIndices.nmiMAX)
+        }
     }
 
 }

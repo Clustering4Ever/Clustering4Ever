@@ -60,6 +60,6 @@ final case class EpsilonProximityModelBinary[V <: Seq[Int], D[X <: Seq[Int]] <: 
 /**
  *
  */
-final case class EpsilonProximityModelMixt[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (MixedVector[Vb, Vs], Int))], final val epsilon: Double, final val metric: D[Vb, Vs], protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[MixedVector[Vb, Vs], D[Vb, Vs]] {
-	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityMixt
+final case class EpsilonProximityModelMixed[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (MixedVector[Vb, Vs], Int))], final val epsilon: Double, final val metric: D[Vb, Vs], protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[MixedVector[Vb, Vs], D[Vb, Vs]] {
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityMixed
 }

@@ -5,50 +5,159 @@ package org.clustering4ever.clustering.indices
 import scala.math.{max, log, sqrt}
 import scala.collection.GenSeq
 import org.clustering4ever.util.ClusteringIndicesCommons
-import org.clustering4ever.enums.NmiNormalizationNature._
+import org.clustering4ever.enums.NmiNormalizationNature
 import scala.collection.mutable
-// import org.clustering4ever.util.SumVectors
 /**
  *
  */
-trait ExternalIndicesLocal {
+trait ExternalIndicesCommons extends Serializable {
 
 	final type TP = Int
 	final type FP = Int
 	final type TN = Int
 	final type FN = Int
 
-	private lazy final val tp = (1, 0, 0, 0)
-	private lazy final val tn = (0, 1, 0, 0)
-	private lazy final val fp = (0, 0, 1, 0)
-	private lazy final val fn = (0, 0, 0, 1)
+	private[indices] lazy final val tpCount = (1, 0, 0, 0)
+	private[indices] lazy final val tnCount = (0, 1, 0, 0)
+	private[indices] lazy final val fpCount = (0, 0, 1, 0)
+	private[indices] lazy final val fnCOunt = (0, 0, 0, 1)
 
-	private final def fillConfusionMatrix(truth: Int, pred: Int): (TP, FP, TN, FN) = {
-	  if(truth == 1) if(truth == pred) tp else fp
-	  else if(truth == pred) tn else fn
+	private[indices] final def fillConfusionMatrix(truth: Int, pred: Int): (TP, FP, TN, FN) = {
+	  if(truth == 1) if(truth == pred) tpCount else fpCount
+	  else if(truth == pred) tnCount else fnCOunt
+	}
+	/**
+	 * Total True Positive
+	 */
+	val tp: TP
+	/**
+	 * Total True Negative
+	 */
+	val tn: TN
+	/**
+	 * Total False Positive
+	 */
+	val fp: FP 
+	/**
+	 * Total False Negative
+	 */
+	val fn: FN
+	/**
+	 *
+	 */
+	final lazy val confusionMatrixElementsSum: Double =  (tp + tn + fp + fn).toDouble
+	/**
+	 *
+	 */
+	final lazy val accuracy: Double = (tp + tn).toDouble / confusionMatrixElementsSum
+	/**
+	 *
+	 */
+	final lazy val precision: Double = tp.toDouble / (tp + fp)
+	/**
+	 *
+	 */
+	final lazy val recall: Double = tp.toDouble / (tp + fn)
+	/**
+	* F(β) score
+	*/
+	final lazy val fBeta: Double => Double = β => (1D + β * β) * (precision * recall) / (β * β * (precision + recall))
+	/**
+	* F1 score
+	*/
+	final lazy val f1: Double = fBeta(1D)
+	/**
+	* Matthews correlation coefficient
+	*/
+	final lazy val mcc: Double = (tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn)) 
+	/**
+	 *
+	 */
+	final lazy val czekanowskiDice: Double = (2D * tp) / (2D * tp + fn + fp )
+	/**
+	 *
+	 */
+	final lazy val rand: Double = (tp + tn) / confusionMatrixElementsSum
+	/**
+	 *
+	 */
+	final lazy val rogersTanimoto: Double = (tp + tn) / (tp + (2D * (fn + fp)) + tn)
+	/**
+	 *
+	 */
+	final lazy val folkesMallows: Double = (tp / sqrt((tp + fn) * (fp + tp)))
+	/**
+	 *
+	 */
+	final lazy val jaccard: Double = tp / (tp + fn + fp)
+	/**
+	 *
+	 */
+	final lazy val kulcztnski: Double = ((tp / (tp + fp)) + (tp / (tp + fn))) / 2D
+	/**
+	 *
+	 */
+	final lazy val mcNemar: Double = (tn - fp) / sqrt(tn + fp)
+	/**
+	 *
+	 */
+	final lazy val russelRao: Double = tp / confusionMatrixElementsSum
+	/**
+	 *
+	 */
+	final lazy val sokalSneath1: Double = tp / (tp + (2D * (fn + fp)))
+	/**
+	 *
+	 */
+	final lazy val sokalSneath2: Double = (tp + tn) / (tp + tn + ((fn + fp) / 2D))
+}
+/**
+ *
+ */
+trait MIInfo extends Serializable {
+	/**
+	 * Mutual Information Internal
+	 */
+	val mutualInformation: Double
+	/**
+	 * Entropy for target data
+	 */
+	val hu: Double
+	/**
+	 * Entropy for predict data
+	 */
+	val hv: Double
+}
+/**
+ *
+ */
+trait ExternalIndicesLocalAncestor extends ExternalIndicesCommons with MIInfo {
+	/**
+	 * Collection of (Target, Prediction)
+	 */
+	val targetAndPred: GenSeq[(Int, Int)]
+	
+	lazy final val (tp, tn, fp, fn) = {
+		targetAndPred.map{ case (target, pred) => fillConfusionMatrix(target, pred) }.fold((0, 0, 0, 0))( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3, a._4 + b._4))
 	}
 
-	final def obtainConfusionMatrix(truthAndPred: GenSeq[(Int, Int)]): (TP, FP, TN, FN) = {
-		truthAndPred.map{ case (truth, pred) => fillConfusionMatrix(truth, pred) }.fold((0, 0, 0, 0))( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3, a._4 + b._4))
+	final lazy val purity: Double = {
+		val cols = targetAndPred.groupBy(identity).map{ case ((_, pred), aggregate) => (pred, aggregate.size) }
+		val groupByPred = cols.groupBy(_._1)
+		val sum = groupByPred.map{ case (pred, aggregate) => (pred, aggregate.map(_._2).sum) }
+		val maxByPred = groupByPred.map{ case (pred, aggregate) => (pred, aggregate.map(_._2).max) }
+		sum.zip(maxByPred).map{ case ((_, s1), (_, m1)) => m1.toDouble / s1 }.sum / sum.size
 	}
 
-	final def accuracy(truthAndPred: GenSeq[(Int, Int)]) = {
-		val (tp, tn, fp, fn) = obtainConfusionMatrix(truthAndPred)
-		(tp + tn).toDouble / (tp + tn + fp + fn)
+	final lazy val (mutualInformation, hu, hv) = {
 
-	}
-
-	final def mutualInformationInternal(x: GenSeq[Int], y: GenSeq[Int]) = {
-		require( x.size == y.size )
-		val n = x.size
-		val maxX = x.max
-		val maxY = y.max
-
+		val n = targetAndPred.size
+		val (maxX, maxY) = targetAndPred.reduce( (a, b) => (max(a._1, b._1), max(a._2, b._2)) )
 		val maxOneIndices = (0 to maxX).toArray
 		val maxTwoIndices = (0 to maxY).toArray
 
-		val count = mutable.ArrayBuffer.fill(maxX + 1)(mutable.ArrayBuffer.fill(maxY +1)(0D))
-		x.seq.indices.foreach( i => count(x(i))(y(i)) += 1D )
+		val count = mutable.ArrayBuffer.fill(maxX + 1)(mutable.ArrayBuffer.fill(maxY + 1)(0D))
+		targetAndPred.seq.indices.foreach( i => count(targetAndPred(i)._1)(targetAndPred(i)._2) += 1D )
 
 		val ai = ClusteringIndicesCommons.nmiObtainAi(new Array[Double](maxX + 1), maxOneIndices, maxTwoIndices, count)
 		val bj = ClusteringIndicesCommons.nmiObtainBj(new Array[Double](maxY + 1), maxTwoIndices, maxOneIndices, count)
@@ -60,55 +169,25 @@ trait ExternalIndicesLocal {
 
 		(mi, hu, hv)
 	}
-
+	/**
+	 *
+	 */
+	final lazy val nmi: NmiNormalizationNature.Normalization => Double = normalization => {
+		normalization match {
+			case NmiNormalizationNature.SQRT => mutualInformation / sqrt(hu * hv)
+			case NmiNormalizationNature.MAX => mutualInformation / max(hu, hv)
+		}
+	}
+	/**
+	 * mutualInformation / sqrt(hu * hv)
+	 */
+	final lazy val nmiSQRT: Double = nmi(NmiNormalizationNature.SQRT)
+	/**
+	 * mutualInformation / max(hu, hv)
+	 */
+	final lazy val nmiMAX: Double = nmi(NmiNormalizationNature.MAX)
 }
 /**
  *
  */
-object ExternalIndicesLocal extends ExternalIndicesLocal {
-	/**
-	 * Compute the mutual information
-	 * @return (Mutual Information, entropy x, entropy y)
-	 */
-	final def mutualInformation(x: GenSeq[Int], y: GenSeq[Int]): Double = mutualInformationInternal(x, y)._1
-	/**
-	 * Compute the normalize mutual entropy
-	 * @param normalization nature of normalization, either sqrt or max
-	 * @return Normalize Mutual Information
-	 */
-	final def nmi(x: GenSeq[Int], y: GenSeq[Int], normalization: Normalization = SQRT) = {
-		val (mi, hu, hv) = mutualInformationInternal(x, y)
-		val nmi = normalization match {
-			case SQRT => mi / sqrt(hu * hv)
-			case MAX => mi / max(hu, hv)
-		}
-		nmi
-	}
-	/**
-	 * @return (MI, NMI_sqrt, NMI_max)
-	 */
-	final def everyMI(x: GenSeq[Int], y: GenSeq[Int]) = {
-		val (mi, hu, hv) =  mutualInformationInternal(x, y)
-		(
-			mi,
-			mi / sqrt(hu * hv),
-			mi / max(hu, hv)
-		)
-	}
-	/**
-	 * Compute the normalize mutual entropy
-	 * @param normalization nature of normalization, either sqrt or max
-	 * @return Normalize Mutual Information
-	 */
-	final def nmi[S <: GenSeq[Int]](xy: Seq[(Int, Int)], normalization: Normalization): Double = {
-		val (x, y) = xy.unzip
-		nmi(x, y, normalization)
-	}
-	/**
-	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
-	 */
-	final def prepareLabels[S <: GenSeq[Int]](x: S) =	{
-		val indexedValuesMap = x.distinct.zipWithIndex.toMap.seq
-		(indexedValuesMap, x.map(indexedValuesMap).asInstanceOf[S])
-	}
-}
+final case class ExternalIndicesLocal(final val targetAndPred: GenSeq[(Int, Int)]) extends ExternalIndicesLocalAncestor

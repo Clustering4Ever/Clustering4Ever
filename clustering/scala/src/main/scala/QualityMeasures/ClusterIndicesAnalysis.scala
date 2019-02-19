@@ -66,12 +66,14 @@ trait ClustersIndicesAnalysisAncestorLocal[
     final def computeExternalsIndices(groundTruth: GS[ClusterID], indices: ExternalsIndicesType*)(clusteringNumber: ClusteringNumber): immutable.Map[ExternalsIndicesType, Double] = {
 
         val onlyClusterIDs = clusterized.map(_.clusterIDs(clusteringNumber))
+        val targetAndPred = groundTruth.zip(onlyClusterIDs)
+        val externalIndices = ExternalIndicesLocal(targetAndPred)
 
         val obtainedIndices = indices.par.map{ index =>
             index match {
-                case MI => (MI, ExternalIndicesLocal.mutualInformation(onlyClusterIDs, groundTruth))
-                case NMI_Sqrt => (NMI_Sqrt, ExternalIndicesLocal.nmi(onlyClusterIDs, groundTruth, NmiNormalizationNature.SQRT)) 
-                case NMI_Max => (NMI_Max, ExternalIndicesLocal.nmi(onlyClusterIDs, groundTruth, NmiNormalizationNature.MAX))
+                case MI => (MI, externalIndices.mutualInformation)
+                case NMI_Sqrt => (NMI_Sqrt, externalIndices.nmiSQRT) 
+                case NMI_Max => (NMI_Max, externalIndices.nmiMAX)
                 case _ => throw new IllegalArgumentException("Asked index is not repertoried")
             }
         }.seq.toMap

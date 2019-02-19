@@ -1,8 +1,6 @@
 package org.clustering4ever.clustering.indices
 /**
  * @author Beck Gaël
- *
- * Refactor from an internship work of CAO Anh Quan https://github.com/Spark-clustering-notebook/ClusteringIndices
  */
 import scala.annotation.meta.param
 import scala.collection.parallel.mutable.ParArray
@@ -16,23 +14,52 @@ import org.clustering4ever.util.ClusteringIndicesCommons
 /**
  *
  */
-class ExternalIndicesDistributed(@(transient @param) sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends Serializable {
+trait ExternalIndicesDistributedAncestor extends ExternalIndicesCommons {
+  /**
+   * StorageLevel for RDD
+   */
+  val persistanceLVL: StorageLevel
+  /**
+   * RDD of (Target, Prediction)
+   */
+  val targetAndPred: RDD[(Int, Int)]
 
-  groundTruthAndPred.persist(persistanceLVL)
+  targetAndPred.persist(persistanceLVL)
+  
+  final lazy val (tp, tn, fp, fn) = {
+    targetAndPred.map{ case (target, pred) => fillConfusionMatrix(target, pred) }.fold((0, 0, 0, 0))( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3, a._4 + b._4))
+  }
+  
+  final lazy val purity: Double = {
+    val cols = targetAndPred.map( line => (line, 1) ).reduceByKey(_ + _).map{ case ((_, pred), sum) => (pred, sum) }.cache
+    val sum = cols.reduceByKeyLocally(_ + _)
+    val maxByPred = cols.reduceByKeyLocally(max)
+    cols.unpersist(false)
+    sum.zip(maxByPred).map{ case ((_, s1), (_, m1)) => m1.toDouble / s1 }.sum / sum.size
+  }
+
+}
+/**
+ *
+ */
+final case class ExternalIndicesDistributed(final val targetAndPred: RDD[(Int, Int)], final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends ExternalIndicesDistributedAncestor {
+
   /**
    * Compute the mutual information
    * @return (Mutual Information, entropy x, entropy y)
    */
-  private lazy val (mi, hu, hv): (Double, Double, Double) = {
-    val maxX = groundTruthAndPred.max()(Ordering[Int].on(_._1))._1
-    val maxY = groundTruthAndPred.max()(Ordering[Int].on(_._2))._2
+  final lazy val (mutualInformation, hu, hv): (Double, Double, Double) = {
+    val maxX = targetAndPred.max()(Ordering[Int].on(_._1))._1
+    val maxY = targetAndPred.max()(Ordering[Int].on(_._2))._2
 
     val maxOneIndices = (0 to maxX).toArray
     val maxTwoIndices = (0 to maxY).toArray
 
+    @transient val sc = targetAndPred.sparkContext
+
     val accNmi = new NmiAccumulator(mutable.ArrayBuffer.fill(maxX + 1)(mutable.ArrayBuffer.fill(maxY + 1)(0D)), maxX + 1, maxY + 1)
     sc.register(accNmi, "NmiAccumulator")
-    groundTruthAndPred.foreach{ case (x, y) => accNmi.addOne(x, y) }
+    targetAndPred.foreach{ case (x, y) => accNmi.addOne(x, y) }
 
     val count = accNmi.value
 
@@ -48,23 +75,27 @@ class ExternalIndicesDistributed(@(transient @param) sc: SparkContext, groundTru
 
     (mi, hu, hv)
   }
-  /**
-   * Mutual Information score
-   */
-  lazy val mutualInformation: Double = mi
 	/**
 	 * Compute the normalize mutual entropy
-	 * It is advise to cache groundTruthAndPred before passing it to this method.
+	 * It is advise to cache targetAndPred before passing it to this method.
 	 * @param normalization : nature of normalization, either sqrt or max
 	 * @return Normalize Mutual Information
 	 */
-	lazy val nmi: Normalization => Double = normalization => {
+	final lazy val nmi: Normalization => Double = normalization => {
 		val nmi = normalization match {
-			case SQRT => mi / sqrt(hu * hv)
-			case MAX => mi / max(hu, hv)
+			case SQRT => mutualInformation / sqrt(hu * hv)
+			case MAX => mutualInformation / max(hu, hv)
 		}
 		nmi
   }
+  /**
+   * mutualInformation / sqrt(hu * hv)
+   */
+  final lazy val nmiSQRT: Double = nmi(SQRT)
+  /**
+   * mutualInformation / max(hu, hv)
+   */
+  final lazy val nmiMAX: Double = nmi(MAX)
 }
 
 object ExternalIndicesDistributed {
@@ -77,17 +108,17 @@ object ExternalIndicesDistributed {
 	}
   /**
    * Compute the mutual information
-   * It is advise to cache groundTruthAndPred before passing it to this method.
+   * It is advise to cache targetAndPred before passing it to this method.
    * @return (Mutual Information, entropy x, entropy y)
    */
-  final def mutualInformation(sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndicesDistributed(sc, groundTruthAndPred, persistanceLVL)).mutualInformation
+  final def mutualInformation(targetAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
+    (new ExternalIndicesDistributed(targetAndPred, persistanceLVL)).mutualInformation
   /**
    * Compute the normalize mutual entropy
-   * It is advise to cache groundTruthAndPred before passing it to this method.
+   * It is advise to cache targetAndPred before passing it to this method.
    * @param normalization : nature of normalization, either sqrt or max
    * @return Normalize Mutual Information
    */
-  final def nmi(sc: SparkContext, groundTruthAndPred: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndicesDistributed(sc, groundTruthAndPred, persistanceLVL)).nmi(normalization)
+  final def nmi(targetAndPred: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
+    (new ExternalIndicesDistributed(targetAndPred, persistanceLVL)).nmi(normalization)
 }

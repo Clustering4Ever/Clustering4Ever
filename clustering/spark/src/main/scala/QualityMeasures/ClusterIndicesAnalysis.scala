@@ -22,11 +22,7 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-final case class ClustersIndicesAnalysisDistributed[
-    O,
-    V <: GVector[V] : ClassTag,
-    Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]
-](final val clusterized: RDD[Cz[O, V]], final val sc: SparkContext, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val internalsIndicesByMetricClusteringNumberIndex: immutable.Map[(MetricID, ClusteringNumber, InternalsIndicesType), Double] = immutable.Map.empty[(MetricID, ClusteringNumber, InternalsIndicesType), Double]) extends ClustersIndicesAnalysis[O, V, Cz, RDD] {
+final case class ClustersIndicesAnalysisDistributed[O, V <: GVector[V] : ClassTag, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](final val clusterized: RDD[Cz[O, V]], final val sc: SparkContext, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val internalsIndicesByMetricClusteringNumberIndex: immutable.Map[(MetricID, ClusteringNumber, InternalsIndicesType), Double] = immutable.Map.empty[(MetricID, ClusteringNumber, InternalsIndicesType), Double]) extends ClustersIndicesAnalysis[O, V, Cz, RDD] {
     /**
      *
      */
@@ -82,9 +78,9 @@ final case class ClustersIndicesAnalysisDistributed[
 
         val obtainedIndices = indices.par.map{ index =>
             index match {
-                case MI => (MI, ExternalIndicesDistributed.mutualInformation(sc, onlyClusterIDs))
-                case NMI_Sqrt => (NMI_Sqrt, ExternalIndicesDistributed.nmi(sc, onlyClusterIDs, NmiNormalizationNature.SQRT)) 
-                case NMI_Max => (NMI_Max, ExternalIndicesDistributed.nmi(sc, onlyClusterIDs, NmiNormalizationNature.MAX))
+                case MI => (MI, ExternalIndicesDistributed.mutualInformation(onlyClusterIDs))
+                case NMI_Sqrt => (NMI_Sqrt, ExternalIndicesDistributed.nmi(onlyClusterIDs, NmiNormalizationNature.SQRT)) 
+                case NMI_Max => (NMI_Max, ExternalIndicesDistributed.nmi(onlyClusterIDs, NmiNormalizationNature.MAX))
                 case _ => throw new IllegalArgumentException("Asked index is not repertoried")
             }
         }.seq.toMap
