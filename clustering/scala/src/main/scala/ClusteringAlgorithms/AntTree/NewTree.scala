@@ -11,7 +11,7 @@ import org.clustering4ever.vectors.GVector
 import scala.collection.GenSeq
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
-import scala.collection.mutable
+import scala.collection.{mutable, immutable}
 
 
 import scalax.collection.mutable.{Graph => MutableGraph}
@@ -29,16 +29,18 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
   protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
 
     // pe final private si l'user n'en à pas besoin et en dehors de obtainCLustering, à voir plus tard si tu t'en ressert pour d'autre méthode de prédiction
-    def allSuccessors(xpos: Long): Set[Long] = {
+    def allSuccessors(xpos: Long): immutable.Set[Long] = {
+
+      // tree.get(xpos).withSubgraph().map(_.asInstanceOf[Long]).toSet
+      tree.get(xpos).withSubgraph().map(_.value).toSet
       // val node = tree.get(xpos)
       // node.withSubgraph().toSet.map(long => long.asInstanceOf[Long])
-      tree.get(xpos).withSubgraph().map(_.asInstanceOf[Long]).toSet
     }
 
     // pe final private si l'user n'en à pas besoin et en dehors de obtainCLustering, à voir plus tard si tu t'en ressert pour d'autre méthode de prédiction
-    def directSuccessors(xpos: Long): Set[tree.NodeT] = tree.get(xpos).diSuccessors
+    def directSuccessors(xpos: Long): immutable.Set[tree.NodeT] = tree.get(xpos).diSuccessors
 
-    val supportChild: mutable.Buffer[Set[Long]] = directSuccessors(supportID).map(e => allSuccessors(e)).toBuffer
+    val supportChild: mutable.Buffer[immutable.Set[Long]] = directSuccessors(supportID).map(e => allSuccessors(e)).toBuffer
 
     data.map( cz => cz.addClusterIDs(supportChild.indexWhere(_.contains(cz.id))) ).asInstanceOf[GS[Cz[O, V]]]
 
