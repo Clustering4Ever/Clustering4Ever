@@ -14,7 +14,7 @@ import org.clustering4ever.util.ClusteringIndicesCommons
 /**
  *
  */
-trait ExternalIndicesDistributedAncestor extends ExternalIndicesCommons {
+trait ExternalIndicesDistributedAncestor extends Serializable {
   /**
    * StorageLevel for RDD
    */
@@ -25,10 +25,21 @@ trait ExternalIndicesDistributedAncestor extends ExternalIndicesCommons {
   val targetAndPred: RDD[(Int, Int)]
 
   targetAndPred.persist(persistanceLVL)
-  
+}
+/**
+ *
+ */
+trait BinaryExternalIndicesDistributedAncestor extends ExternalIndicesDistributedAncestor with BinaryExternalIndicesCommons {
+
   final lazy val (tp, tn, fp, fn) = {
-    targetAndPred.map{ case (target, pred) => fillConfusionMatrix(target, pred) }.fold((0, 0, 0, 0))( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3, a._4 + b._4))
+    targetAndPred.map{ case (target, pred) => fillBinaryConfusionMatrix(target, pred) }.fold((0, 0, 0, 0))( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3, a._4 + b._4))
   }
+
+}
+/**
+ *
+ */
+trait BinaryAndMultiExternalIndicesDistributedAncestor extends ExternalIndicesDistributedAncestor with IndicesDoc {
   
   final lazy val purity: Double = {
     val cols = targetAndPred.map( line => (line, 1) ).reduceByKey(_ + _).map{ case ((_, pred), sum) => (pred, sum) }.cache
@@ -38,17 +49,7 @@ trait ExternalIndicesDistributedAncestor extends ExternalIndicesCommons {
     sum.zip(maxByPred).map{ case ((_, s1), (_, m1)) => m1.toDouble / s1 }.sum / sum.size
   }
 
-}
-/**
- *
- */
-final case class ExternalIndicesDistributed(final val targetAndPred: RDD[(Int, Int)], final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends ExternalIndicesDistributedAncestor {
-
-  /**
-   * Compute the mutual information
-   * @return (Mutual Information, entropy x, entropy y)
-   */
-  final lazy val (mutualInformation, hu, hv): (Double, Double, Double) = {
+  final lazy val (mutualInformation, et, ep): (Double, Double, Double) = {
     val maxX = targetAndPred.max()(Ordering[Int].on(_._1))._1
     val maxY = targetAndPred.max()(Ordering[Int].on(_._2))._2
 
@@ -68,37 +69,38 @@ final case class ExternalIndicesDistributed(final val targetAndPred: RDD[(Int, I
 
     val aiSum = ai.sum
 
-    val hu = ClusteringIndicesCommons.nmiIn1(ai, aiSum)
-    val hv = ClusteringIndicesCommons.nmiIn1(bj, aiSum)
-    val huStrichV = ClusteringIndicesCommons.nmiIn2(maxOneIndices, maxTwoIndices, count, aiSum, bj)
-    val mi = hu - huStrichV
+    val et = ClusteringIndicesCommons.nmiIn1(ai, aiSum)
+    val ep = ClusteringIndicesCommons.nmiIn1(bj, aiSum)
+    val etStricep = ClusteringIndicesCommons.nmiIn2(maxOneIndices, maxTwoIndices, count, aiSum, bj)
+    val mi = et - etStricep
 
-    (mi, hu, hv)
+    (mi, et, ep)
   }
-	/**
-	 * Compute the normalize mutual entropy
-	 * It is advise to cache targetAndPred before passing it to this method.
-	 * @param normalization : nature of normalization, either sqrt or max
-	 * @return Normalize Mutual Information
-	 */
+
 	final lazy val nmi: Normalization => Double = normalization => {
 		val nmi = normalization match {
-			case SQRT => mutualInformation / sqrt(hu * hv)
-			case MAX => mutualInformation / max(hu, hv)
+			case SQRT => mutualInformation / sqrt(et * ep)
+			case MAX => mutualInformation / max(et, ep)
 		}
 		nmi
   }
-  /**
-   * mutualInformation / sqrt(hu * hv)
-   */
+
   final lazy val nmiSQRT: Double = nmi(SQRT)
-  /**
-   * mutualInformation / max(hu, hv)
-   */
+
   final lazy val nmiMAX: Double = nmi(MAX)
 }
-
-object ExternalIndicesDistributed {
+/**
+ *
+ */
+final case class MultiExternalIndicesDistributed(final val targetAndPred: RDD[(Int, Int)], final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends BinaryAndMultiExternalIndicesDistributedAncestor
+/**
+ *
+ */
+final case class BinaryExternalIndicesDistributed(final val targetAndPred: RDD[(Int, Int)], final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends BinaryExternalIndicesDistributedAncestor with BinaryAndMultiExternalIndicesDistributedAncestor
+/**
+ *
+ */
+object ExternalIndicesDistributedUtils {
 	/**
 	 * Prepare labels in order to get them in the range 0 -> n-1 rather than random labels values
 	 */
@@ -106,19 +108,4 @@ object ExternalIndicesDistributed {
 		val indexedValuesMap = x.distinct.zipWithIndex.collectAsMap
 		(indexedValuesMap, x.map(indexedValuesMap))
 	}
-  /**
-   * Compute the mutual information
-   * It is advise to cache targetAndPred before passing it to this method.
-   * @return (Mutual Information, entropy x, entropy y)
-   */
-  final def mutualInformation(targetAndPred: RDD[(Int, Int)], persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndicesDistributed(targetAndPred, persistanceLVL)).mutualInformation
-  /**
-   * Compute the normalize mutual entropy
-   * It is advise to cache targetAndPred before passing it to this method.
-   * @param normalization : nature of normalization, either sqrt or max
-   * @return Normalize Mutual Information
-   */
-  final def nmi(targetAndPred: RDD[(Int, Int)], normalization: Normalization = SQRT, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY): Double =
-    (new ExternalIndicesDistributed(targetAndPred, persistanceLVL)).nmi(normalization)
 }

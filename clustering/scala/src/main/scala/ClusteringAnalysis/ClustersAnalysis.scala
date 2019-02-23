@@ -75,7 +75,7 @@ trait ClustersAnalysisLocal[
     }
 
     def centroids[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, V] = {
-        val centroids = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.seq.toMap
+        val centroids = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMinimizingPoint(aggregate.map(_.v), metric)) }.seq.toMap
         clustersBasicStatsKeeper.addCentroids(clusteringNumber, metric.id, centroids)
         centroids
     }
@@ -163,7 +163,7 @@ case class BinaryClustersAnalysis[
      * @return cluster's modes in the sense of Hamming (majority vote)
      */
     def obtainCentroidsModes(clusteringNumber: ClusteringNumber): immutable.HashMap[ClusterID, BinaryVector[V]] = {
-        immutable.HashMap(groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMode(aggregate.map(_.v))) }.toSeq.seq:_*)
+        immutable.HashMap(groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMedian(aggregate.map(_.v))) }.toSeq.seq:_*)
     }
     /**
      * Occurences of every features for the current working vector

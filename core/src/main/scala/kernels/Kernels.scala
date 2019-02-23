@@ -23,7 +23,7 @@ trait Kernel[V <: GVector[V], KA <: KernelArgs] extends Serializable {
 	/**
 	 * @return mode given the point and its environment
 	 */
-	def obtainMode(v: V, env: GenSeq[V]): V
+	def obtainMedian(v: V, env: GenSeq[V]): V
 }
 /**
  *
@@ -74,7 +74,7 @@ final case class GaussianKernel[V <: Seq[Double], D[V <: Seq[Double]] <: Continu
 	/**
 	 *
 	 */
-	final def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainMedian(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
 		val (preMode, kernelValue) = KernelUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = gaussianKernel(v, vi)
@@ -98,7 +98,7 @@ final case class FlatKernel[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousD
 	/**
 	 *
 	 */
-	final def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainMedian(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
 		val (preMode, kernelValue) = KernelUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = flatKernel(v, vi)
@@ -123,7 +123,7 @@ final case class SigmoidKernel[V <: Seq[Double]](final val kernelArgs: KernelArg
 	/**
 	 *
 	 */
-	final def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainMedian(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
 		val (preMode, kernelValue) = KernelUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = sigmoidKernel(v, vi)
@@ -164,9 +164,9 @@ trait KnnKernel[V <: GVector[V], D <: Distance[V], Args <: KernelArgsKnn[V, D]] 
 	/**
 	 * The KNN kernel for any space, it select KNN using any dissimilarity measure and compute the mode of them by applying mean, majority vote both or looking for element which minimize average pair to pair distance
 	 */
-	final def obtainMode(v: V, env: GenSeq[V]): V = {
+	final def obtainMedian(v: V, env: GenSeq[V]): V = {
 		val knn = obtainKnn(v, env.seq)
-		ClusterBasicOperations.obtainCenter(knn, kernelArgs.metric)
+		ClusterBasicOperations.obtainMinimizingPoint(knn, kernelArgs.metric)
 	}
 }
 /**

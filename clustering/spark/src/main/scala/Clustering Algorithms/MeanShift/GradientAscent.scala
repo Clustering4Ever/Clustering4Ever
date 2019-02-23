@@ -145,7 +145,7 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
       toExplore.map{ case (_, (cz, mode, isOriginalDot, _)) =>  
         val updatedMode = {
           val locality = approxKNN.map{ case (_, (cz, mode, _, _)) => mode }
-          gaussianK.obtainMode(mode, locality)
+          gaussianK.obtainMedian(mode, locality)
         }
         val hasConverged = doesItConverged(mode, updatedMode)
         val newIdx = approxKNN.seq.sortBy{ case (bidx, (cz, _, _, _)) => metric.d(updatedMode, cz.v) }.take(knnBucketShift).groupBy(_._1).maxBy{ case (_, nbs) => nbs.size }._1

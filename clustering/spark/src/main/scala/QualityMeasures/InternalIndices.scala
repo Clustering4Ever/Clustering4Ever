@@ -29,10 +29,6 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
   /**
    *
    */
-  val clustersIDsOp: Option[mutable.ArraySeq[Int]]
-  /**
-   *
-   */
   private[this] def addToBuffer(buff: mutable.ArrayBuffer[V], elem: V) = buff += elem
   /**
    *
@@ -45,7 +41,9 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
   /**
    *
    */
-  final def clustersIDs[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int) = if(clustersIDsOp.isDefined) clustersIDsOp.get else mutable.ArraySeq(clusterized.map(_.clusterIDs(clusteringNumber)).distinct.collect:_*).sorted
+  final def clustersIDs[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int) = {
+    mutable.ArraySeq(clusterized.map(_.clusterIDs(clusteringNumber)).distinct.collect:_*).sorted
+  }
   /**
    *
    */
@@ -67,7 +65,7 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
       def aggregateBuff2(buff1: mutable.ArrayBuffer[Double], buff2: mutable.ArrayBuffer[Double]) = buff1 ++= buff2
 
       val clusters = obtainVectorsByClusterID(clusterized, clusteringNumber).collect
-      val centers = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainCenter(cluster, metric)) }
+      val centers = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainMinimizingPoint(cluster, metric)) }
       val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, scatter(v, centers(idCLust)._2, metric)) }
       val clustersWithCenterandScatters = (centers.map{ case (id, ar) => (id, (Some(ar), None)) } ++ scatters.map{ case (id, v) => (id, (None, Some(v))) })
         .par
@@ -90,14 +88,14 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
   final def ballHall[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int): Double = {
     val neutralElement = mutable.ArrayBuffer.empty[V]
     val clusters = obtainVectorsByClusterID(clusterized, clusteringNumber).cache
-    val prototypes = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainCenter(cluster, metric)) }.collectAsMap
+    val prototypes = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainMinimizingPoint(cluster, metric)) }.collectAsMap
     clusters.map{ case (clusterID, aggregate) => aggregate.map( v => metric.d(v, prototypes(clusterID)) ).sum / aggregate.size }.sum / clusters.count
   }
 }
 /**
  * This object is used to compute internals clustering indices as Davies Bouldin or Silhouette
  */
-final case class InternalIndicesDistributed[V <: GVector[V], D[A <: GVector[A]] <: Distance[A]](metric: D[V], clustersIDsOp: Option[mutable.ArraySeq[Int]] = None)(implicit val ct: ClassTag[V]) extends InternalIndicesAncestorDistributed[V, D[V]]
+final case class InternalIndicesDistributed[V <: GVector[V], D[A <: GVector[A]] <: Distance[A]](metric: D[V])(implicit val ct: ClassTag[V]) extends InternalIndicesAncestorDistributed[V, D[V]]
 /**
  *
  */

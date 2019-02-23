@@ -8,75 +8,93 @@
 
 Add following line in your build.sbt :
 
-* `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.3"` to your `libraryDependencies`
+  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.3"` to your `libraryDependencies`
 
 Eventually add one of these resolvers :
 
-* `resolvers += Resolver.bintrayRepo("clustering4ever", "C4E")`
-* `resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/"`
+  * `resolvers += Resolver.bintrayRepo("clustering4ever", "C4E")`
+  * `resolvers += "mvnrepository" at "http://mvnrepository.com/artifact/"`
 
 You can also take [specifics parts](https://bintray.com/clustering4ever/C4E) :
 
-* Core [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/core/images/download.svg) ](https://bintray.com/clustering4ever/C4E/core/_latestVersion)
-* Scala Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clusteringscala/_latestVersion)
-* Spark Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clusteringspark/_latestVersion)
+  * Core [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/core/images/download.svg) ](https://bintray.com/clustering4ever/C4E/core/_latestVersion)
+  * Scala Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clusteringscala/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clusteringscala/_latestVersion)
+  * Spark Clustering [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clusteringspark/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clusteringspark/_latestVersion)
 
 ## Available algorithms
 
-* _emphasized algorithms_ are in scala.
-* **bold algorithms** are implemented in spark.
-* They can be available in **_both versions_**
+  * _emphasized algorithms_ are in Scala.
+  * **bold algorithms** are implemented in Spark.
+  * They can be available in **_both versions_**
 
 ### Clustering algorithms
 
-* _Jenks Natural Breaks_
-* **_Epsilon Proximity_** *
-* * **_Scalar Epsilon Proximity_** *
-* * _Binary Epsilon Proximity_ *
-* * _Mixed Epsilon Proximity_ *
-* * _Any Object Epsilon Proximity_ *
-* **_K-Centers_** *
-  * **_K-Means_** *
-  * **_K-Modes_** *
-  * **_K-Prototypes_** *
-  * **_Any Object K-Centers_** *
-* **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
-* **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
-* **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
-* _Random Local Area_ *
-* **Clusterwize** 
-* _Tensor Biclustering algorithms_ ([Original project](https://github.com/SoheilFeizi/Tensor-Biclustering))
-  * _Folding-Spectral_
-  * _Unfolding-Spectral_
-  * _Thresholding Sum Of Squared Trajectory Length_
-  * _Thresholding Individuals Trajectory Length_
-  * _Recursive Biclustering_
-  * _Multiple Biclustering_
+  * _Jenks Natural Breaks_
+  * **_Epsilon Proximity_** *
+  * * **_Scalar Epsilon Proximity_** *
+  * * _Binary Epsilon Proximity_ *
+  * * _Mixed Epsilon Proximity_ *
+  * * _Any Object Epsilon Proximity_ *
+  * **_K-Centers_** *
+    * **_K-Means_** *
+    * **_K-Modes_** *
+    * **_K-Prototypes_** *
+    * **_Any Object K-Centers_** *
+  * **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
+  * **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
+  * **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
+  * _Random Local Area_ *
+  * **Clusterwize** 
+  * _Tensor Biclustering algorithms_ ([Original project](https://github.com/SoheilFeizi/Tensor-Biclustering))
+    * _Folding-Spectral_
+    * _Unfolding-Spectral_
+    * _Thresholding Sum Of Squared Trajectory Length_
+    * _Thresholding Individuals Trajectory Length_
+    * _Recursive Biclustering_
+    * _Multiple Biclustering_
 
 
-Algorithm followed with a * implement _ClusteringAlgorithm_ trait and can be run by benchmarking classes.
+Algorithm followed with a * can be executed by benchmarking classes.
 
 ### Preprocessing
 
-* **_Gradient Ascent_** (Mean-Shift related)
-  * **_Scalar Gradient Ascent_**
-  * _Binary Gradient Ascent_
-  * _Mixed Gradient Ascent_
-  * _Any Object Gradient Ascent_
-* **_Rough Set Features Selection_**
+  * **_Gradient Ascent_** (Mean-Shift related)
+    * **_Scalar Gradient Ascent_**
+    * _Binary Gradient Ascent_
+    * _Mixed Gradient Ascent_
+    * _Any Object Gradient Ascent_
+  * **_Rough Set Features Selection_**
 
 ### Quality Indices
 
-Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ allow you to test following indices on every realized clustering.
+You can realize manually your quality measures with dedicated class for local or distributed collection. Helpers _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ allow you to test indices on multiple clustering at once.
 
-* External Indices
-  * **_Mutual Information_**
-  * **_Normalized Mutual Information_**
-* Internal Indices
-  * **_Davies Bouldin_**
-  * **_Ball Hall_**
-  * _Silhouette_
-
+  * Internal Indices
+    * **_Davies Bouldin_**
+    * **_Ball Hall_**
+  * External Indices
+    * **_Multiple Classification_**
+      * **_Mutual Information_**
+      * **_Normalized Mutual Information_**
+      * **_Purity_**
+      * _ARAND_
+    * **_Binary Classification_**
+      * **_Accuracy_**
+      * **_Rand_**
+      * **_Precision_**
+      * **_Recall_**
+      * **_fBeta_**
+      * **_f1_**
+      * **_Matthews correlation coefficient_**
+      * **_CzekanowskiDice_**
+      * **_RogersTanimoto_**
+      * **_FolkesMallows_**
+      * **_Jaccard_**
+      * **_Kulcztnski_**
+      * **_McNemar_**
+      * **_RusselRao_**
+      * **_SokalSneath1_**
+      * **_SokalSneath2_**
 
 ### Clustering benchmarking and analysis
 
@@ -88,9 +106,9 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
 
 ### Incoming soon
 
-* **_Gaussian Mixture Models_**
-* _Meta heuristic_
-* **More clustering indices**
+  * **_Gaussian Mixture Models_**
+  * _Meta heuristic_
+  * **More clustering indices**
 
 
 ## Citation
@@ -112,5 +130,5 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 ### What data structures are recommended for best performances
 
-* ArrayBuffer as vector are a good start
-* ArrayBuffer, ParArray or ParSeq as vector containers are recommended
+  * ArrayBuffer as vector are a good start
+  * ArrayBuffer, ParArray or ParSeq as vector containers are recommended

@@ -39,27 +39,22 @@ trait ClustersInternalIndicesAnalysis[
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
 ] extends ClustersIndicesAnalysisAncestor[O, V, Cz, Collection] {
-    /**
-	 *
-	 */
-	type Self <: ClustersInternalIndicesAnalysis[O, V, Cz, Collection]
 	/**
 	 *
 	 */
-	val internalsIndicesByMetricClusteringNumberIndex: immutable.Map[(MetricID, ClusterID, InternalsIndicesType), Double]
+	final val internalsIndicesByMetricClusteringNumberIndex = mutable.HashMap.empty[(MetricID, ClusterID, InternalsIndicesType), Double]
     /**
-     * Compute given internals indices and add result to internalsIndicesByClusteringNumber
-     * @return A Map which link internal indices to its associate value 
+     * @param metric metric employed
+     * @param indices indices explored
      */
-    def saveInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): Self
+    def computeInternalsIndicesOfEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]]
     /**
-     *
-     */
-    def computeInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]]
-	/**
-	 *
+     * @param metric metric employed
+     * @param indices indices explored
+     * @param clusteringNumber cluster explored
+	 * @return interal indices for a given clusteringNumber
 	 */
-	def obtainInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): immutable.Map[InternalsIndicesType, Double]
+	def obtainInternalsIndices[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber, indices: InternalsIndicesType*): immutable.Map[InternalsIndicesType, Double]
 
 }
 /**
@@ -74,24 +69,16 @@ trait ClustersExternalIndicesAnalysis[
 	/**
 	 *
 	 */
-	type Self <: ClustersExternalIndicesAnalysis[O, V, Cz, Collection]
-	/**
-	 *
-	 */
-	val externalsIndicesByClusteringNumber = mutable.Map.empty[Int, immutable.Map[ExternalsIndicesType, Double]]
-    /**
-     *
-     */
-    def saveInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): Self
+	val externalsIndicesByClusteringNumber = mutable.HashMap.empty[Int, immutable.Map[ExternalsIndicesType, Double]]
     /**
      * Compute given externals indices and add result to externalsIndicesByClusteringNumber
      * @return A Map which link external indices to its associate value 
      */
-    def computeExternalsIndices(groundTruth: Collection[ClusterID], indices: ExternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): immutable.Map[ExternalsIndicesType, Double]
+    def computeExternalsIndices(groundTruth: Collection[ClusterID], clusteringNumber: ClusteringNumber, indices: ExternalsIndicesType*): immutable.Map[ExternalsIndicesType, Double]
     /**
      *
      */
-    def computeExternalsIndicesForEveryClusteringNumber(groundTruth: Collection[ClusterID], indices: ExternalsIndicesType*): Seq[Map[ExternalsIndicesType, Double]]
+    def computeExternalsIndicesOfEveryClusteringNumber(groundTruth: Collection[ClusterID], indices: ExternalsIndicesType*): Seq[Map[ExternalsIndicesType, Double]]
 
 }
 /**
@@ -102,10 +89,4 @@ trait ClustersIndicesAnalysis[
     V <: GVector[V],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
-] extends ClustersInternalIndicesAnalysis[O, V, Cz, Collection] with ClustersExternalIndicesAnalysis[O, V, Cz, Collection] {
-	/**
-	 *
-	 */
-	type Self <: ClustersIndicesAnalysis[O, V, Cz, Collection]
-
-}
+] extends ClustersInternalIndicesAnalysis[O, V, Cz, Collection] with ClustersExternalIndicesAnalysis[O, V, Cz, Collection]

@@ -53,7 +53,7 @@ trait GradientAscentAncestor[V <: GVector[V], D <: Distance[V], KArgs <: KernelA
 
     @annotation.tailrec
     def obtainFinalMode(i: Int, oldMode: V, shift: Double): (V, Double) = {
-      val updatedMode = kernel.obtainMode(oldMode, kernelLocality)
+      val updatedMode = kernel.obtainMedian(oldMode, kernelLocality)
       val minShiftShift = metric.d(oldMode, updatedMode)
       val updatedShift = shift + minShiftShift
       if(i < maxIterations && minShiftShift > minShift) obtainFinalMode(i + 1, updatedMode, updatedShift)

@@ -80,7 +80,7 @@ trait EpsilonProximityAncestor[V <: GVector[V], D <: Distance[V], Model <: Epsil
 		feedClusters(toVisit)
 
 		val sortedClustersByClusterizableID = mutable.ArrayBuffer(clusters.flatMap{ case (clusterID, cluster) => cluster.map(_.addClusterIDs(clusterID)) }.toBuffer.sortBy{ cz: Cz[O, V] => cz.id }.map( cz => (cz.id, (cz.v, cz.clusterIDs.last)) ):_*)
-		(sortedClustersByClusterizableID, epsilon)
+		(sortedClustersByClusterizableID, epsilon, clusterID)
 	}
 
 
@@ -93,8 +93,8 @@ final case class EpsilonProximity[V <: GVector[V], D[X <: GVector[X]] <: Distanc
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximity
 
 	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): EpsilonProximityModel[V, D] = {
-		val (clusters, epsilon) = preModel(data)
-		EpsilonProximityModel(clusters, epsilon, metric, data.hashCode)
+		val (clusters, epsilon, clusterNumber) = preModel(data)
+		EpsilonProximityModel(clusters, epsilon, metric, clusterNumber, data.hashCode)
 	}
 }
 /**
@@ -105,8 +105,8 @@ final case class EpsilonProximityScalar[V <: Seq[Double], D[X <: Seq[Double]] <:
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityScalar
 
 	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): EpsilonProximityModelScalar[V, D] = {
-		val (clusters, epsilon) = preModel(data)
-		EpsilonProximityModelScalar(clusters, epsilon, metric, data.hashCode)
+		val (clusters, epsilon, clusterNumber) = preModel(data)
+		EpsilonProximityModelScalar(clusters, epsilon, metric, clusterNumber, data.hashCode)
 	}
 }
 /**
@@ -117,8 +117,8 @@ final case class EpsilonProximityBinary[V <: Seq[Int], D[X <: Seq[Int]] <: Binar
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityBinary
 
 	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector[V]]]): EpsilonProximityModelBinary[V, D] = {
-		val (clusters, epsilon) = preModel(data)
-		EpsilonProximityModelBinary(clusters, epsilon, metric, data.hashCode)
+		val (clusters, epsilon, clusterNumber) = preModel(data)
+		EpsilonProximityModelBinary(clusters, epsilon, metric, clusterNumber, data.hashCode)
 	}
 }
 /**
@@ -129,8 +129,8 @@ final case class EpsilonProximityMixed[Vb <: Seq[Int], Vs <: Seq[Double], D[X <:
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityMixed
 
 	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, MixedVector[Vb, Vs]]]): EpsilonProximityModelMixed[Vb, Vs, D] = {
-		val (clusters, epsilon) = preModel(data)
-		EpsilonProximityModelMixed(clusters, epsilon, metric, data.hashCode)
+		val (clusters, epsilon, clusterNumber) = preModel(data)
+		EpsilonProximityModelMixed(clusters, epsilon, metric, clusterNumber, data.hashCode)
 	}
 }
 

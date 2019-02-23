@@ -22,7 +22,9 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-final case class ClustersIndicesAnalysisDistributed[O, V <: GVector[V] : ClassTag, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](final val clusterized: RDD[Cz[O, V]], final val sc: SparkContext, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val internalsIndicesByMetricClusteringNumberIndex: immutable.Map[(MetricID, ClusteringNumber, InternalsIndicesType), Double] = immutable.Map.empty[(MetricID, ClusteringNumber, InternalsIndicesType), Double]) extends ClustersIndicesAnalysis[O, V, Cz, RDD] {
+final case class ClustersIndicesAnalysisDistributed[O, V <: GVector[V] : ClassTag, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](final val clusterized: RDD[Cz[O, V]], final val sc: SparkContext, persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY)(implicit ct: ClassTag[V]) extends ClustersIndicesAnalysis[O, V, Cz, RDD] {
+
+    // final val internalsIndicesByMetricClusteringNumberIndex = immutable.HashMap.empty[(MetricID, ClusteringNumber, InternalsIndicesType), Double]
     /**
      *
      */
@@ -31,9 +33,13 @@ final case class ClustersIndicesAnalysisDistributed[O, V <: GVector[V] : ClassTa
      * Compute given internals indices and add result to internalsIndicesByMetricClusteringNumberIndex
      * @return A Map which link internal indices to its associate value 
      */
-    final def obtainInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): Map[InternalsIndicesType, Double] = {
-        
-        val internalIndices = InternalIndicesDistributed(metric)
+    final def obtainInternalsIndices[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber, indices: InternalsIndicesType*): Map[InternalsIndicesType, Double] = {
+        val tmpMetric = metric
+        val tmpCt = ct
+        val internalIndices = new InternalIndicesAncestorDistributed[V, D] {
+            val metric = tmpMetric
+            implicit val ct: ClassTag[V] = tmpCt
+        }
 
         indices.map{ index =>
             index match {
@@ -44,43 +50,42 @@ final case class ClustersIndicesAnalysisDistributed[O, V <: GVector[V] : ClassTa
         }.seq.toMap
     }
     /**
-     * Compute given internals indices and add result to internalsIndicesByMetricClusteringNumberIndex
-     * @return A Map which link internal indices to its associate value 
-     */
-    final def saveInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): ClustersIndicesAnalysisDistributed[O, V, Cz] = {
-        
-        val idAndVector: RDD[(ClusterID, V)] = clusterized.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) )
-
-        val obtainedIndices = obtainInternalsIndices(metric, indices:_*)(clusteringNumber).seq.map{ case (indexType, v) => ((metric.id, clusteringNumber, indexType), v) }
-        
-        ClustersIndicesAnalysisDistributed(clusterized, sc, persistanceLVL, internalsIndicesByMetricClusteringNumberIndex ++ obtainedIndices)
-    }
-    /**
      *
      */
-    final def computeInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): Seq[Map[InternalsIndicesType, Double]] = {
-        (0 until clusterized.first.clusterIDs.size).par.map( cn => obtainInternalsIndices(metric, indices:_*)(cn) ).seq
-    }
-    /**
-     *
-     */
-    final def saveInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): ClustersIndicesAnalysisDistributed[O, V, Cz] = {
-        val indicess = computeInternalsIndicesForEveryClusteringNumber(metric, indices:_*).zipWithIndex.flatMap{ case (scores, idx) => scores.map{ case (indexType, v) => ((metric.id, idx, indexType), v) } }
-        ClustersIndicesAnalysisDistributed(clusterized, sc, persistanceLVL, internalsIndicesByMetricClusteringNumberIndex ++ indicess)
+    final def computeInternalsIndicesOfEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Seq[Map[InternalsIndicesType, Double]] = {
+        (0 until clusterized.first.clusterIDs.size).par.map( cn => obtainInternalsIndices(metric, cn, indices:_*) ).seq
     }
     /**
      * Compute given externals indices and add result to externalsIndicesByClusteringNumber
      * @return A Map which link external indices to its associate value 
      */
-    final def computeExternalsIndices(groundTruth: RDD[ClusterID], indices: ExternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): Map[ExternalsIndicesType, Double] = {
+    final def computeExternalsIndices(groundTruth: RDD[ClusterID], clusteringNumber: ClusteringNumber, indices: ExternalsIndicesType*): Map[ExternalsIndicesType, Double] = {
 
-        val onlyClusterIDs = groundTruth.zip(clusterized.map(_.clusterIDs(clusteringNumber))).persist(persistanceLVL)
+        val targetAndPred = groundTruth.zip(clusterized.map(_.clusterIDs(clusteringNumber))).persist(persistanceLVL)
+
+        val externalIndicesDistributed = BinaryExternalIndicesDistributed(targetAndPred, persistanceLVL)
 
         val obtainedIndices = indices.par.map{ index =>
             index match {
-                case MI => (MI, ExternalIndicesDistributed.mutualInformation(onlyClusterIDs))
-                case NMI_Sqrt => (NMI_Sqrt, ExternalIndicesDistributed.nmi(onlyClusterIDs, NmiNormalizationNature.SQRT)) 
-                case NMI_Max => (NMI_Max, ExternalIndicesDistributed.nmi(onlyClusterIDs, NmiNormalizationNature.MAX))
+                case MI => (MI, externalIndicesDistributed.mutualInformation)
+                case NMI_Sqrt => (NMI_Sqrt, externalIndicesDistributed.nmiSQRT) 
+                case NMI_Max => (NMI_Max, externalIndicesDistributed.nmiMAX)
+                case Purity => (Purity, externalIndicesDistributed.purity)
+                // case Accuracy => (Accuracy, externalIndicesDistributed.accuracy) 
+                // case Precision => (Precision, externalIndicesDistributed.precision) 
+                // case Recall => (Recall, externalIndicesDistributed.recall) 
+                // case F1 => (F1, externalIndicesDistributed.f1) 
+                // case MCC => (MCC, externalIndicesDistributed.mcc) 
+                // case CzekanowskiDice => (CzekanowskiDice, externalIndicesDistributed.czekanowskiDice) 
+                // case RAND => (RAND, externalIndicesDistributed.rand) 
+                // case RogersTanimoto => (RogersTanimoto, externalIndicesDistributed.rogersTanimoto) 
+                // case FolkesMallows => (FolkesMallows, externalIndicesDistributed.folkesMallows) 
+                // case Jaccard => (Jaccard, externalIndicesDistributed.jaccard) 
+                // case Kulcztnski => (Kulcztnski, externalIndicesDistributed.kulcztnski) 
+                // case McNemar => (McNemar, externalIndicesDistributed.mcNemar) 
+                // case RusselRao => (RusselRao, externalIndicesDistributed.russelRao) 
+                // case SokalSneath1 => (SokalSneath1, externalIndicesDistributed.sokalSneath1) 
+                // case SokalSneath2 => (SokalSneath2, externalIndicesDistributed.sokalSneath2)
                 case _ => throw new IllegalArgumentException("Asked index is not repertoried")
             }
         }.seq.toMap
@@ -92,7 +97,7 @@ final case class ClustersIndicesAnalysisDistributed[O, V <: GVector[V] : ClassTa
     /**
      *
      */
-    final def computeExternalsIndicesForEveryClusteringNumber(groundTruth: RDD[ClusterID], indices: ExternalsIndicesType*): Seq[Map[ExternalsIndicesType, Double]] = {
-        (0 until clusterized.first.clusterIDs.size).par.map( cn => computeExternalsIndices(groundTruth, indices:_*)(cn) ).seq
+    final def computeExternalsIndicesOfEveryClusteringNumber(groundTruth: RDD[ClusterID], indices: ExternalsIndicesType*): Seq[Map[ExternalsIndicesType, Double]] = {
+        (0 until clusterized.first.clusterIDs.size).par.map( cn => computeExternalsIndices(groundTruth, cn, indices:_*) ).seq
     }
 }
