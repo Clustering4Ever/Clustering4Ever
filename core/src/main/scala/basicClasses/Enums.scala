@@ -22,7 +22,23 @@ object ExternalsIndices extends Enumeration with ClusteringIndices {
     type ExternalsIndicesType = Value
     val MI,
         NMI_Sqrt,
-        NMI_Max = Value
+        NMI_Max,
+        Purity,
+        Accuracy,
+        Precision,
+        Recall,
+        F1,
+        MCC,
+        CzekanowskiDice,
+        RAND,
+        RogersTanimoto,
+        FolkesMallows,
+        Jaccard,
+        Kulcztnski,
+        McNemar,
+        RusselRao,
+        SokalSneath1,
+        SokalSneath2 = Value
 }
 /**
  *

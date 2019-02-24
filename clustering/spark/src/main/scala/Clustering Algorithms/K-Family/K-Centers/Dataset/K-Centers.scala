@@ -39,15 +39,15 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 	/**
 	 *
 	 */
-	protected final def obtainCenters[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
+	protected final def obtainMedians[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: Dataset[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
 
 		data.persist(persistanceLVL)
 
 		def computeCenters(key: ClusterID, values: Iterator[Cz[O, V]]): (ClusterID, V) = {
 				val agg = values.toBuffer
 				val s = agg.size.toLong
-				if(s <= 20000) (key, ClusterBasicOperations.obtainCenter(agg.map(_.v), metric))
-				else (key, ClusterBasicOperations.obtainCenter(agg.par.map(_.v), metric))
+				if(s <= 20000) (key, ClusterBasicOperations.obtainMinimizingPoint(agg.map(_.v), metric))
+				else (key, ClusterBasicOperations.obtainMinimizingPoint(agg.par.map(_.v), metric))
 		}
 
 		val unSortedCenters = if(customCenters.isEmpty) kmppInitializationRDD(data.rdd.map(_.v), k, metric) else customCenters

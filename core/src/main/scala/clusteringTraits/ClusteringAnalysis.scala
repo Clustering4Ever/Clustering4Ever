@@ -38,7 +38,9 @@ trait ClusteringBasicStats extends ClusteringSharedTypes {
     /**
      *
      */
-    final def addClustersProportions(clusteringNumber: ClusteringNumber, clustersProportions: immutable.Map[ClusterID, Double]) = clustersProportionsByClusteringNumber += ((clusteringNumber, clustersProportions))
+    final def addClustersProportions(clusteringNumber: ClusteringNumber, clustersProportions: immutable.Map[ClusterID, Double]) = {
+        clustersProportionsByClusteringNumber += ((clusteringNumber, clustersProportions))
+    }
 }
 /**
  *

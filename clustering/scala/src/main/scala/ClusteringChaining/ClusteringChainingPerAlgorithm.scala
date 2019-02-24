@@ -20,7 +20,7 @@ import org.clustering4ever.enums.ExternalsIndices._
 import org.clustering4ever.enums.InternalsIndices._
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.vectorizations.{VectorizationGenLocal, VectorizationLocalScalar, VectorizationLocalBinary}
-import org.clustering4ever.clustering.indices.ExternalIndicesLocal
+import org.clustering4ever.clustering.indices.MultiExternalIndicesLocal
 import org.clustering4ever.clustering.keeper.ModelsKeeper
 import org.clustering4ever.extensibleAlgorithmNature.ClusteringAlgorithmNature
 import org.clustering4ever.utils.SortGsCz
@@ -154,7 +154,10 @@ trait ChainingOneAlgorithm[
      *
      */
     final def getEveryMIPerClustering(groundTruth: GenSeq[Int]): GenSeq[(Double, Double, Double)] = {
-        clusteringIDsResults.map( clusteringIDsFromOneAlgo => ExternalIndicesLocal.everyMI(groundTruth, clusteringIDsFromOneAlgo)  )
+        clusteringIDsResults.map{ clusteringIDsFromOneAlgo => 
+            val externalIndices = MultiExternalIndicesLocal(groundTruth.zip(clusteringIDsFromOneAlgo))
+            (externalIndices.mutualInformation, externalIndices.nmiSQRT, externalIndices.nmiMAX)
+        }
     }
 
 }

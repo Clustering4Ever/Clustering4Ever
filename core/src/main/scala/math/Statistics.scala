@@ -56,7 +56,7 @@ object Stats extends ClusteringSharedTypes {
 	/**
 	 *
 	 */
-	final def obtainCenterFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
+	final def obtainMedianFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
 		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
 		@annotation.tailrec
 		def go(accum: Double, i: Int): Int = {

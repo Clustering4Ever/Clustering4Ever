@@ -53,7 +53,7 @@ trait GradientAscentAncestor[V <: GVector[V], D <: Distance[V], KArgs <: KernelA
 
     @annotation.tailrec
     def obtainFinalMode(i: Int, oldMode: V, shift: Double): (V, Double) = {
-      val updatedMode = kernel.obtainMode(oldMode, kernelLocality)
+      val updatedMode = kernel.obtainMedian(oldMode, kernelLocality)
       val minShiftShift = metric.d(oldMode, updatedMode)
       val updatedShift = shift + minShiftShift
       if(i < maxIterations && minShiftShift > minShift) obtainFinalMode(i + 1, updatedMode, updatedShift)
@@ -103,7 +103,7 @@ final case class GradientAscentBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryD
  * @param metric
  * @param alternativeVectorID
  */
-final case class GradientAscentMixt[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y], KArgs <: KernelArgs, K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[MixedVector[Vb, Vs], KArgs], final val metric: D[Vb, Vs], final val alternativeVectorID: Int) extends GradientAscentAncestor[MixedVector[Vb, Vs], D[Vb, Vs], KArgs, K[MixedVector[Vb, Vs], KArgs]]
+final case class GradientAscentMixed[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y], KArgs <: KernelArgs, K[X <: GVector[X], Y <: KernelArgs] <: Kernel[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[MixedVector[Vb, Vs], KArgs], final val metric: D[Vb, Vs], final val alternativeVectorID: Int) extends GradientAscentAncestor[MixedVector[Vb, Vs], D[Vb, Vs], KArgs, K[MixedVector[Vb, Vs], KArgs]]
 /**
  *
  */

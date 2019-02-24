@@ -26,17 +26,15 @@ trait ClustersIndicesAnalysisAncestorLocal[
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     GS[X] <: GenSeq[X]
 ] extends ClustersIndicesAnalysis[O, V, Cz, GS] {
-    /**
-     * Compute given internals indices and add result to internalsIndicesByMetricClusteringNumberIndex
-     * @return A Map which link internal indices to its associate value 
-     */
-    final def obtainInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): immutable.Map[InternalsIndicesType, Double] = {
-        val internalIndices = InternalIndicesLocal(metric)
+
+    final def obtainInternalsIndices[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber, indices: InternalsIndicesType*): immutable.Map[InternalsIndicesType, Double] = {
+        val tmpMetric = metric
+        val internalIndices = new InternalIndicesAncestorLocal[V, D] { val metric = tmpMetric }
         indices.par.map{ index =>
             index match {
                 case DaviesBouldin => (DaviesBouldin, internalIndices.daviesBouldin(clusterized, clusteringNumber))
                 case BallHall => (BallHall, internalIndices.ballHall(clusterized, clusteringNumber))
-                case Silhouette => (Silhouette, internalIndices.silhouette(clusterized, clusteringNumber))
+                // case Silhouette => (Silhouette, internalIndices.silhouette(clusterized, clusteringNumber))
                 case _ => throw new IllegalArgumentException("Asked index is not repertoried")
             }
         }.seq.toMap
@@ -44,51 +42,71 @@ trait ClustersIndicesAnalysisAncestorLocal[
     /**
      *
      */
-    final def obtainInternalsIndicesVecto[D[A <: GVector[A]] <: Distance[A], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](metric: D[V], indices: InternalsIndicesType*)(vectorization: Vecto[O, V]): immutable.Map[InternalsIndicesType, Double] = {
-        obtainInternalsIndices(metric, indices:_*)(vectorization.vectorizationID)
-    }
-    /**
-     *
-     */
-    final def computeInternalsIndicesForSpecificsClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber*): Seq[immutable.Map[InternalsIndicesType, Double]] = {
-        clusteringNumber.par.map( cn => obtainInternalsIndices(metric, indices:_*)(cn) ).seq
-    }
-    /**
-     *
-     */
-    final def computeInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]] = {
-        computeInternalsIndicesForSpecificsClusteringNumber(metric, indices:_*)((0 until clusterized.head.clusterIDs.size):_*)
+    final def computeInternalsIndicesOfEveryClusteringNumber[D <: Distance[V]](metric: D, indices: InternalsIndicesType*): Seq[immutable.Map[InternalsIndicesType, Double]] = {
+        (0 until clusterized.head.clusterIDs.size).par.map( cn => obtainInternalsIndices(metric, cn, indices:_*) ).seq
     }
     /**
      * Compute given externals indices and add result to externalsIndicesByClusteringNumber
      * @return A Map which link external indices to its associate value 
      */
-    final def computeExternalsIndices(groundTruth: GS[ClusterID], indices: ExternalsIndicesType*)(clusteringNumber: ClusteringNumber): immutable.Map[ExternalsIndicesType, Double] = {
+    final def computeExternalsIndices(groundTruth: GS[ClusterID], clusteringNumber: ClusteringNumber, indices: ExternalsIndicesType*): immutable.Map[ExternalsIndicesType, Double] = {
 
         val onlyClusterIDs = clusterized.map(_.clusterIDs(clusteringNumber))
+        val targetAndPred = groundTruth.zip(onlyClusterIDs)
 
-        val obtainedIndices = indices.par.map{ index =>
-            index match {
-                case MI => (MI, ExternalIndicesLocal.mutualInformation(onlyClusterIDs, groundTruth))
-                case NMI_Sqrt => (NMI_Sqrt, ExternalIndicesLocal.nmi(onlyClusterIDs, groundTruth, NmiNormalizationNature.SQRT)) 
-                case NMI_Max => (NMI_Max, ExternalIndicesLocal.nmi(onlyClusterIDs, groundTruth, NmiNormalizationNature.MAX))
-                case _ => throw new IllegalArgumentException("Asked index is not repertoried")
+        val authorizedValues = immutable.Set(0, 1)
+        val isBinary = !targetAndPred.exists{ case (target, pred) => !authorizedValues.contains(target) || !authorizedValues.contains(pred) }
+
+        val obtainedIndices = {
+
+            if(isBinary) {
+                val externalIndices = BinaryExternalIndicesLocal(targetAndPred)
+                indices.par.map{ index =>
+                    index match {
+                        case MI => (MI, externalIndices.mutualInformation)
+                        case NMI_Sqrt => (NMI_Sqrt, externalIndices.nmiSQRT)
+                        case NMI_Max => (NMI_Max, externalIndices.nmiMAX)
+                        case Purity => (Purity, externalIndices.purity)
+                        case Accuracy => (Accuracy, externalIndices.accuracy) 
+                        case Precision => (Precision, externalIndices.precision) 
+                        case Recall => (Recall, externalIndices.recall) 
+                        case F1 => (F1, externalIndices.f1) 
+                        case MCC => (MCC, externalIndices.mcc) 
+                        case CzekanowskiDice => (CzekanowskiDice, externalIndices.czekanowskiDice) 
+                        case RAND => (RAND, externalIndices.rand) 
+                        case RogersTanimoto => (RogersTanimoto, externalIndices.rogersTanimoto) 
+                        case FolkesMallows => (FolkesMallows, externalIndices.folkesMallows) 
+                        case Jaccard => (Jaccard, externalIndices.jaccard) 
+                        case Kulcztnski => (Kulcztnski, externalIndices.kulcztnski) 
+                        case McNemar => (McNemar, externalIndices.mcNemar) 
+                        case RusselRao => (RusselRao, externalIndices.russelRao) 
+                        case SokalSneath1 => (SokalSneath1, externalIndices.sokalSneath1) 
+                        case SokalSneath2 => (SokalSneath2, externalIndices.sokalSneath2)
+                        case _ => throw new IllegalArgumentException("Asked index is not repertoried")
+                    }
+                }.seq.toMap
             }
-        }.seq.toMap
+            else {
+                val externalIndices = MultiExternalIndicesLocal(targetAndPred)
+                indices.par.map{ index =>
+                    index match {
+                        case MI => (MI, externalIndices.mutualInformation)
+                        case NMI_Sqrt => (NMI_Sqrt, externalIndices.nmiSQRT)
+                        case NMI_Max => (NMI_Max, externalIndices.nmiMAX)
+                        case Purity => (Purity, externalIndices.purity)
+                        case _ => throw new IllegalArgumentException("Asked index is not repertoried or you asked for a binary index with more than 2 class")
+                    }
+                }.seq.toMap                
+            }
+        }
         externalsIndicesByClusteringNumber += ((clusteringNumber, obtainedIndices))
         obtainedIndices
     }
     /**
      *
      */
-    final def computeSomeExternalsIndices(groundTruth: GS[ClusterID], clusterIDs: Int*)(indices: ExternalsIndicesType*): Seq[immutable.Map[ExternalsIndicesType, Double]] = {
-        clusterIDs.par.map( cn => computeExternalsIndices(groundTruth, indices:_*)(cn) ).seq
-    }
-    /**
-     *
-     */
-    final def computeExternalsIndicesForEveryClusteringNumber(groundTruth: GS[ClusterID], indices: ExternalsIndicesType*): Seq[immutable.Map[ExternalsIndicesType, Double]] = {
-        computeSomeExternalsIndices(groundTruth, (0 until clusterized.head.clusterIDs.size):_*)(indices:_*)
+    final def computeExternalsIndicesOfEveryClusteringNumber(groundTruth: GS[ClusterID], indices: ExternalsIndicesType*): Seq[immutable.Map[ExternalsIndicesType, Double]] = {
+        (0 until clusterized.head.clusterIDs.size).par.map( cn => computeExternalsIndices(groundTruth, cn, indices:_*) ).seq
     }   
 }
 /**
@@ -99,30 +117,4 @@ final case class ClustersIndicesAnalysisLocal[
     V <: GVector[V],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     GS[X] <: GenSeq[X]
-](
-    final val clusterized: GS[Cz[O, V]],
-    final val internalsIndicesByMetricClusteringNumberIndex: immutable.Map[(MetricID, ClusteringNumber, InternalsIndicesType), Double] = immutable.Map.empty[(MetricID, ClusteringNumber, InternalsIndicesType), Double]
-    // val clusteringInfo: ClusteringInformationsLocal[ID, O, V, EasyVectorizationLocal, Cz, GS] = new ClusteringInformationsLocal[ID, O, V, EasyVectorizationLocal, Cz, GS]
-) extends ClustersIndicesAnalysisAncestorLocal[O, V, Cz, GS] {
-    /**
-     *
-     */
-    final type Self = ClustersIndicesAnalysisLocal[O, V, Cz, GS]
-    /**
-     * Compute given internals indices and add result to internalsIndicesByMetricClusteringNumberIndex
-     * @return A Map which link internal indices to its associate value 
-     */
-    final def saveInternalsIndices[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*)(clusteringNumber: ClusteringNumber = 0): ClustersIndicesAnalysisLocal[O, V, Cz, GS] = {        
-        val idAndVector: GS[(ClusterID, V)] = clusterized.map( cz => (cz.clusterIDs(clusteringNumber), cz.v) ).asInstanceOf[GS[(ClusterID, V)]]
-        val obtainedIndices = obtainInternalsIndices(metric, indices:_*)(clusteringNumber).map{ case (indexType, v) => ((metric.id, clusteringNumber, indexType), v) }.seq
-        ClustersIndicesAnalysisLocal(clusterized, internalsIndicesByMetricClusteringNumberIndex ++ obtainedIndices)
-    }
-    /**
-     *
-     */
-    final def saveInternalsIndicesForEveryClusteringNumber[D[A <: GVector[A]] <: Distance[A]](metric: D[V], indices: InternalsIndicesType*): ClustersIndicesAnalysisLocal[O, V, Cz, GS] = {
-        val indicess = computeInternalsIndicesForEveryClusteringNumber(metric, indices:_*).zipWithIndex.flatMap{ case (scores, idx) => scores.map{ case (indexType, v) => ((metric.id, idx, indexType), v) } }
-        ClustersIndicesAnalysisLocal(clusterized, internalsIndicesByMetricClusteringNumberIndex ++ indicess)
-    }
-
-}
+](final val clusterized: GS[Cz[O, V]]) extends ClustersIndicesAnalysisAncestorLocal[O, V, Cz, GS]

@@ -21,6 +21,10 @@ trait EpsilonProximityModelAncestor[V <: GVector[V], D <: Distance[V]] extends C
 	 */
 	val epsilon: Double
 	/**
+	 * The number of cluster found
+	 */
+	val clusterNumber: Int
+	/**
 	 *
 	 */
 	protected val inputDataHashCode: Int
@@ -42,24 +46,24 @@ trait EpsilonProximityModelAncestor[V <: GVector[V], D <: Distance[V]] extends C
 /**
  *
  */
-final case class EpsilonProximityModel[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (V, Int))], final val epsilon: Double, final val metric: D[V], protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[V, D[V]] {
+final case class EpsilonProximityModel[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (V, Int))], final val epsilon: Double, final val metric: D[V], final val clusterNumber: Int, protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[V, D[V]] {
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximity
 }
 /**
  *
  */
-final case class EpsilonProximityModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (ScalarVector[V], Int))], final val epsilon: Double, final val metric: D[V], protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[ScalarVector[V], D[V]] {
+final case class EpsilonProximityModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (ScalarVector[V], Int))], final val epsilon: Double, final val metric: D[V], final val clusterNumber: Int, protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[ScalarVector[V], D[V]] {
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityScalar
 }
 /**
  *
  */
-final case class EpsilonProximityModelBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (BinaryVector[V], Int))], final val epsilon: Double, final val metric: D[V], protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[BinaryVector[V], D[V]] {
+final case class EpsilonProximityModelBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (BinaryVector[V], Int))], final val epsilon: Double, final val metric: D[V], final val clusterNumber: Int, protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[BinaryVector[V], D[V]] {
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityBinary
 }
 /**
  *
  */
-final case class EpsilonProximityModelMixt[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (MixedVector[Vb, Vs], Int))], final val epsilon: Double, final val metric: D[Vb, Vs], protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[MixedVector[Vb, Vs], D[Vb, Vs]] {
-	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityMixt
+final case class EpsilonProximityModelMixed[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (MixedVector[Vb, Vs], Int))], final val epsilon: Double, final val metric: D[Vb, Vs], final val clusterNumber: Int, protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[MixedVector[Vb, Vs], D[Vb, Vs]] {
+	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityMixed
 }

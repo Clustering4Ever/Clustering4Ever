@@ -42,7 +42,7 @@ object KPPInitializer extends Serializable {
 
 		@annotation.tailrec
 		def go(i: Int): Unit = {
-			centers += Stats.obtainCenterFollowingWeightedDistribution[V]{
+			centers += Stats.obtainMedianFollowingWeightedDistribution[V]{
 				data.map{ cz =>
 					val toPow2 = metric.d(cz.v, obtainNearestCenter(cz.v))
 					(cz.v, toPow2 * toPow2)

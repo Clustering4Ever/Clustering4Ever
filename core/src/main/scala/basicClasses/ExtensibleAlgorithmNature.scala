@@ -46,7 +46,7 @@ final case object RLABinary extends ClusteringAlgorithmNature
 /**
  *
  */
-final case object RLAMixt extends ClusteringAlgorithmNature
+final case object RLAMixed extends ClusteringAlgorithmNature
 /**
  *
  */
@@ -62,7 +62,7 @@ final case object EpsilonProximityBinary extends ClusteringAlgorithmNature
 /**
  *
  */
-final case object EpsilonProximityMixt extends ClusteringAlgorithmNature
+final case object EpsilonProximityMixed extends ClusteringAlgorithmNature
 /**
  *
  */
