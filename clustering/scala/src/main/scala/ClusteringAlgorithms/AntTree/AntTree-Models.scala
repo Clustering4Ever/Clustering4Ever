@@ -8,7 +8,7 @@ import org.clustering4ever.clustering.{ClusteringAlgorithmLocal, ClusteringModel
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{ContinuousDistance, Distance}
-import org.clustering4ever.vectors.GVector
+import org.clustering4ever.vectors.{GVector, ScalarVector}
 
 import scala.collection.GenSeq
 import scalax.collection.GraphPredef._
@@ -94,5 +94,4 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 
 }
 
-
-final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[Long, UnDiEdge])
+final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[Long, UnDiEdge]) extends AntTreeModelAncestor[ScalarVector[V], D[V]]
