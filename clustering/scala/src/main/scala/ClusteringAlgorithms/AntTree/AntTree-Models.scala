@@ -94,4 +94,4 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 
 }
 
-final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[Long, UnDiEdge]) extends AntTreeModelAncestor[ScalarVector[V], D[V]]
+final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[ScalarVector[V]]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector[V], D[V]]
