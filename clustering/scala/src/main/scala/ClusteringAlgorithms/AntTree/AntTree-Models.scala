@@ -20,11 +20,7 @@ import scalax.collection.mutable.{Graph => MutableGraph}
  * @tparam T une description des paramètres génériques
  * @tparam E une description des paramètres génériques
  */
-class Tree[T, E[X] <: EdgeLikeIn[X]](node: MutableGraph[T,E]) {
-  /**
-   *
-   */
-  final val graph = node
+final case class Tree[T, E[X] <: EdgeLikeIn[X]](final val graph: MutableGraph[T,E]) {
   /**
    *
    */
@@ -46,18 +42,14 @@ trait AntTreeAlgoModelAncestor[V <: GVector[V], D <: Distance[V]] {
   /**
    *
    */
-  val tree: Tree[(Long, Option[V]), UnDiEdge]
-  /**
-   *
-   */
-  final def allSuccessors(xpos: (Long, Option[V])): immutable.Set[(Long, Option[V])] = {
+  final def allSuccessors(xpos: (Long, Option[V]), tree: Tree[(Long, Option[V]), UnDiEdge]): immutable.Set[(Long, Option[V])] = {
     val node = tree.graph.get(xpos)
     node.withSubgraph().map(_.value).toSet - node
   }
   /**
    *
    */
-  final def directSuccessors(xpos: (Long, Option[V])): immutable.Set[(Long, Option[V])] = tree.graph.get(xpos).diSuccessors.map(_.value)
+  final def directSuccessors(xpos: (Long, Option[V]), tree: Tree[(Long, Option[V]), UnDiEdge]): immutable.Set[(Long, Option[V])] = tree.graph.get(xpos).diSuccessors.map(_.value)
 }
 
 
@@ -74,7 +66,7 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
   private final val supportID = Long.MinValue
 
   protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): GS[Cz[O, V]] = {
-    val supportChild = tree.getPrincipalCluster.map(e => allSuccessors(e))
+    val supportChild = tree.getPrincipalCluster.map(e => allSuccessors(e, tree))
     data.map( cz => cz.addClusterIDs(supportChild.indexWhere(_.contains((cz.id, Some(cz.v))))) ).asInstanceOf[GS[Cz[O, V]]]
   }
   /**
@@ -94,4 +86,8 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 
 }
 
-final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[ScalarVector[V]]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector[V], D[V]]
+final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[ScalarVector[V]]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector[V], D[V]] {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
+
+}

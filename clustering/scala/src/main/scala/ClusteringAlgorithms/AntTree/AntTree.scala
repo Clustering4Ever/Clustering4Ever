@@ -27,7 +27,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
   /**
    *
    */
-  private[anttree] final def train[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): Tree[(Long, Option[V]), UnDiEdge] = {
+  private[anttree] final def obtainAntTree[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): Tree[(Long, Option[V]), UnDiEdge] = {
 
     class Ant(final val clusterizable: Option[Cz[O, V]], final var firstTime: Boolean = true) {
       final val id = if(clusterizable.isDefined) clusterizable.get.id else Long.MinValue
@@ -60,7 +60,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
      */
     def disconnect(xpos: Long): Unit = {
       val node = tree.graph.get(longToNode(xpos))
-      val successors = allSuccessors(longToNode(xpos)) + node
+      val successors = allSuccessors(longToNode(xpos), tree) + node
       successors.foreach(key => ants(key._1).firstTime = true)
       tree.graph --= successors.asInstanceOf[Set[tree.graph.NodeT]]
     }
@@ -68,7 +68,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
      *
      */
     def dissimilarValue(xpos: Long): Double = {
-      val successors = directSuccessors(longToNode(xpos))
+      val successors = directSuccessors(longToNode(xpos), tree)
       val (minSuccessor, _) = successors.minBy( successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor._1).clusterizable.get.v) )
       metric.d(ants(xpos).clusterizable.get.v, ants(minSuccessor).clusterizable.get.v)
     }
@@ -95,14 +95,14 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
      *
      */
     def mostSimilarNode(xi: Long, xpos: Long): Long = {
-      val successors = directSuccessors(longToNode(xpos))
+      val successors = directSuccessors(longToNode(xpos), tree)
       findxplus(xi, successors.head._1, successors.tail)
     }
     /**
      *
      */
     def algorithm(xi: Long, xpos: Long): Long = {
-      if(directSuccessors(longToNode(xpos)).size < 2) {
+      if(directSuccessors(longToNode(xpos), tree).size < 2) {
         connect(xi, xpos)
         -1L
       } else {
@@ -161,8 +161,10 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
  */
 final case class AntTreeScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V]) extends AntTreeAncestor[ScalarVector[V], D[V], AntTreeModelScalar[V, D]] {
 
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
+
   final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): AntTreeModelScalar[V, D] = {
-    AntTreeModelScalar(metric, train(data))
+    AntTreeModelScalar(metric, obtainAntTree(data))
   }
 
 }

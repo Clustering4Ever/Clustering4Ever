@@ -66,6 +66,22 @@ final case object EpsilonProximityMixed extends ClusteringAlgorithmNature
 /**
  *
  */
+final case object AntTree extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object AntTreeScalar extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object AntTreeBinary extends ClusteringAlgorithmNature
+/**
+ *
+ */
+final case object AntTreeMixed extends ClusteringAlgorithmNature
+/**
+ *
+ */
 trait PreprocessingAlgorithmNature extends Serializable
 /**
  *
