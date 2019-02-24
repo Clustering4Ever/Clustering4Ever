@@ -153,12 +153,15 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
       tree.obtainPrincipalCluster(longToNode(support.id))
     }
 
+    classify()
     tree
   }
 }
 /**
  *
  */
+
+
 final case class AntTreeScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V]) extends AntTreeAncestor[ScalarVector[V], D[V], AntTreeModelScalar[V, D]] {
 
   final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
