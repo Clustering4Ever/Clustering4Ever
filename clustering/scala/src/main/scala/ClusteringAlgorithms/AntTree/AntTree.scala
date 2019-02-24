@@ -153,16 +153,15 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
       tree.obtainPrincipalCluster(longToNode(support.id))
     }
 
+    classify()
     tree
   }
 }
 /**
  *
  */
-// final case class AntTreeScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V]) extends AntTreeAncestor[ScalarVector[V], D[V], AntTreeModelScalar[V, D]] {
+final case class AntTreeScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V]) extends AntTreeModelAncestor[ScalarVector[V], D[V]] with AntTreeAncestor[ScalarVector[V], D[V], AntTreeModelScalar[V, D]] {
 
-//   final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): AntTreeModelScalar[V, D] = {
-//     AntTreeModelScalar(metric, train(data))
-//   }
+  final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): AntTreeModelScalar[V, D] = AntTreeModelScalar(metric, train(data))
 
-// }
+}
