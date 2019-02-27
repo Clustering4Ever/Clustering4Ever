@@ -151,7 +151,7 @@ trait FusionSmallerClusters extends ClusteringSharedTypes {
 				clusterID,
 				{
 					val vectors = aggregates.map{ case (_, (_, vector)) => vector }
-					// ClusterBasicOperations.obtainMinimizingPoint(vectors, metric)
+					// ClusterBasicOperations.obtainCenter(vectors, metric)
 					(if( isRealVectorElseBinary ) ClusterBasicOperations.obtainMean(vectors.asInstanceOf[GenSeq[Seq[Double]]]) else ClusterBasicOperations.obtainMedian(vectors.asInstanceOf[GenSeq[Seq[Int]]])).asInstanceOf[Seq[N]]
 				}
 			)
@@ -169,7 +169,7 @@ trait FusionSmallerClusters extends ClusteringSharedTypes {
 			val centroids = clusters.map{ case (clusterID, aggregates) =>
 				(
 					clusterID,
-					ClusterBasicOperations.obtainMinimizingPoint(aggregates.map{ case (_, (_, vector)) => vector }, metric)
+					ClusterBasicOperations.obtainCenter(aggregates.map{ case (_, (_, vector)) => vector }, metric)
 				)
 			}.toSeq.par
 			val (newClusteringMapping, _) = fusionSmallerClusters(centroids, clustersCardinalities, cmin, metric)

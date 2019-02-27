@@ -56,6 +56,7 @@ object KernelNature extends Enumeration {
     val Flat,
         KNN,
         KNN_Real,
+        KNN_Binary,
         KNN_Euclidean,
         KNN_Hamming,
         Gaussian,

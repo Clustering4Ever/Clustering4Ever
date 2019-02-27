@@ -95,6 +95,10 @@ final case class EasySupervizable[O, V <: GVector[V]](
 		EasySupervizable(id, o, label, vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get, mutable.ArrayBuffer.empty[GV], vectorized)
 	}
 
+	final def switchForExistingVectorization[GV <: GVector[GV]](vectorizationID: VectorizationID, vMapping: VMapping[VectorizationID, GV]): EasySupervizable[O, GV] = {
+		EasySupervizable(id, o, label, vectorized.get(vectorizationID)(vMapping).get, mutable.ArrayBuffer.empty[GV], vectorized)
+	}
+
 	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[O, GV] = {
 		EasySupervizable(id, o, label, o.toVector(vectorization.vectorizationFct.get), mutable.ArrayBuffer.empty[GV], vectorized)
 	}

@@ -123,6 +123,10 @@ final case class EasyClusterizable[O, V <: GVector[V]](
 		this.copy(v = vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get)
 	}
 
+	final def switchForExistingVectorization[GV <: GVector[GV]](vectorizationID: VectorizationID, vMapping: VMapping[VectorizationID, GV]): EasyClusterizable[O, GV] = {
+		this.copy(v = vectorized.get(vectorizationID)(vMapping).get)
+	}
+
 	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasyClusterizable[O, GV] = {
 		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
 	}

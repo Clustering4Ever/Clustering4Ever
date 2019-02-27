@@ -20,7 +20,7 @@ object ClusterBasicOperations extends Serializable {
 	 *
 	 * A major contribution will be to find heuristics in non trivial case, ie not Hamming or Euclidean distance, for the moment the similarity matrix is compute (O(n<sup>2</sup>)), which will allow to drastically improve custom metrics and many many algorithms
 	 */
-	final def obtainMinimizingPoint[V <: GVector[V], D <: Distance[V]](cluster: GenSeq[V], metric: D): V = {
+	final def obtainCenter[V <: GVector[V], D <: Distance[V]](cluster: GenSeq[V], metric: D): V = {
 	    metric match {
 	      case euclidean: Euclidean[_] => obtainMean(cluster.asInstanceOf[GenSeq[ScalarVector[Seq[Double]]]]).asInstanceOf[V]
 	      case hamming: Hamming[_] => obtainMedian(cluster.asInstanceOf[GenSeq[BinaryVector[Seq[Int]]]]).asInstanceOf[V]

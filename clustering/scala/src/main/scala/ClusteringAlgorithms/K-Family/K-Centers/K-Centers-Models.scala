@@ -12,8 +12,8 @@ import org.clustering4ever.clustering.{ClusteringModelLocal, ClusteringModelLoca
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.clusterizables.Clusterizable
 /**
- * @tparm V
- * @tparm D
+ * @tparam V
+ * @tparam D
  * Trait regrouping commons elements between KCenters models descendant as well for scala than spark
  */
 trait KCentersModelCommons[V <: GVector[V], D <: Distance[V]] extends CenterModel[V, D] with KCommonsArgs[V, D] {

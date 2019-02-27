@@ -77,10 +77,9 @@ You can realize manually your quality measures with dedicated class for local or
       * **_Mutual Information_**
       * **_Normalized Mutual Information_**
       * **_Purity_**
-      * _ARAND_
-    * **_Binary Classification_**
+      * **_RAND_**
+      * **_ARAND_**
       * **_Accuracy_**
-      * **_Rand_**
       * **_Precision_**
       * **_Recall_**
       * **_fBeta_**
@@ -95,6 +94,12 @@ You can realize manually your quality measures with dedicated class for local or
       * **_RusselRao_**
       * **_SokalSneath1_**
       * **_SokalSneath2_**
+    * **_Binary Classification_**
+      * **_Accuracy_**
+      * **_Precision_**
+      * **_Recall_**
+      * **_fBeta_**
+      * **_f1_**
 
 ### Clustering benchmarking and analysis
 

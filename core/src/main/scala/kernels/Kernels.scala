@@ -7,7 +7,7 @@ import scala.math.{exp, tanh, sqrt, Pi, log}
 import scala.collection.GenSeq
 import breeze.linalg.{DenseVector, DenseMatrix, sum, inv}
 import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
 import org.clustering4ever.enums.KernelNature._
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
@@ -166,39 +166,48 @@ trait KnnKernel[V <: GVector[V], D <: Distance[V], Args <: KernelArgsKnn[V, D]] 
 	 */
 	final def obtainMedian(v: V, env: GenSeq[V]): V = {
 		val knn = obtainKnn(v, env.seq)
-		ClusterBasicOperations.obtainMinimizingPoint(knn, kernelArgs.metric)
+		ClusterBasicOperations.obtainCenter(knn, kernelArgs.metric)
 	}
 }
 /**
  *
  */
-trait KnnKernelRealMeta[V <: Seq[Double], D <: ContinuousDistance[V], Args <: KernelArgsKnnScalar[V, D]] extends KnnKernel[ScalarVector[V], D, Args] with KernelScalar[V, Args]
+trait KnnKernelScalarAncestor[V <: Seq[Double], D <: ContinuousDistance[V], Args <: KernelArgsKnnScalarAncestor[V, D]] extends KnnKernel[ScalarVector[V], D, Args] with KernelScalar[V, Args]
+/**
+ *
+ */
+trait KnnKernelBinaryAncestor[V <: Seq[Int], D <: BinaryDistance[V], Args <: KernelArgsKnnBinaryAncestor[V, D]] extends KnnKernel[BinaryVector[V], D, Args] with KernelBinary[V, Args]
 /**
  * @tparam V
  * @tparam D
  */
-final case class KnnKernelReal[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: KernelArgsKnnReal[V, D]) extends KnnKernelRealMeta[V, D[V], KernelArgsKnnReal[V, D]]
+final case class KnnKernelScalar[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: KernelArgsKnnScalar[V, D]) extends KnnKernelScalarAncestor[V, D[V], KernelArgsKnnScalar[V, D]]
 /**
  * @tparam V
  * @tparam D
  */
-final case class KnnKernelEuclidean[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](final val kernelArgs: KernelArgsEuclideanKnn[V, D]) extends KnnKernelRealMeta[V, D[V], KernelArgsEuclideanKnn[V, D]]
+final case class KnnKernelBinary[V <: Seq[Int], D[V <: Seq[Int]] <: BinaryDistance[V]](final val kernelArgs: KernelArgsKnnBinary[V, D]) extends KnnKernelBinaryAncestor[V, D[V], KernelArgsKnnBinary[V, D]]
 /**
  * @tparam V
  * @tparam D
  */
-final case class EasyKnnKernelEuclidean[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](k: Int, metric: D[V]) extends KnnKernelRealMeta[V, D[V], KernelArgsEuclideanKnn[V, D]] {
+final case class KnnKernelEuclidean[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](final val kernelArgs: KernelArgsEuclideanKnn[V, D]) extends KnnKernelScalarAncestor[V, D[V], KernelArgsEuclideanKnn[V, D]]
+/**
+ * @tparam V
+ * @tparam D
+ */
+final case class EasyKnnKernelEuclidean[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](k: Int, metric: D[V]) extends KnnKernelScalarAncestor[V, D[V], KernelArgsEuclideanKnn[V, D]] {
 	final val kernelArgs = KernelArgsEuclideanKnn(k, metric)
 }
 /**
  * @tparam V
  */
-final case class SuperEasyKnnKernelEuclidean[V <: Seq[Double]](k: Int, squaredRoot: Boolean = true) extends KnnKernelRealMeta[V, Euclidean[V], KernelArgsEuclideanKnn[V, Euclidean]] {
+final case class SuperEasyKnnKernelEuclidean[V <: Seq[Double]](k: Int, squaredRoot: Boolean = true) extends KnnKernelScalarAncestor[V, Euclidean[V], KernelArgsEuclideanKnn[V, Euclidean]] {
 	final val kernelArgs = KernelArgsEuclideanKnn(k, Euclidean[V](squaredRoot))
 }
 /**
  * @tparam V
  */
-final case class HyperEasyKnnKernelEuclidean[V <: Seq[Double]](k: Int) extends KnnKernelRealMeta[V, Euclidean[V], KernelArgsEuclideanKnn[V, Euclidean]] {
+final case class HyperEasyKnnKernelEuclidean[V <: Seq[Double]](k: Int) extends KnnKernelScalarAncestor[V, Euclidean[V], KernelArgsEuclideanKnn[V, Euclidean]] {
 	final val kernelArgs = KernelArgsEuclideanKnn(k, Euclidean[V](true))
 }

@@ -82,7 +82,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CM <: KCentersModelAnc
 			val preUpdatedCenters = mutable.ArrayBuffer(
 				data.groupBy( cz => obtainNearestCenterID(cz.v, centers, metric) )
 					.map{ case (clusterID, aggregate) =>
-						(clusterID, ClusterBasicOperations.obtainMinimizingPoint(aggregate.map(_.v), metric))
+						(clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric))
 					}.seq.toSeq
 			:_*).sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }

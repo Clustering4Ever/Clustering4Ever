@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.collection.GenSeq
 import org.clustering4ever.math.distances.{GenericDistance, Distance, ContinuousDistance}
 import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.clusterizables.Clusterizable
+import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.vectors.GVector
 /**
  *
@@ -23,13 +23,13 @@ object SimilarityMatrix extends Serializable {
 	/**
 	 *
 	 */
-	final def similarityMatrixWithVector[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], D <: Distance[V]](data: GenSeq[Cz[O, V]], metric: D): scala.collection.GenMap[Long, GenSeq[(Cz[O, V], Double)]] = {
+	final def similarityMatrixWithVector[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Preprocessable[Y, Z, Cz], D <: Distance[V]](data: GenSeq[Cz[O, V]], metric: D): scala.collection.GenMap[Long, GenSeq[(Cz[O, V], Double)]] = {
 		data.map( cz1 => cz1.id -> data.map( cz2 => (cz2, metric.d(cz1.v, cz2.v)) ) ).toMap
 	}
 	/**
 	 *
 	 */
-	final def sortedSimilarityMatrixWithVector[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], D <: Distance[V]](data: GenSeq[Cz[O, V]], metric: D): scala.collection.GenMap[Long, Seq[(Cz[O, V], Double)]] = {
+	final def sortedSimilarityMatrixWithVector[O, V <: GVector[V], Cz[Y, Z <: GVector[Z]] <: Preprocessable[Y, Z, Cz], D <: Distance[V]](data: GenSeq[Cz[O, V]], metric: D): scala.collection.GenMap[Long, Seq[(Cz[O, V], Double)]] = {
 		similarityMatrixWithVector(data, metric).map{ case (id, dist) => (id, dist.seq.sortBy(_._2)) }
 	}
 }

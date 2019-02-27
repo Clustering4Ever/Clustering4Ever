@@ -75,7 +75,7 @@ trait ClustersAnalysisLocal[
     }
 
     def centroids[D <: Distance[V]](metric: D, clusteringNumber: ClusteringNumber): immutable.Map[ClusterID, V] = {
-        val centroids = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainMinimizingPoint(aggregate.map(_.v), metric)) }.seq.toMap
+        val centroids = groupedByClusterID(clusteringNumber).map{ case (clusterID, aggregate) => (clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric)) }.seq.toMap
         clustersBasicStatsKeeper.addCentroids(clusteringNumber, metric.id, centroids)
         centroids
     }

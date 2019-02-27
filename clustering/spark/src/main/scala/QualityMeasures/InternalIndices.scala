@@ -65,7 +65,7 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
       def aggregateBuff2(buff1: mutable.ArrayBuffer[Double], buff2: mutable.ArrayBuffer[Double]) = buff1 ++= buff2
 
       val clusters = obtainVectorsByClusterID(clusterized, clusteringNumber).collect
-      val centers = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainMinimizingPoint(cluster, metric)) }
+      val centers = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainCenter(cluster, metric)) }
       val scatters = clusters.zipWithIndex.map{ case ((k, v), idCLust) => (k, scatter(v, centers(idCLust)._2, metric)) }
       val clustersWithCenterandScatters = (centers.map{ case (id, ar) => (id, (Some(ar), None)) } ++ scatters.map{ case (id, v) => (id, (None, Some(v))) })
         .par
@@ -88,7 +88,7 @@ trait InternalIndicesAncestorDistributed[V <: GVector[V], D <: Distance[V]] exte
   final def ballHall[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz]](clusterized: RDD[Cz[O, V]], clusteringNumber: Int): Double = {
     val neutralElement = mutable.ArrayBuffer.empty[V]
     val clusters = obtainVectorsByClusterID(clusterized, clusteringNumber).cache
-    val prototypes = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainMinimizingPoint(cluster, metric)) }.collectAsMap
+    val prototypes = clusters.map{ case (clusterID, cluster) => (clusterID, ClusterBasicOperations.obtainCenter(cluster, metric)) }.collectAsMap
     clusters.map{ case (clusterID, aggregate) => aggregate.map( v => metric.d(v, prototypes(clusterID)) ).sum / aggregate.size }.sum / clusters.count
   }
 }

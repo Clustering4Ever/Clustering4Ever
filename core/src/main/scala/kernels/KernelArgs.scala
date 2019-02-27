@@ -54,27 +54,33 @@ trait KernelArgsKnn[V <: GVector[V], D <: Distance[V]] extends KernelArgsWithMet
 /**
  *
  */
-trait KernelArgsKnnScalar[V <: Seq[Double], D <: ContinuousDistance[V]] extends KernelArgsKnn[ScalarVector[V], D] with KernelArgsScalarWithMetric[V, D]
+trait KernelArgsKnnScalarAncestor[V <: Seq[Double], D <: ContinuousDistance[V]] extends KernelArgsKnn[ScalarVector[V], D] with KernelArgsScalarWithMetric[V, D]
 /**
  *
  */
-trait KernelArgsKnnBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends KernelArgsKnn[BinaryVector[V], D] with KernelArgsBinaryWithMetric[V, D]
-/**
- *
- */
-final case class KernelArgsKnnReal[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnScalar[V, D[V]] {
+final case class KernelArgsKnnScalar[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnScalarAncestor[V, D[V]] {
     final val kernelType = KNN_Real
 }
 /**
  *
  */
-final case class KernelArgsEuclideanKnn[V <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnScalar[V, D[V]] {
+trait KernelArgsKnnBinaryAncestor[V <: Seq[Int], D <: BinaryDistance[V]] extends KernelArgsKnn[BinaryVector[V], D] with KernelArgsBinaryWithMetric[V, D]
+/**
+ *
+ */
+final case class KernelArgsKnnBinary[V <: Seq[Int], D[V <: Seq[Int]] <: BinaryDistance[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnBinaryAncestor[V, D[V]] {
+    final val kernelType = KNN_Binary
+}
+/**
+ *
+ */
+final case class KernelArgsEuclideanKnn[V <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnScalarAncestor[V, D[V]] {
     final val kernelType = KNN_Euclidean
 }
 /**
  *
  */
-final case class EasyKernelArgsEuclideanKnn[V <: Seq[Double]](final val k: Int, squaredRoot: Boolean = true) extends KernelArgsKnnScalar[V, Euclidean[V]] {
+final case class EasyKernelArgsEuclideanKnn[V <: Seq[Double]](final val k: Int, squaredRoot: Boolean = true) extends KernelArgsKnnScalarAncestor[V, Euclidean[V]] {
     final val kernelType = KNN_Euclidean
 
     final val metric = Euclidean[V](squaredRoot)
@@ -82,7 +88,7 @@ final case class EasyKernelArgsEuclideanKnn[V <: Seq[Double]](final val k: Int, 
 /**
  *
  */
-final case class KernelArgsHammingKnn[V <: Seq[Int], D[V <: Seq[Int]] <: Hamming[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnn[BinaryVector[V], D[V]] {
+final case class KernelArgsHammingKnn[V <: Seq[Int], D[V <: Seq[Int]] <: Hamming[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnBinaryAncestor[V, D[V]] {
     final val kernelType = KNN_Hamming
 }
 /**
