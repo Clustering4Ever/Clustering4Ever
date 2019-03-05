@@ -1,12 +1,6 @@
 package Quantum
-
+// test
 import breeze.linalg.Vector
-/**
-  * Copyright: please refer to the README.md file
-  * User: ghesmoune
-  * Date: 01/01/2016
-  * Project : Square Predict (http://square-predict.net/)
-  * */
 
 class pointObj(
                 var pointPartNum: Vector[Double],//the numeric part of the data-point
