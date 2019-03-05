@@ -7,58 +7,74 @@ import scala.math.{exp, tanh, sqrt, Pi, log}
 import scala.collection.GenSeq
 import breeze.linalg.{DenseVector, DenseMatrix, sum, inv}
 import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations, SimilarityMatrix}
 import org.clustering4ever.enums.KernelNature._
-import org.clustering4ever.vectors.{GVector, GBinaryVector, GScalarVector, GMixtVector, ScalarVector}
+import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 /**
- *
+ * @tparam V
+ * @tparam KA the nature of kernel arguments
  */
 trait Kernel[V <: GVector[V], KA <: KernelArgs] extends Serializable {
 	/**
-	 *
+	 * Kernel arguments
 	 */
 	val kernelArgs: KA
 	/**
-	 *
+	 * @return mode given the point and its environment
 	 */
-	def obtainMode(v: V, env: GenSeq[V]): V
+	def obtainMedian(v: V, env: GenSeq[V]): V
 }
+/**
+ *
+ */
+trait KernelScalar[V <: Seq[Double], KA <: KernelArgs] extends Kernel[ScalarVector[V], KA]
+/**
+ *
+ */
+trait KernelBinary[V <: Seq[Int], KA <: KernelArgs] extends Kernel[BinaryVector[V], KA]
+/**
+ *
+ */
+trait KernelMixt[Vb <: Seq[Int], Vs <: Seq[Double], KA <: KernelArgs] extends Kernel[MixedVector[Vb, Vs], KA]
 /**
  *
  */
 object KernelUtils {
-	import org.clustering4ever.util.VectorsAddOperationsImplicits._
 	/**
 	 *
 	 */
-	def reducePreModeAndKernelValue[V <: Seq[Double]](gs: GenSeq[(ScalarVector[V], Double)]): (ScalarVector[V], Double) = gs.reduce( (a, b) => (SumVectors.sumVectors(a._1, b._1), a._2 + b._2) )
+	final def reducePreModeAndKernelValue[V <: Seq[Double]](gs: GenSeq[(ScalarVector[V], Double)]): (ScalarVector[V], Double) = {
+		import org.clustering4ever.util.VectorsAddOperationsImplicits._
+		gs.reduce( (a, b) => (SumVectors.sumVectors(a._1, b._1), a._2 + b._2) )
+	}
 	/**
 	 *
 	 */
-	def computeModeAndCastIt[V <: Seq[Double]](preMode: ScalarVector[V], kernelValue: Double): ScalarVector[V] = new ScalarVector(preMode.vector.map(_ / kernelValue).asInstanceOf[V])
+	final def computeModeAndCastIt[V <: Seq[Double]](preMode: ScalarVector[V], kernelValue: Double): ScalarVector[V] = ScalarVector(preMode.vector.map(_ / kernelValue).asInstanceOf[V])
 	/**
 	 *
 	 */
-	def obtainPreMode[V <: Seq[Double]](vi: ScalarVector[V], kernelVal: Double): ScalarVector[V] = new ScalarVector(vi.vector.map(_ * kernelVal).asInstanceOf[V])
+	final def obtainPreMode[V <: Seq[Double]](vi: ScalarVector[V], kernelVal: Double): ScalarVector[V] = ScalarVector(vi.vector.map(_ * kernelVal).asInstanceOf[V])
 }
 /**
- *
+ * @tparam V
+ * @tparam D
  */
-case class KernelGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsGaussian[V, D]) extends Kernel[ScalarVector[V], KernelArgsGaussian[V, D]] {
+final case class GaussianKernel[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: KernelArgsGaussian[V, D]) extends KernelScalar[V, KernelArgsGaussian[V, D]] {
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-lambda|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - lambda is the bandwidth
 	 *  - |x<sub>1</sub>-x<sub>2</sub>| is the distance between x<sub>1</sub> and x<sub>2</sub>
 	 */
-	def gaussianKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
+	final private[this] def gaussianKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
 		val d = kernelArgs.metric.d(v1, altVectors)
-		exp( - kernelArgs.bandwidth * d * d )
+		exp(- kernelArgs.bandwidth * d * d)
 	}
 	/**
 	 *
 	 */
-	def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainMedian(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
 		val (preMode, kernelValue) = KernelUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = gaussianKernel(v, vi)
@@ -69,20 +85,20 @@ case class KernelGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDis
 	}
 }
 /**
- *
+ * @tparam V
  */
-case class KernelFlat[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](val kernelArgs: KernelArgsFlat[V, D]) extends Kernel[ScalarVector[V], KernelArgsFlat[V, D]] {
+final case class FlatKernel[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: KernelArgsFlat[V, D]) extends KernelScalar[V, KernelArgsFlat[V, D]] {
 	/**
 	 *
 	 */
-	def flatKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
+	final private[this] def flatKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
 		val value = kernelArgs.metric.d(v1, altVectors) / (kernelArgs.bandwidth * kernelArgs.bandwidth)
 		if( value <= kernelArgs.lambda ) 1D else 0D 
 	}
 	/**
 	 *
 	 */
-	def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainMedian(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
 		val (preMode, kernelValue) = KernelUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = flatKernel(v, vi)
@@ -93,20 +109,21 @@ case class KernelFlat[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistanc
 	}
 }
 /**
- *
+ * @tparam V
+ * @param kernelArgs
  */
-case class KernelSigmoid[V <: Seq[Double]](val kernelArgs: KernelArgsSigmoid) extends Kernel[ScalarVector[V], KernelArgsSigmoid] {
+final case class SigmoidKernel[V <: Seq[Double]](final val kernelArgs: KernelArgsSigmoid) extends KernelScalar[V, KernelArgsSigmoid] {
 	/**
 	 *
 	 */
-	def sigmoidKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
-		val dotProduct = SumVectors.dotProduct(v1, altVectors)
+	final private[this] def sigmoidKernel(v1: ScalarVector[V], v2: ScalarVector[V]) = {
+		val dotProduct = SumVectors.dotProduct(v1, v2)
 		tanh(kernelArgs.a * dotProduct + kernelArgs.b)
 	}
 	/**
 	 *
 	 */
-	def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainMedian(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
 		val (preMode, kernelValue) = KernelUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = sigmoidKernel(v, vi)
@@ -118,72 +135,79 @@ case class KernelSigmoid[V <: Seq[Double]](val kernelArgs: KernelArgsSigmoid) ex
 }
 /**
  * working on GMM
- **/
+ */
 object GmmKernels {
 	/**
 	 *
 	 */
-	def multivariateGaussianKernelLog(v1: DenseVector[Double], mean: DenseVector[Double], invSigma: DenseMatrix[Double]): Double = {
+	final def multivariateGaussianKernelLog(v1: DenseVector[Double], mean: DenseVector[Double], invSigma: DenseMatrix[Double]): Double = {
 		val diff = v1 - mean
 		- diff.t * invSigma * diff * 0.5
 	}
 	/**
 	 *
 	 */
-	def multivariateGaussianKernel(v1: DenseVector[Double], mean: DenseVector[Double], invSigma: DenseMatrix[Double]): Double = {
+	final def multivariateGaussianKernel(v1: DenseVector[Double], mean: DenseVector[Double], invSigma: DenseMatrix[Double]): Double = {
 		exp(multivariateGaussianKernelLog(v1, mean, invSigma))
 	}
 }
 /**
- * Investigate why specialization with Spire Numeric prevent compilations
+ * @tparam V
+ * @tparam D
+ * @tparam Args
  */
-trait KnnKernel[
-	V <: GVector[V],
-	D <: Distance[V],
-	Args <: KernelArgsKnn[V, D]
-] extends Kernel[V, Args] {
+trait KnnKernel[V <: GVector[V], D <: Distance[V], Args <: KernelArgsKnn[V, D]] extends Kernel[V, Args] {
 	/**
 	 * @return knn
 	 */
-	def obtainKnn(v: V, env: Seq[V]) = env.sortBy(kernelArgs.metric.d(v, _)).take(kernelArgs.k)
+	final private[this] def obtainKnn(v: V, env: Seq[V]) = env.sortBy(kernelArgs.metric.d(v, _)).take(kernelArgs.k)
 	/**
-	 * The KNN kernel for any space, it select KNN using any dissimilarity measure and compute the mode of them by looking for element which minimize average pair to pair distance
+	 * The KNN kernel for any space, it select KNN using any dissimilarity measure and compute the mode of them by applying mean, majority vote both or looking for element which minimize average pair to pair distance
 	 */
-	def obtainMode(v: V, env: GenSeq[V]): V = {
+	final def obtainMedian(v: V, env: GenSeq[V]): V = {
 		val knn = obtainKnn(v, env.seq)
-		SimilarityMatrix.distanceMinimizer(knn, kernelArgs.metric)
+		ClusterBasicOperations.obtainCenter(knn, kernelArgs.metric)
 	}
 }
 /**
  *
  */
-trait KnnKernelRealMeta[
-	V <: Seq[Double],
-	D <: ContinuousDistance[V],
-	Args <: KernelArgsKnnRealMeta[V, D]
-] extends KnnKernel[ScalarVector[V], D, Args]
+trait KnnKernelScalarAncestor[V <: Seq[Double], D <: ContinuousDistance[V], Args <: KernelArgsKnnScalarAncestor[V, D]] extends KnnKernel[ScalarVector[V], D, Args] with KernelScalar[V, Args]
 /**
  *
  */
-case class KnnKernelReal[
-	V <: Seq[Double],
-	D[V <: Seq[Double]] <: ContinuousDistance[V],
-	Args[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]] <: KernelArgsKnnReal[V, D]
-](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V, D[V], Args[V, D]]
+trait KnnKernelBinaryAncestor[V <: Seq[Int], D <: BinaryDistance[V], Args <: KernelArgsKnnBinaryAncestor[V, D]] extends KnnKernel[BinaryVector[V], D, Args] with KernelBinary[V, Args]
 /**
- *
+ * @tparam V
+ * @tparam D
  */
-case class KnnKernelEuclidean[
-	V <: Seq[Double],
-	D[V <: Seq[Double]] <: Euclidean[V],
-	Args[V <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]] <: KernelArgsEuclideanKnn[V, D]
-](val kernelArgs: Args[V, D]) extends KnnKernelRealMeta[V, D[V], Args[V, D]] {
-	/**
-	 * The KNN kernel for euclidean space, it select KNN using a Euclidean measure and compute the mean<sup>*</sup> of them
-	 * @note Mean computation has a sense only for euclidean distance.
-	 */
-	override def obtainMode(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
-		val knn = obtainKnn(v, env.seq)
-		ClusterBasicOperations.obtainMean(knn)
-	}
+final case class KnnKernelScalar[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: KernelArgsKnnScalar[V, D]) extends KnnKernelScalarAncestor[V, D[V], KernelArgsKnnScalar[V, D]]
+/**
+ * @tparam V
+ * @tparam D
+ */
+final case class KnnKernelBinary[V <: Seq[Int], D[V <: Seq[Int]] <: BinaryDistance[V]](final val kernelArgs: KernelArgsKnnBinary[V, D]) extends KnnKernelBinaryAncestor[V, D[V], KernelArgsKnnBinary[V, D]]
+/**
+ * @tparam V
+ * @tparam D
+ */
+final case class KnnKernelEuclidean[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](final val kernelArgs: KernelArgsEuclideanKnn[V, D]) extends KnnKernelScalarAncestor[V, D[V], KernelArgsEuclideanKnn[V, D]]
+/**
+ * @tparam V
+ * @tparam D
+ */
+final case class EasyKnnKernelEuclidean[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](k: Int, metric: D[V]) extends KnnKernelScalarAncestor[V, D[V], KernelArgsEuclideanKnn[V, D]] {
+	final val kernelArgs = KernelArgsEuclideanKnn(k, metric)
+}
+/**
+ * @tparam V
+ */
+final case class SuperEasyKnnKernelEuclidean[V <: Seq[Double]](k: Int, squaredRoot: Boolean = true) extends KnnKernelScalarAncestor[V, Euclidean[V], KernelArgsEuclideanKnn[V, Euclidean]] {
+	final val kernelArgs = KernelArgsEuclideanKnn(k, Euclidean[V](squaredRoot))
+}
+/**
+ * @tparam V
+ */
+final case class HyperEasyKnnKernelEuclidean[V <: Seq[Double]](k: Int) extends KnnKernelScalarAncestor[V, Euclidean[V], KernelArgsEuclideanKnn[V, Euclidean]] {
+	final val kernelArgs = KernelArgsEuclideanKnn(k, Euclidean[V](true))
 }

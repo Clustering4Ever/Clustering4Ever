@@ -3,73 +3,40 @@ package org.clustering4ever.clustering.models
  * @author Beck Gaël
  */
 import scala.language.higherKinds
-import scala.collection.{GenSeq, mutable, Traversable}
-import org.clustering4ever.clustering.ClusteringModel
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance}
+import scala.collection.{GenSeq, mutable, immutable, Traversable}
+import org.clustering4ever.math.distances.{GenericDistance, Distance, ContinuousDistance, BinaryDistance}
 import org.clustering4ever.identifiables.IdentifiedRawObject
 import org.clustering4ever.vectors.GVector
 import org.clustering4ever.clusterizables.Clusterizable
 /**
- *
+ * @tparam V
+ * @tparam D
  */
-trait DataBasedModel[ID, O, D <: Distance[O], T[X] <: Traversable[X], IRO[A, B] <: IdentifiedRawObject[A, B]] extends KnnOrientedModel[O, D] {
+trait DataBasedModel[V <: GVector[V], D <: Distance[V]] extends KnnModelModelCz[V, D] {
 	/**
-	 *
+	 * The whole dataset sorted by clusterizable IDs as a collection [(ID, Vector, ClusterID)]
 	 */
-	val data: scala.collection.Map[ClusterID, T[IRO[ID, O]]]
+	val datapointWithClusterIDSortedByPointID: mutable.ArrayBuffer[(Long, (V, ClusterID))]
 	/**
-	 *
+	 * @return clusterID associate to obj and its knn containing (ClusterID, Seq[(ID, Vector)])
 	 */
-	val metric: D
-	/**
-	 *
-	 */
-	lazy val dataAsSeq: Seq[(ClusterID, IRO[ID, O])] = data.toSeq.flatMap{ case (clusterID, values) => values.map((clusterID, _)) }
-	/**
-	 * @return clusterID associate to obj and its knn containing (ClusterID, (ID, obj))
-	 */
-	def knnPredictWithNN(obj: O, k: Int): (ClusterID, Seq[(ClusterID, IRO[ID, O])]) = {
-		dataAsSeq.sortBy{ case (_, iro) => metric.d(obj, iro.o) }.take(k).groupBy(_._1).maxBy{ case (clusterID, aggregate) => aggregate.size }
+	final def knnPredictWithNN(v: V, k: Int): (ClusterID, Seq[(Long, V)]) = {
+		val (clusterID, knn) = datapointWithClusterIDSortedByPointID.sortBy{ case (_, (v2, _)) => metric.d(v, v2) }.take(k).groupBy(_._2._2).maxBy{ case (clusterID, aggregate) => aggregate.size }
+		(clusterID, knn.map{ case (id, (v, _)) => (id, v) })
 	}
 	/**
-	 * @return clusterID associate to obj
+	 * @return clusterID associate to given Vector
 	 */
-	def knnPredict(obj: O, k: Int): ClusterID = knnPredictWithNN(obj, k)._1
+	final def knnPredict(v: V, k: Int): ClusterID = knnPredictWithNN(v, k)._1
+	/**
+	 * @return sequence of clusterizable with added clusterID
+	 */
+	final def knnPredict[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz], GS[X] <: GenSeq[X]](gs: GS[Cz[O, V]], k: Int)(implicit d: DummyImplicit): GS[Cz[O, V]] = {
+		gs.map( cz => cz.addClusterIDs(knnPredict(cz.v, k)) ).asInstanceOf[GS[Cz[O, V]]]
+	}
 	/**
 	 * @return clusterID associate to a GenSeq of object
 	 */
-	def knnPredict[GS[X] <: GenSeq[X]](genSeq: GS[O], k: Int): GS[(ClusterID, O)] = genSeq.map( obj => (knnPredict(obj, k), obj) ).asInstanceOf[GS[(ClusterID, O)]]
-
-}
-/**
- *
- */
-trait DataBasedModelCz[ID, O, V <: GVector[V], Cz[X, Y, Z <: GVector[Z]] <: Clusterizable[X, Y, Z, Cz], D <: Distance[V], T[X] <: Traversable[X]] extends KnnOrientedModelClusterizable[V, D] {
-	/**
-	 *
-	 */
-	val data: scala.collection.Map[ClusterID, T[Cz[ID, O, V]]]
-	/**
-	 *
-	 */
-	val metric: D
-	/**
-	 *
-	 */
-	lazy val dataAsSeq: Seq[(ClusterID, Cz[ID, O, V])] = data.toSeq.flatMap{ case (clusterID, values) => values.map((clusterID, _)) }
-	/**
-	 * @return clusterID associate to obj and its knn containing (ClusterID, (ID, obj))
-	 */
-	def knnPredictWithNN(obj: V, k: Int): (ClusterID, Seq[(ClusterID, Cz[ID, O, V])]) = {
-		dataAsSeq.sortBy{ case (_, cz) => metric.d(obj, cz.v) }.take(k).groupBy(_._1).maxBy{ case (clusterID, aggregate) => aggregate.size }
-	}
-	/**
-	 * @return clusterID associate to obj
-	 */
-	def knnPredict(obj: V, k: Int): ClusterID = knnPredictWithNN(obj, k)._1
-	/**
-	 * @return clusterID associate to a GenSeq of object
-	 */
-	def knnPredict[GS[X] <: GenSeq[X]](genSeq: GS[V], k: Int): GS[(ClusterID, V)] = genSeq.map( obj => (knnPredict(obj, k), obj) ).asInstanceOf[GS[(ClusterID, V)]]
+	final def knnPredict[GS[X] <: GenSeq[X]](gs: GS[V], k: Int): GS[(ClusterID, V)] = gs.map( obj => (knnPredict(obj, k), obj) ).asInstanceOf[GS[(ClusterID, V)]]
 
 }

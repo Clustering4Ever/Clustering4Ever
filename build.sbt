@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-val sparkVersion = "2.3.0"
+val sparkVersion = "2.3.3"
 
 lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 	case PathList("org", "xmlpull", xs @ _*) => MergeStrategy.last
@@ -19,10 +19,9 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 lazy val coreDeps = libraryDependencies ++= Seq(
 		"org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 		"org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
-		// "org.typelevel" %% "spire" % "0.14.1",
+		"org.typelevel" %% "spire" % "0.16.0",
 		"com.chuusai" %% "shapeless" % "2.3.3",
 		compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
-	  	// "com.beachape" %% "enumeratum" % "1.5.13"
 )
 
 lazy val commonCredentialsAndResolvers = Seq(
@@ -40,7 +39,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.8.1",
+	 	version := "0.9.4-SNAPSHOT",
 		scalaVersion := "2.11.12",
 		conflictManager := ConflictManager.all,
 		autoAPIMappings := true,

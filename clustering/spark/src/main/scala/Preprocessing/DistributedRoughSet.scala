@@ -11,7 +11,7 @@ import scala.util.Random
 import scala.annotation.meta.param
 import org.clustering4ever.scala.preprocessing.rst.RoughSet
 import org.clustering4ever.supervizables.Supervizable
-import org.clustering4ever.vectors.{SupervizedVector, GVector}
+import org.clustering4ever.vectors.{GVector, GSimpleVector}
 /**
  *
  */
@@ -20,7 +20,7 @@ class DistributedRoughSet(@(transient @param) sc: SparkContext) extends RoughSet
    * RoughSet distributed classic version
    * Don't forget complexity is in O(F!) with F the number of Features, distributed system won't help enough facing this kind of complexity
    */
-  def run[ID : ClassTag, O, T : ClassTag, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: RDD[Sz[ID, O, SupervizedVector[T, V]]], everyCombinationsO: Option[mutable.ArraySeq[mutable.ArrayBuffer[Int]]] = None)(implicit ct: ClassTag[V[T]]) = {
+  final def fit[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T, S]]], everyCombinationsO: Option[mutable.ArraySeq[mutable.ArrayBuffer[Int]]] = None)(implicit ct: ClassTag[V[T, S]], ct2: ClassTag[S[T]]) = {
    
     val everyCombinations = if(everyCombinationsO.isDefined) everyCombinationsO.get else obtainEveryFeaturesCombinations(data.first.v.vector.size).seq
 
@@ -39,7 +39,7 @@ class DistributedRoughSet(@(transient @param) sc: SparkContext) extends RoughSet
   /*
    *  RoughSet working by range of features
    */
-  def runHeuristic[ID : ClassTag, O, T : ClassTag, V[X] <: Seq[X], Sz[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Sz]](data: RDD[Sz[ID, O, SupervizedVector[T, V]]], columnsOfFeats: Seq[Seq[Int]]): mutable.Buffer[Int] = {
+  final def runHeuristic[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]]): mutable.Buffer[Int] = {
 
     val nbColumns = columnsOfFeats.size
     val dataBC = sc.broadcast(data.collect.par)

@@ -8,15 +8,15 @@ import scala.collection.{mutable, GenSeq}
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.math.distances.ContinuousDistance
 import org.clustering4ever.math.distances.scalar.Euclidean
-import org.clustering4ever.clustering.ClusteringCommons
+import org.clustering4ever.clustering.ClusteringSharedTypes
 /**
  *
  */
-object Stats extends ClusteringCommons {
+object Stats extends ClusteringSharedTypes {
 	/**
 	 * @return the standard deviation between vectors and a mean
 	 */
-	def sd(vectors: GenSeq[mutable.ArrayBuffer[Double]], mean: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = {
+	final def sd(vectors: GenSeq[mutable.ArrayBuffer[Double]], mean: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = {
 		val sd = mutable.ArrayBuffer.fill(vectors.head.size)(0D)
 		vectors.foreach( v => v.indices.foreach{ i => 
 			val toPow2 = v(i) - mean(i)
@@ -27,7 +27,7 @@ object Stats extends ClusteringCommons {
 	/**
 	 * @return min and max for the ith component in reduce style
 	 */
-	def obtainIthMinMax[V <: Seq[Double]](idx: Int, vminMax1: (V, V), vminMax2: (V, V)): (Double, Double) = {
+	final def obtainIthMinMax[V <: Seq[Double]](idx: Int, vminMax1: (V, V), vminMax2: (V, V)): (Double, Double) = {
 		(
 			min(vminMax1._1(idx), vminMax2._1(idx)),
 			max(vminMax1._2(idx), vminMax2._2(idx))
@@ -36,12 +36,12 @@ object Stats extends ClusteringCommons {
 	/**
 	 *
 	 */
-	def obtainMinAndMax[V <: Seq[Double]](data: GenSeq[V]): (V, V) = {
+	final def obtainMinAndMax[V <: Seq[Double]](data: GenSeq[V]): (V, V) = {
 		val dim = data.head.size
 		val range = (0 until dim)
 		val (minValues, maxValues) = data.map( v => (v, v) ).reduce{ (minMaxa, minMaxb) =>
-			val builderMin = data.head.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
-			val builderMax = data.head.genericBuilder.asInstanceOf[mutable.Builder[Double, V]]
+			val builderMin = data.head.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, V]]
+			val builderMax = data.head.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, V]]
 			builderMin.sizeHint(dim)
 			builderMax.sizeHint(dim)
 			range.foreach{ i => 
@@ -56,7 +56,7 @@ object Stats extends ClusteringCommons {
 	/**
 	 *
 	 */
-	def obtainCenterFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
+	final def obtainMedianFollowingWeightedDistribution[V](distribution: Seq[(V, Double)]): V = {
 		val p = scala.util.Random.nextDouble * distribution.map(_._2).sum
 		@annotation.tailrec
 		def go(accum: Double, i: Int): Int = {

@@ -9,17 +9,15 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-case class PatternDifference[V <: Seq[Int]](val id: MetricID = 6) extends BinaryDistance[V] {
+final case class PatternDifference[V <: Seq[Int]](val id: MetricID = 6) extends BinaryDistance[V] {
 
-	def d(vector1: V, vector2: V): Double = {
+	final def d(vector1: V, vector2: V): Double = {
 		val (a, b, c, d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)
 		val s = a + b + c + d
 		(4D * b * c) / (s * s)
 	}
-	/**
-	 *
-	 */
-	def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = d(vector1.vector, vector2.vector)
+
+	final def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = d(vector1.vector, vector2.vector)
 
 	
 }

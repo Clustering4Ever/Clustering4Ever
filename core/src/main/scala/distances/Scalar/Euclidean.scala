@@ -13,19 +13,19 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-trait EuclideanMeta[V <: Seq[Double]] extends Serializable {
+trait EuclideanAncestor[V <: Seq[Double]] extends Serializable {
 	/**
-	 *
+	 * Applied square root to euclidean distance if true
 	 */
 	protected val squareRoot: Boolean
 	/**
 	 * Euclidean distance in recursion style, faster than while
 	 */
-	protected def euclidean(dot1: V, dot2: V): Double = {
+	protected final def euclidean(v1: V, v2: V): Double = {
 		@annotation.tailrec
 		def go(d: Double, i: Int): Double = {
-			if(i < dot1.size) {
-			  val toPow2 = dot1(i) - dot2(i)
+			if(i < v1.size) {
+			  val toPow2 = v1(i) - v2(i)
 			  go(d + toPow2 * toPow2, i + 1)
 			}
 			else d
@@ -33,50 +33,57 @@ trait EuclideanMeta[V <: Seq[Double]] extends Serializable {
 		val d = go(0D, 0)
 		if(squareRoot) sqrt(d) else d
 	}
-	/**
-	 *
-	 */
-	private val toStringRoot = if(squareRoot) "with " else "without "
-	/**
-	 *
-	 */
-	override def toString() = "Euclidean distance " + toStringRoot + "squared root applied"
 }
 /**
- * The Euclidean distance with or without squareRoot
+ * @tparam V
  */
-class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, val id: MetricID = 0) extends EuclideanMeta[V] with RawContinuousDistance[V] {
-	/**
-	  * The Euclidean distance with or without squareRoot
-	  * @return The Euclidean distance between dot1 and dot2
-	  */
-	def d(dot1: V, dot2: V): Double = euclidean(dot1, dot2)
+trait EuclideanSubAncestor[V <: Seq[Double]] extends EuclideanAncestor[V] {
 	/**
 	 *
 	 */
-	def norm(dot: V): Double = SumVectors.euclideanNorm(dot)
+	private final val toStringRoot = if(squareRoot) "with " else "without "
+	/**
+	 *
+	 */
+	override def toString = "Euclidean distance " + toStringRoot + "squared root applied"
 }
 /**
+ * @tparam V
  * The Euclidean distance with or without squareRoot
  */
-case class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, val id: MetricID = 0) extends EuclideanMeta[V] with ContinuousDistance[V] {
+final case class RawEuclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanSubAncestor[V] with RawContinuousDistance[V] {
 	/**
 	  * The Euclidean distance with or without squareRoot
-	  * @return The Euclidean distance between dot1 and dot2
+	  * @return The Euclidean distance between v1 and v2
 	  */
-	def d(dot1: V, dot2: V): Double = euclidean(dot1, dot2)
-	/**
-	  * The Euclidean distance with or without squareRoot
-	  * @return The Euclidean distance between dot1 and dot2
-	  */
-	def d(dot1: ScalarVector[V], dot2: ScalarVector[V]): Double = euclidean(dot1.vector, dot2.vector)
+	final def d(v1: V, v2: V): Double = euclidean(v1, v2)
 	/**
 	 *
 	 */
-	def norm(dot: V): Double = SumVectors.euclideanNorm(dot)
+	final def norm(dot: V): Double = SumVectors.euclideanNorm(dot)
+}
+/**
+ * @tparam V
+ * The Euclidean distance with or without squareRoot
+ */
+final case class Euclidean[V <: Seq[Double]](final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanSubAncestor[V] with ContinuousDistance[V] {
+	/**
+	  * The Euclidean distance with or without squareRoot
+	  * @return The Euclidean distance between v1 and v2
+	  */
+	final def d(v1: V, v2: V): Double = euclidean(v1, v2)
+	/**
+	  * The Euclidean distance with or without squareRoot
+	  * @return The Euclidean distance between v1 and v2
+	  */
+	final def d(v1: ScalarVector[V], v2: ScalarVector[V]): Double = euclidean(v1.vector, v2.vector)
 	/**
 	 *
 	 */
-	def norm(dot: ScalarVector[V]): Double = SumVectors.euclideanNorm(dot.vector)
+	final def norm(dot: V): Double = SumVectors.euclideanNorm(dot)
+	/**
+	 *
+	 */
+	final def norm(dot: ScalarVector[V]): Double = SumVectors.euclideanNorm(dot.vector)
 
 }

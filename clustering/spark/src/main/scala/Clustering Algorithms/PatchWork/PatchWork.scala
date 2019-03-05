@@ -11,7 +11,7 @@
  * https://github.com/crim-ca/patchwork
  */
 
-package org.clustering4ever.spark.clustering.patchwork
+package org.clustering4ever.clustering.patchwork
 
 import org.apache.log4j.LogManager
 import org.apache.spark.rdd.RDD
@@ -28,7 +28,7 @@ import PatchWorkUtils._
  * A cell (or hypercube) in the n-dimensional feature space
  * @param cellNumber The ID of the cell. Array of size n.
  */
-class PatchWorkCell(val cellNumber: Array[Int]) extends Serializable {
+final case class PatchWorkCell(val cellNumber: Array[Int]) extends Serializable {
   /* Number of data points in the cell */
   var ptsInCell: Int = 0
 
@@ -72,14 +72,14 @@ class PatchWorkCellKey(var cellNumber: String, var cellArray: Array[Int], var cl
  * A cluster is defined by the list of cells within.
  * @param id
  */
-class PatchWorkCluster(private var id: Int) extends Serializable {
+final case class PatchWorkCluster(private var id: Int) extends Serializable {
   def getID: Int = this.id
   val cellsList: ListBuffer[PatchWorkCellKey] = new ListBuffer[PatchWorkCellKey]
 }
 /**
  *
  */
-class PatchWorkModel(private var epsilon: Epsilon,
+final case class PatchWorkModel(private var epsilon: Epsilon,
     var cardinalsPatchwork: RDD[(String, Int)],
     var clusters: List[PatchWorkCluster]) extends Serializable {
 
@@ -90,7 +90,7 @@ class PatchWorkModel(private var epsilon: Epsilon,
    * @param point A data point
    * @return The cluster the data point belongs to
    */
-  def predict(point: DataPoint): PatchWorkCluster = {
+  final def predict(point: DataPoint): PatchWorkCluster = {
     val cellKey = new PatchWorkCellKey(point.zipWithIndex.map( x => math.ceil(x._1 / this.epsilon(x._2)).toInt ))
     val cl = this.clusters.filter(cluster => cluster.cellsList.contains(cellKey))
     if (cl.isEmpty) {
@@ -121,7 +121,7 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
    * @param data Input dataset
    * @return The model
    */
-  def run(data: RDD[DataPoint]): PatchWorkModel = {
+  def fit(data: RDD[DataPoint]): PatchWorkModel = {
     if (data.getStorageLevel == StorageLevel.NONE) {
       val log = LogManager.getRootLogger
       log.warn("The input data is not cached, which may impact performance.")
@@ -167,7 +167,7 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
   }
 
   def nearCells(p: Array[Int]): List[Array[Int]] = {
-    val nearCellsList: ListBuffer[Array[Int]] = new ListBuffer[Array[Int]]
+    val nearCellsList: ListBuffer[Array[Int]] = ListBuffer.empty[Array[Int]]
     for (i <- Range(0, p.length)) {
       val tempP1 = p.clone()
       tempP1.update(i, p(i) - 1)

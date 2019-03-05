@@ -9,15 +9,13 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  */
-case class MeanMahanttan[V <: Seq[Int]](val id: MetricID = 5) extends BinaryDistance[V] {
+final case class MeanMahanttan[V <: Seq[Int]](val id: MetricID = 5) extends BinaryDistance[V] {
 
-	def d(vector1: V, vector2: V): Double = {
+	final def d(vector1: V, vector2: V): Double = {
 		val (a, b, c, d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)
 		(b + c).toDouble / (a + b + c + d)
 	}
-	/**
-	 *
-	 */
-	def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = d(vector1.vector, vector2.vector)
+
+	final def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = d(vector1.vector, vector2.vector)
 
 }

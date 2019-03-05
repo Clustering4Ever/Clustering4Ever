@@ -2,15 +2,21 @@ package org.clustering4ever.vectorizables
 /**
  * @author Beck Gaël
  */
+import scala.language.higherKinds
+import org.clustering4ever.vectors.GVector
 /**
  *
  */
 sealed trait VectorizableOrNot extends Serializable
 /**
- *
+ * The container of the raw object
+ * @tparam O the raw object type
  */
-case class Vectorizable[O](val o: O) extends VectorizableOrNot {
-	def toVector[V](towardVector: O => V): V = towardVector(o)
+final case class Vectorizable[O](val o: O) extends VectorizableOrNot {
+	/**
+	 * Methods which transform the raw object toward a GVector descendant given the towardVector function
+	 */
+	final def toVector[V <: GVector[V]](towardVector: O => V): V = towardVector(o)
 }
 /**
  *

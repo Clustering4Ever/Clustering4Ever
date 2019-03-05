@@ -8,7 +8,7 @@ import org.clustering4ever.vectors.BinaryVector
 /**
  *
  */
-object BinaryDistanceUtil {
+object BinaryDistanceUtil extends Serializable {
 	/**
 	 * Buil the contingency matrix where for each bite i, j :
 	 *   - a is incremented if i = 1, j = 1
@@ -16,7 +16,7 @@ object BinaryDistanceUtil {
 	 *   - c is incremented if i = 0, j = 1
 	 *   - d is incremented if i = 0, j = 0
 	 */
-	def contingencyTable[V <: Seq[Int]](vector1: V, vector2: V): (Int, Int, Int, Int) = {
+	final def contingencyTable[V <: Seq[Int]](vector1: V, vector2: V): (Int, Int, Int, Int) = {
 
 		val oneBite = 1
 		val zeroBite = 0
@@ -46,13 +46,13 @@ object BinaryDistanceUtil {
 	 *   - c is incremented if i = 0, j = 1
 	 *   - d is incremented if i = 0, j = 0
 	 */
-	def contingencyTable[V <: Seq[Int]](vector1: BinaryVector[V], vector2: BinaryVector[V]): (Int, Int, Int, Int) = contingencyTable(vector1.vector, vector2.vector)
+	final def contingencyTable[V <: Seq[Int]](vector1: BinaryVector[V], vector2: BinaryVector[V]): (Int, Int, Int, Int) = contingencyTable(vector1.vector, vector2.vector)
 
 	/**
 	 * Count number of occurence for each binary features
 	 * @return Array[(numberOf0, numberOf1)]
 	 */
-	def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] = {
+	final def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] = {
 		import org.clustering4ever.util.VectorsAddOperationsImplicits._
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumVectors.sumVectors(_, _))
@@ -60,7 +60,7 @@ object BinaryDistanceUtil {
 		nbZero.zip(nbOne)
 	}
 
-	def genProb2Feat(nbOccFeatTab: Seq[(Int, Int)], nbTotData: Int): Seq[(Double, Double)] = {
+	final def genProb2Feat(nbOccFeatTab: Seq[(Int, Int)], nbTotData: Int): Seq[(Double, Double)] = {
 		nbOccFeatTab.map{ case (zero, one) =>
 			val totDataMinusOne = nbTotData - 1D
 			val product = nbTotData * totDataMinusOne

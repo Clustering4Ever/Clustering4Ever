@@ -9,11 +9,13 @@ import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.shapeless.VMapping
 import shapeless.HMap
 import org.clustering4ever.vectors.GVector
-import org.clustering4ever.vectorizables.NotVectorizable
+import org.clustering4ever.types.VectorizationIDTypes._
+import org.clustering4ever.vectorizations.Vectorization
 /**
  *
  */
-trait Supervizable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Supervizable[A, B, C, Self]] extends Preprocessable[ID, O, V, Self] {
+trait Supervizable[O, V <: GVector[V], Self[B, C <: GVector[C]] <: Supervizable[B, C, Self]] extends Preprocessable[O, V, Self] {
+	this: Self[O, V] =>
 	/**
 	 *
 	 */
@@ -25,11 +27,11 @@ trait Supervizable[ID, O, V <: GVector[V], Self[A, B, C <: GVector[C]] <: Superv
 	/**
 	 *
 	 */
-	def obtainOneBucket(i: Int): Self[ID, O, V]
+	def obtainOneBucket(i: Int): Self[O, V]
 	/**
 	 * Transform from DFCL to HDFCL by applying bucketing of bucketsOfFeats argument 
 	 */
-	def definedBucketizedFeatures(bucketsOfFeats: Seq[Seq[Int]]): Self[ID, O, V]
+	def definedBucketizedFeatures(bucketsOfFeats: Seq[Seq[Int]]): Self[O, V]
 
 }
 /**
@@ -39,70 +41,75 @@ object EasySupervizable {
 	/**
 	 * Simplest way to generate an EasySupervizable
 	 */
-	def apply[ID, V <: GVector[V]](id: ID, v: V, label: Int): EasySupervizable[ID, V, V] = new EasySupervizable(id, Vectorizable(v), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+	final def apply[V <: GVector[V]](id: Long, v: V, label: Int): EasySupervizable[None.type, V] = EasySupervizable(id, Vectorizable(None), label, v, mutable.ArrayBuffer.empty[V], HMap.empty[VMapping])
 	/**
 	 * Generate a proper EasySupervizable
 	 */
-	def apply[ID, O, V <: GVector[V]](id: ID, o: O, v: V, label: Int) = new EasySupervizable(id, Vectorizable(o), label, v, mutable.ArrayBuffer.empty[V], HMap[VMapping](0 -> v)(new VMapping[Int, V]))
+	final def apply[O, V <: GVector[V]](id: Long, o: O, v: V, label: Int): EasySupervizable[O, V] = EasySupervizable(id, Vectorizable(o), label, v, mutable.ArrayBuffer.empty[V], HMap.empty[VMapping])
 
 }
 /**
  *
  */
-case class EasySupervizable[ID, O, V <: GVector[V]](
-	val id: ID,
-	val o: Vectorizable[O],
-	val label: Int,
-	val v: V,
-	val bucketizedFeatures: mutable.ArrayBuffer[V] = mutable.ArrayBuffer.empty[V],
-	val vectorized: HMap[VMapping] = HMap.empty[VMapping]
-) extends Supervizable[ID, O, V, EasySupervizable] {
+final case class EasySupervizable[O, V <: GVector[V]](
+	final val id: Long,
+	final val o: Vectorizable[O],
+	final val label: Int,
+	final val v: V,
+	final val bucketizedFeatures: mutable.ArrayBuffer[V] = mutable.ArrayBuffer.empty[V],
+	final val vectorized: HMap[VMapping] = HMap.empty[VMapping]
+) extends Supervizable[O, V, EasySupervizable] {
 	/**
 	 *
 	 */
-	final override def canEqual(a: Any): Boolean = a.isInstanceOf[EasySupervizable[ID, O, V]]
+	final override def canEqual(a: Any): Boolean = a.isInstanceOf[EasySupervizable[O, V]]
 	/**
 	 *
 	 */
 	final override def equals(that: Any): Boolean = {
 		that match {
-		  case that: EasySupervizable[ID, O, V] => that.canEqual(this) && that.hashCode == this.hashCode && that.hashCode2 == this.hashCode2
+		  case that: EasySupervizable[O, V] => that.canEqual(this) && that.hashCode == this.hashCode && that.hashCode2 == this.hashCode2
 		  case _ => false
 		}
 	}
-	/**
-	 *
-	 */
-	final def obtainOneBucket(i: Int): EasySupervizable[ID, O, V] = {
-		new EasySupervizable(id, o, label, bucketizedFeatures(i), bucketizedFeatures)
+
+	final def obtainOneBucket(i: Int): EasySupervizable[O, V] = {
+		EasySupervizable(id, o, label, bucketizedFeatures(i), bucketizedFeatures)
 	}
-	/**
-	 * Transform from DFCL to HDFCL by applying bucketing of bucketsOfFeats argument 
-	 */
-	final def definedBucketizedFeatures(bucketsOfFeats: Seq[Seq[Int]]): EasySupervizable[ID, O, V] = {
 
+	final def definedBucketizedFeatures(bucketsOfFeats: Seq[Seq[Int]]): EasySupervizable[O, V] = {
 		bucketizedFeatures.clear
-
 		bucketsOfFeats.foreach( oneBucket => bucketizedFeatures += v.pickFeatures(oneBucket:_*) )
-
 		this
 	}
-	/**
-	 *
-	 */
-	final def addVectorized[GV <: GVector[GV]](vectorizationID: Int, towardNewVector: O => GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, V] = {
-		this.copy(vectorized = vectorized + ((vectorizationID, o.toVector(towardNewVector))))
+
+	final def addVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[O, V] = {
+		this.copy(vectorized = vectorized.+(((vectorization.vectorizationID, o.toVector(vectorization.vectorizationFct.get))))(VMapping[VectorizationID, GV]))
 	}
-	/**
-	 *
-	 */
-	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: Int, newAltVector: GV)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, V] = {
-		this.copy(vectorized = vectorized + ((vectorizationID, newAltVector)))
+
+	final def addAlternativeVector[GV <: GVector[GV]](vectorizationID: VectorizationID, newAltVector: GV): EasySupervizable[O, V] = {
+		this.copy(vectorized = vectorized.+(((vectorizationID, newAltVector)))(VMapping[VectorizationID, GV]))
 	}
-	/**
-	 *
-	 */
-	final def updateVector[GV <: GVector[GV]](vectorizationID: Int)(implicit vMapping: VMapping[Int, GV] = new VMapping[Int, GV]): EasySupervizable[ID, O, GV] = {
-		new EasySupervizable(id, o, label, vectorized.get(vectorizationID).get.asInstanceOf[GV], mutable.ArrayBuffer.empty[GV], vectorized)
+
+	final def switchForExistingVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[O, GV] = {
+		EasySupervizable(id, o, label, vectorized.get(vectorization.vectorizationID)(vectorization.vMapping).get, mutable.ArrayBuffer.empty[GV], vectorized)
 	}
+
+	final def switchForExistingVectorization[GV <: GVector[GV]](vectorizationID: VectorizationID, vMapping: VMapping[VectorizationID, GV]): EasySupervizable[O, GV] = {
+		EasySupervizable(id, o, label, vectorized.get(vectorizationID)(vMapping).get, mutable.ArrayBuffer.empty[GV], vectorized)
+	}
+
+	final def updateVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): EasySupervizable[O, GV] = {
+		EasySupervizable(id, o, label, o.toVector(vectorization.vectorizationFct.get), mutable.ArrayBuffer.empty[GV], vectorized)
+	}
+
+	final def updateVectorizationOfSameNature[Vecto <: Vectorization[O, V, Vecto]](vectorization: Vecto): EasySupervizable[O, V] = {
+		this.copy(v = o.toVector(vectorization.vectorizationFct.get))
+	}
+
+	final def updateWorkingVector[GV <: GVector[GV]](newWorkingVector: GV): EasySupervizable[O, GV] = {
+		EasySupervizable(id, o, label, newWorkingVector, mutable.ArrayBuffer.empty[GV], vectorized)
+	}
+
+
 }
