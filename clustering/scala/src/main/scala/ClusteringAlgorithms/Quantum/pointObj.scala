@@ -1,6 +1,6 @@
 package Quantum
 /**
- * @æuthor Walid Attaoui
+ * @author Walid Attaoui
  */
 import breeze.linalg.Vector
 /**
