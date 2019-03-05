@@ -1,7 +1,7 @@
 package Quantum
 import math._
 
-object GradientDescent {
+object GradientDescent extends App{
 
   val curX = 6
   val gamma = 0.01
@@ -12,12 +12,12 @@ object GradientDescent {
 
   def gradientDescent(precision: Double, previousStepSize: Double, curX: Double): Double = {
     if (previousStepSize > precision) {
-      val newX = curX + -gamma * df(curX)
+      val newX = curX + -gamma * df(curX) //df(curX) == V(X)
       println(curX)
       gradientDescent(precision, abs(newX - curX), newX)
     } else curX
   }
 
   val ans = gradientDescent(precision, previousStepSize, curX)
-  println(s"The local minimum occurs at $ans")
+ println(s"The local minimum occurs at $ans")
 }

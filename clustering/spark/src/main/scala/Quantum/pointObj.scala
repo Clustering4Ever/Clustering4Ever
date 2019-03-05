@@ -9,7 +9,7 @@ import breeze.linalg.Vector
   * */
 
 class pointObj(
-                val pointPartNum: Vector[Double],//the numeric part of the data-point
+                var pointPartNum: Vector[Double],//the numeric part of the data-point
                 val label: Int, //the real (provided) label (it is not used in the learning but for visualization and measuring performance criteria)
                 val id: Int     //the identifier(=the line number) of the data-point
               ) extends Serializable {
