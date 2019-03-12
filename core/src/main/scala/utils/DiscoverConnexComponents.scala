@@ -1,14 +1,14 @@
-package org.clustering4ever.clustering.epsilonproximity.rdd
+package org.clustering4ever.graph
 /**
  * @author Beck Gaël
  */
 import scala.collection.{mutable, immutable}
 /**
- * Find isolate graph
+ * Facilitator to discover connex components
  */
-object GatherClustersWithSharedDots {
+object DiscoverConnexComponents extends Serializable {
 
-	final def generateNodesAndPairsNew(seq: Seq[Seq[Int]]): (immutable.HashSet[Int], immutable.HashMap[Int, immutable.HashSet[Int]]) = {
+	final def generateNodesAndNeighbors(seq: Seq[Seq[Int]]): (immutable.HashSet[Int], immutable.HashMap[Int, immutable.HashSet[Int]]) = {
 		val nodes = immutable.HashSet(seq.flatten:_*)
 		val allPairs = immutable.HashMap(seq.flatMap( ss => if(ss.size != 1) ss.map( node => (node, immutable.HashSet(ss.filter(_ != node):_*)) ) else Seq((ss.head, immutable.HashSet(ss.head))) ):_*)
 		(nodes, allPairs)
@@ -16,7 +16,7 @@ object GatherClustersWithSharedDots {
 	/**
 	 * @return List of dots which are in the same cluster
 	 */
-	final def reduceByGatheringClusters(nodes: immutable.HashSet[Int], neighbours: immutable.HashMap[Int, immutable.HashSet[Int]]): List[List[Int]] = {
+	final def obtainConnexComponents(nodes: immutable.HashSet[Int], neighbors: immutable.HashMap[Int, immutable.HashSet[Int]]): List[List[Int]] = {
 
 		val visited = mutable.HashMap.empty[Int, Int]
 
@@ -26,7 +26,7 @@ object GatherClustersWithSharedDots {
 
 	      def obtainUnvisitedNeihbors(hs: immutable.HashSet[Int]) = {
 	        hs.flatMap{ n =>
-	        	val unvisited = neighbours(n).filter( n => ! visited.contains(n) )
+	        	val unvisited = neighbors(n).filter( n => !visited.contains(n) )
 	        	visited ++= unvisited.map( uv => (uv, clusterID) )
 	        	unvisited
 	        }
@@ -50,9 +50,9 @@ object GatherClustersWithSharedDots {
 
 		val labeledNodes = nodes.toList.map( n => (n, visited(n)) )
 		val labels = labeledNodes.map(_._2)
-		val returnReduce = labels.map( l => labeledNodes.collect{ case (n, cID) if cID == l => n } )
+		val connexComponents = labels.map( l => labeledNodes.collect{ case (n, cID) if cID == l => n } )
 
-		returnReduce
+		connexComponents
 	}
 
 }

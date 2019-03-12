@@ -12,7 +12,7 @@ import org.clustering4ever.enums.KernelNature._
 /**
  * Class regrouping arguments value for a specific kernel type
  */
-trait KernelArgs extends Serializable {
+trait EstimatorArgs extends Serializable {
 	/**
 	 * Nature of the Kernel
 	 */
@@ -22,7 +22,7 @@ trait KernelArgs extends Serializable {
  * @tparam V
  * @tparam D
  */
-trait KernelArgsWithMetric[V <: GVector[V], D <: Distance[V]] extends KernelArgs {
+trait EstimatorArgsWithMetric[V <: GVector[V], D <: Distance[V]] extends EstimatorArgs {
 	/**
 	 * The metric used by this Kernel
 	 */
@@ -32,20 +32,20 @@ trait KernelArgsWithMetric[V <: GVector[V], D <: Distance[V]] extends KernelArgs
  * @tparam V
  * @tparam D
  */
-trait KernelArgsScalarWithMetric[V <: Seq[Double], D <: ContinuousDistance[V]] extends KernelArgsWithMetric[ScalarVector[V], D]
+trait EstimatorArgsScalarWithMetric[V <: Seq[Double], D <: ContinuousDistance[V]] extends EstimatorArgsWithMetric[ScalarVector[V], D]
 /**
  * @tparam V
  * @tparam D
  */
-trait KernelArgsBinaryWithMetric[V <: Seq[Int], D <: BinaryDistance[V]] extends KernelArgsWithMetric[BinaryVector[V], D]
+trait EstimatorArgsBinaryWithMetric[V <: Seq[Int], D <: BinaryDistance[V]] extends EstimatorArgsWithMetric[BinaryVector[V], D]
 /**
  *
  */
-trait KernelArgsMixedWithMetric[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends KernelArgsWithMetric[MixedVector[Vb, Vs], D]
+trait EstimatorArgsMixedWithMetric[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends EstimatorArgsWithMetric[MixedVector[Vb, Vs], D]
 /**
  *
  */
-trait KernelArgsKnn[V <: GVector[V], D <: Distance[V]] extends KernelArgsWithMetric[V, D] {
+trait EstimatorArgsKnn[V <: GVector[V], D <: Distance[V]] extends EstimatorArgsWithMetric[V, D] {
 	/**
 	 * The k value for K Nearest Neighbors search
 	 */
@@ -54,58 +54,50 @@ trait KernelArgsKnn[V <: GVector[V], D <: Distance[V]] extends KernelArgsWithMet
 /**
  *
  */
-trait KernelArgsKnnScalarAncestor[V <: Seq[Double], D <: ContinuousDistance[V]] extends KernelArgsKnn[ScalarVector[V], D] with KernelArgsScalarWithMetric[V, D]
+trait EstimatorArgsKnnScalarAncestor[V <: Seq[Double], D <: ContinuousDistance[V]] extends EstimatorArgsKnn[ScalarVector[V], D] with EstimatorArgsScalarWithMetric[V, D]
 /**
  *
  */
-final case class KernelArgsKnnScalar[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnScalarAncestor[V, D[V]] {
+final case class EstimatorArgsKnnScalar[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnScalarAncestor[V, D[V]] {
     final val kernelType = KNN_Real
 }
 /**
  *
  */
-trait KernelArgsKnnBinaryAncestor[V <: Seq[Int], D <: BinaryDistance[V]] extends KernelArgsKnn[BinaryVector[V], D] with KernelArgsBinaryWithMetric[V, D]
+trait EstimatorArgsKnnBinaryAncestor[V <: Seq[Int], D <: BinaryDistance[V]] extends EstimatorArgsKnn[BinaryVector[V], D] with EstimatorArgsBinaryWithMetric[V, D]
 /**
  *
  */
-final case class KernelArgsKnnBinary[V <: Seq[Int], D[V <: Seq[Int]] <: BinaryDistance[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnBinaryAncestor[V, D[V]] {
+final case class EstimatorArgsKnnBinary[V <: Seq[Int], D[V <: Seq[Int]] <: BinaryDistance[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnBinaryAncestor[V, D[V]] {
     final val kernelType = KNN_Binary
 }
 /**
  *
  */
-final case class KernelArgsEuclideanKnn[V <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnScalarAncestor[V, D[V]] {
+final case class EstimatorArgsKnnEuclidean[V <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnScalarAncestor[V, D[V]] {
     final val kernelType = KNN_Euclidean
 }
 /**
  *
  */
-final case class EasyKernelArgsEuclideanKnn[V <: Seq[Double]](final val k: Int, squaredRoot: Boolean = true) extends KernelArgsKnnScalarAncestor[V, Euclidean[V]] {
-    final val kernelType = KNN_Euclidean
-
-    final val metric = Euclidean[V](squaredRoot)
-}
-/**
- *
- */
-final case class KernelArgsHammingKnn[V <: Seq[Int], D[V <: Seq[Int]] <: Hamming[V]](final val k: Int, final val metric: D[V]) extends KernelArgsKnnBinaryAncestor[V, D[V]] {
+final case class EstimatorArgsKnnHamming[V <: Seq[Int], D[V <: Seq[Int]] <: Hamming[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnBinaryAncestor[V, D[V]] {
     final val kernelType = KNN_Hamming
 }
 /**
  *
  */
-final case class KernelArgsGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val bandwidth: Double, final val metric: D[V]) extends KernelArgsWithMetric[ScalarVector[V], D[V]] {
+final case class EstimatorArgsGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val bandwidth: Double, final val metric: D[V]) extends EstimatorArgsWithMetric[ScalarVector[V], D[V]] {
     final val kernelType = Gaussian
 }
 /**
  *
  */  
-final case class KernelArgsFlat[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val bandwidth: Double, final val metric: D[V], final val lambda: Double = 1D) extends KernelArgsWithMetric[ScalarVector[V], D[V]] {
+final case class EstimatorArgsFlat[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val bandwidth: Double, final val metric: D[V], final val lambda: Double = 1D) extends EstimatorArgsWithMetric[ScalarVector[V], D[V]] {
     final val kernelType = Flat
 }
 /**
  *
  */
-final case class KernelArgsSigmoid(final val a: Double, final val b: Double) extends KernelArgs {
+final case class EstimatorArgsSigmoid(final val a: Double, final val b: Double) extends EstimatorArgs {
     final val kernelType = Sigmoid
 }

@@ -110,10 +110,9 @@ Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ 
 Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to describe obtained clustering in term of distributions, proportions of categorical features...
 
 ### Incoming soon
-
+  
+  * [UMAP](https://github.com/lmcinnes/umap)
   * **_Gaussian Mixture Models_**
-  * _Meta heuristic_
-  * **More clustering indices**
 
 
 ## Citation

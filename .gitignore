@@ -1,5 +1,7 @@
 *.class
 *.log
+*.iml
+.idea/
 clustering/target/
 clustering4Ever/target
 core/target/

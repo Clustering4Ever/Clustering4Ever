@@ -15,7 +15,7 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.preprocessing.Preprocessable
 import org.clustering4ever.hashing.{HashingScalar, LDLSH}
 import org.clustering4ever.util.ClusterBasicOperations
-import org.clustering4ever.kernels.{Kernel, KernelArgs, KernelArgsGaussian, GaussianKernel}
+import org.clustering4ever.kernels.{Estimator, EstimatorArgs, EstimatorArgsGaussian, EstimatorGaussian}
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 import org.clustering4ever.shapeless.VMapping
 /**
@@ -71,7 +71,7 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
   /**
    *
    */
-  private final val gaussianK = GaussianKernel(KernelArgsGaussian(bandwidth = 0.001, metric))
+  private final val gaussianK = EstimatorGaussian(EstimatorArgsGaussian(bandwidth = 0.001, metric))
   /**
    * Gradient ascent work using LSH
    */
@@ -145,7 +145,7 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
       toExplore.map{ case (_, (cz, mode, isOriginalDot, _)) =>  
         val updatedMode = {
           val locality = approxKNN.map{ case (_, (cz, mode, _, _)) => mode }
-          gaussianK.obtainMedian(mode, locality)
+          gaussianK.obtainKernel(mode, locality)
         }
         val hasConverged = doesItConverged(mode, updatedMode)
         val newIdx = approxKNN.seq.sortBy{ case (bidx, (cz, _, _, _)) => metric.d(updatedMode, cz.v) }.take(knnBucketShift).groupBy(_._1).maxBy{ case (_, nbs) => nbs.size }._1

@@ -45,7 +45,7 @@ trait Distance[V <: GVector[V]] extends GenericDistance[V]
  * @tparam T the nature of object inside vector field of GVector
  * @tparam V the nature of collection for vector field of GVector
  */
-trait GSimpleVectorDistance[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV]] extends Distance[SV] {
+trait GSimpleVectorDistance[@specialized(Int, Double) N, V <: Seq[N], SV <: GSimpleVector[N, V, SV]] extends Distance[SV] {
 	/**
 	 * @return the distance between two objects of nature Seq[T] where T can be any Numeric type ie (Double, float, Int...) usually
 	 */

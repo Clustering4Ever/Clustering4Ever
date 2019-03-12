@@ -25,6 +25,7 @@ import org.clustering4ever.hashing.{Hashing, HashingScalar}
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 import org.clustering4ever.clustering.rdd.{ClusteringModelDistributed, ClusteringAlgorithmDistributed}
+import org.clustering4ever.graph.DiscoverConnexComponents
 /**
  * @tparam V the working vector nature
  * @tparam D the distance
@@ -278,8 +279,8 @@ final case class EpsilonProximityScalar[
 		val newKeys: immutable.Map[(Int, Int), Int] = sameCluster.flatten.zipWithIndex.toMap
 		val reverseKeys: immutable.Map[Int, (Int, Int)] = newKeys.map(_.swap)
 		val newClusters: List[List[Int]] = sameCluster.map( gatheredCluster => gatheredCluster.map(newKeys) )
-		val (nodes, neighbours) = GatherClustersWithSharedDots.generateNodesAndPairsNew(newClusters)
-		val finalClusters = mutable.HashSet(GatherClustersWithSharedDots.reduceByGatheringClusters(nodes, neighbours).map(_.map(reverseKeys)):_*)
+		val (nodes, neighbours) = DiscoverConnexComponents.generateNodesAndNeighbors(newClusters)
+		val finalClusters = mutable.HashSet(DiscoverConnexComponents.obtainConnexComponents(nodes, neighbours).map(_.map(reverseKeys)):_*)
 
 	    finalClusters
 	}
@@ -340,18 +341,18 @@ final case class EpsilonProximityScalar[
 		linkedClusterOverRDDPartitions.persist(storageLevel)
 		val newClusterIdByPairId = giveNewLabelToEachCluster(linkedClusterOverRDDPartitions)
 		val linkedClusterOverRDDPartitions2 = linkedClusterOverRDDPartitions.map(_.map(_.map(newClusterIdByPairId(_))))
-		val (nodes2, neighbours2) = if(divisionFactor <= 1) linkedClusterOverRDDPartitions2.map(GatherClustersWithSharedDots.generateNodesAndPairsNew(_))
+		val (nodes2, neighbours2) = if(divisionFactor <= 1) linkedClusterOverRDDPartitions2.map(DiscoverConnexComponents.generateNodesAndNeighbors(_))
 			.reduce{ case ((nodes1, neighbours1), (nodes2, neighbours2)) => (nodes1 ++ nodes2, merge2Maps(neighbours1, neighbours2)) }
 		// Experimental
 			else {
-				linkedClusterOverRDDPartitions2.map(GatherClustersWithSharedDots.generateNodesAndPairsNew(_))
+				linkedClusterOverRDDPartitions2.map(DiscoverConnexComponents.generateNodesAndNeighbors(_))
 					.mapPartitionsWithIndex( (idx, it) => it.map( a => (idx / divisionFactor, a)) )
 					.reduceByKey{ case ((nodes1, neighbours1), (nodes2, neighbours2)) => (nodes1 ++ nodes2, merge2Maps(neighbours1, neighbours2)) }
-					.map{ case (_, (nodes, neighbours)) => GatherClustersWithSharedDots.generateNodesAndPairsNew(GatherClustersWithSharedDots.reduceByGatheringClusters(nodes, neighbours)) }
+					.map{ case (_, (nodes, neighbours)) => DiscoverConnexComponents.generateNodesAndNeighbors(DiscoverConnexComponents.obtainConnexComponents(nodes, neighbours)) }
 					.reduce{ case ((nodes1, neighbours1), (nodes2, neighbours2)) => (nodes1 ++ nodes2, merge2Maps(neighbours1, neighbours2)) }
 			}
 
-		val seqOfClusters = GatherClustersWithSharedDots.reduceByGatheringClusters(nodes2, neighbours2)
+		val seqOfClusters = DiscoverConnexComponents.obtainConnexComponents(nodes2, neighbours2)
 		val finalClusteringIdByOldOne: immutable.HashMap[Int, Int] = immutable.HashMap(seqOfClusters.zipWithIndex.flatMap{ case (cluster, idxC) => cluster.map((_, idxC)) }:_*)
 
 		val preFinalClustering = eachBucketPairFusionedIntoOneRDD.flatMap{ case (_, (idxPartOr, idClust, rest)) => rest.map(_.addClusterIDs(finalClusteringIdByOldOne(newClusterIdByPairId((idxPartOr, idClust))))) }.distinct.persist(storageLevel)
