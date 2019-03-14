@@ -26,7 +26,7 @@ final case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDista
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 
-	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel(k, metric, minShift, maxIterations, obtainMedians(data))
+	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel(k, metric, minShift, maxIterations, obtainCenters(data))
 
 }
 /**
