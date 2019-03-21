@@ -24,7 +24,7 @@ trait GVector[Self <: GVector[Self]] extends Serializable {
  * @tparam N the type object composing the vector
  * @tparam V the vector type
  */
-trait GSimpleVector[N, V <: Seq[N], Self <: GSimpleVector[N, V, Self]] extends GVector[Self] {
+trait GSimpleVector[@specialized(Int, Double) N, V <: Seq[N], Self <: GSimpleVector[N, V, Self]] extends GVector[Self] {
 	this: Self =>
 	/**
 	 * A vector taking the form of Seq[N] for any N
@@ -112,8 +112,8 @@ final case class MixedVector[Vb <: Seq[Int], Vs <: Seq[Double]](final val binary
 	final def toScalarVector: ScalarVector[Vs] = {
 		val builder = scalar.genericBuilder[Double].asInstanceOf[mutable.Builder[Double, Vs]]
 		builder.sizeHint(scalar.size + binary.size)
-		builder ++= binary.map(_.toDouble)
-		builder ++= scalar
+		binary.foreach(builder += _.toDouble)
+		scalar.foreach(builder += _)
 		ScalarVector(builder.result)
 	}
 }

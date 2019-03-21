@@ -16,7 +16,7 @@ object FromArrayToSeq extends Serializable {
 	/**
 	 *
 	 */
-	final def arrayToSimpleSeq[N, V <: Seq[N]](a: Array[N]) = {
+	final def arrayToSimpleSeq[N: SNumeric, V <: Seq[N]](a: Array[N]) = {
 		val builder = a.genericBuilder[N].asInstanceOf[mutable.Builder[N, V]]
 		builder.sizeHint(a.size)
 		builder ++= a
@@ -95,7 +95,7 @@ object SumVectors extends Serializable {
 	/**
 	 * Reduce Seq of multiple vectors
 	 */
-	final def sumAlignedVectorsMatrice[V <: Seq[Double], S[X] <: Seq[X]](a: S[V], b: S[V])(implicit f: (V, V) => V) = {	
+	final def sumAlignedVectorsMatrice[V <: Seq[Double], S[X] <: Seq[X]](a: S[V], b: S[V])(implicit f: (V, V) => V) = {
 		val range = (0 until a.size)
 		val builder = a.genericBuilder[V].asInstanceOf[mutable.Builder[V, S[V]]]
 		builder.sizeHint(a.size)

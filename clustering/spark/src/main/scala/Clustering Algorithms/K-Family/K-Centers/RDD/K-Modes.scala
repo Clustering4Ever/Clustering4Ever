@@ -20,7 +20,7 @@ final case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](fi
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
 
-	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainMedians(data))
+	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, BinaryVector[V]]])(implicit ct: ClassTag[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainCenters(data))
 }
 /**
  *

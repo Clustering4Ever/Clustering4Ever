@@ -1,5 +1,7 @@
 *.class
 *.log
+*.iml
+.idea/
 clustering/target/
 clustering4Ever/target
 core/target/
@@ -7,3 +9,4 @@ target/
 documentation/target
 qualityMeasure/target/
 .idea/
+

@@ -26,7 +26,7 @@ final case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDista
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 
-	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainMedians(data))
+	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainCenters(data))
 }
 /**
  * The famous K-Means using a user-defined dissmilarity measure.

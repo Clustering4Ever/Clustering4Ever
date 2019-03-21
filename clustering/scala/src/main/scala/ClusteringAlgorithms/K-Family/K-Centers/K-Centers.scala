@@ -27,8 +27,6 @@ trait KCommonsArgs[V <: GVector[V], D <: Distance[V]] extends MinShiftArgs with 
 	 * The minimal shift under which centers are considered stationary
 	 */
 	val minShift: Double
-
-	val maxIterations: Int
 }
 /**
  *
@@ -68,7 +66,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CM <: KCentersModelAnc
 	/**
 	 * Run the K-Centers
 	 */
-	private[kcenters] final def obtainMedians[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): immutable.HashMap[Int, V] = {
+	private[kcenters] final def obtainCenters[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): immutable.HashMap[Int, V] = {
 		/**
 		 *
 		 */
@@ -107,5 +105,5 @@ final case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](fi
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
 
-	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): KCentersModel[V, D] = KCentersModel(k, metric, minShift, maxIterations, obtainMedians(data))
+	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): KCentersModel[V, D] = KCentersModel(k, metric, minShift, maxIterations, obtainCenters(data))
 }
