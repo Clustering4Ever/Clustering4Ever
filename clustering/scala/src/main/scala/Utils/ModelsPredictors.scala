@@ -29,14 +29,14 @@ trait DatasetPredictor[O, V <: GVector[V], Cz[B, C <: GVector[C]] <: Clusterizab
 /**
  *
  */
-trait KmeansModelsPredictorOneVector[V <: Seq[Double]] extends OneVectorPredictor[ScalarVector[V]] with Poly1 {
-	implicit def kMeans[D[X <: Seq[Double]] <: ContinuousDistance[X]] = at[KMeansModel[V, D]](_.centerPredict(v))
+trait KmeansModelsPredictorOneVector extends OneVectorPredictor[ScalarVector] with Poly1 {
+	implicit def kMeans[D <: ContinuousDistance] = at[KMeansModel[D]](_.centerPredict(v))
 }
 /**
  *
  */
-trait KmeansModelsPredictorDataset[O, V <: Seq[Double], Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]] extends DatasetPredictor[O, ScalarVector[V], Cz, GS] with Poly1 {
-	implicit def kMeans[D[X <: Seq[Double]] <: ContinuousDistance[X]] = at[KMeansModel[V, D]](_.centerPredict(data))
+trait KmeansModelsPredictorDataset[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]] extends DatasetPredictor[O, ScalarVector, Cz, GS] with Poly1 {
+	implicit def kMeans[D <: ContinuousDistance] = at[KMeansModel[D]](_.centerPredict(data))
 }
 /**
  *

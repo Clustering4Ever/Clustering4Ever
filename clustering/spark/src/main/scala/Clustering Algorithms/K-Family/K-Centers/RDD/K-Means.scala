@@ -22,11 +22,11 @@ import org.clustering4ever.vectors.{GVector, ScalarVector}
  * @param maxIterations : maximal number of iteration
  * @param metric : a defined dissimilarity measure
  */
-final case class KMeans[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]])(protected implicit final val ctV: ClassTag[ScalarVector[V]]) extends KCentersAncestor[ScalarVector[V], D[V], KMeansModel[V, D]] {
+final case class KMeans[D <: ContinuousDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, ScalarVector] = immutable.HashMap.empty[Int, ScalarVector])(protected implicit final val ctV: ClassTag[ScalarVector]) extends KCentersAncestor[ScalarVector, D, KMeansModel[D]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 
-	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): KMeansModel[V, D] = KMeansModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainCenters(data))
+	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector]])(implicit ct: ClassTag[Cz[O, ScalarVector]]): KMeansModel[D] = KMeansModel[D](k, metric, minShift, maxIterations, persistanceLVL, obtainCenters(data))
 }
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
@@ -40,14 +40,14 @@ object KMeans {
 	/**
 	 * Run the K-Means with any continuous distance
 	 */
-	final def fit[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](
-		data: RDD[V],
+	final def fit[D <: ContinuousDistance](
+		data: RDD[Array[Double]],
 		k: Int,
-		metric: D[V],
+		metric: D,
 		minShift: Double,
 		maxIterations: Int,
 		persistanceLVL: StorageLevel
-		): KMeansModel[V, D] = {
+		): KMeansModel[D] = {
 		KMeans(k, metric, minShift, maxIterations, persistanceLVL).fit(scalarDataWithIDToClusterizable(data.zipWithIndex))
 	}
 }

@@ -20,19 +20,19 @@ trait ClusteringBinaryStatsAncestor extends ClusteringSharedTypes {
 	/**
 	 * Number of occurences for each features
 	 */
-	val occurencesPerFeature: Seq[Int]
+	val occurencesPerFeature: Array[Int]
 	/**
 	 * Frequencies for each features
 	 */
-	val frequencyPerFeature: Seq[Double]
+	val frequencyPerFeature: Array[Double]
 	/**
 	 * Number of occurences for each features by ClusterID
 	 */
-	val occurencesPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Int]]
+	val occurencesPerFeatureByClusterID: immutable.HashMap[ClusterID, Array[Int]]
 	/**
 	 * Frequencies for each features by ClusterID
 	 */
-	val frequencyPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Double]]
+	val frequencyPerFeatureByClusterID: immutable.HashMap[ClusterID, Array[Double]]
 	/**
 	 *
 	 */
@@ -44,13 +44,13 @@ trait ClusteringBinaryStatsAncestor extends ClusteringSharedTypes {
 	/**
 	 * HashMap of each feature occurence ratio by clusterID, compared to global features 
 	 */
-	lazy val occurencesRatioPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Double]] = {
+	lazy val occurencesRatioPerFeatureByClusterID: immutable.HashMap[ClusterID, Array[Double]] = {
 		occurencesPerFeatureByClusterID.map{ case (clusterID, featsOcc) => (clusterID, featsOcc.zip(occurencesPerFeature).map{ case (a, b) => a.toDouble / b }) }
 	}
 	/**
 	 *
 	 */
-	lazy val stdFrequencies: Seq[Double] = {
+	lazy val stdFrequencies: Array[Double] = {
 		import org.clustering4ever.util.VectorsAddOperationsImplicits._
 		SumVectors.sumColumnMatrix(
 			frequencyPerFeatureByClusterID.map(_._2.zip(frequencyPerFeature).map{ case (v, mean) => 
@@ -62,7 +62,7 @@ trait ClusteringBinaryStatsAncestor extends ClusteringSharedTypes {
 	/**
 	 *
 	 */
-	def getFeaturesFarFromStd(stdGap: Double = 1D): immutable.HashMap[ClusterID, Seq[Int]] = {
+	def getFeaturesFarFromStd(stdGap: Double = 1D): immutable.HashMap[ClusterID, Array[Int]] = {
 		frequencyPerFeatureByClusterID.map{ case (clusterID, freqs) =>
 			(
 				clusterID,
@@ -73,7 +73,7 @@ trait ClusteringBinaryStatsAncestor extends ClusteringSharedTypes {
 	/**
 	 *
 	 */
-	lazy val distantFeaturesFromStdByCluster: immutable.HashMap[ClusterID, Seq[Int]] = getFeaturesFarFromStd(1D)
+	lazy val distantFeaturesFromStdByCluster: immutable.HashMap[ClusterID, Array[Int]] = getFeaturesFarFromStd(1D)
 	/**
 	 *
 	 */
@@ -96,10 +96,10 @@ trait ClusteringBinaryStatsAncestor extends ClusteringSharedTypes {
  */
 case class ClusteringBinaryAnalysis(
 	val clusteringNumber: ClusteringNumber,
-	val occurencesPerFeature: Seq[Int],
-	val frequencyPerFeature: Seq[Double],
-	val occurencesPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Int]],
-	val frequencyPerFeatureByClusterID: immutable.HashMap[ClusterID, Seq[Double]]
+	val occurencesPerFeature: Array[Int],
+	val frequencyPerFeature: Array[Double],
+	val occurencesPerFeatureByClusterID: immutable.HashMap[ClusterID, Array[Int]],
+	val frequencyPerFeatureByClusterID: immutable.HashMap[ClusterID, Array[Double]]
 ) extends ClusteringBinaryStatsAncestor
 /**
  *

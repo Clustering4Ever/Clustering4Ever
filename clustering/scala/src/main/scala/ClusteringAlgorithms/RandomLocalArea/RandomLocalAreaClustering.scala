@@ -56,12 +56,12 @@ final case class RLA[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](val met
 /**
  *
  */
-final case class RLAScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val epsilon: Double) extends ClusteringAlgorithmLocalScalar[V, RLAModelScalar[V, D]] with RLAAncestor[ScalarVector[V], D[V], RLAModelScalar[V, D]] {
+final case class RLAScalar[D <: ContinuousDistance](final val metric: D, final val epsilon: Double) extends ClusteringAlgorithmLocalScalar[RLAModelScalar[D]] with RLAAncestor[ScalarVector, D, RLAModelScalar[D]] {
 	
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLAScalar
 
-	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector[V]]]): RLAModelScalar[V, D] = {
-		RLAModelScalar[V, D](metric, epsilon, obtainCenters(data))
+	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector]]): RLAModelScalar[D] = {
+		RLAModelScalar[D](metric, epsilon, obtainCenters(data))
 	}
 
 }
@@ -72,29 +72,29 @@ object RLAScalar {
 	/**
 	 *
 	 */
-	final def fit[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], GS[Y] <: GenSeq[Y]](data: GS[V], metric: D[V], epsilon: Double): RLAModelScalar[V, D] = {
+	final def fit[D <: ContinuousDistance, GS[Y] <: GenSeq[Y]](data: GS[Array[Double]], metric: D, epsilon: Double): RLAModelScalar[D] = {
 		RLAScalar(metric, epsilon).fit(scalarToClusterizable(data))
 	}
 }
 /**
  *
  */
-final case class RLABinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val metric: D[V], final val epsilon: Double) extends ClusteringAlgorithmLocalBinary[V, RLAModelBinary[V, D]] with RLAAncestor[BinaryVector[V], D[V], RLAModelBinary[V, D]] {
+final case class RLABinary[D <: BinaryDistance](final val metric: D, final val epsilon: Double) extends ClusteringAlgorithmLocalBinary[RLAModelBinary[D]] with RLAAncestor[BinaryVector, D, RLAModelBinary[D]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLABinary
 
-	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector[V]]]): RLAModelBinary[V, D] = {
-		RLAModelBinary[V, D](metric, epsilon, obtainCenters(data))
+	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector]]): RLAModelBinary[D] = {
+		RLAModelBinary[D](metric, epsilon, obtainCenters(data))
 	}
 }
 /**
  *
  */
-final case class RLAMixed[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val metric: D[Vb, Vs], final val epsilon: Double) extends RLAAncestor[MixedVector[Vb, Vs], D[Vb, Vs], RLAModelMixed[Vb, Vs, D]] {
+final case class RLAMixed[D <: MixedDistance](final val metric: D, final val epsilon: Double) extends RLAAncestor[MixedVector, D, RLAModelMixed[D]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.RLAMixed
 
-	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, MixedVector[Vb, Vs]]]): RLAModelMixed[Vb, Vs, D] = {
-		RLAModelMixed[Vb, Vs, D](metric, epsilon, obtainCenters(data))
+	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, MixedVector]]): RLAModelMixed[D] = {
+		RLAModelMixed[D](metric, epsilon, obtainCenters(data))
 	}
 }

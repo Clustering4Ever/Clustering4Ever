@@ -20,7 +20,7 @@ trait MinkowskiMeta extends Serializable {
 	/**
 	 *
 	 */
-	protected final def minkowski[V <: Seq[Double]](dot1: V, dot2: V): Double = {
+	protected final def minkowski(dot1: Array[Double], dot2: Array[Double]): Double = {
 		@annotation.tailrec
 		def go(d: Double, i: Int): Double = {
 			if(i < dot1.size) go(d + pow(dot1(i) - dot2(i), p), i + 1)
@@ -32,15 +32,15 @@ trait MinkowskiMeta extends Serializable {
 /**
  *
  */
-final case class Minkowski[V <: Seq[Double]](final val p: Int = 2, final val id: MetricID = 3) extends MinkowskiMeta with ContinuousDistance[V] {
+final case class Minkowski(final val p: Int = 2, final val id: MetricID = 3) extends MinkowskiMeta with ContinuousDistance {
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2
 	  */
-	final def d(dot1: V, dot2: V): Double = minkowski(dot1, dot2)
+	final def dRaw(dot1: Array[Double], dot2: Array[Double]): Double = minkowski(dot1, dot2)
 	/**
 	  * The Minkowski distance
 	  * @return The Minkowski distance between dot1 and dot2
 	  */
-	final def d(dot1: ScalarVector[V], dot2: ScalarVector[V]): Double = minkowski(dot1.vector, dot2.vector)
+	final def d(dot1: ScalarVector, dot2: ScalarVector): Double = minkowski(dot1.vector, dot2.vector)
 }

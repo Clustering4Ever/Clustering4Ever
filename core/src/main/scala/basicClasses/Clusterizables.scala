@@ -61,15 +61,15 @@ object EasyClusterizable {
 	/**
 	 * Simplest way to generate an EasyClusterizable for real vectors
 	 */
-	final def rawApplyScalar[V <: Seq[Double]](id: Long, v: V) = apply(id, ScalarVector(v))
+	final def rawApplyScalar(id: Long, v: Array[Double]) = apply(id, ScalarVector(v))
 	/**
 	 * Simplest way to generate an EasyClusterizable for binary vectors
 	 */
-	final def rawApplyBinary[V <: Seq[Int]](id: Long, v: V) = apply(id, BinaryVector(v))
+	final def rawApplyBinary(id: Long, v: Array[Int]) = apply(id, BinaryVector(v))
 	/**
 	 * Simplest way to generate an EasyClusterizable for mixt vectors
 	 */
-	final def rawApplyMixed[Vb <: Seq[Int], Vs <: Seq[Double]](id: Long, binary: Vb, scalar: Vs) = apply(id, MixedVector(binary, scalar))
+	final def rawApplyMixed(id: Long, binary: Array[Int], scalar: Array[Double]) = apply(id, MixedVector(binary, scalar))
 }
 /**
  * A ready to work case class of Clusterizable trait for cluster without limits

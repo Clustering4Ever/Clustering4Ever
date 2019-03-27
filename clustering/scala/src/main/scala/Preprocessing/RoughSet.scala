@@ -15,14 +15,14 @@ trait RoughSet extends RoughSetCommons {
   /**
    * Generate every combinations of features
    */
-  protected final def obtainEveryFeaturesCombinations(n: Int): parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = {
-    val seqFeats = mutable.ArrayBuffer.range(0, n)
+  protected final def obtainEveryFeaturesCombinations(n: Int): parallel.mutable.ParArray[Array[Int]] = {
+    val seqFeats = Array.range(0, n)
     seqFeats.flatMap(seqFeats.combinations).drop(1).par
   }
   /**
    *
    */
-  private final def obtainReductSet[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]], indDecisionClasses: Iterable[Seq[Long]], everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]]): parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = {
+  private final def obtainReductSet[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T]]], indDecisionClasses: Iterable[Array[Long]], everyCombinations: parallel.mutable.ParArray[Array[Int]]): parallel.mutable.ParArray[Array[Int]] = {
     
     val indEveryCombinations = everyCombinations.map( f => (f, obtainIndecability(f, data)) )
     val dependencyAll = indEveryCombinations.map{ case (features, indecability) => (features, dependency(indecability, indDecisionClasses)) }
@@ -35,29 +35,29 @@ trait RoughSet extends RoughSetCommons {
   /**
    *
    */
-  protected final def selectAmongReductSets1(reductSets: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]], k: Int) = {
-    reductSets.flatten.groupBy(identity).toSeq.seq.sortBy(_._2.size).take(k).map(_._1)
+  protected final def selectAmongReductSets1(reductSets: parallel.mutable.ParArray[Array[Int]], k: Int): Array[Int] = {
+    reductSets.flatten.groupBy(identity).seq.toArray.sortBy(_._2.size).take(k).map(_._1)
   }
   /**
    *
    */
-  protected final def selectAmongReductSets2(reductSets: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]], p: Double) = {
+  protected final def selectAmongReductSets2(reductSets: parallel.mutable.ParArray[Array[Int]], p: Double) = {
     require(p >= 0D && p <= 1D)
     reductSets.flatten.groupBy(identity).toSeq.filter{ case (_, agg) => agg.size.toDouble / reductSets.size >= p }.map(_._1)
   }
   /**
    * Rought Set feature selection classical algorithm
    */
-  protected final def roughSet[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]]): GenSeq[mutable.ArrayBuffer[Int]] = {
-    val indDecisionClasses: Iterable[Seq[Long]] = generateIndecidabilityDecisionClasses(data)
-    val everyCombinations: parallel.mutable.ParArray[mutable.ArrayBuffer[Int]] = obtainEveryFeaturesCombinations(data.head.v.vector.size)
+  protected final def roughSet[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T]]]): GenSeq[Array[Int]] = {
+    val indDecisionClasses: Iterable[Array[Long]] = generateIndecidabilityDecisionClasses(data)
+    val everyCombinations: parallel.mutable.ParArray[Array[Int]] = obtainEveryFeaturesCombinations(data.head.v.vector.size)
     val allReductSet = obtainReductSet(data, indDecisionClasses, everyCombinations)
     allReductSet    
   }
   /**
    * Pure scala functions to apply on each node locally
    */
-  protected final def roughSetPerBucketOfFeatures[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = {
+  protected final def roughSetPerBucketOfFeatures[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = {
     
     val computedColumns: GenSeq[Int] = if(columnToCompute.isDefined) columnToCompute.get else parallel.mutable.ParArray.range(0, columnsOfFeats.size)
 
@@ -79,8 +79,6 @@ trait RoughSet extends RoughSetCommons {
         selectAmongReductSets1(allReductSet, 4)
         // selectAmongReductSets2(allReductSet, 0.2)
       }
-
-
     }
 
     randomReductSetPerFeaturesBucket.flatten
@@ -97,15 +95,15 @@ object RoughSet extends RoughSet {
   /**
    * Rought Set feature selection classical algorithm
    */
-  final def fit[S[X] <: Seq[X]](data: GenSeq[(S[Int], Int)]): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(rawDataToSupervizable(data))
+  final def fit(data: GenSeq[(Array[Int], Int)]): GenSeq[Array[Int]] = roughSet(rawDataToSupervizable(data))
   /**
    * Rought Set feature selection classical algorithm
    */
-  final def fit[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]])(implicit di: DummyImplicit): GenSeq[mutable.ArrayBuffer[Int]] = roughSet(data)
+  final def fit[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T]]])(implicit di: DummyImplicit): GenSeq[Array[Int]] = roughSet(data)
   /**
    *
    */
-  final def runHeuristic[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = roughSetPerBucketOfFeatures(data, columnsOfFeats, columnToCompute)
+  final def runHeuristic[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: GenSeq[Sz[O, V[T]]], columnsOfFeats: Seq[Seq[Int]], columnToCompute: Option[GenSeq[Int]] = None): GenSeq[Int] = roughSetPerBucketOfFeatures(data, columnsOfFeats, columnToCompute)
   /**
    *
    */

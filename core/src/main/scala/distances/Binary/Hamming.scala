@@ -9,13 +9,13 @@ import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.vectors.{BinaryVector, GVector}
 import org.clustering4ever.types.MetricIDType._
 /**
- * @tparam V
+ * @tparam Array[Int]
  */
-trait HammingMeta[V <: Seq[Int]] extends Serializable {
+trait HammingMeta extends Serializable {
 	/**
 	 *
 	 */
-	protected final def hamming(v1: V, v2: V): Double = {
+	protected final def hamming(v1: Array[Int], v2: Array[Int]): Double = {
 		@annotation.tailrec
 		def go(d: Double, i: Int): Double = {
 			if( i < v1.size ) {
@@ -27,27 +27,27 @@ trait HammingMeta[V <: Seq[Int]] extends Serializable {
 	}
 }
 /**
- * @tparam V
+ * @tparam Array[Int]
  */
-final case class RawHamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta[V] with RawBinaryDistance[V] {
+final case class RawHamming(final val id: MetricID = 4) extends HammingMeta with RawBinaryDistance {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between v1 and v2
 	  */
-	final def d(v1: V, v2: V): Double = hamming(v1, v2)
+	final def d(v1: Array[Int], v2: Array[Int]): Double = hamming(v1, v2)
 }
 /**
- * @tparam V
+ * @tparam Array[Int]
  */
-final case class Hamming[V <: Seq[Int]](final val id: MetricID = 4) extends HammingMeta[V] with BinaryDistance[V] {
+final case class Hamming(final val id: MetricID = 4) extends HammingMeta with BinaryDistance {
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between v1 and v2
 	  */
-	final def d(v1: V, v2: V): Double = hamming(v1, v2)
+	final def dRaw(v1: Array[Int], v2: Array[Int]): Double = hamming(v1, v2)
 	/**
 	  * The Hamming distance with or without squareRoot
 	  * @return The Hamming distance between v1 and v2
 	  */
-	final def d(v1: BinaryVector[V], v2: BinaryVector[V]): Double = hamming(v1.vector, v2.vector)
+	final def d(v1: BinaryVector, v2: BinaryVector): Double = hamming(v1.vector, v2.vector)
 }

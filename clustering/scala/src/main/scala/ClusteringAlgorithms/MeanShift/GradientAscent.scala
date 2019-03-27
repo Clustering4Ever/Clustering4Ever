@@ -85,7 +85,7 @@ final case class GradientAscent[V <: GVector[V], D[X <: GVector[X]] <: Distance[
  * @param metric
  * @param alternativeVectorID
  */
-final case class GradientAscentScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], KArgs <: EstimatorArgs, K[X <: GVector[X], Y <: EstimatorArgs] <: Estimator[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[ScalarVector[V], KArgs], final val metric: D[V], final val alternativeVectorID: Int) extends GradientAscentAncestor[ScalarVector[V], D[V], KArgs, K[ScalarVector[V], KArgs]]
+final case class GradientAscentScalar[D <: ContinuousDistance, KArgs <: EstimatorArgs, K[X <: GVector[X], Y <: EstimatorArgs] <: Estimator[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[ScalarVector, KArgs], final val metric: D, final val alternativeVectorID: Int) extends GradientAscentAncestor[ScalarVector, D, KArgs, K[ScalarVector, KArgs]]
 /**
  * Mean Shift gradient ascent
  * @param kernel defines the nature of kernel and its parameters used in the gradient ascent
@@ -94,7 +94,7 @@ final case class GradientAscentScalar[V <: Seq[Double], D[X <: Seq[Double]] <: C
  * @param metric
  * @param alternativeVectorID
  */
-final case class GradientAscentBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X], KArgs <: EstimatorArgs, K[X <: GVector[X], Y <: EstimatorArgs] <: Estimator[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[BinaryVector[V], KArgs], final val metric: D[V], final val alternativeVectorID: Int) extends GradientAscentAncestor[BinaryVector[V], D[V], KArgs, K[BinaryVector[V], KArgs]]
+final case class GradientAscentBinary[D <: BinaryDistance, KArgs <: EstimatorArgs, K[X <: GVector[X], Y <: EstimatorArgs] <: Estimator[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[BinaryVector, KArgs], final val metric: D, final val alternativeVectorID: Int) extends GradientAscentAncestor[BinaryVector, D, KArgs, K[BinaryVector, KArgs]]
 /**
  * Mean Shift gradient ascent
  * @param kernel defines the nature of kernel and its parameters used in the gradient ascent
@@ -103,7 +103,7 @@ final case class GradientAscentBinary[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryD
  * @param metric
  * @param alternativeVectorID
  */
-final case class GradientAscentMixed[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y], KArgs <: EstimatorArgs, K[X <: GVector[X], Y <: EstimatorArgs] <: Estimator[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[MixedVector[Vb, Vs], KArgs], final val metric: D[Vb, Vs], final val alternativeVectorID: Int) extends GradientAscentAncestor[MixedVector[Vb, Vs], D[Vb, Vs], KArgs, K[MixedVector[Vb, Vs], KArgs]]
+final case class GradientAscentMixed[D <: MixedDistance, KArgs <: EstimatorArgs, K[X <: GVector[X], Y <: EstimatorArgs] <: Estimator[X, Y]](final val minShift: Double, final val maxIterations: Int, final val kernel: K[MixedVector, KArgs], final val metric: D, final val alternativeVectorID: Int) extends GradientAscentAncestor[MixedVector, D, KArgs, K[MixedVector, KArgs]]
 /**
  *
  */
@@ -115,18 +115,17 @@ object GradientAscentScalar {
    */
   final def fit[
     O,
-    V <: Seq[Double],
     Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz],
-    D[X <: Seq[Double]] <: ContinuousDistance[X],
+    D <: ContinuousDistance,
     KArgs <: EstimatorArgs,
     K[X <: GVector[X], Y <: EstimatorArgs] <: Estimator[X, Y],
     GS[X] <: GenSeq[X]
   ](
-    data: GS[Pz[O, ScalarVector[V]]],
+    data: GS[Pz[O, ScalarVector]],
     minShift: Double,
     maxIterations: Int,
-    kernel: K[ScalarVector[V], KArgs],
-    metric: D[V],
+    kernel: K[ScalarVector, KArgs],
+    metric: D,
     alternativeVectorID: Int = Int.MaxValue
   ) = GradientAscentScalar(minShift, maxIterations, kernel, metric, alternativeVectorID).fit(data)
 }

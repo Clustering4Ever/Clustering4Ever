@@ -28,15 +28,15 @@ trait Estimator[V <: GVector[V], KA <: EstimatorArgs] extends Serializable {
 /**
  *
  */
-trait EstimatorScalar[V <: Seq[Double], KA <: EstimatorArgs] extends Estimator[ScalarVector[V], KA]
+trait EstimatorScalar[KA <: EstimatorArgs] extends Estimator[ScalarVector, KA]
 /**
  *
  */
-trait EstimatorBinary[V <: Seq[Int], KA <: EstimatorArgs] extends Estimator[BinaryVector[V], KA]
+trait EstimatorBinary[KA <: EstimatorArgs] extends Estimator[BinaryVector, KA]
 /**
  *
  */
-trait EstimatorMixed[Vb <: Seq[Int], Vs <: Seq[Double], KA <: EstimatorArgs] extends Estimator[MixedVector[Vb, Vs], KA]
+trait EstimatorMixed[KA <: EstimatorArgs] extends Estimator[MixedVector, KA]
 /**
  *
  */
@@ -44,37 +44,37 @@ object EstimatorUtils {
 	/**
 	 *
 	 */
-	final def reducePreModeAndKernelValue[V <: Seq[Double]](gs: GenSeq[(ScalarVector[V], Double)]): (ScalarVector[V], Double) = {
+	final def reducePreModeAndKernelValue(gs: GenSeq[(ScalarVector, Double)]): (ScalarVector, Double) = {
 		import org.clustering4ever.util.VectorsAddOperationsImplicits._
 		gs.reduce( (a, b) => (SumVectors.sumVectors(a._1, b._1), a._2 + b._2) )
 	}
 	/**
 	 *
 	 */
-	final def computeModeAndCastIt[V <: Seq[Double]](preMode: ScalarVector[V], kernelValue: Double): ScalarVector[V] = ScalarVector(preMode.vector.map(_ / kernelValue).asInstanceOf[V])
+	final def computeModeAndCastIt(preMode: ScalarVector, kernelValue: Double): ScalarVector = ScalarVector(preMode.vector.map(_ / kernelValue))
 	/**
 	 *
 	 */
-	final def obtainPreMode[V <: Seq[Double]](vi: ScalarVector[V], kernelVal: Double): ScalarVector[V] = ScalarVector(vi.vector.map(_ * kernelVal).asInstanceOf[V])
+	final def obtainPreMode(vi: ScalarVector, kernelVal: Double): ScalarVector = ScalarVector(vi.vector.map(_ * kernelVal))
 }
 /**
  * @tparam V
  * @tparam D
  */
-final case class EstimatorGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: EstimatorArgsGaussian[V, D]) extends EstimatorScalar[V, EstimatorArgsGaussian[V, D]] {
+final case class EstimatorGaussian[D <: ContinuousDistance](final val kernelArgs: EstimatorArgsGaussian[D]) extends EstimatorScalar[EstimatorArgsGaussian[D]] {
 	/** 
 	 * Simpliest form of Gaussian kernel as e<sup>(-lambda|x<sub>1</sub>-x<sub>2</sub>|)</sup> where
 	 *  - lambda is the bandwidth
 	 *  - |x<sub>1</sub>-x<sub>2</sub>| is the distance between x<sub>1</sub> and x<sub>2</sub>
 	 */
-	final private[this] def gaussianKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
+	final private[this] def gaussianKernel(v1: ScalarVector, altVectors: ScalarVector) = {
 		val d = kernelArgs.metric.d(v1, altVectors)
 		exp(- kernelArgs.bandwidth * d * d)
 	}
 	/**
 	 *
 	 */
-	final def obtainKernel(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainKernel(v: ScalarVector, env: GenSeq[ScalarVector]): ScalarVector = {
 		val (preMode, kernelValue) = EstimatorUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = gaussianKernel(v, vi)
@@ -87,18 +87,18 @@ final case class EstimatorGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: Cont
 /**
  * @tparam V
  */
-final case class EstimatorFlat[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: EstimatorArgsFlat[V, D]) extends EstimatorScalar[V, EstimatorArgsFlat[V, D]] {
+final case class EstimatorFlat[D <: ContinuousDistance](final val kernelArgs: EstimatorArgsFlat[D]) extends EstimatorScalar[EstimatorArgsFlat[D]] {
 	/**
 	 *
 	 */
-	final private[this] def flatKernel(v1: ScalarVector[V], altVectors: ScalarVector[V]) = {
+	final private[this] def flatKernel(v1: ScalarVector, altVectors: ScalarVector) = {
 		val value = kernelArgs.metric.d(v1, altVectors) / (kernelArgs.bandwidth * kernelArgs.bandwidth)
 		if( value <= kernelArgs.lambda ) 1D else 0D 
 	}
 	/**
 	 *
 	 */
-	final def obtainKernel(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainKernel(v: ScalarVector, env: GenSeq[ScalarVector]): ScalarVector = {
 		val (preMode, kernelValue) = EstimatorUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = flatKernel(v, vi)
@@ -112,18 +112,18 @@ final case class EstimatorFlat[V <: Seq[Double], D[V <: Seq[Double]] <: Continuo
  * @tparam V
  * @param kernelArgs
  */
-final case class EstimatorSigmoid[V <: Seq[Double]](final val kernelArgs: EstimatorArgsSigmoid) extends EstimatorScalar[V, EstimatorArgsSigmoid] {
+final case class EstimatorSigmoid(final val kernelArgs: EstimatorArgsSigmoid) extends EstimatorScalar[EstimatorArgsSigmoid] {
 	/**
 	 *
 	 */
-	final private[this] def sigmoidKernel(v1: ScalarVector[V], v2: ScalarVector[V]) = {
+	final private[this] def sigmoidKernel(v1: ScalarVector, v2: ScalarVector) = {
 		val dotProduct = SumVectors.dotProduct(v1, v2)
 		tanh(kernelArgs.a * dotProduct + kernelArgs.b)
 	}
 	/**
 	 *
 	 */
-	final def obtainKernel(v: ScalarVector[V], env: GenSeq[ScalarVector[V]]): ScalarVector[V] = {
+	final def obtainKernel(v: ScalarVector, env: GenSeq[ScalarVector]): ScalarVector = {
 		val (preMode, kernelValue) = EstimatorUtils.reducePreModeAndKernelValue(
 			env.map{ vi =>
 				val kernelVal = sigmoidKernel(v, vi)
@@ -172,30 +172,30 @@ trait EstimatorKnn[V <: GVector[V], D <: Distance[V], Args <: EstimatorArgsKnn[V
 /**
  *
  */
-trait EstimatorKnnScalarAncestor[V <: Seq[Double], D <: ContinuousDistance[V], Args <: EstimatorArgsKnnScalarAncestor[V, D]] extends EstimatorKnn[ScalarVector[V], D, Args] with EstimatorScalar[V, Args]
+trait EstimatorKnnScalarAncestor[D <: ContinuousDistance, Args <: EstimatorArgsKnnScalarAncestor[D]] extends EstimatorKnn[ScalarVector, D, Args] with EstimatorScalar[Args]
 /**
  *
  */
-trait EstimatorKnnBinaryAncestor[V <: Seq[Int], D <: BinaryDistance[V], Args <: EstimatorArgsKnnBinaryAncestor[V, D]] extends EstimatorKnn[BinaryVector[V], D, Args] with EstimatorBinary[V, Args]
+trait EstimatorKnnBinaryAncestor[D <: BinaryDistance, Args <: EstimatorArgsKnnBinaryAncestor[D]] extends EstimatorKnn[BinaryVector, D, Args] with EstimatorBinary[Args]
 /**
  * @tparam V
  * @tparam D
  */
-final case class EstimatorKnnScalar[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val kernelArgs: EstimatorArgsKnnScalar[V, D]) extends EstimatorKnnScalarAncestor[V, D[V], EstimatorArgsKnnScalar[V, D]]
+final case class EstimatorKnnScalar[D <: ContinuousDistance](final val kernelArgs: EstimatorArgsKnnScalar[D]) extends EstimatorKnnScalarAncestor[D, EstimatorArgsKnnScalar[D]]
 /**
  * @tparam V
  * @tparam D
  */
-final case class EstimatorKnnBinary[V <: Seq[Int], D[V <: Seq[Int]] <: BinaryDistance[V]](final val kernelArgs: EstimatorArgsKnnBinary[V, D]) extends EstimatorKnnBinaryAncestor[V, D[V], EstimatorArgsKnnBinary[V, D]]
+final case class EstimatorKnnBinary[D <: BinaryDistance](final val kernelArgs: EstimatorArgsKnnBinary[D]) extends EstimatorKnnBinaryAncestor[D, EstimatorArgsKnnBinary[D]]
 /**
  * @tparam V
  * @tparam D
  */
-final case class EstimatorKnnEuclidean[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](final val kernelArgs: EstimatorArgsKnnEuclidean[V, D]) extends EstimatorKnnScalarAncestor[V, D[V], EstimatorArgsKnnEuclidean[V, D]]
+final case class EstimatorKnnEuclidean[D <: Euclidean](final val kernelArgs: EstimatorArgsKnnEuclidean[D]) extends EstimatorKnnScalarAncestor[D, EstimatorArgsKnnEuclidean[D]]
 /**
  * @tparam V
  * @tparam D
  */
-final case class EstimatorKnnEuclideanEasy[V <: Seq[Double], D[X <: Seq[Double]] <: Euclidean[X]](k: Int, metric: D[V]) extends EstimatorKnnScalarAncestor[V, D[V], EstimatorArgsKnnEuclidean[V, D]] {
+final case class EstimatorKnnEuclideanEasy[D <: Euclidean](k: Int, metric: D) extends EstimatorKnnScalarAncestor[D, EstimatorArgsKnnEuclidean[D]] {
 	final val kernelArgs = EstimatorArgsKnnEuclidean(k, metric)
 }

@@ -20,14 +20,14 @@ import org.clustering4ever.vectors.{GVector, ScalarVector}
 import org.clustering4ever.shapeless.VMapping
 /**
  * @tparam O
- * @tparam V
+ * @tparam Array[Double]
  * @tparam Cz
  * @tparam Hasher
  * Gradient Ascent LSH clustering 
  * This algorithm could be used to analyse complex multivariate multidimensional data.
  * It can also be apply in order to analyse image, to use this features it is recommanded to convert image from RGB space to L*u*v* space
  */
-final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: HashingScalar[X]](
+final case class GradientAscent[Hasher <: HashingScalar](
   final val k: Int,
   final val knnBucketShift: Int,
   final val epsilon: Double,
@@ -36,7 +36,7 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
   final val bucketNumber: Int,
   final val propConvStopIter: Double,
   final val memoryExpensive: Boolean,
-  final val hasher: Hasher[V],
+  final val hasher: Hasher,
   final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
   final val alternativeVectorID: Int = Int.MaxValue,
   final val fonctionalStyle: Boolean = true
@@ -52,7 +52,7 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
   /**
    * To distinguish original vector from its associate mode
    */
-  final private type Mode = ScalarVector[V]
+  final private type Mode = ScalarVector
   /**
    *
    */
@@ -63,11 +63,11 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
   /**
    *
    */
-  private[this] final implicit val vMapping = new VMapping[Int, ScalarVector[V]]
+  private[this] final implicit val vMapping = new VMapping[Int, ScalarVector]
   /**
    * Valid exclusively with Euclidean distance due to computation of the mean
    */
-  private[this] final val metric = Euclidean[V](false)
+  private[this] final val metric = Euclidean(false)
   /**
    *
    */
@@ -75,21 +75,21 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
   /**
    * Gradient ascent work using LSH
    */
-  final def fit[O, Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz]](data: RDD[Pz[O, ScalarVector[V]]])(implicit ev: ClassTag[Pz[O, ScalarVector[V]]]): RDD[Pz[O, ScalarVector[V]]] = {
+  final def fit[O, Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz]](data: RDD[Pz[O, ScalarVector]])(implicit ev: ClassTag[Pz[O, ScalarVector]]): RDD[Pz[O, ScalarVector]] = {
     /**
      *
      */
-    type AscendingData = parallel.mutable.ParArray[(BucketID, (Pz[O, ScalarVector[V]], Mode, IsOriginalDot, HasConverged))]
+    type AscendingData = Array[(BucketID, (Pz[O, ScalarVector], Mode, IsOriginalDot, HasConverged))]
     /**
      *
      */
-    def obtainSimilarityMatrix(dataToExplore: AscendingData, approxKNN: AscendingData): parallel.immutable.ParMap[Long, mutable.ArraySeq[(Int, ScalarVector[V], Double)]] = {
-      dataToExplore.map{ case (_, (cz, mode, isOriginalDot, _)) => (cz.id,  approxKNN.map{ case (bID, (cz, _, _, _)) => (bID, cz.v, metric.d(mode, cz.v)) }.seq.sortBy(_._3)) }.toMap
+    def obtainSimilarityMatrix(dataToExplore: AscendingData, approxKNN: AscendingData): immutable.Map[Long, Array[(Int, ScalarVector, Double)]] = {
+      dataToExplore.map{ case (_, (cz, mode, isOriginalDot, _)) => (cz.id,  approxKNN.map{ case (bID, (cz, _, _, _)) => (bID, cz.v, metric.d(mode, cz.v)) }.sortBy(_._3)) }.toMap
     }
     /**
      * Is the mode shifting enough 
      */
-    def doesItConverged(mode: ScalarVector[V], updatedMode: ScalarVector[V]): Boolean = {
+    def doesItConverged(mode: ScalarVector, updatedMode: ScalarVector): Boolean = {
         val modeShift = metric.d(updatedMode, mode)
         modeShift <= epsilon
     }
@@ -155,13 +155,13 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
     /**
      *
      */
-    def gradientAscentInt(readyToGA: RDD[(BucketID, (Pz[O, ScalarVector[V]], Mode, IsOriginalDot, HasConverged))], maxIterations: Int) = {
+    def gradientAscentInt(readyToGA: RDD[(BucketID, (Pz[O, ScalarVector], Mode, IsOriginalDot, HasConverged))], maxIterations: Int) = {
       /**
        * gradient ascent using KNN kernel
        */
-      def knnGA(rdd: RDD[(BucketID, (Pz[O, ScalarVector[V]], Mode, IsOriginalDot, HasConverged))]) = {
+      def knnGA(rdd: RDD[(BucketID, (Pz[O, ScalarVector], Mode, IsOriginalDot, HasConverged))]) = {
         rdd.mapPartitions{ it =>
-            val approxKNN = it.toParArray
+            val approxKNN = it.toArray
             val (toExplore, toAdd) =  approxKNN.partition{ case (_, (_, _, isOriginalDot, _)) => isOriginalDot }
             // kernelGradientAscent(toExplore, approxKNN, toAdd)
             knnGradientAscent(toExplore, approxKNN, toAdd, memoryExpensive)
@@ -172,7 +172,7 @@ final case class GradientAscent[V <: Seq[Double], Hasher[X <: Seq[Double]] <: Ha
        */
       def functionalStyle = {
         @annotation.tailrec
-        def go(i: Int, rdd: RDD[(BucketID, (Pz[O, ScalarVector[V]], Mode, IsOriginalDot, HasConverged))]): RDD[(BucketID, (Pz[O, ScalarVector[V]], Mode, IsOriginalDot, HasConverged))] = {
+        def go(i: Int, rdd: RDD[(BucketID, (Pz[O, ScalarVector], Mode, IsOriginalDot, HasConverged))]): RDD[(BucketID, (Pz[O, ScalarVector], Mode, IsOriginalDot, HasConverged))] = {
           if(propConvStopIter == 1D) {
             val orderedLSHRDD =  knnGA(rdd)
             if(i < maxIterations) go(i + 1, orderedLSHRDD)
@@ -245,11 +245,10 @@ object GradientAscent {
    */
   final def train[
     O,
-    V <: Seq[Double],
     Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz]
-    // Hash <: HashingScalar[V]
+    // Hash <: HashingScalar[Array[Double]]
   ](
-    data: RDD[Pz[O, ScalarVector[V]]],
+    data: RDD[Pz[O, ScalarVector]],
     k: Int,
     epsilon: Double,
     maxIterations: Int,
@@ -261,8 +260,8 @@ object GradientAscent {
     persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY,
     alternativeVectorID: Int,
     fonctionalStyle: Boolean = true
-  )(implicit ev: ClassTag[Pz[O, ScalarVector[V]]]): RDD[Pz[O, ScalarVector[V]]] = {
-    val lsh = LDLSH[V](data.first.v.vector.size)
+  )(implicit ev: ClassTag[Pz[O, ScalarVector]]): RDD[Pz[O, ScalarVector]] = {
+    val lsh = LDLSH(data.first.v.vector.size)
     GradientAscent(k, knnBucketShift, epsilon, maxIterations, bucketLayers, bucketNumber, propConvStopIter, memoryExpensive, lsh, persistanceLVL, alternativeVectorID, fonctionalStyle).fit(data)
   }
 }

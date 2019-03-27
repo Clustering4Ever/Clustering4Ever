@@ -137,13 +137,13 @@ final case class InternalIndicesLocal[V <: GVector[V], D[A <: GVector[A]] <: Dis
  * @tparam V
  * @tparam D
  */
-final case class InternalIndicesScalarLocal[V <: Seq[Double], D[A <: Seq[Double]] <: ContinuousDistance[A]](metric: D[V]) extends InternalIndicesAncestorLocal[ScalarVector[V], D[V]]
+final case class InternalIndicesScalarLocal[D <: ContinuousDistance](metric: D) extends InternalIndicesAncestorLocal[ScalarVector, D]
 /**
  *
  * @tparam V
  * @tparam D
  */
-final case class InternalIndicesBinaryLocal[V <: Seq[Int], D[A <: Seq[Int]] <: BinaryDistance[A]](metric: D[V]) extends InternalIndicesAncestorLocal[BinaryVector[V], D[V]]
+final case class InternalIndicesBinaryLocal[D <: BinaryDistance](metric: D) extends InternalIndicesAncestorLocal[BinaryVector, D]
 /**
  *
  */

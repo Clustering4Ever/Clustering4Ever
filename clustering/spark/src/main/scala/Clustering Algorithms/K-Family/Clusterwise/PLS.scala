@@ -10,15 +10,15 @@ import org.clustering4ever.util.VectorsAddOperationsImplicits._
  *
  */
 trait CommonPLSTypes {
-	type IdWithX[V <: Seq[Double]] = mutable.ArrayBuffer[(Int, V)]
-	type Y[V <: Seq[Double]] = mutable.ArrayBuffer[V]
+	type IdWithX = mutable.ArrayBuffer[(Int, Array[Double])]
+	type Y = mutable.ArrayBuffer[Array[Double]]
 }
 /**
  *
  */
-final case class PLS[V <: Seq[Double]](
-	dsXi: GenSeq[(Int, V)],
-	dsY: GenSeq[V],
+final case class PLS(
+	dsXi: GenSeq[(Int, Array[Double])],
+	dsY: GenSeq[Array[Double]],
 	n: Int,
 	h: Int,
 	lw: Double,
@@ -225,7 +225,7 @@ final case class PLS[V <: Seq[Double]](
 
 object PLS extends CommonPLSTypes {
 
-	final def runClusterwisePLS[V <: Seq[Double]](dsX: Array[IdWithX[V]], dsY: Array[Y[V]], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	final def runClusterwisePLS(dsX: Array[IdWithX], dsY: Array[Y], g: Int, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX(g).size
 		val ktabXdudiYval = ktabXdudiY(dsX(g), dsY(g), n)
 		val lw = 1D / n
@@ -233,7 +233,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	final def runPLS[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
+	final def runPLS(dsX: IdWithX, dsY: Y, h: Int): (Double, DenseMatrix[Double], Array[Double], immutable.IndexedSeq[(Int, Array[Double])]) = {
 		val n = dsX.size
 		val lw = 1D / n
 		val ktabXdudiYvalues = ktabXdudiY(dsX, dsY, n)
@@ -241,7 +241,7 @@ object PLS extends CommonPLSTypes {
 		mbplsObj.regression
 	}
 
-	final def ktabXdudiY[V <: Seq[Double]](dsX: IdWithX[V], dsY: Y[V], n: Int): (Int, Double, Double) = {
+	final def ktabXdudiY(dsX: IdWithX, dsY: Y, n: Int): (Int, Double, Double) = {
 		val lw = 1D / n
 		val cw = dsX.head._2.size
 		val colw = dsY.head.size

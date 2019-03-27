@@ -15,9 +15,9 @@ object RunSom
 
   def fit(
     sparkMaster: String,
-    intputFile: RDD[Seq[Double]],
+    intputFile: RDD[Array[Double]],
     outputDir: String,
-    metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[Seq[Double]](false),
+    metric: RawContinuousDistance = new RawEuclidean(false),
     execName: String = "RunMTM",
     nbRow: Int = 10, 
     nbCol: Int = 10, 
@@ -49,9 +49,9 @@ object RunSom
   }
 
   def exec(
-    intputFile: RDD[Seq[Double]],
+    intputFile: RDD[Array[Double]],
     outputDir: String,
-    metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[Seq[Double]](false),
+    metric: RawContinuousDistance = new RawEuclidean(false),
     nbRow: Int = 10,
     nbCol: Int = 10,
     tmin: Double = 0.9,

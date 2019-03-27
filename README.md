@@ -1,6 +1,6 @@
 # Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22)
 
-**Welcome** to Clustering:four:Ever, a Big Data Clustering Library gathering clustering, unsupervized algorithms, and quality indices as immutabely as possible. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
+**Welcome** to Clustering:four:Ever, a Big Data Clustering Library gathering clustering, unsupervized algorithms, and quality indices. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
 
 ## [API documentation](http://www.clustering4ever.org/API%20Documentation/)
 
@@ -71,9 +71,10 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
 
 ### Incoming soon
   
-  * [UMAP](https://github.com/lmcinnes/umap)
+  * **[UMAP](https://github.com/lmcinnes/umap)**
   * **_Gaussian Mixture Models_**
   * **_DBScan_**
+  * **Time Series K-Means**
 
 
 ## Citation
@@ -95,5 +96,4 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 ### What data structures are recommended for best performances
 
-  * ArrayBuffer as vector are a good start
   * ArrayBuffer or ParArray as vector containers are recommended for local applications

@@ -55,7 +55,7 @@ case class ClusteringChainingLocal[
         val sorted = data.seq.sortBy(_.id)
         val builder = data.genericBuilder[Cz[O, V]].asInstanceOf[mutable.Builder[Cz[O, V], GS[Cz[O, V]]]]
         builder.sizeHint(data.size)
-        (0 until data.size).foreach( i => builder += data(i) )
+        builder ++= sorted
         builder.result
     } else data
     /**

@@ -31,48 +31,48 @@ trait KnnModelModel[V <: GVector[V], D <: Distance[V]] extends MetricModel[V, D]
  * @tparam SV
  * @tparam D
  */
-trait KnnModelSimpleV[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <: GSimpleVectorDistance[T, V, SV]] extends KnnModelModel[SV, D] {
+trait KnnModelSimpleV[N, SV <: GSimpleVector[N, SV], D <: GSimpleVectorDistance[N, SV]] extends KnnModelModel[SV, D] {
 	/**
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors with its KNN
 	 */
-	final def knnPredictWithNN(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): (ClusterID, Seq[(ClusterID, V)]) = {
-		trainDS.sortBy{ case (_, vTrain) => metric.d(vTrain, v) }.take(k).groupBy(_._1).maxBy(_._2.size)
+	final def knnPredictWithNN(v: Array[N], k: Int, trainDS: Seq[(ClusterID, Array[N])]): (ClusterID, Seq[(ClusterID, Array[N])]) = {
+		trainDS.sortBy{ case (_, vTrain) => metric.dRaw(vTrain, v) }.take(k).groupBy(_._1).maxBy(_._2.size)
 	}
 	/**
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors
 	 */
-	final def knnPredict(v: V, k: Int, trainDS: Seq[(ClusterID, V)]): ClusterID = knnPredictWithNN(v, k, trainDS)._1
+	final def knnPredict(v: Array[N], k: Int, trainDS: Seq[(ClusterID, Array[N])]): ClusterID = knnPredictWithNN(v, k, trainDS)._1
 }
 /**
  * @tparam V
  * @tparam D
  */
-trait KnnModelModelScalar[V <: Seq[Double], D <: ContinuousDistance[V]] extends KnnModelSimpleV[Double, V, ScalarVector[V], D]
+trait KnnModelModelScalar[D <: ContinuousDistance] extends KnnModelSimpleV[Double, ScalarVector, D]
 /**
  * @tparam V
  * @tparam D
  */
-trait KnnModelModelBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends KnnModelSimpleV[Int, V, BinaryVector[V], D]
+trait KnnModelModelBinary[D <: BinaryDistance] extends KnnModelSimpleV[Int, BinaryVector, D]
 /**
  * @tparam Vb
  * @tparam Vs
  * @tparam D
  */
-trait KnnModelModelMixed[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends KnnModelModel[MixedVector[Vb, Vs], D] {
+trait KnnModelModelMixed[D <: MixedDistance] extends KnnModelModel[MixedVector, D] {
 	/**
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors with its KNN
 	 */
-	final def knnPredictWithNN(v: (Vb, Vs), k: Int, trainDS: Seq[(ClusterID, (Vb, Vs))]): (ClusterID, Seq[(ClusterID, (Vb, Vs))]) = {
-		trainDS.sortBy{ case (_, vTrain) => metric.d(vTrain, v) }.take(k).groupBy(_._1).maxBy(_._2.size)
+	final def knnPredictWithNN(v: (Array[Int], Array[Double]), k: Int, trainDS: Seq[(ClusterID, (Array[Int], Array[Double]))]): (ClusterID, Seq[(ClusterID, (Array[Int], Array[Double]))]) = {
+		trainDS.sortBy{ case (_, vTrain) => metric.dRaw(vTrain, v) }.take(k).groupBy(_._1).maxBy(_._2.size)
 	}
 	/**
 	 * Time complexity O(d.n<sub>trainDS</sub>), d works for dimentionality and n<sub>trainDS</sub> is the training dataset size
 	 * @return the clusterID of cluster which has the most number of vectors closest from a specific point among its k nearest neighbors
 	 */
-	final def knnPredict(v: (Vb, Vs), k: Int, trainDS: Seq[(ClusterID, (Vb, Vs))]): ClusterID = knnPredictWithNN(v, k, trainDS)._1
+	final def knnPredict(v: (Array[Int], Array[Double]), k: Int, trainDS: Seq[(ClusterID, (Array[Int], Array[Double]))]): ClusterID = knnPredictWithNN(v, k, trainDS)._1
 }
 /**
  * @tparam V
@@ -100,13 +100,13 @@ trait KnnModelModelCz[V <: GVector[V], D <: Distance[V]] extends KnnModelModel[V
  * @tparam SV
  * @tparam D
  */
-trait KnnModelModelLocalSimpleV[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <: GSimpleVectorDistance[T, V, SV]] extends KnnModelSimpleV[T, V, SV, D] {
+trait KnnModelModelLocalSimpleV[N, SV <: GSimpleVector[N, SV], D <: GSimpleVectorDistance[N, SV]] extends KnnModelSimpleV[N, SV, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.d.n<sub>trainDS</sub>)
 	 * @return the input Seq with labels obtain via knnPredict method
 	 */
-	final def knnPredict[GS[X] <: GenSeq[X]](data: GS[V], k: Int, trainDS: Seq[(ClusterID, V)]): GS[(ClusterID, V)] = {
-		data.map( v => (knnPredict(v, k, trainDS), v) ).asInstanceOf[GS[(ClusterID, V)]]
+	final def knnPredict[GS[X] <: GenSeq[X]](data: GS[Array[N]], k: Int, trainDS: Seq[(ClusterID, Array[N])]): GS[(ClusterID, Array[N])] = {
+		data.map( v => (knnPredict(v, k, trainDS), v) ).asInstanceOf[GS[(ClusterID, Array[N])]]
 	}
 }
 /**

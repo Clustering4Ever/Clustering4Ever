@@ -32,16 +32,16 @@ trait EstimatorArgsWithMetric[V <: GVector[V], D <: Distance[V]] extends Estimat
  * @tparam V
  * @tparam D
  */
-trait EstimatorArgsScalarWithMetric[V <: Seq[Double], D <: ContinuousDistance[V]] extends EstimatorArgsWithMetric[ScalarVector[V], D]
+trait EstimatorArgsScalarWithMetric[D <: ContinuousDistance] extends EstimatorArgsWithMetric[ScalarVector, D]
 /**
  * @tparam V
  * @tparam D
  */
-trait EstimatorArgsBinaryWithMetric[V <: Seq[Int], D <: BinaryDistance[V]] extends EstimatorArgsWithMetric[BinaryVector[V], D]
+trait EstimatorArgsBinaryWithMetric[D <: BinaryDistance] extends EstimatorArgsWithMetric[BinaryVector, D]
 /**
  *
  */
-trait EstimatorArgsMixedWithMetric[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends EstimatorArgsWithMetric[MixedVector[Vb, Vs], D]
+trait EstimatorArgsMixedWithMetric[D <: MixedDistance] extends EstimatorArgsWithMetric[MixedVector, D]
 /**
  *
  */
@@ -54,45 +54,45 @@ trait EstimatorArgsKnn[V <: GVector[V], D <: Distance[V]] extends EstimatorArgsW
 /**
  *
  */
-trait EstimatorArgsKnnScalarAncestor[V <: Seq[Double], D <: ContinuousDistance[V]] extends EstimatorArgsKnn[ScalarVector[V], D] with EstimatorArgsScalarWithMetric[V, D]
+trait EstimatorArgsKnnScalarAncestor[D <: ContinuousDistance] extends EstimatorArgsKnn[ScalarVector, D] with EstimatorArgsScalarWithMetric[D]
 /**
  *
  */
-final case class EstimatorArgsKnnScalar[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnScalarAncestor[V, D[V]] {
+final case class EstimatorArgsKnnScalar[D <: ContinuousDistance](final val k: Int, final val metric: D) extends EstimatorArgsKnnScalarAncestor[D] {
     final val kernelType = KNN_Real
 }
 /**
  *
  */
-trait EstimatorArgsKnnBinaryAncestor[V <: Seq[Int], D <: BinaryDistance[V]] extends EstimatorArgsKnn[BinaryVector[V], D] with EstimatorArgsBinaryWithMetric[V, D]
+trait EstimatorArgsKnnBinaryAncestor[D <: BinaryDistance] extends EstimatorArgsKnn[BinaryVector, D] with EstimatorArgsBinaryWithMetric[D]
 /**
  *
  */
-final case class EstimatorArgsKnnBinary[V <: Seq[Int], D[V <: Seq[Int]] <: BinaryDistance[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnBinaryAncestor[V, D[V]] {
+final case class EstimatorArgsKnnBinary[D <: BinaryDistance](final val k: Int, final val metric: D) extends EstimatorArgsKnnBinaryAncestor[D] {
     final val kernelType = KNN_Binary
 }
 /**
  *
  */
-final case class EstimatorArgsKnnEuclidean[V <: Seq[Double], D[V <: Seq[Double]] <: Euclidean[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnScalarAncestor[V, D[V]] {
+final case class EstimatorArgsKnnEuclidean[D <: Euclidean](final val k: Int, final val metric: D) extends EstimatorArgsKnnScalarAncestor[D] {
     final val kernelType = KNN_Euclidean
 }
 /**
  *
  */
-final case class EstimatorArgsKnnHamming[V <: Seq[Int], D[V <: Seq[Int]] <: Hamming[V]](final val k: Int, final val metric: D[V]) extends EstimatorArgsKnnBinaryAncestor[V, D[V]] {
+final case class EstimatorArgsKnnHamming[D <: Hamming](final val k: Int, final val metric: D) extends EstimatorArgsKnnBinaryAncestor[D] {
     final val kernelType = KNN_Hamming
 }
 /**
  *
  */
-final case class EstimatorArgsGaussian[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val bandwidth: Double, final val metric: D[V]) extends EstimatorArgsWithMetric[ScalarVector[V], D[V]] {
+final case class EstimatorArgsGaussian[D <: ContinuousDistance](final val bandwidth: Double, final val metric: D) extends EstimatorArgsWithMetric[ScalarVector, D] {
     final val kernelType = Gaussian
 }
 /**
  *
  */  
-final case class EstimatorArgsFlat[V <: Seq[Double], D[V <: Seq[Double]] <: ContinuousDistance[V]](final val bandwidth: Double, final val metric: D[V], final val lambda: Double = 1D) extends EstimatorArgsWithMetric[ScalarVector[V], D[V]] {
+final case class EstimatorArgsFlat[D <: ContinuousDistance](final val bandwidth: Double, final val metric: D, final val lambda: Double = 1D) extends EstimatorArgsWithMetric[ScalarVector, D] {
     final val kernelType = Flat
 }
 /**
