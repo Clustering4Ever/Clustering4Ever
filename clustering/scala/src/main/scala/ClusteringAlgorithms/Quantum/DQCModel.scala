@@ -1,9 +1,7 @@
 package Quantum
 import breeze.numerics.{exp, sqrt}
-import org.apache.spark.rdd.RDD
 import breeze.linalg.{Axis, DenseMatrix, DenseVector, Vector, min, squaredDistance, sum}
-import org.apache.spark.{SparkConf, SparkContext}
-import smile.plot.Palette
+
 
 import scala.collection.mutable.ArrayBuffer
 import scala.math.abs
