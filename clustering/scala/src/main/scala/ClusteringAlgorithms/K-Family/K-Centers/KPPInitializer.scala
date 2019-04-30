@@ -49,7 +49,6 @@ object KPPInitializer extends Serializable {
 				}.seq
 			}
 			if(i < k - 2) go(i + 1)
-			else Unit
 		}
 
 		go(0)

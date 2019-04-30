@@ -7,7 +7,7 @@ package org.clustering4ever.spark.clustering.mtm
  * Time: 17:07
  * To change this template use File | Settings | File Templates.
  */
-class NamedVector(val elements: Seq[Double], val cls: Int) extends Serializable
+class NamedVector(val elements: Array[Double], val cls: Int) extends Serializable
 {
   override def toString(): String = "#" + cls + " " + super.toString
 

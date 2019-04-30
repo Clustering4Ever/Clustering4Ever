@@ -12,7 +12,7 @@ import org.clustering4ever.math.distances.RawContinuousDistance
 /**
  * @author Sarazin Tugdual & Lebbah Mustapha & Beck Gaël
  **/
-class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[Seq[Double]](true)) extends AbstractTrainer
+class SomTrainerA(metric: RawContinuousDistance = new RawEuclidean(true)) extends AbstractTrainer
 {
   val DEFAULT_SOM_ROW = 10
   val DEFAULT_SOM_COL = 10
@@ -34,7 +34,7 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
   protected var theSOMModel: Option[SomModel] = None
   protected def getModel: AbstractModel = theSOMModel.get
 
-  protected def initModel(dataset: RDD[Seq[Double]], modelOptions: Option[Map[String, String]]) =
+  protected def initModel(dataset: RDD[Array[Double]], modelOptions: Option[Map[String, String]]) =
   {
     var nbRow = DEFAULT_SOM_ROW
     var nbCol = DEFAULT_SOM_COL
@@ -52,8 +52,8 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
 
 
     val mapSize = nbRow * nbCol
-    val selectedDatas: Array[Seq[Double]] = if( initMap == 0 ) dataset.takeSample(withReplacement = false, mapSize, Random.nextInt())
-      else scala.io.Source.fromFile(initMapFile).getLines().drop(1).toArray.map( line => line.split(sep).map(_.toDouble).toSeq )
+    val selectedDatas: Array[Array[Double]] = if( initMap == 0 ) dataset.takeSample(withReplacement = false, mapSize, Random.nextInt())
+      else scala.io.Source.fromFile(initMapFile).getLines().drop(1).toArray.map( line => line.split(sep).map(_.toDouble) )
 
     // todo : Check /nbCol et %nbCOl
     val neuronMatrix = Array.tabulate(mapSize)( id => new SomNeuron(id, id / nbCol, id % nbCol, selectedDatas(id)))
@@ -61,7 +61,7 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
   }
   //init model
 
-  protected def trainingIteration(dataset: RDD[Seq[Double]], currentIteration: Int, maxIteration: Int): Double =
+  protected def trainingIteration(dataset: RDD[Array[Double]], currentIteration: Int, maxIteration: Int): Double =
   {
     val t = processT(maxIteration, currentIteration)
 
@@ -70,7 +70,7 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
     {
       val bestNeuron = theSOMModel.get.findClosestPrototype(d).asInstanceOf[SomNeuron]
       //ML: à rentrer dans la condition
-      val mapBin: Seq[(Int, Int)] = if ( d.size > this.sizeRealVars ) d.drop(sizeRealVars).map( x => if ( x == 1 ) (1, 0) else (0, 1) ) else Seq.empty[(Int, Int)]
+      val mapBin: Array[(Int, Int)] = if ( d.size > this.sizeRealVars ) d.drop(sizeRealVars).map( x => if ( x == 1 ) (1, 0) else (0, 1) ) else Array.empty[(Int, Int)]
 
       theSOMModel.get.prototypes.map( proto =>
       { 
@@ -78,8 +78,8 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
         val factor = neuron.factorDist(bestNeuron, t) // K(delta(.-.)/T)
            
         //binary part
-        val mapBinPondere: Seq[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
-        if( mapBin.size > 0 ) mapBin.map{ case (x, y) => (x * factor, y * factor) } else Seq.empty[(Double, Double)]
+        val mapBinPondere: Array[(Double, Double)] = //ML:ajouter la condition (d.length > this.sizeRealVars), sinon vecteur vide
+        if( mapBin.size > 0 ) mapBin.map{ case (x, y) => (x * factor, y * factor) } else Array.empty[(Double, Double)]
         //ML: dans le cas de non présence de réelle vecteur vide, pareil pour les varibales binaires
         new SomObsA(d.take(sizeRealVars).map(_ * factor), factor, mapBinPondere, neuron.id)
         // ligne originale
@@ -107,14 +107,14 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
     override def toString(): String = neurons.mkString("\n")
   }
 
-  protected class SomNeuron(id: Int, val row: Int, val col: Int, point: Seq[Double]) extends AbstractPrototype(id, point, metric)
+  protected class SomNeuron(id: Int, val row: Int, val col: Int, point: Array[Double]) extends AbstractPrototype(id, point, metric)
   {
     def factorDist(neuron: SomNeuron, t: Double): Double = exp( - (abs(neuron.row - row) + abs(neuron.col - col)) / t )
 
     override def toString(): String = "(" + row + ", " + col + ") -> " + point
   }
 
-  protected class SomObsA(var numerator: Seq[Double], var denominator: Double, var mapBinPonderation: Seq[(Double, Double)], val neuronId: Int) extends Serializable
+  protected class SomObsA(var numerator: Array[Double], var denominator: Double, var mapBinPonderation: Array[(Double, Double)], val neuronId: Int) extends Serializable
   {
     def +(obs: SomObsA): SomObsA =
     {
@@ -126,7 +126,7 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
       // TO DO
       // calcul de la somme des pondÃ©ration des 1 et des 0
       //ML:ajouter la condition (d.length > this.sizeRealVars)
-      val mapBinPonderation2: Seq[(Double, Double)] = if( mapBinPonderation.size > 0 )
+      val mapBinPonderation2: Array[(Double, Double)] = if( mapBinPonderation.size > 0 )
       {
         for (i <-0 until mapBinPonderation.size)
         {
@@ -135,9 +135,9 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
           //mapBinPonderation2 == mapBinPonderation2 :+ (c1, c0)
         }
         //mapBinPonderation = mapBinPonderation2
-        Seq.empty[(Double, Double)]
+        Array.empty[(Double, Double)]
       }
-      else Seq.empty[(Double, Double)] 
+      else Array.empty[(Double, Double)] 
 
       this
     }
@@ -152,7 +152,7 @@ class SomTrainerA(metric: RawContinuousDistance[Seq[Double]] = new RawEuclidean[
       // calcul de la mediane
       //ML:ajouter la condition (d.length > this.sizeRealVars)
       //var newPointsBin:Array[Double]=Array()
-      val newPointsBin: Seq[Double] = if( mapBinPonderation.size > 0 ) mapBinPonderation.map( e => if( e._1 >= e._2 ) 1D else 0D ) else Seq.empty[Double]
+      val newPointsBin: Array[Double] = if( mapBinPonderation.size > 0 ) mapBinPonderation.map( e => if( e._1 >= e._2 ) 1D else 0D ) else Array.empty[Double]
      
       // concatenation de la partie real et binaire
       newPointsReal.toArray ++ newPointsBin

@@ -6,7 +6,7 @@ import org.apache.spark.mllib.linalg.DenseVector
 /**
  * @author Sarazin Tugdual & Beck Gaël
  **/
-class PointObj(val data: Seq[Double], val id: Int) extends Serializable
+class PointObj(val data: Array[Double], val id: Int) extends Serializable
 {
   override def toString: String = " " 
 }
@@ -16,9 +16,9 @@ abstract class AbstractModel(val prototypes: Array[AbstractPrototype]) extends S
 {
   def size() = prototypes.size
 
-  def findClosestPrototype(data: Seq[Double]): AbstractPrototype = prototypes.minBy( proto => proto.dist(data) )
+  def findClosestPrototype(data: Array[Double]): AbstractPrototype = prototypes.minBy( proto => proto.dist(data) )
   
-  def findClosestPrototypeId(data: Seq[Double]): AbstractPrototype = prototypes.minBy( proto => proto.dist(data) )
+  def findClosestPrototypeId(data: Array[Double]): AbstractPrototype = prototypes.minBy( proto => proto.dist(data) )
 
   def apply(i: Int) = prototypes(i)
 

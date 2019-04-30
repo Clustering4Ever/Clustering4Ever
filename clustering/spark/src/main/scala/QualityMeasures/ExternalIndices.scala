@@ -11,10 +11,11 @@ import org.apache.spark.SparkContext
 import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.enums.NmiNormalizationNature._
 import org.clustering4ever.util.ClusteringIndicesCommons
+import org.clustering4ever.math.MathC4E
 /**
  *
  */
-trait ExternalIndicesDistributedAncestor extends Serializable {
+trait ExternalIndicesDistributedDataAncestor extends TPTNFPFNAncestor {
   /**
    * StorageLevel for RDD
    */
@@ -29,17 +30,40 @@ trait ExternalIndicesDistributedAncestor extends Serializable {
 /**
  *
  */
-trait BinaryExternalIndicesDistributedAncestor extends ExternalIndicesDistributedAncestor with BinaryExternalIndicesCommons {
+trait BinaryExternalIndicesDistributedAncestor extends ExternalIndicesDistributedDataAncestor with BinaryExternalIndicesAncestor with ContingencyMatricesBasicsIndices {
 
   final lazy val (tp, tn, fp, fn) = {
-    targetAndPred.map{ case (target, pred) => fillBinaryConfusionMatrix(target, pred) }.fold((0, 0, 0, 0))( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3, a._4 + b._4))
+    targetAndPred.map{ case (target, pred) => fillBinaryConfusionMatrix(target, pred) }.fold((0L, 0L, 0L, 0L))( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3, a._4 + b._4))
   }
 
 }
 /**
  *
  */
-trait BinaryAndMultiExternalIndicesDistributedAncestor extends ExternalIndicesDistributedAncestor with IndicesDoc {
+trait ARANDDistributed extends ARANDCommons with ExternalIndicesDistributedDataAncestor {
+
+  protected final val expectedIndex = (rowSum * columnSum) / MathC4E.binom(targetAndPred.count, 2)
+
+}
+
+/**
+ *
+ */
+trait MultiClassesContingencyTableDistributed extends ARANDDistributed {
+  /**
+   *
+   */
+  final lazy val (targetClassesNumber, predClassesNumber): (Int, Int) = {
+    val (tMinus1, pMinus1) = targetAndPred.aggregate((0, 0))( (acc, r) => (max(acc._1, r._1), max(acc._2, r._2)), (acc1, acc2) => (max(acc1._1, acc2._1), max(acc1._2, acc2._2)) )
+    (tMinus1 + 1, pMinus1 + 1)
+  }
+
+  final lazy val contingencyTable: Array[Array[Long]] = targetAndPred.aggregate(emptyContingencyTable)(putInContingencyTable, fusionContingencyTables)
+}
+/**
+ *
+ */
+trait BinaryAndMultiExternalIndicesDistributedAncestor extends ExternalIndicesDistributedDataAncestor with IndicesDoc {
   
   final lazy val purity: Double = {
     val cols = targetAndPred.map( line => (line, 1) ).reduceByKey(_ + _).map{ case ((_, pred), sum) => (pred, sum) }.cache
@@ -92,7 +116,7 @@ trait BinaryAndMultiExternalIndicesDistributedAncestor extends ExternalIndicesDi
 /**
  *
  */
-final case class MultiExternalIndicesDistributed(final val targetAndPred: RDD[(Int, Int)], final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends BinaryAndMultiExternalIndicesDistributedAncestor
+final case class MultiExternalIndicesDistributed(final val targetAndPred: RDD[(Int, Int)], final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY) extends BinaryAndMultiExternalIndicesDistributedAncestor with MultiClassesContingencyTableDistributed
 /**
  *
  */

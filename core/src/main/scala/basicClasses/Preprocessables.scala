@@ -43,6 +43,13 @@ trait Preprocessable[O, V <: GVector[V], Self[B, C <: GVector[C]] <: Preprocessa
 	 */
 	def switchForExistingVectorization[GV <: GVector[GV], Vecto[A, B <: GVector[B]] <: Vectorization[A, B, Vecto[A, B]]](vectorization: Vecto[O, GV]): Self[O, GV]
 	/**
+	 * Look for an existing vector in vectorized field and put it as working vector
+	 * @tparam GV the type of the updated working vector
+	 * @tparam Vecto the type of given vectorization
+	 * @param : vectorization the employed vectorization
+	 */
+	def switchForExistingVectorization[GV <: GVector[GV]](vectorizationID: VectorizationID, mapping: VMapping[VectorizationID, GV]): Self[O, GV]
+	/**
 	 * Update working vector by applying given vectorization.
 	 * This method doesn't save previous working vector and given vectorization in vectorized field
 	 * @tparam GV the type of the updated working vector

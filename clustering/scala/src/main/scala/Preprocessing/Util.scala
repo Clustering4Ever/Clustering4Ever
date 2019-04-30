@@ -28,7 +28,7 @@ object Util extends Serializable {
   /**
    *
    */
-  private final def obtainIdxByValueByFeatIdx[T](occurPerFeat: Seq[mutable.HashSet[T]]) = { 
+  private final def obtainIdxByValueByFeatIdx[T](occurPerFeat: Array[mutable.HashSet[T]]) = { 
     immutable.HashMap(
       occurPerFeat.map( values => immutable.HashMap(values.toSeq.zipWithIndex:_*) )
       .zipWithIndex.map(_.swap)
@@ -37,15 +37,15 @@ object Util extends Serializable {
   /**
    *
    */
-  private final def reductHashSeq[T](s1: Seq[mutable.HashSet[T]], s2: Seq[mutable.HashSet[T]]) = s1.zip(s2).map( x => x._1 ++ x._2 )
+  private final def reductHashSeq[T](s1: Array[mutable.HashSet[T]], s2: Array[mutable.HashSet[T]]) = s1.zip(s2).map( x => x._1 ++ x._2 )
   /**
    *
    */
-  private final def reduceOccFeaturesGs[T](gs: GenSeq[Seq[mutable.HashSet[T]]]) = gs.reduce(reductHashSeq(_, _))
+  private final def reduceOccFeaturesGs[T](gs: GenSeq[Array[mutable.HashSet[T]]]) = gs.reduce(reductHashSeq(_, _))
   /**
    *
    */
-  final def obtainOccurencePerFeature[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](gs: GenSeq[Sz[O, V[T, S]]]): Seq[mutable.HashSet[T]] = reduceOccFeaturesGs(gs.map(_.v.vector.map(mutable.HashSet(_))))
+  final def obtainOccurencePerFeature[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](gs: GenSeq[Sz[O, V[T]]]): Array[mutable.HashSet[T]] = reduceOccFeaturesGs(gs.map(_.v.vector.map(mutable.HashSet(_))))
   /**
    *
    */
@@ -61,28 +61,28 @@ object Util extends Serializable {
   /**
    *
    */
-  final def prepareGsForRoughSet[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz], GS[X] <: GenSeq[X]](gs: GS[Sz[O, V[T, S]]]): GS[EasySupervizable[O, V[T, S]]] = {
+  final def prepareGsForRoughSet[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz], GS[X] <: GenSeq[X]](gs: GS[Sz[O, V[T]]]): GS[EasySupervizable[O, V[T]]] = {
     
     val occurPerFeat = obtainOccurencePerFeature(gs)
 
     val idxByValueByFeatIdx = obtainIdxByValueByFeatIdx(occurPerFeat)
 
     val learnableGs = gs.map{ sup => 
-      val newWorkingVector = SupervizedVector(sup.v.vector.zipWithIndex.map{ case (value, idxF) => idxByValueByFeatIdx(idxF)(value) }.asInstanceOf[S[T]])
+      val newWorkingVector = SupervizedVector(sup.v.vector.zipWithIndex.map{ case (value, idxF) => idxByValueByFeatIdx(idxF)(value) })
       EasySupervizable(sup.id, sup.o, sup.label, newWorkingVector)
     }
 
-    learnableGs.asInstanceOf[GS[EasySupervizable[O, V[T, S]]]]
+    learnableGs.asInstanceOf[GS[EasySupervizable[O, V[T]]]]
   }
   /**
    *
    */
-  final def prepareGsForRoughSetHeuristic[O, T, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz], GS[X] <: GenSeq[X]](gs: GS[Sz[O, V[T, S]]], numberOfBucket: Int): (GS[EasySupervizable[O, V[T, S]]], mutable.Buffer[mutable.Buffer[Int]]) = {
+  final def prepareGsForRoughSetHeuristic[O, T, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz], GS[X] <: GenSeq[X]](gs: GS[Sz[O, V[T]]], numberOfBucket: Int): (GS[EasySupervizable[O, V[T]]], mutable.Buffer[mutable.Buffer[Int]]) = {
     
     val bucketizedFeats = obtainRandomlyBucketizedFeatures(gs.head.v.vector.size, numberOfBucket)
     
     (
-      prepareGsForRoughSet(gs).map( sup => sup.definedBucketizedFeatures(bucketizedFeats) ).asInstanceOf[GS[EasySupervizable[O, V[T, S]]]],
+      prepareGsForRoughSet(gs).map( sup => sup.definedBucketizedFeatures(bucketizedFeats) ).asInstanceOf[GS[EasySupervizable[O, V[T]]]],
       bucketizedFeats
     )
 

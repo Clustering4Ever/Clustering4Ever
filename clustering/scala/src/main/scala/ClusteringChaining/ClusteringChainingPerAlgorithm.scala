@@ -23,7 +23,7 @@ import org.clustering4ever.vectorizations.{VectorizationGenLocal, VectorizationL
 import org.clustering4ever.clustering.indices.MultiExternalIndicesLocal
 import org.clustering4ever.clustering.keeper.ModelsKeeper
 import org.clustering4ever.extensibleAlgorithmNature.ClusteringAlgorithmNature
-import org.clustering4ever.utils.SortGsCz
+import org.clustering4ever.utils.SortingTools
 /**
  * This classe intend to run many algorithms parallely on a local system for medium size datasets, it works for one version of an algorithm with various parameters
  * @tparam O the raw object from which vectorizations came from
@@ -94,7 +94,7 @@ trait ChainingOneAlgorithm[
     /**
      *
      */
-    final val dataSortedByID: GS[Cz[O, V]] = if(!isDatasetSortedByID) SortGsCz.sortByID(data) else data
+    final val dataSortedByID: GS[Cz[O, V]] = if(!isDatasetSortedByID) SortingTools.sortByID(data) else data
     /**
      * Add to current vectorization algorithm made with their indices
      */
@@ -177,19 +177,18 @@ trait ChainingOneAlgorithm[
  */
 final case class LocalClusteringChainingScalar[
     O,
-    V <: Seq[Double],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
-    CM <: ClusteringModelLocalScalar[V],
-    Vecto[A, B <: Seq[Double]] <: VectorizationLocalScalar[A, B, Vecto[A, B]],
+    CM <: ClusteringModelLocalScalar,
+    Vecto[A] <: VectorizationLocalScalar[A, Vecto[A]],
     GS[X] <: GenSeq[X],
-    Algorithms[A <: Seq[Double], B <: ClusteringModelLocalScalar[A]] <: ClusteringAlgorithmLocalScalar[A, B]
+    Algorithms[B <: ClusteringModelLocalScalar] <: ClusteringAlgorithmLocalScalar[B]
 ](
-    final val data: GS[Cz[O, ScalarVector[V]]],
+    final val data: GS[Cz[O, ScalarVector]],
     final val isDatasetSortedByID: Boolean,
-    final val vectorizations: Seq[Vecto[O, V]],
-    final val algorithms: Seq[Algorithms[V, CM]],
+    final val vectorizations: Seq[Vecto[O]],
+    final val algorithms: Seq[Algorithms[CM]],
     final val modelsKeeper: ModelsKeeper = new ModelsKeeper
-) extends ChainingOneAlgorithm[O, ScalarVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]
+) extends ChainingOneAlgorithm[O, ScalarVector, Cz, GS, Vecto[O], CM, Algorithms[CM]]
 /**
  * This classe intend to run many algorithms parallely on a local system for medium size datasets, it works for one version of an algorithm with various parameters
  * @tparam O the raw object from which vectorizations came from
@@ -206,16 +205,15 @@ final case class LocalClusteringChainingScalar[
  */
 final case class LocalClusteringChainingBinary[
     O,
-    V <: Seq[Int],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
-    CM <: ClusteringModelLocalBinary[V],
-    Vecto[A, B <: Seq[Int]] <: VectorizationLocalBinary[A, B, Vecto[A, B]],
+    CM <: ClusteringModelLocalBinary,
+    Vecto[A] <: VectorizationLocalBinary[A, Vecto[A]],
     GS[X] <: GenSeq[X],
-    Algorithms[A <: Seq[Int], B <: ClusteringModelLocalBinary[A]] <: ClusteringAlgorithmLocalBinary[A, B]
+    Algorithms[B <: ClusteringModelLocalBinary] <: ClusteringAlgorithmLocalBinary[B]
 ](
-    final val data: GS[Cz[O, BinaryVector[V]]],
+    final val data: GS[Cz[O, BinaryVector]],
     final val isDatasetSortedByID: Boolean,
-    final val vectorizations: Seq[Vecto[O, V]],
-    final val algorithms: Seq[Algorithms[V, CM]],
+    final val vectorizations: Seq[Vecto[O]],
+    final val algorithms: Seq[Algorithms[CM]],
     final val modelsKeeper: ModelsKeeper = new ModelsKeeper
-) extends ChainingOneAlgorithm[O, BinaryVector[V], Cz, GS, Vecto[O, V], CM, Algorithms[V, CM]]
+) extends ChainingOneAlgorithm[O, BinaryVector, Cz, GS, Vecto[O], CM, Algorithms[CM]]

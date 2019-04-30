@@ -45,34 +45,34 @@ trait Distance[V <: GVector[V]] extends GenericDistance[V]
  * @tparam T the nature of object inside vector field of GVector
  * @tparam V the nature of collection for vector field of GVector
  */
-trait GSimpleVectorDistance[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV]] extends Distance[SV] {
+trait GSimpleVectorDistance[@specialized(Int, Double) N, SV <: GSimpleVector[N, SV]] extends Distance[SV] {
 	/**
 	 * @return the distance between two objects of nature Seq[T] where T can be any Numeric type ie (Double, float, Int...) usually
 	 */
-	def d(v1: V, v2: V): Double
+	def dRaw(v1: Array[N], v2: Array[N]): Double
 }
 /**
  *
  */
-trait ContinuousDistance[V <: Seq[Double]] extends GSimpleVectorDistance[Double, V, ScalarVector[V]]
+trait ContinuousDistance extends GSimpleVectorDistance[Double, ScalarVector]
 /**
  *
  */
-trait BinaryDistance[V <: Seq[Int]] extends GSimpleVectorDistance[Int, V, BinaryVector[V]]
+trait BinaryDistance extends GSimpleVectorDistance[Int, BinaryVector]
 /**
  *
  */
-trait MixedDistance[Vb <: Seq[Int], Vs <: Seq[Double]] extends Distance[MixedVector[Vb, Vs]] {
+trait MixedDistance extends Distance[MixedVector] {
 	/**
 	 * Distance on raw vector nature
 	 */
-	def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double
+	def dRaw(v1: (Array[Int], Array[Double]), v2: (Array[Int], Array[Double])): Double
 }
 /**
  *
  */
-trait RawContinuousDistance[V <: Seq[Double]] extends GenericDistance[V]
+trait RawContinuousDistance extends GenericDistance[Array[Double]]
 /**
  *
  */
-trait RawBinaryDistance[V <: Seq[Int]] extends GenericDistance[V]
+trait RawBinaryDistance extends GenericDistance[Array[Int]]

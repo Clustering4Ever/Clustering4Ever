@@ -19,14 +19,14 @@ trait AbstractTrainer extends Serializable
   private var trainingDuration = Duration.Zero
   def getLastTrainingDuration = trainingDuration
 
-  protected def initModel(dataset: RDD[Seq[Double]], modelOptions: Option[Map[String, String]])
+  protected def initModel(dataset: RDD[Array[Double]], modelOptions: Option[Map[String, String]])
 
-  protected def trainingIteration(dataset: RDD[Seq[Double]], currentIteration: Int, maxIteration: Int): Double
+  protected def trainingIteration(dataset: RDD[Array[Double]], currentIteration: Int, maxIteration: Int): Double
 
   protected def getModel: AbstractModel
 
   final def training(
-    dataset: RDD[Seq[Double]],
+    dataset: RDD[Array[Double]],
     modelOptions: Option[Map[String, String]] = None,
     maxIteration: Int = 100,
     endConvergeDistance: Double = 0.001

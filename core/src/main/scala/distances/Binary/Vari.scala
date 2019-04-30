@@ -9,13 +9,13 @@ import org.clustering4ever.types.MetricIDType._
 /**
  *
  **/
-final case class Vari[V <: Seq[Int]](val id: MetricID = 9) extends BinaryDistance[V] {
+final case class Vari(final val id: MetricID = 9) extends BinaryDistance {
 
-	final def d(vector1: V, vector2: V): Double = {
+	final def dRaw(vector1: Array[Int], vector2: Array[Int]): Double = {
 		val (a, b, c, d) = BinaryDistanceUtil.contingencyTable(vector1, vector2)
 		(b + c).toDouble / (4 * (a + b + c + d))
 	}
 
-	final def d(vector1: BinaryVector[V], vector2: BinaryVector[V]): Double = d(vector1.vector, vector2.vector)
+	final def d(vector1: BinaryVector, vector2: BinaryVector): Double = dRaw(vector1.vector, vector2.vector)
 
 }

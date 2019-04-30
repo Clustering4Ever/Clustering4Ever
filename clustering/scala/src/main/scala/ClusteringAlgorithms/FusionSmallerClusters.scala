@@ -142,22 +142,22 @@ trait FusionSmallerClusters extends ClusteringSharedTypes {
 	/**
 	 *
 	 */
-	final def obtainDataToFusionLittleCluster[N: Numeric](clusterizedDS: GenSeq[(Int, (Int, Seq[N]))]): (GenMap[Int, Seq[N]], GenMap[Int,Int]) = {
-		val isRealVectorElseBinary = clusterizedDS.head._2._2.isInstanceOf[Double]
-		val gatheredData = clusterizedDS.groupBy{ case (clusterID, _) => clusterID }
-		val clusterCardinalities = gatheredData.map{ case (clusterID, aggregates) => (clusterID, aggregates.size) }
-		val centroids = gatheredData.map{ case (clusterID, aggregates) =>
-			(
-				clusterID,
-				{
-					val vectors = aggregates.map{ case (_, (_, vector)) => vector }
-					// ClusterBasicOperations.obtainMinimizingPoint(vectors, metric)
-					(if( isRealVectorElseBinary ) ClusterBasicOperations.obtainMean(vectors.asInstanceOf[GenSeq[Seq[Double]]]) else ClusterBasicOperations.obtainMedian(vectors.asInstanceOf[GenSeq[Seq[Int]]])).asInstanceOf[Seq[N]]
-				}
-			)
-		}
-		(centroids, clusterCardinalities)
-	}
+	// final def obtainDataToFusionLittleCluster[N: Numeric](clusterizedDS: GenSeq[(Int, (Int, Seq[N]))]): (GenMap[Int, Seq[N]], GenMap[Int,Int]) = {
+	// 	val isRealVectorElseBinary = clusterizedDS.head._2._2.isInstanceOf[Double]
+	// 	val gatheredData = clusterizedDS.groupBy{ case (clusterID, _) => clusterID }
+	// 	val clusterCardinalities = gatheredData.map{ case (clusterID, aggregates) => (clusterID, aggregates.size) }
+	// 	val centroids = gatheredData.map{ case (clusterID, aggregates) =>
+	// 		(
+	// 			clusterID,
+	// 			{
+	// 				val vectors = aggregates.map{ case (_, (_, vector)) => vector }
+	// 				// ClusterBasicOperations.obtainCenter(vectors, metric)
+	// 				(if(isRealVectorElseBinary) ClusterBasicOperations.obtainMean(vectors.asInstanceOf[GenSeq[Seq[Double]]]) else ClusterBasicOperations.obtainMedian(vectors.asInstanceOf[GenSeq[Seq[Int]]])).asInstanceOf[Seq[N]]
+	// 			}
+	// 		)
+	// 	}
+	// 	(centroids, clusterCardinalities)
+	// }
 	/**
 	 *
 	 */
@@ -169,7 +169,7 @@ trait FusionSmallerClusters extends ClusteringSharedTypes {
 			val centroids = clusters.map{ case (clusterID, aggregates) =>
 				(
 					clusterID,
-					ClusterBasicOperations.obtainMinimizingPoint(aggregates.map{ case (_, (_, vector)) => vector }, metric)
+					ClusterBasicOperations.obtainCenter(aggregates.map{ case (_, (_, vector)) => vector }, metric)
 				)
 			}.toSeq.par
 			val (newClusteringMapping, _) = fusionSmallerClusters(centroids, clustersCardinalities, cmin, metric)

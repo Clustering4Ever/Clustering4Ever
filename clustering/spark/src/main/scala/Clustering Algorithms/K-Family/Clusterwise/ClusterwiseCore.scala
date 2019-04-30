@@ -6,13 +6,13 @@ import scala.util.control.Breaks._
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.collection.parallel.mutable.ParArray
 
-final case class ClusterwiseCore[V <: Seq[Double]](
-	final val dsXYTrain: GenSeq[(Int, (V, V))],
+final case class ClusterwiseCore(
+	final val dsXYTrain: GenSeq[(Int, (Array[Double], Array[Double]))],
 	final val h: Int,
 	final val g: Int,
 	final val nbMaxAttemps: Int,
 	logOn: Boolean = false
-)  extends ClusterwiseTypes[V] with Serializable {
+)  extends ClusterwiseTypes with Serializable {
 	val rangeOverClasses = (0 until g).toArray
 
 	private[this] def removeLastXY(clusterID: Int, inputX: IDXDS, inputY: YDS) = {
@@ -93,7 +93,7 @@ final case class ClusterwiseCore[V <: Seq[Double]](
 			try
 			{
 				cptAttemps += 1
-			  	val classedDS: Array[(Int, (V, V, Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
+			  	val classedDS: Array[(Int, (Array[Double], Array[Double], Int))] = dsXYTrain.map{ case (id, (x, y)) => (id, (x, y, Random.nextInt(g))) }.seq.sortBy{ case (id, (x, y, clusterID)) => clusterID }.toArray
 			  	val valuesToBrowse = classedDS.map{  case (id, (x, y, clusterID)) => (id, clusterID) }
 				val dsPerClass = classedDS.groupBy{ case (id, (x, y, clusterID)) => clusterID }.toArray.sortBy{ case (clusterID, _) => clusterID }
 			  	val inputX = dsPerClass.map{ case (clusterID, idXYClass) => mutable.ArrayBuffer(idXYClass.map{ case (id, (x, y, clusterID))  => (id, x) }:_*) }
@@ -302,8 +302,8 @@ final case class ClusterwiseCore[V <: Seq[Double]](
 
 object ClusterwiseCore extends Serializable {
 
-	def plsPerDot[V <: Seq[Double]](
-		dsXYTrain: GenSeq[(Int, (V, V))],
+	def plsPerDot(
+		dsXYTrain: GenSeq[(Int, (Array[Double], Array[Double]))],
 		h: Int,
 		g: Int,
 		nbMaxAttemps: Int = 30,
@@ -314,8 +314,8 @@ object ClusterwiseCore extends Serializable {
 		(dsPerClass, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg)
 	}
 
-	def plsPerMicroClusters[V <: Seq[Double]](
-		dsXYTrain: GenSeq[(Int, (V, V))],
+	def plsPerMicroClusters(
+		dsXYTrain: GenSeq[(Int, (Array[Double], Array[Double]))],
 		allGroupedData: immutable.HashMap[Int, Int],
 		h: Int,
 		g: Int,

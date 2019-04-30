@@ -20,9 +20,9 @@ class DistributedRoughSet(@(transient @param) sc: SparkContext) extends RoughSet
    * RoughSet distributed classic version
    * Don't forget complexity is in O(F!) with F the number of Features, distributed system won't help enough facing this kind of complexity
    */
-  final def fit[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T, S]]], everyCombinationsO: Option[mutable.ArraySeq[mutable.ArrayBuffer[Int]]] = None)(implicit ct: ClassTag[V[T, S]], ct2: ClassTag[S[T]]) = {
+  final def fit[O, T : ClassTag, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T]]], everyCombinationsO: Option[Array[Array[Int]]] = None)(implicit ct: ClassTag[V[T]]) = {
    
-    val everyCombinations = if(everyCombinationsO.isDefined) everyCombinationsO.get else obtainEveryFeaturesCombinations(data.first.v.vector.size).seq
+    val everyCombinations = if(everyCombinationsO.isDefined) everyCombinationsO.get else obtainEveryFeaturesCombinations(data.first.v.vector.size).seq.toArray
 
     val indDecisionClasses = sc.broadcast(generateIndecidabilityDecisionClassesD(data))
     val indAllCombinations = sc.parallelize(everyCombinations).map( f => (f, obtainIndecabilityD(f, data)) )
@@ -39,7 +39,7 @@ class DistributedRoughSet(@(transient @param) sc: SparkContext) extends RoughSet
   /*
    *  RoughSet working by range of features
    */
-  final def runHeuristic[O, T : ClassTag, S[X] <: Seq[X], V[A, B[X] <: Seq[X]] <: GSimpleVector[A, B[A], V[A, B]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T, S]]], columnsOfFeats: Seq[Seq[Int]]): mutable.Buffer[Int] = {
+  final def runHeuristic[O, T : ClassTag, V[A] <: GSimpleVector[A, V[A]], Sz[B, C <: GVector[C]] <: Supervizable[B, C, Sz]](data: RDD[Sz[O, V[T]]], columnsOfFeats: Seq[Seq[Int]]): mutable.Buffer[Int] = {
 
     val nbColumns = columnsOfFeats.size
     val dataBC = sc.broadcast(data.collect.par)

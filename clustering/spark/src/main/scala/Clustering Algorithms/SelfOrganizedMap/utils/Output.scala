@@ -21,7 +21,7 @@ object Output extends Serializable
     fw.close    
   }
 
-  def write(outputDir: String, datas: RDD[Seq[Double]], model: AbstractModel, nbRowSOM:Int, nbColSOM: Int): String =
+  def write(outputDir: String, datas: RDD[Array[Double]], model: AbstractModel, nbRowSOM:Int, nbColSOM: Int): String =
   {
       val now = Calendar.getInstance().getTime()
       val format = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss")

@@ -81,17 +81,17 @@ trait ClusteringAlgorithmLocal[V <: GVector[V], CM <: ClusteringModelLocal[V]] e
  * @tparam V
  * @tparam CM
  */
-trait ClusteringAlgorithmLocalScalar[V <: Seq[Double], CM <: ClusteringModelLocalScalar[V]] extends ClusteringAlgorithmLocal[ScalarVector[V], CM]
+trait ClusteringAlgorithmLocalScalar[CM <: ClusteringModelLocalScalar] extends ClusteringAlgorithmLocal[ScalarVector, CM]
 /**
  * @tparam V
  * @tparam CM
  */
-trait ClusteringAlgorithmLocalBinary[V <: Seq[Int], CM <: ClusteringModelLocalBinary[V]] extends ClusteringAlgorithmLocal[BinaryVector[V], CM]
+trait ClusteringAlgorithmLocalBinary[CM <: ClusteringModelLocalBinary] extends ClusteringAlgorithmLocal[BinaryVector, CM]
 /**
  *
  * @tparam CM
  */
-trait ClusteringAlgorithmLocalMixed[Vb <: Seq[Int], Vs <: Seq[Double], CM <: ClusteringModelLocalMixed[Vb, Vs]] extends ClusteringAlgorithmLocal[MixedVector[Vb, Vs], CM]
+trait ClusteringAlgorithmLocalMixed[CM <: ClusteringModelLocalMixed] extends ClusteringAlgorithmLocal[MixedVector, CM]
 /**
  * @tparam V
  */
@@ -110,16 +110,16 @@ trait ClusteringModelLocal[V <: GVector[V]] extends ClusteringModel {
 /**
  * @tparam V
  */
-trait ClusteringModelLocalScalar[V <: Seq[Double]] extends ClusteringModelLocal[ScalarVector[V]]
+trait ClusteringModelLocalScalar extends ClusteringModelLocal[ScalarVector]
 /**
  * @tparam V
  */
-trait ClusteringModelLocalBinary[V <: Seq[Int]] extends ClusteringModelLocal[BinaryVector[V]]
+trait ClusteringModelLocalBinary extends ClusteringModelLocal[BinaryVector]
 /**
  * @tparam Vb
  * @tparam Vs
  */
-trait ClusteringModelLocalMixed[Vb <: Seq[Int], Vs <: Seq[Double]] extends ClusteringModelLocal[MixedVector[Vb, Vs]]
+trait ClusteringModelLocalMixed extends ClusteringModelLocal[MixedVector]
 /**
  * Generic concept of data which is a Collection (distributed or not) of Clusterizable
  */
@@ -234,10 +234,9 @@ trait ClusteringChaining[
 trait ScalarDataExplorator[
     ID,
     O,
-    V <: Seq[Double],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
-] extends DataExplorator[O, ScalarVector[V], Cz, Collection] {
+] extends DataExplorator[O, ScalarVector, Cz, Collection] {
 
 	// def featuresDistributions: Any
     
@@ -248,10 +247,9 @@ trait ScalarDataExplorator[
 trait BinaryDataExplorator[
     ID,
     O,
-    V <: Seq[Int],
     Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz],
     Collection[_]
-] extends DataExplorator[O, BinaryVector[V], Cz, Collection] {
+] extends DataExplorator[O, BinaryVector, Cz, Collection] {
 
 	// def featuresOccurences: Any
     

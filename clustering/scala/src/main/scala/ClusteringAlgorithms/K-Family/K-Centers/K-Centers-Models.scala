@@ -12,8 +12,8 @@ import org.clustering4ever.clustering.{ClusteringModelLocal, ClusteringModelLoca
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector, MixedVector}
 import org.clustering4ever.clusterizables.Clusterizable
 /**
- * @tparm V
- * @tparm D
+ * @tparam V
+ * @tparam D
  * Trait regrouping commons elements between KCenters models descendant as well for scala than spark
  */
 trait KCentersModelCommons[V <: GVector[V], D <: Distance[V]] extends CenterModel[V, D] with KCommonsArgs[V, D] {
@@ -52,18 +52,18 @@ final case class KCentersModel[V <: GVector[V], D[X <: GVector[X]] <: Distance[X
 /**
  * KMeans model
  */
-final case class KMeansModel[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val centers: immutable.HashMap[Int, ScalarVector[V]] = immutable.HashMap.empty[Int, ScalarVector[V]]) extends KCentersModelAncestor[ScalarVector[V], D[V]] with ClusteringModelLocalScalar[V] with CenterModelLocalReal[V, D[V]] with KnnModelModelScalar[V, D[V]] {
+final case class KMeansModel[D <: ContinuousDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val centers: immutable.HashMap[Int, ScalarVector] = immutable.HashMap.empty[Int, ScalarVector]) extends KCentersModelAncestor[ScalarVector, D] with ClusteringModelLocalScalar with CenterModelLocalReal[D] with KnnModelModelScalar[D] {
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 }
 /**
  * KModes model
  */
-final case class KModesModel[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val centers: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersModelAncestor[BinaryVector[V], D[V]] with ClusteringModelLocalBinary[V] with CenterModelLocalBinary[V, D[V]] with KnnModelModelBinary[V, D[V]] {
+final case class KModesModel[D <: BinaryDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val centers: immutable.HashMap[Int, BinaryVector] = immutable.HashMap.empty[Int, BinaryVector]) extends KCentersModelAncestor[BinaryVector, D] with ClusteringModelLocalBinary with CenterModelLocalBinary[D] with KnnModelModelBinary[D] {
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
 }
 /**
  * KPrototypes model
  */
-final case class KPrototypesModels[Vb <: Seq[Int], Vs <: Seq[Double], D[X <: Seq[Int], Y <: Seq[Double]] <: MixedDistance[X, Y]](final val k: Int, final val metric: D[Vb, Vs], final val minShift: Double, final val maxIterations: Int, final val centers: immutable.HashMap[Int, MixedVector[Vb, Vs]] = immutable.HashMap.empty[Int, MixedVector[Vb, Vs]]) extends KCentersModelAncestor[MixedVector[Vb, Vs], D[Vb, Vs]] with CenterModelMixedLocal[Vb, Vs, D[Vb, Vs]] with KnnModelModelMixed[Vb, Vs, D[Vb, Vs]] {
+final case class KPrototypesModels[D <: MixedDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val centers: immutable.HashMap[Int, MixedVector] = immutable.HashMap.empty[Int, MixedVector]) extends KCentersModelAncestor[MixedVector, D] with CenterModelMixedLocal[D] with KnnModelModelMixed[D] {
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
 }

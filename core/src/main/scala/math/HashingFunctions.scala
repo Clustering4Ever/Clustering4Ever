@@ -27,27 +27,27 @@ trait Hashing[V <: GVector[V]] extends GenericHashing[V]
  * @tparam V
  * Trait for continuous data hashing
  */
-trait HashingScalar[V <: Seq[Double]] extends Hashing[ScalarVector[V]] {
+trait HashingScalar extends Hashing[ScalarVector] {
   /**
    *
    */
-  def hf(v: V): Double
+  def hf(v: Array[Double]): Double
 }
 /**
  * @tparam V
  * Trait for binary data hashing
  */
-trait HashingBinary[V <: Seq[Int]] extends Hashing[BinaryVector[V]]
+trait HashingBinary extends Hashing[BinaryVector]
 /**
  * @tparam V
  * Trait for mixt data hashing
  */
-trait HashingMixed[Vb <: Seq[Int], Vs <: Seq[Double]] extends Hashing[MixedVector[Vb, Vs]]
+trait HashingMixed extends Hashing[MixedVector]
 /**
  * @tparam V
  * A basic implementation of Locality Sensitive Hashing for low dimensions vectors
  */
-final case class LDLSH[V <: Seq[Double]](final val dim: Int, final val w: Double = 1D) extends HashingScalar[V] {
+final case class LDLSH(final val dim: Int, final val w: Double = 1D) extends HashingScalar {
   require(dim <= 3, println("This hashfunction only works well on law dimentional space"))
   /**
    *
@@ -60,7 +60,7 @@ final case class LDLSH[V <: Seq[Double]](final val dim: Int, final val w: Double
   /**
    *  Generate the hash value for a given vector v depending on w, b, hashVector
    */
-  final def hf(v: V): Double = {
+  final def hf(v: Array[Double]): Double = {
     @annotation.tailrec
     def go(s: Double, i: Int): Double = {
       if(i < v.size) go(s + v(i) * hashVector(i), i + 1)
@@ -71,18 +71,18 @@ final case class LDLSH[V <: Seq[Double]](final val dim: Int, final val w: Double
   /**
    *  Generate the hash value for a given vector v depending on w, b, hashVector
    */
-  final def hf(v: ScalarVector[V]): Double = hf(v.vector)
+  final def hf(v: ScalarVector): Double = hf(v.vector)
 }
 /**
  *
  */
-trait RealSpacePartionner[V <: Seq[Double]] extends Serializable {
-  def obtainBucketPerLevel(v: V): immutable.IndexedSeq[Int]
+trait RealSpacePartionner extends Serializable {
+  def obtainBucketPerLevel(v: Array[Double]): immutable.IndexedSeq[Int]
 }
 /**
  *
  */
-final case class HDLSH[V <: Seq[Double]](final val l: Int, final val dim: Int, buckets: Int, w: Double = 1D) extends RealSpacePartionner[V] {
+final case class HDLSH(final val l: Int, final val dim: Int, buckets: Int, w: Double = 1D) extends RealSpacePartionner {
 
   final val hvs = (0 until l).map( hfid => (mutable.ArrayBuffer.fill(dim)(Random.nextGaussian), Random.nextDouble * w, hfid) )
 
@@ -92,7 +92,7 @@ final case class HDLSH[V <: Seq[Double]](final val l: Int, final val dim: Int, b
   /**
    *  Generate the hash value for a given vector x depending on w, b, hashVector
    */
-  final def hf[V <: Seq[Double]](v: V, j: Int): Double = {
+  final def hf(v: Array[Double], j: Int): Double = {
     @annotation.tailrec
     def go(s: Double, i: Int): Double = {
       if(i < v.size) go(s + v(i) * hvs(j)._1(i), i + 1)
@@ -101,7 +101,7 @@ final case class HDLSH[V <: Seq[Double]](final val l: Int, final val dim: Int, b
     (go(0D, 0) + hvs(j)._2) / w
   }
 
-  final def obtainBucketPerLevel(v: V): immutable.IndexedSeq[Int] = {
+  final def obtainBucketPerLevel(v: Array[Double]): immutable.IndexedSeq[Int] = {
     hvs.map{ case (rv, _, hfid) => 
       val bucketID = bucketsLimits.find{ case (th, _) => hf(v, hfid) <= th }
       if(bucketID.isDefined) bucketID.get._2 else buckets

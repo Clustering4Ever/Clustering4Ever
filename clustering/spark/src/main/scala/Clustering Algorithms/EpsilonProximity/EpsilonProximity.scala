@@ -25,6 +25,7 @@ import org.clustering4ever.hashing.{Hashing, HashingScalar}
 import org.clustering4ever.util.VectorsAddOperationsImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 import org.clustering4ever.clustering.rdd.{ClusteringModelDistributed, ClusteringAlgorithmDistributed}
+import org.clustering4ever.graph.DiscoverConnexComponents
 /**
  * @tparam V the working vector nature
  * @tparam D the distance
@@ -58,11 +59,11 @@ trait EpsilonProximityModelAncestor[V <: GVector[V], D <: Distance[V], Hash <: H
  * @param clustersNumber
  * @param inputDataHashCode
  */
-final case class EpsilonProximityModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X], Hash <: HashingScalar[V]](final val clusterizedVectorsSortedByID: RDD[(Long, (ScalarVector[V], Int))], final val metric: D[V], final val clustersNumber: Int, protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[ScalarVector[V], D[V], Hash] {
+final case class EpsilonProximityModelScalar[D <: ContinuousDistance, Hash <: HashingScalar](final val clusterizedVectorsSortedByID: RDD[(Long, (ScalarVector, Int))], final val metric: D, final val clustersNumber: Int, protected final val inputDataHashCode: Int) extends EpsilonProximityModelAncestor[ScalarVector, D, Hash] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityScalar
 
-	protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): RDD[Cz[O, ScalarVector[V]]] = {
+	protected[clustering] final def obtainClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector]])(implicit ct: ClassTag[Cz[O, ScalarVector]]): RDD[Cz[O, ScalarVector]] = {
 		data.map( cz => (cz.id, cz) ).repartitionAndSortWithinPartitions(new HashPartitioner(data.getNumPartitions)).zip(clusterizedVectorsSortedByID).map{ case ((_, cz), (_, (_, clusterID))) =>  cz.addClusterIDs(clusterID) }
 	}
 	/**
@@ -70,7 +71,7 @@ final case class EpsilonProximityModelScalar[V <: Seq[Double], D[X <: Seq[Double
 	 *
 	 * @return the clusterized dataset
 	 */
-	final def obtainInputDataClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): RDD[Cz[O, ScalarVector[V]]] = {
+	final def obtainInputDataClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector]])(implicit ct: ClassTag[Cz[O, ScalarVector]]): RDD[Cz[O, ScalarVector]] = {
 		require(inputDataHashCode == data.hashCode, println("This method work only with input dataset which generate this model, please use others method for predict new set of points"))
 		obtainClustering(data)
 	}
@@ -136,20 +137,19 @@ trait EpsilonProximityAncestor[V <: GVector[V], D <: Distance[V], Hash <: Hashin
  * @param divisionFactor
  */
 final case class EpsilonProximityScalar[
-	V <: Seq[Double],
-	D[X <: Seq[Double]] <: ContinuousDistance[X],
-	Hash <: HashingScalar[V]
+	D <: ContinuousDistance,
+	Hash <: HashingScalar
 ](
 	final val epsilon: String,
 	final val fusionClustersMethod: String,
-	final val metric: D[V],
+	final val metric: D,
 	final val bucketNumber: Int,
 	final val hasher: Hash,
 	final val cmin: Int = 0,
 	final val bucketLayers: Int = 1,
 	final val storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY,
 	final val divisionFactor: Int = 1
-) extends EpsilonProximityAncestor[ScalarVector[V], D[V], Hash, EpsilonProximityModelScalar[V, D, Hash]] {
+) extends EpsilonProximityAncestor[ScalarVector, D, Hash, EpsilonProximityModelScalar[D, Hash]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.EpsilonProximityScalar
 
@@ -157,9 +157,9 @@ final case class EpsilonProximityScalar[
 	final type PartitionIndex = Int
 	final type IndexPartitionOriginal = Int
 	final type EpsilonPerBucket = Double
-	final type FusionableClusterizedData[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]] = List[(IndexPartition, (IndexPartitionOriginal, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector[V]]]))]
+	final type FusionableClusterizedData[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]] = List[(IndexPartition, (IndexPartitionOriginal, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector]]))]
 
-	private[this] def applyLshAndDefinedEpsilon[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]]): (RDD[Cz[O, ScalarVector[V]]], String) = {
+	private[this] def applyLshAndDefinedEpsilon[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector]]): (RDD[Cz[O, ScalarVector]], String) = {
 		val nbDim = data.first.v.vector.size
 
 		val Array(epsilonNature, epsilonArg) = epsilon.split(":")
@@ -172,7 +172,7 @@ final case class EpsilonProximityScalar[
 
 				def definedKNNEpsilon = {
 
-					def epsilonKnnDistanceValue(simMat: scala.collection.GenMap[Long, GenSeq[(Cz[O, ScalarVector[V]], Double)]]) = {
+					def epsilonKnnDistanceValue(simMat: scala.collection.GenMap[Long, GenSeq[(Cz[O, ScalarVector], Double)]]) = {
 						simMat.map{ case (_, v) => v.map(_._2).apply(k + 1) }.sum / simMat.size
 					}
 
@@ -198,10 +198,10 @@ final case class EpsilonProximityScalar[
 		(lshizedRDD, computedEpsilon)
 	}
 
-	private[this] final def applyClusteringPerBucket[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](lshizedRDD: RDD[Cz[O, ScalarVector[V]]], computedEpsilon: String): RDD[(immutable.Iterable[(Int, Int, mutable.ArrayBuffer[Cz[O, ScalarVector[V]]])], Double)] = {
+	private[this] final def applyClusteringPerBucket[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](lshizedRDD: RDD[Cz[O, ScalarVector]], computedEpsilon: String): RDD[(immutable.Iterable[(Int, Int, mutable.ArrayBuffer[Cz[O, ScalarVector]])], Double)] = {
 		lshizedRDD.mapPartitionsWithIndex{ (idxPart, it) =>
 
-		    val data = it.toBuffer.sortBy{ cz: Cz[O, ScalarVector[V]] => cz.id }
+		    val data = it.toBuffer.sortBy{ cz: Cz[O, ScalarVector] => cz.id }
 
 		    val epsilonLocalModel = EpsilonProximityScalarLocal(computedEpsilon, metric).fit(data)
 
@@ -212,7 +212,7 @@ final case class EpsilonProximityScalar[
 	}
 
 
-	private[this] final def exchangeDataBetweenPartitions[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](clusterizedBDS: RDD[(immutable.Iterable[(PartitionIndex, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector[V]]])], EpsilonPerBucket)]): RDD[(Int, (Int, Int, mutable.ArrayBuffer[Cz[O, ScalarVector[V]]]))] = {
+	private[this] final def exchangeDataBetweenPartitions[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](clusterizedBDS: RDD[(immutable.Iterable[(PartitionIndex, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector]])], EpsilonPerBucket)]): RDD[(Int, (Int, Int, mutable.ArrayBuffer[Cz[O, ScalarVector]]))] = {
 		clusterizedBDS.mapPartitions{ it =>
 		    it.flatMap(_._1.flatMap{ case (idxPart, idClust, rest) =>
 	    		if(idxPart == bucketNumber - 1) List((idxPart, (idxPart, idClust, rest)))
@@ -227,7 +227,7 @@ final case class EpsilonProximityScalar[
 		val theMethodChoice = parsedMethodChoice.head
 		val continuityThreshold = Try(parsedMethodChoice.last.toInt).getOrElse(1)
 
-    	def obtainNeighborsClusterFromStudiedOne(oneSide: FusionableClusterizedData[O, Cz], haveClustersCommonDots: mutable.ArrayBuffer[Cz[O, ScalarVector[V]]] => Boolean) = {	
+    	def obtainNeighborsClusterFromStudiedOne(oneSide: FusionableClusterizedData[O, Cz], haveClustersCommonDots: mutable.ArrayBuffer[Cz[O, ScalarVector]] => Boolean) = {	
         	oneSide.collect{ case (idxPart2, (idxPartOr2, idClust2, cluster2)) if(haveClustersCommonDots(cluster2)) => (idxPartOr2, idClust2) }
         	// for( (idxPart2, (idxPartOr2, idClust2, cluster2)) <- oneSide if( haveClustersCommonDots(cluster2) ) ) yield (idxPartOr2, idClust2)
     	}
@@ -235,8 +235,8 @@ final case class EpsilonProximityScalar[
 		 * Fusion
 		 * Worst case in O(n.m) with n and m cardinality of each cluster
 		 */
-		def fusionByDotsProximity(oneSide: FusionableClusterizedData[O, Cz], clusterToStudy: mutable.ArrayBuffer[Cz[O, ScalarVector[V]]]) = {
-			def isThereEnoughCloseDotsBetweenTwoClusters(cluster2: mutable.ArrayBuffer[Cz[O, ScalarVector[V]]]) = {
+		def fusionByDotsProximity(oneSide: FusionableClusterizedData[O, Cz], clusterToStudy: mutable.ArrayBuffer[Cz[O, ScalarVector]]) = {
+			def isThereEnoughCloseDotsBetweenTwoClusters(cluster2: mutable.ArrayBuffer[Cz[O, ScalarVector]]) = {
 				def incrementLimit(i: Int, j: Int, l: Int) = {
 					val vector1 = clusterToStudy(i).v
 					val vector2 = cluster2(j).v
@@ -263,7 +263,7 @@ final case class EpsilonProximityScalar[
         	obtainNeighborsClusterFromStudiedOne(oneSide, isThereEnoughCloseDotsBetweenTwoClusters)
 		}
 
-    	def obtainCommonClusters(oneSide: FusionableClusterizedData[O, Cz], clusterToStudy: mutable.ArrayBuffer[Cz[O, ScalarVector[V]]]): List[(IndexPartitionOriginal, ClusterID)] = {
+    	def obtainCommonClusters(oneSide: FusionableClusterizedData[O, Cz], clusterToStudy: mutable.ArrayBuffer[Cz[O, ScalarVector]]): List[(IndexPartitionOriginal, ClusterID)] = {
 	        val closeClusters = theMethodChoice match {
 	        	case "bydot" => fusionByDotsProximity(oneSide, clusterToStudy)
 	        	case _ => fusionByDotsProximity(oneSide, clusterToStudy)
@@ -278,19 +278,19 @@ final case class EpsilonProximityScalar[
 		val newKeys: immutable.Map[(Int, Int), Int] = sameCluster.flatten.zipWithIndex.toMap
 		val reverseKeys: immutable.Map[Int, (Int, Int)] = newKeys.map(_.swap)
 		val newClusters: List[List[Int]] = sameCluster.map( gatheredCluster => gatheredCluster.map(newKeys) )
-		val (nodes, neighbours) = GatherClustersWithSharedDots.generateNodesAndPairsNew(newClusters)
-		val finalClusters = mutable.HashSet(GatherClustersWithSharedDots.reduceByGatheringClusters(nodes, neighbours).map(_.map(reverseKeys)):_*)
+		val (nodes, neighbours) = DiscoverConnexComponents.generateNodesAndNeighbors(newClusters)
+		val finalClusters = mutable.HashSet(DiscoverConnexComponents.obtainConnexComponents(nodes, neighbours).map(_.map(reverseKeys)):_*)
 
 	    finalClusters
 	}
 
-	private[this] final def separateTwoPartitions[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](fusionOf2Buckets: List[(IndexPartition, (IndexPartitionOriginal, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector[V]]]))]) = {
+	private[this] final def separateTwoPartitions[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](fusionOf2Buckets: List[(IndexPartition, (IndexPartitionOriginal, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector]]))]) = {
 	    val oneOfPartIdx = fusionOf2Buckets.head._2._1
 		fusionOf2Buckets.partition{ case (_, (idxPartOr, _, _)) => idxPartOr == oneOfPartIdx }
 	}
 	
 
-	private[this] final def fusionClustersInsideEachPartition[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](epsilonAvg: Double, eachBucketPairFusionedIntoOneRDD: RDD[(IndexPartition, (IndexPartitionOriginal, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector[V]]]))]) = {
+	private[this] final def fusionClustersInsideEachPartition[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](epsilonAvg: Double, eachBucketPairFusionedIntoOneRDD: RDD[(IndexPartition, (IndexPartitionOriginal, ClusterID, mutable.ArrayBuffer[Cz[O, ScalarVector]]))]) = {
 		eachBucketPairFusionedIntoOneRDD.mapPartitions{ it =>
 			val data =  it.toList
 			val (left, right) = separateTwoPartitions(data)
@@ -302,7 +302,7 @@ final case class EpsilonProximityScalar[
 	    }		
 	}
 
-	private[this] final def fusionBuckets[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](lshizedRDD: RDD[Cz[O, ScalarVector[V]]], computedEpsilon: String) = {
+	private[this] final def fusionBuckets[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](lshizedRDD: RDD[Cz[O, ScalarVector]], computedEpsilon: String) = {
 		val clusterizedBDS = applyClusteringPerBucket(lshizedRDD, computedEpsilon).persist(storageLevel)
 		lshizedRDD.unpersist(false)
 		val epsilonAvg = clusterizedBDS.map(_._2).sum / bucketNumber
@@ -333,25 +333,25 @@ final case class EpsilonProximityScalar[
 		// m1.merged(m2){ case ((k, v1), (_, v2)) => (k, v1 ++ v2) }
 	}
 
-	private[this] final def applyEpsilonClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): EpsilonProximityModelScalar[V, D, Hash] = {
+	private[this] final def applyEpsilonClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector]])(implicit ct: ClassTag[Cz[O, ScalarVector]]): EpsilonProximityModelScalar[D, Hash] = {
 		data.persist(storageLevel)
 		val (lshizedRDD, computedEpsilon) = applyLshAndDefinedEpsilon(data)
 		val (linkedClusterOverRDDPartitions, eachBucketPairFusionedIntoOneRDD) = fusionBuckets(lshizedRDD, computedEpsilon)
 		linkedClusterOverRDDPartitions.persist(storageLevel)
 		val newClusterIdByPairId = giveNewLabelToEachCluster(linkedClusterOverRDDPartitions)
 		val linkedClusterOverRDDPartitions2 = linkedClusterOverRDDPartitions.map(_.map(_.map(newClusterIdByPairId(_))))
-		val (nodes2, neighbours2) = if(divisionFactor <= 1) linkedClusterOverRDDPartitions2.map(GatherClustersWithSharedDots.generateNodesAndPairsNew(_))
+		val (nodes2, neighbours2) = if(divisionFactor <= 1) linkedClusterOverRDDPartitions2.map(DiscoverConnexComponents.generateNodesAndNeighbors(_))
 			.reduce{ case ((nodes1, neighbours1), (nodes2, neighbours2)) => (nodes1 ++ nodes2, merge2Maps(neighbours1, neighbours2)) }
 		// Experimental
 			else {
-				linkedClusterOverRDDPartitions2.map(GatherClustersWithSharedDots.generateNodesAndPairsNew(_))
+				linkedClusterOverRDDPartitions2.map(DiscoverConnexComponents.generateNodesAndNeighbors(_))
 					.mapPartitionsWithIndex( (idx, it) => it.map( a => (idx / divisionFactor, a)) )
 					.reduceByKey{ case ((nodes1, neighbours1), (nodes2, neighbours2)) => (nodes1 ++ nodes2, merge2Maps(neighbours1, neighbours2)) }
-					.map{ case (_, (nodes, neighbours)) => GatherClustersWithSharedDots.generateNodesAndPairsNew(GatherClustersWithSharedDots.reduceByGatheringClusters(nodes, neighbours)) }
+					.map{ case (_, (nodes, neighbours)) => DiscoverConnexComponents.generateNodesAndNeighbors(DiscoverConnexComponents.obtainConnexComponents(nodes, neighbours)) }
 					.reduce{ case ((nodes1, neighbours1), (nodes2, neighbours2)) => (nodes1 ++ nodes2, merge2Maps(neighbours1, neighbours2)) }
 			}
 
-		val seqOfClusters = GatherClustersWithSharedDots.reduceByGatheringClusters(nodes2, neighbours2)
+		val seqOfClusters = DiscoverConnexComponents.obtainConnexComponents(nodes2, neighbours2)
 		val finalClusteringIdByOldOne: immutable.HashMap[Int, Int] = immutable.HashMap(seqOfClusters.zipWithIndex.flatMap{ case (cluster, idxC) => cluster.map((_, idxC)) }:_*)
 
 		val preFinalClustering = eachBucketPairFusionedIntoOneRDD.flatMap{ case (_, (idxPartOr, idClust, rest)) => rest.map(_.addClusterIDs(finalClusteringIdByOldOne(newClusterIdByPairId((idxPartOr, idClust))))) }.distinct.persist(storageLevel)
@@ -361,14 +361,14 @@ final case class EpsilonProximityScalar[
 		EpsilonProximityModelScalar(finalClustering, metric, clusterNumber, data.hashCode)
 	}
 
-	private[this] final def applyEpsilonClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]], cmin: Int)(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): EpsilonProximityModelScalar[V, D, Hash] = {
+	private[this] final def applyEpsilonClustering[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector]], cmin: Int)(implicit ct: ClassTag[Cz[O, ScalarVector]]): EpsilonProximityModelScalar[D, Hash] = {
 		
 		val model = applyEpsilonClustering(data)
 		val clusterizedRDD = model.obtainClustering(data).persist(storageLevel)
 		val numElemByCluster = clusterizedRDD.map( cz => (cz.clusterIDs.last, 1) ).countByKey
 		val centroids = clusterizedRDD.map( cz => (cz.clusterIDs.last, cz.v) )
 			.reduceByKeyLocally(SumVectors.sumVectors(_, _))
-			.map{ case (clusterID, sVector) => (clusterID, ScalarVector(sVector.vector.map(_ / numElemByCluster(clusterID)).asInstanceOf[V])) }
+			.map{ case (clusterID, sVector) => (clusterID, ScalarVector(sVector.vector.map(_ / numElemByCluster(clusterID)))) }
 			.toSeq
 
 		val (newClusterIDByOldOne, cardinalitiesNewClusters) = FusionSmallerClusters.fusionSmallerCluster(centroids, numElemByCluster, cmin, metric)
@@ -377,7 +377,7 @@ final case class EpsilonProximityScalar[
 		EpsilonProximityModelScalar(finalRDD, metric, newClusterNumber, data.hashCode)
 	}
 
-	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector[V]]])(implicit ct: ClassTag[Cz[O, ScalarVector[V]]]): EpsilonProximityModelScalar[V, D, Hash] = {
+	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, ScalarVector]])(implicit ct: ClassTag[Cz[O, ScalarVector]]): EpsilonProximityModelScalar[D, Hash] = {
 		if(cmin == 0) applyEpsilonClustering(data)
 		else applyEpsilonClustering(data, cmin)
 	}
@@ -394,14 +394,13 @@ object EpsilonProximity
 {
 	final def fit[
 		O,
-		V <: Seq[Double],
 		Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz],
-		D[X <: Seq[Double]] <: ContinuousDistance[X],
-		Hash <: HashingScalar[V]
+		D <: ContinuousDistance,
+		Hash <: HashingScalar
 	](
-		data: RDD[Cz[O, ScalarVector[V]]],
+		data: RDD[Cz[O, ScalarVector]],
 		epsilon: String,
-		metric: D[V],
+		metric: D,
 		fusionClustersMethod: String,
 		bucketNumber: Int,
 		hasher: Hash,
@@ -409,7 +408,7 @@ object EpsilonProximity
 		bucketLayers: Int = 1,
 		cmin: Int = 0,
 		divisionFactor: Int = 0
-	)(implicit ev: ClassTag[Cz[O, ScalarVector[V]]]): EpsilonProximityModelScalar[V, D, Hash] =
+	)(implicit ev: ClassTag[Cz[O, ScalarVector]]): EpsilonProximityModelScalar[D, Hash] =
 		EpsilonProximityScalar(epsilon, fusionClustersMethod, metric, bucketNumber, hasher, cmin, bucketLayers, storageLevel, divisionFactor).fit(data)
 
 }

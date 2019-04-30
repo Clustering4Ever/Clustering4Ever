@@ -13,7 +13,7 @@ import org.clustering4ever.math.distances.binary.HammingMeta
 /**
  *
  */
-trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends EuclideanAncestor[Vs] with HammingMeta[Vb] {
+trait HammingAndEuclideanMeta extends EuclideanAncestor with HammingMeta {
 	/**
 	 * The α coefficient to combined results from scalar part and binary part
 	 *  - if different from 0 it took the form of HammingDistance + α * EuclideanDistance
@@ -23,7 +23,7 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Euclide
 	/**
 	 *
 	 */
-	protected final def hammingAndEuclidean(v1: (Vb, Vs), v2: (Vb, Vs)): Double = {
+	protected final def hammingAndEuclidean(v1: (Array[Int], Array[Double]), v2: (Array[Int], Array[Double])): Double = {
 		val ds = euclidean(v1._2, v2._2)
 		val db = hamming(v1._1, v2._1)
 		if(alpha == 0) {
@@ -40,15 +40,15 @@ trait HammingAndEuclideanMeta[Vb <: Seq[Int], Vs <: Seq[Double]] extends Euclide
  * @param squareRoot if true applied the squared root to euclidean distance
  * @param id the unique identifier of this metric
  */
-final case class HammingAndEuclidean[Vb <: Seq[Int], Vs <: Seq[Double]](final val alpha: Double = 0D, final val squareRoot: Boolean = true, final val id: MetricID = 10) extends HammingAndEuclideanMeta[Vb, Vs] with MixedDistance[Vb, Vs] {
+final case class HammingAndEuclidean(final val alpha: Double = 0D, final val squareRoot: Boolean = true, final val id: MetricID = 10) extends HammingAndEuclideanMeta with MixedDistance {
 	/**
 	 *	
 	 */
-	final def d(v1: (Vb, Vs), v2: (Vb, Vs)): Double = hammingAndEuclidean(v1, v2)	
+	final def dRaw(v1: (Array[Int], Array[Double]), v2: (Array[Int], Array[Double])): Double = hammingAndEuclidean(v1, v2)	
 	/**
 	 *	
 	 */
-	final def d(v1: MixedVector[Vb, Vs], v2: MixedVector[Vb, Vs]): Double = {
+	final def d(v1: MixedVector, v2: MixedVector): Double = {
 		val MixedVector(binary1, scalar1) = v1
 		val MixedVector(binary2, scalar2) = v2
 		hammingAndEuclidean((binary1, scalar1), (binary2, scalar2))

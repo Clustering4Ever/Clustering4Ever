@@ -21,13 +21,12 @@ object UtilSpark
 
 	final def generateDataLocalityOnHashsedDS[
 		O,
-		V <: Seq[Double],
 		Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz]
 	](
-		rddToPartitioned: RDD[Pz[O, ScalarVector[V]]],
+		rddToPartitioned: RDD[Pz[O, ScalarVector]],
 		nbblocs1: Int,
 		nbBucketRange: Int
-	): RDD[(IndexPartition, (Pz[O, ScalarVector[V]], IsOriginalDot, HasConverged))] = {
+	): RDD[(IndexPartition, (Pz[O, ScalarVector], IsOriginalDot, HasConverged))] = {
 		val isOriginalPoint = true
 		val hasConverged = true
 		val bucketRange = 1 to nbBucketRange
@@ -51,15 +50,14 @@ object UtilSpark
 
 	final def generateDataLocalityLD[
 		O,
-		V <: Seq[Double],
 		Pz[B, C <: GVector[C]] <: Preprocessable[B, C, Pz],
-		Hasher <: HashingScalar[V]
+		Hasher <: HashingScalar
 	](
-		rddToPartitioned: RDD[Pz[O, ScalarVector[V]]],
+		rddToPartitioned: RDD[Pz[O, ScalarVector]],
 		hashing: Hasher,
 		nbblocs1: Int,
 		nbBucketRange: Int
-	): RDD[(IndexPartition, (Pz[O, ScalarVector[V]], IsOriginalDot, HasConverged))] = {
+	): RDD[(IndexPartition, (Pz[O, ScalarVector], IsOriginalDot, HasConverged))] = {
 		val hashedRDD = rddToPartitioned.sortBy( cz => hashing.hf(cz.v) , ascending = true, nbblocs1 )
 		generateDataLocalityOnHashsedDS(hashedRDD, nbblocs1, nbBucketRange)
 	}

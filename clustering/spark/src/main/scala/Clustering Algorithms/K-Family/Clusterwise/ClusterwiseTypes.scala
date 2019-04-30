@@ -3,11 +3,11 @@ package org.clustering4ever.spark.clustering.clusterwise
 import scala.collection.{mutable, immutable}
 import breeze.linalg.DenseMatrix
 
-trait ClusterwiseTypes[S <: Seq[Double]] {
+trait ClusterwiseTypes {
 	final type ClassID = Int
 	final type ID = Int
-	final type Xvector = S
-	final type Yvector = S
+	final type Xvector = Array[Double]
+	final type Yvector = Array[Double]
 	final type IDXYtest = Seq[(Int, (Xvector, Yvector))]
 	final type IDXtest = Seq[(Long, Xvector)]
 	final type DSPerClass = Array[(ID, (Xvector, Yvector, ClassID))]

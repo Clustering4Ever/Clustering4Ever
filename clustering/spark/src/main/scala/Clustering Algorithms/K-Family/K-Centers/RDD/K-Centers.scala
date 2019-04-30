@@ -66,7 +66,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 	/**
 	 *
 	 */
-	protected final def obtainMedians[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
+	protected final def obtainCenters[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): immutable.HashMap[Int, V] = {
 		
 		data.persist(persistanceLVL)
 
@@ -79,7 +79,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
 			val preUpdatedCenters = mutable.ArrayBuffer(
 				data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), cz.v) )
-				.reduceByKeyLocally{ case (v1, v2) => ClusterBasicOperations.obtainMinimizingPoint(Seq(v1, v2), metric) }
+				.reduceByKeyLocally{ case (v1, v2) => ClusterBasicOperations.obtainCenter(Seq(v1, v2), metric) }
 				.toArray
 			:_*).sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
@@ -102,5 +102,5 @@ final case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](fi
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
 
-	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainMedians(data))
+	final def fit[O, Cz[Y, Z <: GVector[Z]] <: Clusterizable[Y, Z, Cz]](data: RDD[Cz[O, V]])(implicit ct: ClassTag[Cz[O, V]]): KCentersModel[V, D] = KCentersModel[V, D](k, metric, minShift, maxIterations, persistanceLVL, obtainCenters(data))
 }

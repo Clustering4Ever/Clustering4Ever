@@ -19,11 +19,11 @@ import org.clustering4ever.clustering.ClusteringAlgorithmLocalBinary
  * @param maxIterations maximal number of iteration
  * @param metric a defined binary dissimilarity measure on a GVector descendant
  */
-final case class KModes[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val customCenters: immutable.HashMap[Int, BinaryVector[V]] = immutable.HashMap.empty[Int, BinaryVector[V]]) extends KCentersAncestor[BinaryVector[V], D[V], KModesModel[V, D]] with ClusteringAlgorithmLocalBinary[V, KModesModel[V, D]] {
+final case class KModes[D <: BinaryDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val customCenters: immutable.HashMap[Int, BinaryVector] = immutable.HashMap.empty[Int, BinaryVector]) extends KCentersAncestor[BinaryVector, D, KModesModel[D]] with ClusteringAlgorithmLocalBinary[KModesModel[D]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
 
-	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector[V]]]): KModesModel[V, D] = KModesModel(k, metric, minShift, maxIterations, obtainMedians(data))
+	final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector]]): KModesModel[D] = KModesModel(k, metric, minShift, maxIterations, obtainCenters(data))
 }
 /**
  *
@@ -32,12 +32,12 @@ object KModes {
 	/**
 	 *
 	 */
-	final def generateAnyAlgorithmArgumentsCombination[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X]](
+	final def generateAnyAlgorithmArgumentsCombination[D <: BinaryDistance](
 		kValues: Seq[Int] = Seq(4, 6, 8),
-		metricValues: Seq[D[V]] = Seq(Hamming[V] _),
+		metricValues: Seq[D] = Seq(Hamming),
 		minShiftValues: Seq[Double] = Seq(0.0001),
 		maxIterationsValues: Seq[Int] = Seq(100),
-		initializedCentersValues: Seq[immutable.HashMap[Int, BinaryVector[V]]] = Seq(immutable.HashMap.empty[Int, BinaryVector[V]])): Seq[KModes[V, D]] = {
+		initializedCentersValues: Seq[immutable.HashMap[Int, BinaryVector]] = Seq(immutable.HashMap.empty[Int, BinaryVector])): Seq[KModes[D]] = {
 		for(
 			k <- kValues;
 			metric <- metricValues;
@@ -49,13 +49,13 @@ object KModes {
 	/**
 	 * Run the K-Modes with any binary distance
 	 */
-	final def fit[V <: Seq[Int], D[X <: Seq[Int]] <: BinaryDistance[X], GS[Y] <: GenSeq[Y]](
-		data: GS[V],
+	final def fit[D <: BinaryDistance, GS[Y] <: GenSeq[Y]](
+		data: GS[Array[Int]],
 		k: Int,
-		metric: D[V],
+		metric: D,
 		maxIterations: Int,
 		minShift: Double
-	): KModesModel[V, D] = {
+	): KModesModel[D] = {
 		KModes(k, metric, minShift, maxIterations).fit(binaryToClusterizable(data))
 	}
 }

@@ -16,7 +16,7 @@ object BinaryDistanceUtil extends Serializable {
 	 *   - c is incremented if i = 0, j = 1
 	 *   - d is incremented if i = 0, j = 0
 	 */
-	final def contingencyTable[V <: Seq[Int]](vector1: V, vector2: V): (Int, Int, Int, Int) = {
+	final def contingencyTable(vector1: Array[Int], vector2: Array[Int]): (Int, Int, Int, Int) = {
 
 		val oneBite = 1
 		val zeroBite = 0
@@ -46,13 +46,13 @@ object BinaryDistanceUtil extends Serializable {
 	 *   - c is incremented if i = 0, j = 1
 	 *   - d is incremented if i = 0, j = 0
 	 */
-	final def contingencyTable[V <: Seq[Int]](vector1: BinaryVector[V], vector2: BinaryVector[V]): (Int, Int, Int, Int) = contingencyTable(vector1.vector, vector2.vector)
+	final def contingencyTable(vector1: BinaryVector, vector2: BinaryVector): (Int, Int, Int, Int) = contingencyTable(vector1.vector, vector2.vector)
 
 	/**
 	 * Count number of occurence for each binary features
 	 * @return Array[(numberOf0, numberOf1)]
 	 */
-	final def countOccFeat(data: Seq[Seq[Int]]): Seq[(Int, Int)] = {
+	final def countOccFeat(data: Seq[Array[Int]]): Array[(Int, Int)] = {
 		import org.clustering4ever.util.VectorsAddOperationsImplicits._
 		val nbTotData = data.size
 		val nbOne = data.reduce(SumVectors.sumVectors(_, _))

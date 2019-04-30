@@ -28,34 +28,34 @@ trait CenterModel[V <: GVector[V], D <: Distance[V]] extends MetricModel[V, D] {
  * @tparam SV
  * @tparam D
  */
-trait CenterModelSimpleV[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <: GSimpleVectorDistance[T, V, SV]] extends CenterModel[SV, D] {
+trait CenterModelSimpleV[N, SV <: GSimpleVector[N, SV], D <: GSimpleVectorDistance[N, SV]] extends CenterModel[SV, D] {
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	final def centerPredict(v: V): ClusterID = centers.minBy{ case(_, centroid) => metric.d(centroid.vector, v) }._1	
+	final def centerPredict(v: Array[N]): ClusterID = centers.minBy{ case(_, centroid) => metric.dRaw(centroid.vector, v) }._1	
 }
 /**
  * @tparam V
  * @tparam D
  */
-trait CenterModelReal[V <: Seq[Double], D <: ContinuousDistance[V]] extends CenterModelSimpleV[Double, V, ScalarVector[V], D]
+trait CenterModelReal[D <: ContinuousDistance] extends CenterModelSimpleV[Double, ScalarVector, D]
 /**
  * @tparam V
  * @tparam D
  */
-trait CenterModelBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends CenterModelSimpleV[Int, V, BinaryVector[V], D]
+trait CenterModelBinary[D <: BinaryDistance] extends CenterModelSimpleV[Int, BinaryVector, D]
 /**
  * @tparam Vs
  * @tparam Vb
  * @tparam D
  */
-trait CenterModelMixed[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends CenterModel[MixedVector[Vb, Vs], D] {
+trait CenterModelMixed[D <: MixedDistance] extends CenterModel[MixedVector, D] {
 	/**
 	 * Time complexity O(c) with c the number of clusters
 	 * @return the clusterID of nearest cluster center for a specific point
 	 */
-	final def centerPredict(v: (Vb, Vs)): ClusterID = centers.minBy{ case(_, centroid) => metric.d((centroid.binary, centroid.scalar), v) }._1
+	final def centerPredict(v: (Array[Int], Array[Double])): ClusterID = centers.minBy{ case(_, centroid) => metric.dRaw((centroid.binary, centroid.scalar), v) }._1
 }
 /**
  * @tparam V
@@ -86,35 +86,35 @@ trait CenterModelLocal[V <: GVector[V], D <: Distance[V]] extends CenterModel[V,
  * @tparam SV
  * @tparam D
  */
-trait CenterModelSimpleVLocal[T, V <: Seq[T], SV <: GSimpleVector[T, V, SV], D <: GSimpleVectorDistance[T, V, SV]] extends CenterModelSimpleV[T, V, SV, D] {
+trait CenterModelSimpleVLocal[N, SV <: GSimpleVector[N, SV], D <: GSimpleVectorDistance[N, SV]] extends CenterModelSimpleV[N, SV, D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	final def centerPredict[GS[X] <: GenSeq[X]](data: GS[V])(implicit d1: DummyImplicit, d2: DummyImplicit): GS[(ClusterID, V)] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, V)]]
+	final def centerPredict[GS[X] <: GenSeq[X]](data: GS[Array[N]])(implicit d1: DummyImplicit, d2: DummyImplicit): GS[(ClusterID, Array[N])] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, Array[N])]]
 }
 /**
  * @tparam Vb
  * @tparam Vs
  * @tparam D
  */
-trait CenterModelMixedLocal[Vb <: Seq[Int], Vs <: Seq[Double], D <: MixedDistance[Vb, Vs]] extends CenterModelMixed[Vb, Vs, D] {
+trait CenterModelMixedLocal[D <: MixedDistance] extends CenterModelMixed[D] {
 	/**
 	 * Time complexity O(n<sub>data</sub>.c) with c the number of clusters
 	 * @return the input Seq with labels obtain via centerPredict method
 	 */
-	final def centerPredict[GS[X] <: GenSeq[X]](data: GS[(Vb, Vs)])(implicit d1: DummyImplicit, d2: DummyImplicit): GS[(ClusterID, (Vb, Vs))] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, (Vb, Vs))]]
+	final def centerPredict[GS[X] <: GenSeq[X]](data: GS[(Array[Int], Array[Double])])(implicit d1: DummyImplicit, d2: DummyImplicit): GS[(ClusterID, (Array[Int], Array[Double]))] = data.map( v => (centerPredict(v), v) ).asInstanceOf[GS[(ClusterID, (Array[Int], Array[Double]))]]
 }
 /**
  * @tparam V
  * @tparam D
  */
-trait CenterModelLocalReal[V <: Seq[Double], D <: ContinuousDistance[V]] extends CenterModelSimpleVLocal[Double, V, ScalarVector[V], D]
+trait CenterModelLocalReal[D <: ContinuousDistance] extends CenterModelSimpleVLocal[Double, ScalarVector, D]
 /**
  * @tparam V
  * @tparam D
  */
-trait CenterModelLocalBinary[V <: Seq[Int], D <: BinaryDistance[V]] extends CenterModelSimpleVLocal[Int, V, BinaryVector[V], D]
+trait CenterModelLocalBinary[D <: BinaryDistance] extends CenterModelSimpleVLocal[Int, BinaryVector, D]
 /**
  * @tparam V
  * @tparam D

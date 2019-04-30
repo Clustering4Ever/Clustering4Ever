@@ -4,7 +4,7 @@ package org.clustering4ever.clustering.arguments
  */
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.vectors.GVector
-import org.clustering4ever.kernels.{Kernel, KernelArgs}
+import org.clustering4ever.kernels.{Estimator, EstimatorArgs}
 /**
  *
  */
@@ -48,7 +48,7 @@ trait MetricArgs[V <: GVector[V], D <: Distance[V]] extends AlgorithmsArguments 
 /**
  *
  */
-trait KernelAsArgs[V <: GVector[V], KArgs <: KernelArgs, K <: Kernel[V, KArgs]] extends AlgorithmsArguments {
+trait KernelAsArgs[V <: GVector[V], KArgs <: EstimatorArgs, K <: Estimator[V, KArgs]] extends AlgorithmsArguments {
   /**
    * The kernel used in this algorithm
    */
