@@ -52,7 +52,12 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     /**
      *
      */
-    def longToNode(l: Long): (Long, Option[V]) = (l, Option(ants(l).clusterizable.get.v))
+    def longToNode(l: Long): (Long, Option[V]) = {
+      if (l== Long.MinValue) (Long.MinValue, None)
+      else (l, Some(ants(l).clusterizable.get.v))
+
+    }
+
     /**
      *
      */
@@ -66,16 +71,17 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
       val node = tree.graph.get(longToNode(xpos))
       val successors = allSuccessors(longToNode(xpos), tree) + node
       successors.foreach(key => ants(key._1).firstTime = true)
-      tree.graph --= successors.toSeq//.asInstanceOf[Set[tree.graph.NodeT]]
+      tree.graph --= successors.toSeq
     }
     /**
      *
      */
     def dissimilarValue(xpos: Long): Double = {
-      val successors = directSuccessors(longToNode(xpos), tree)
-      val (minSuccessor, _) = successors.minBy( successor => metric.d(ants(xpos).clusterizable.get.v, ants(successor._1).clusterizable.get.v) )
-      metric.d(ants(xpos).clusterizable.get.v, ants(minSuccessor).clusterizable.get.v)
+      val successors = directSuccessors(longToNode(xpos), tree).toArray
+      val couples = successors.combinations(2).toArray
+      couples.map(c => metric.d(c(0)._2.get, c(1)._2.get)).min
     }
+
     /**
      *
      */
@@ -105,10 +111,10 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
     /**
      *
      */
-    def algorithm(xi: Long, xpos: Long): Long = {
+    def algorithm(xi: Long, xpos: Long): Option[Long] = {
       if(directSuccessors(longToNode(xpos), tree).size < 2) {
         connect(xi, xpos)
-        -1L
+        None
       } else {
         lazy val tDissim = dissimilarValue(xpos)
         lazy val xplus = mostSimilarNode(xi, xpos)
@@ -118,44 +124,46 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
             disconnect(xplus)
             connect(xi, xpos)
             ants(xpos).firstTime = false
-            -1L
+            None
           }
           else {
             ants(xpos).firstTime = false
-            xplus
+            Some(xplus)
           }
         }
         else {
           if(metric.d(ants(xi).clusterizable.get.v, ants(xplus).clusterizable.get.v) < tDissim) {
             connect(xi, xpos)
-            -1L
+            None
           }
           else {
-            xplus
+            Some(xplus)
           }
         }
       }
     }
+
     /**
      *
      */
     @annotation.tailrec
-    def place(xi: Long, xpos: Long): Long = if (xpos >= 0) place(xi, algorithm(xi, xpos)) else xpos
+    def place(xi: Long, xpos: Option[Long]): Unit = if (xpos.isDefined) place(xi, algorithm(xi, xpos.get))
     /**
      *
      */
     def classify(): Unit = {
       while (notConnectedAnts.nonEmpty) {
         val xi = notConnectedAnts.dequeue
-        place(xi, support.id)
+        place(xi, Some(support.id))
       }
       tree.obtainPrincipalCluster(longToNode(support.id))
     }
     def classify2(): Unit = {
       // PE que c'est plus adapté si tu te ressert plus de notConnectedAnts après
-      notConnectedAnts.foreach( ant => place(ant, support.id))
+      notConnectedAnts.foreach( ant => place(ant, Some(support.id)))
       tree.obtainPrincipalCluster(longToNode(support.id))
     }
+
 
     classify()
     tree

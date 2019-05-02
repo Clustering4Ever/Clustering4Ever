@@ -2,94 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="43ca3e32-0a44-4747-bfcd-4d6e4a8cbc27" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/core/src/main/scala/utils/SortingTools.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.sbt" beforeDir="false" afterPath="$PROJECT_DIR$/build.sbt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/EpsilonProximity/EpsilonProximity.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/EpsilonProximity/EpsilonProximity.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/EpsilonProximity/EpsilonProximityModels.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/EpsilonProximity/EpsilonProximityModels.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/FusionSmallerClusters.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/FusionSmallerClusters.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Centers-Models.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Centers-Models.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Centers.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Centers.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Means.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Means.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Modes.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Modes.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Prototypes.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Prototypes.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/KPPInitializer.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/KPPInitializer.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/MeanShift/GradientAscent.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/MeanShift/GradientAscent.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/RandomLocalArea/RandomLocalAreaClustering.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/RandomLocalArea/RandomLocalAreaClustering.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/RandomLocalArea/RandomLocalAreaClusteringModels.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/RandomLocalArea/RandomLocalAreaClusteringModels.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAnalysis/ClusteringStats.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAnalysis/ClusteringStats.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAnalysis/ClustersAnalysis.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAnalysis/ClustersAnalysis.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringChaining/ClusteringChaining.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringChaining/ClusteringChaining.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringChaining/ClusteringChainingPerAlgorithm.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringChaining/ClusteringChainingPerAlgorithm.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Preprocessing/RoughSet.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Preprocessing/RoughSet.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Preprocessing/RoughSetCommons.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Preprocessing/RoughSetCommons.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Preprocessing/Util.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Preprocessing/Util.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/QualityMeasures/ClusterIndicesAnalysis.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/QualityMeasures/ClusterIndicesAnalysis.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/QualityMeasures/ExternalIndices.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/QualityMeasures/ExternalIndices.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/QualityMeasures/InternalIndices.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/QualityMeasures/InternalIndices.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Utils/ModelsPredictors.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Utils/ModelsPredictors.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/Utils/ScalaImplicits.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/Utils/ScalaImplicits.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/EpsilonProximity/EpsilonProximity.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/EpsilonProximity/EpsilonProximity.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/EpsilonProximity/GatherClustersWithSharedDots.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/utils/DiscoverConnexComponents.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/Clusterwise.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/Clusterwise.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/ClusterwiseCore.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/ClusterwiseCore.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/ClusterwiseModel.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/ClusterwiseModel.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/ClusterwiseTypes.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/ClusterwiseTypes.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/PLS.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/Clusterwise/PLS.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/Dataset/K-Centers-Models.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/Dataset/K-Centers-Models.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/Dataset/K-Centers.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/Dataset/K-Centers.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/Dataset/K-Means.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/Dataset/K-Means.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Centers-Models.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Centers-Models.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Centers.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Centers.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Means.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Means.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Modes.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Modes.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Prototypes.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/K-Family/K-Centers/RDD/K-Prototypes.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/MeanShift/GradientAscent.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/MeanShift/GradientAscent.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/global/AbstractModel.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/global/AbstractModel.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/global/AbstractPrototype.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/global/AbstractPrototype.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/global/AbstractTrainer.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/global/AbstractTrainer.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/mtm/RunMTM.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/mtm/RunMTM.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/mtm/SomTrainerA.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/mtm/SomTrainerA.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/utils/NamedVector.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/utils/NamedVector.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/utils/Output.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/SelfOrganizedMap/utils/Output.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/UtilSpark.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Clustering Algorithms/UtilSpark.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/CoreExtensionSpark/SparkImplicits.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/CoreExtensionSpark/SparkImplicits.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Preprocessing/DistributedRoughSet.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Preprocessing/DistributedRoughSet.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Preprocessing/RoughSetCommons.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Preprocessing/RoughSetCommons.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/QualityMeasures/ExternalIndices.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/QualityMeasures/ExternalIndices.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/QualityMeasures/InternalIndices.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/QualityMeasures/InternalIndices.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/clustering/spark/src/main/scala/Utils/ClustersAnalysis.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/spark/src/main/scala/Utils/ClustersAnalysis.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Clusterizables.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Clusterizables.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Enums.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Enums.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Preprocessables.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Preprocessables.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Supervizables.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Supervizables.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Vectorizations.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Vectorizations.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Vectors.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/basicClasses/Vectors.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/clusteringTraits/AlgorithmsArguments.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/clusteringTraits/AlgorithmsArguments.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/clusteringTraits/ClusteringCommons.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/clusteringTraits/ClusteringCommons.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/Hamming.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/Hamming.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/MeanMahanttan.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/MeanMahanttan.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/PatternDifference.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/PatternDifference.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/ShapeDifference.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/ShapeDifference.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/SizeDifference.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/SizeDifference.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/Vari.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Binary/Vari.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/BinaryDistanceUtils.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/BinaryDistanceUtils.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Distance.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Distance.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Mixt/HammingAndEuclidean.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Mixt/HammingAndEuclidean.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Scalar/Cosine.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Scalar/Cosine.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Scalar/Euclidean.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Scalar/Euclidean.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/distances/Scalar/Minkowski.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/distances/Scalar/Minkowski.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/kernels/KernelArgs.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/kernels/KernelArgs.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/kernels/Kernels.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/kernels/Kernels.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/math/HashingFunctions.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/math/HashingFunctions.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/math/Math.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/math/Math.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/models/CenterOrientedModel.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/models/CenterOrientedModel.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/models/KnnOrientedModel.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/models/KnnOrientedModel.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/utils/ClusterBasicOperations.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/utils/ClusterBasicOperations.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/utils/SimilarityMatrixComputations.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/utils/SimilarityMatrixComputations.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/utils/SortGsCz.scala" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/src/main/scala/utils/SumVectors.scala" beforeDir="false" afterPath="$PROJECT_DIR$/core/src/main/scala/utils/SumVectors.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/AntTree.scala" beforeDir="false" afterPath="$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/AntTree.scala" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/project/project/target/" />
@@ -128,8 +42,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/AntTree.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="705">
-              <caret line="168" column="120" lean-forward="true" selection-start-line="168" selection-start-column="120" selection-end-line="168" selection-end-column="120" />
+            <state relative-caret-position="442">
+              <caret line="149" column="106" selection-start-line="149" selection-start-column="106" selection-end-line="149" selection-end-column="106" />
               <folding>
                 <element signature="e#102#135#0" expanded="true" />
               </folding>
@@ -140,8 +54,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/AntTree-Models.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1286">
-              <caret line="78" column="4" selection-start-line="78" selection-start-column="4" selection-end-line="78" selection-end-column="4" />
+            <state relative-caret-position="229">
+              <caret line="18" column="3" lean-forward="true" selection-start-line="18" selection-start-column="3" selection-end-line="18" selection-end-column="3" />
               <folding>
                 <element signature="e#99#185#0" expanded="true" />
               </folding>
@@ -152,7 +66,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Centers-Models.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="918">
+            <state relative-caret-position="782">
               <caret line="54" column="349" selection-start-line="54" selection-start-column="349" selection-end-line="54" selection-end-column="349" />
               <folding>
                 <element signature="e#83#116#0" expanded="true" />
@@ -173,7 +87,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/build.sbt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="425">
+            <state relative-caret-position="408">
               <caret line="25" column="1" selection-start-line="25" selection-start-column="1" selection-end-line="25" selection-end-column="1" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
@@ -226,17 +140,18 @@
       <select />
     </treeState>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
-    <option name="x" value="260" />
-    <option name="y" value="20" />
-    <option name="width" value="1400" />
-    <option name="height" value="1000" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-7" />
+    <option name="width" value="974" />
+    <option name="height" value="1047" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -304,14 +219,12 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1551023243822" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1556800917447" />
     <property name="com.intellij.ide.scratch.LRUPopupBuilder$1/New Scratch File" value="Scala" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
@@ -394,8 +307,8 @@
     </option>
     <option name="modificationStamps">
       <map>
-        <entry key="$PROJECT_DIR$" value="4663880315855" />
-        <entry key="$PROJECT_DIR$/build.sbt" value="2728434028" />
+        <entry key="$PROJECT_DIR$" value="4664040310421" />
+        <entry key="$PROJECT_DIR$/build.sbt" value="1579720585" />
         <entry key="$PROJECT_DIR$/project/build.properties" value="2567920773" />
         <entry key="$PROJECT_DIR$/project/plugins.sbt" value="945217855" />
       </map>
@@ -446,17 +359,18 @@
       <workItem from="1550648876938" duration="2223000" />
       <workItem from="1551020303138" duration="2888000" />
       <workItem from="1556650255515" duration="249000" />
+      <workItem from="1556800028567" duration="821000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="70278000" />
+    <option name="totallyTimeSpent" value="71099000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
+    <frame x="-7" y="0" width="974" height="1047" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1748401" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.032822758" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -577,30 +491,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/build.sbt">
+    <entry file="file://$PROJECT_DIR$/core/src/main/scala/basicClasses/ExtensibleAlgorithmNature.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="25" column="1" selection-start-line="25" selection-start-column="1" selection-end-line="25" selection-end-column="1" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="773">
+          <caret line="72" column="69" selection-start-line="72" selection-start-column="69" selection-end-line="72" selection-end-column="69" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/K-Family/K-Centers/K-Centers-Models.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="918">
+        <state relative-caret-position="782">
           <caret line="54" column="349" selection-start-line="54" selection-start-column="349" selection-end-line="54" selection-end-column="349" />
           <folding>
             <element signature="e#83#116#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/src/main/scala/basicClasses/ExtensibleAlgorithmNature.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="773">
-          <caret line="72" column="69" selection-start-line="72" selection-start-column="69" selection-end-line="72" selection-end-column="69" />
         </state>
       </provider>
     </entry>
@@ -611,10 +515,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/build.sbt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="408">
+          <caret line="25" column="1" selection-start-line="25" selection-start-column="1" selection-end-line="25" selection-end-column="1" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/AntTree-Models.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1286">
-          <caret line="78" column="4" selection-start-line="78" selection-start-column="4" selection-end-line="78" selection-end-column="4" />
+        <state relative-caret-position="229">
+          <caret line="18" column="3" lean-forward="true" selection-start-line="18" selection-start-column="3" selection-end-line="18" selection-end-column="3" />
           <folding>
             <element signature="e#99#185#0" expanded="true" />
           </folding>
@@ -623,8 +537,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/clustering/scala/src/main/scala/ClusteringAlgorithms/AntTree/AntTree.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="168" column="120" lean-forward="true" selection-start-line="168" selection-start-column="120" selection-end-line="168" selection-end-column="120" />
+        <state relative-caret-position="442">
+          <caret line="149" column="106" selection-start-line="149" selection-start-column="106" selection-end-line="149" selection-end-column="106" />
           <folding>
             <element signature="e#102#135#0" expanded="true" />
           </folding>
