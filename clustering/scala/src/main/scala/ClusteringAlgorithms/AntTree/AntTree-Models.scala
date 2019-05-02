@@ -53,8 +53,10 @@ trait AntTreeAlgoModelAncestor[V <: GVector[V], D <: Distance[V]] {
     tree.graph.get(xpos).diSuccessors.map(_.value)
   }
 }
-
-
+/**
+ * @tparam V the vector nature
+ * @tparam D the distance nature
+ */
 trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends ClusteringModelLocal[V] with MetricModel[V, D] with AntTreeAlgoModelAncestor[V, D] {
   /**
    * Des petites info sur l'objet à mettre en anglais
@@ -87,7 +89,9 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
   }
 
 }
-
+/**
+ * @tparam D the distance nature
+ */
 final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[ScalarVector[V]]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector[V], D[V]] {
 
   final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
