@@ -20,11 +20,11 @@ import scalax.collection.mutable.{Graph => MutableGraph}
  * @tparam T une description des paramètres génériques
  * @tparam E une description des paramètres génériques
  */
-final case class Tree[T, E[X] <: EdgeLikeIn[X]](final val graph: MutableGraph[T,E]) {
+final case class Tree[T, E[X] <: EdgeLikeIn[X]](final val graph: MutableGraph[T, E]) {
   /**
    *
    */
-  final private val principalsCLuster = mutable.ArrayBuffer[graph.NodeT]()
+  final private val principalsCLuster = mutable.ArrayBuffer.empty[graph.NodeT]
   /**
    *
    */
@@ -49,7 +49,9 @@ trait AntTreeAlgoModelAncestor[V <: GVector[V], D <: Distance[V]] {
   /**
    *
    */
-  final def directSuccessors(xpos: (Long, Option[V]), tree: Tree[(Long, Option[V]), UnDiEdge]): immutable.Set[(Long, Option[V])] = tree.graph.get(xpos).diSuccessors.map(_.value)
+  final def directSuccessors(xpos: (Long, Option[V]), tree: Tree[(Long, Option[V]), UnDiEdge]): immutable.Set[(Long, Option[V])] = {
+    tree.graph.get(xpos).diSuccessors.map(_.value)
+  }
 }
 
 
