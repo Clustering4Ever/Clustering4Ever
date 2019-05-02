@@ -12,7 +12,7 @@ import scalax.collection.GraphEdge.UnDiEdge
 import scalax.collection.GraphPredef._
 import scalax.collection.mutable.{Graph => MutableGraph}
 
-import scala.collection.{GenSeq, mutable}
+import scala.collection.{GenSeq, mutable, immutable}
 
 /**
   * @tparm V
@@ -37,14 +37,18 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
 
     val support = Support
 
-    val ants = {
+    val ants: immutable.Map[Long, Ant] = {
       val dataToAnts = scala.util.Random.shuffle(data.map(cz => new Ant(Some(cz))).toIterator)
       dataToAnts.map( ant => (ant.id, ant) ).toMap + (support.id -> support)
     }
-
-    val notConnectedAnts = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
-
-    val tree: Tree[(Long, Option[V]), UnDiEdge] = new Tree[(Long, Option[V]), UnDiEdge](MutableGraph[(Long, Option[V]), UnDiEdge]((support.id, None)))
+    /**
+     *
+     */
+    val notConnectedAnts: mutable.Queue[Long] = mutable.Queue(ants.keys.filter(key => key != support.id).toSeq: _*)
+    /**
+     *
+     */
+    val tree: Tree[(Long, Option[V]), UnDiEdge] = Tree[(Long, Option[V]), UnDiEdge](MutableGraph[(Long, Option[V]), UnDiEdge]((support.id, None)))
     /**
      *
      */
@@ -62,7 +66,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
       val node = tree.graph.get(longToNode(xpos))
       val successors = allSuccessors(longToNode(xpos), tree) + node
       successors.foreach(key => ants(key._1).firstTime = true)
-      tree.graph --= successors.asInstanceOf[Set[tree.graph.NodeT]]
+      tree.graph --= successors.toSeq//.asInstanceOf[Set[tree.graph.NodeT]]
     }
     /**
      *
