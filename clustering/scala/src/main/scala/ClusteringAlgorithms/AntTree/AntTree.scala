@@ -62,7 +62,7 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
       val node = tree.graph.get(longToNode(xpos))
       val successors = allSuccessors(longToNode(xpos), tree) + node
       successors.foreach(key => ants(key._1).firstTime = true)
-      tree.graph --= successors.asInstanceOf[Set[tree.graph.NodeT]]
+      tree.graph --= successors.toSeq//.asInstanceOf[Set[tree.graph.NodeT]]
     }
     /**
      *
