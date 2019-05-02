@@ -92,7 +92,7 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 /**
  * @tparam D the distance nature
  */
-final case class AntTreeModelScalar[V <: Seq[Double], D[X <: Seq[Double]] <: ContinuousDistance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[ScalarVector[V]]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector[V], D[V]] {
+final case class AntTreeModelScalar[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[ScalarVector]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector, D[V]] {
 
   final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
 
