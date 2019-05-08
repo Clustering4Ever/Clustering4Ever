@@ -7,7 +7,7 @@ import org.clustering4ever.clustering.{ClusteringAlgorithmLocal, ClusteringModel
 
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.math.distances.{ContinuousDistance, Distance}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixedDistance}
 import org.clustering4ever.vectors.{GVector, ScalarVector}
 
 import scala.collection.GenSeq
@@ -92,7 +92,7 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 /**
  * @tparam D the distance nature
  */
-final case class AntTreeModelScalar[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[ScalarVector]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector, D[V]] {
+final case class AntTreeModelScalar[D <: ContinuousDistance](final val metric: D, final val tree: Tree[(Long, Option[ScalarVector]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector, D] {
 
   final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
 

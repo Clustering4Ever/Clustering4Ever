@@ -6,7 +6,7 @@ package org.clustering4ever.clustering.anttree
 import scala.language.higherKinds
 import org.clustering4ever.clustering.ClusteringAlgorithmLocal
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.math.distances.{BinaryDistance, ContinuousDistance, Distance}
+import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixedDistance}
 import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
 import scalax.collection.GraphEdge.UnDiEdge
 import scalax.collection.GraphPredef._
@@ -174,11 +174,11 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
  */
 
 
-final case class AntTreeScalar[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val metric: D[V]) extends AntTreeAncestor[ScalarVector, D[V], AntTreeModelScalar[V, D]] {
+final case class AntTreeScalar[D <: ContinuousDistance](final val metric: D) extends AntTreeAncestor[ScalarVector, D, AntTreeModelScalar[D]] {
 
   final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
 
-  final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector]]): AntTreeModelScalar[V, D] = {
+  final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector]]): AntTreeModelScalar[D] = {
     AntTreeModelScalar(metric, obtainAntTree(data))
   }
 
