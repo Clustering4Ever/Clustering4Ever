@@ -7,7 +7,7 @@ import scala.language.higherKinds
 import org.clustering4ever.clustering.ClusteringAlgorithmLocal
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixedDistance}
-import org.clustering4ever.vectors.{GVector, ScalarVector, BinaryVector}
+import org.clustering4ever.vectors._
 import scalax.collection.GraphEdge.UnDiEdge
 import scalax.collection.GraphPredef._
 import scalax.collection.mutable.{Graph => MutableGraph}
@@ -172,7 +172,14 @@ trait AntTreeAncestor[V <: GVector[V], D <: Distance[V], CM <: AntTreeModelAnces
 /**
  *
  */
+final case class AntTree[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val metric: D[V]) extends AntTreeAncestor[V, D[V], AntTreeModel[V, D]] {
 
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTree
+
+  final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): AntTreeModel[V, D] = {
+    AntTreeModel(metric, obtainAntTree(data))
+  }
+}
 
 final case class AntTreeScalar[D <: ContinuousDistance](final val metric: D) extends AntTreeAncestor[ScalarVector, D, AntTreeModelScalar[D]] {
 
@@ -181,5 +188,22 @@ final case class AntTreeScalar[D <: ContinuousDistance](final val metric: D) ext
   final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, ScalarVector]]): AntTreeModelScalar[D] = {
     AntTreeModelScalar(metric, obtainAntTree(data))
   }
+}
 
+final case class AntTreeBinary[D <: BinaryDistance](final val metric: D) extends AntTreeAncestor[BinaryVector, D, AntTreeModelBinary[D]] {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeBinary
+
+  final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, BinaryVector]]): AntTreeModelBinary[D] = {
+    AntTreeModelBinary(metric, obtainAntTree(data))
+  }
+}
+
+final case class AntTreeMixed[D <: MixedDistance](final val metric: D) extends AntTreeAncestor[MixedVector, D, AntTreeModelMixed[D]] {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeMixed
+
+  final def fit[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, MixedVector]]): AntTreeModelMixed[D] = {
+    AntTreeModelMixed(metric, obtainAntTree(data))
+  }
 }

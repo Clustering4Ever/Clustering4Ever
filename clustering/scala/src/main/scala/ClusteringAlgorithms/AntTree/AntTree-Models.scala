@@ -3,17 +3,18 @@ package org.clustering4ever.clustering.anttree
  * @author Waris Radji
  * @author Beck Gaël
  */
-import org.clustering4ever.clustering.{ClusteringAlgorithmLocal, ClusteringModelLocal}
+import org.clustering4ever.clustering.{ClusteringModelLocal, ClusteringModelLocalBinary, ClusteringModelLocalScalar}
 
 import scala.language.higherKinds
 import org.clustering4ever.clusterizables.Clusterizable
-import org.clustering4ever.math.distances.{Distance, ContinuousDistance, BinaryDistance, MixedDistance}
-import org.clustering4ever.vectors.{GVector, ScalarVector}
+import org.clustering4ever.math.distances.{BinaryDistance, ContinuousDistance, Distance, MixedDistance}
+import org.clustering4ever.vectors.{BinaryVector, GVector, MixedVector, ScalarVector}
 
 import scala.collection.GenSeq
 import scalax.collection.GraphPredef._
 import scalax.collection.GraphEdge._
 import org.clustering4ever.clustering.models.MetricModel
+
 import scala.collection.{immutable, mutable}
 import scalax.collection.mutable.{Graph => MutableGraph}
 /**
@@ -92,8 +93,26 @@ trait AntTreeModelAncestor[V <: GVector[V], D <: Distance[V]] extends Clustering
 /**
  * @tparam D the distance nature
  */
-final case class AntTreeModelScalar[D <: ContinuousDistance](final val metric: D, final val tree: Tree[(Long, Option[ScalarVector]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector, D] {
+final case class AntTreeModel[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val metric: D[V], final val tree: Tree[(Long, Option[V]), UnDiEdge]) extends AntTreeModelAncestor[V, D[V]]{
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTree
+
+}
+
+final case class AntTreeModelScalar[D <: ContinuousDistance](final val metric: D, final val tree: Tree[(Long, Option[ScalarVector]), UnDiEdge]) extends AntTreeModelAncestor[ScalarVector, D] with ClusteringModelLocalScalar{
 
   final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeScalar
+
+}
+
+final case class AntTreeModelBinary[D <: BinaryDistance](final val metric: D, final val tree: Tree[(Long, Option[BinaryVector]), UnDiEdge]) extends AntTreeModelAncestor[BinaryVector, D] with ClusteringModelLocalBinary {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeBinary
+
+}
+
+final  case class AntTreeModelMixed[D <: MixedDistance](final val metric: D, final val tree: Tree[(Long, Option[MixedVector]), UnDiEdge]) extends AntTreeModelAncestor[MixedVector, D] {
+
+  final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.AntTreeMixed
 
 }
