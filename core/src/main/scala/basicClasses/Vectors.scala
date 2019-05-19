@@ -4,6 +4,7 @@ package org.clustering4ever.vectors
  */
 import scala.language.higherKinds
 import scala.collection.mutable
+import scala.math.sqrt
 import org.clustering4ever.util.SumVectors
 import org.clustering4ever.util.VectorsAddOperationsImplicits
 /**
@@ -49,6 +50,10 @@ trait GSimpleVector[@specialized(Int, Double) N, Self <: GSimpleVector[N, Self]]
 	 * A vector taking the form of Seq[N] for any N
 	 */
 	val vector: Array[N]
+	/**
+	 *
+	 */
+	// lazy val norm: Double = SumVectors.dotProduct
 }
 /**
  *
@@ -83,6 +88,7 @@ trait GMixedVector[Self <: GMixedVector[Self]] extends GVector[Self] with Numeri
 final case class BinaryVector(final val vector: Array[Int]) extends GBinaryVector[BinaryVector] {
 
 	final def pickFeatures(indices: Int*): BinaryVector = {
+
 		BinaryVector{
 			val builder = vector.genericBuilder[Int].asInstanceOf[mutable.Builder[Int, Array[Int]]]
 			builder.sizeHint(indices.size)
@@ -90,8 +96,14 @@ final case class BinaryVector(final val vector: Array[Int]) extends GBinaryVecto
 			builder.result
 		}
 	}
-
+	/**
+	 *
+	 */
 	final def +(v: BinaryVector): BinaryVector = VectorsAddOperationsImplicits.addBinaryVectors(this, v)
+	/**
+	 *
+	 */
+	final def dot(v: BinaryVector): Double = SumVectors.dotProduct(this.vector, v.vector)
 }
 /**
  * Vector for continuous data represented as a vector on R<sup>d</sup>
@@ -112,11 +124,15 @@ final case class ScalarVector(final val vector: Array[Double]) extends GScalarVe
 	/**
 	 * Dot product of this ScalarVector with another
 	 */
-	final def dot(v: ScalarVector): Double = SumVectors.dotProduct(this, v)
+	final def dot(v: ScalarVector): Double = SumVectors.dotProduct(this.vector, v.vector)
 	/**
 	 * Norm of this ScalarVector
 	 */
-	final lazy val norm: Double = SumVectors.dotProduct(this, this) 
+	final lazy val norm: Double = sqrt(norm2)
+	/**
+	 * Norm squared of this ScalarVector
+	 */
+	final lazy val norm2: Double = SumVectors.dotProduct(this.vector, this.vector)
 }
 /**
  * Vector for binary and continuous data represented as 2 vectors, one on R<sup>d1</sup> Vs, the other on {0, 1}<sup>d2</sup> Vb

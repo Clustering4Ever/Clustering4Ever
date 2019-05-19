@@ -95,7 +95,7 @@ final case class PatchWorkModel(private var epsilon: Epsilon,
     val cl = this.clusters.filter(cluster => cluster.cellsList.contains(cellKey))
     if (cl.isEmpty) {
       // point is noise
-      val cluster = new PatchWorkCluster(-1)
+      val cluster = PatchWorkCluster(-1)
       cluster.cellsList.append(cellKey)
       cluster
     } else {
@@ -244,7 +244,7 @@ class PatchWork(val epsilon: Epsilon, val minPts: Int, val ratio: Double, val mi
         // if this cells is not already in a cluster
         if (clusterList.filter(cluster => cluster.cellsList.contains(cellKey)).isEmpty) {
           // we create a new cluster and expand it
-          val cluster = new PatchWorkCluster(id)
+          val cluster = PatchWorkCluster(id)
           id += 1
           cluster.cellsList.append(cellKey)
           expandCluster(cardinalsPatchwork, cluster, cell._1, cell._2)

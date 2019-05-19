@@ -422,7 +422,7 @@ final case class BinaryExternalIndicesLocal(final val targetAndPred: GenSeq[(Int
  */
 object ExternalIndicesLocalUtils extends Serializable {
 	/**
-	 * Reformate labels from any Int combination to usable one from 0 until l-1 with l number of distincts labels
+	 * Reformulate labels from any Int combination to usable one from 0 until l-1 with l number of distincts labels
 	 */
 	final def prepareLabels(labelsOrPred: GenSeq[Int]): (immutable.Map[Int, Int], GenSeq[Int]) = {
 		val diffLabelsMapping = labelsOrPred.distinct.zipWithIndex.toMap
