@@ -37,6 +37,8 @@ You can also take specifics parts (Core, ScalaClustering, ...) from [Bintray](ht
   * **Clusterwize** 
   * _Tensor Biclustering algorithms_ ([Original project](https://github.com/SoheilFeizi/Tensor-Biclustering))
     * _Folding-Spectral_, _Unfolding-Spectral_, _Thresholding Sum Of Squared Trajectory Length_, _Thresholding Individuals Trajectory Length_, _Recursive Biclustering_, _Multiple Biclustering_
+  * _Ant-Tree_
+    * _Continuous Ant-Tree_, _Binary Ant-Tree_, _Mixed Ant-Tree_
 
 Algorithm followed with a `*` can be executed by benchmarking classes.
 
