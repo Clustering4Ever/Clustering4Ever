@@ -4,8 +4,9 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.linalg.DenseVector
 
 /**
- * @author Sarazin Tugdual & Beck Gaël
- **/
+ * @author Sarazin Tugdual
+ * @author Beck Gaël
+ */
 class PointObj(val data: Array[Double], val id: Int) extends Serializable
 {
   override def toString: String = " " 

@@ -68,7 +68,7 @@ final case class EasySupervizable[O, V <: GVector[V]](
 	 */
 	final override def equals(that: Any): Boolean = {
 		that match {
-		  case that: EasySupervizable[O, V] => that.canEqual(this) && that.hashCode == this.hashCode && that.hashCode2 == this.hashCode2
+		  case that: EasySupervizable[O, V] => that.canEqual(this) && that.hashCode == this.hashCode // && that.hashCode2 == this.hashCode2
 		  case _ => false
 		}
 	}

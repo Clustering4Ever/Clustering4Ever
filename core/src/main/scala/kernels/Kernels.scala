@@ -117,7 +117,7 @@ final case class EstimatorSigmoid(final val kernelArgs: EstimatorArgsSigmoid) ex
 	 *
 	 */
 	final private[this] def sigmoidKernel(v1: ScalarVector, v2: ScalarVector) = {
-		val dotProduct = SumVectors.dotProduct(v1, v2)
+		val dotProduct = SumVectors.dotProduct(v1.vector, v2.vector)
 		tanh(kernelArgs.a * dotProduct + kernelArgs.b)
 	}
 	/**

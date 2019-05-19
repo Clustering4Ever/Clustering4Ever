@@ -98,7 +98,7 @@ final case class EasyClusterizable[O, V <: GVector[V]](
 	 */
 	final override def equals(that: Any): Boolean = {
 		that match {
-		  case that: EasyClusterizable[O, V] => that.canEqual(this) && that.hashCode == this.hashCode && that.hashCode2 == this.hashCode2
+		  case that: EasyClusterizable[O, V] => that.canEqual(this) && that.hashCode == this.hashCode // && that.hashCode2 == this.hashCode2
 		  case _ => false
 		}
 	}

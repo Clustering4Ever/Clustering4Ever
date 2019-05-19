@@ -175,10 +175,10 @@ class BatchStreamModel(
 			  
 		  // create an edge (label,idxMaxValue)
       // if s1 and s2 are connected by an edge, set the age of this edge to zero. If such an edge does not exist, create it.
-      this.edges(label)(idxMaxValue) = 1;  
-		  this.edges(idxMaxValue)(label) = 1
-      this.ages(label)(idxMaxValue) = 0;  
-		  this.ages(idxMaxValue)(label) = 0
+      this.edges(label)(idxMaxValue) = 1
+      this.edges(idxMaxValue)(label) = 1
+      this.ages(label)(idxMaxValue) = 0
+      this.ages(idxMaxValue)(label) = 0
       
       // update the error variable
       this.errors(label) += errs

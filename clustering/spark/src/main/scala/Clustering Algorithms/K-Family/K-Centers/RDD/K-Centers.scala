@@ -58,6 +58,12 @@ trait KCommonsSpark[V <: GVector[V], D <: Distance[V]] extends KCommons[V, D] {
 		val centers = immutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
 		centers
 	}
+	/**
+	 * Select randomly k points which will becomes k centers itinialization.
+	 */
+	protected final def randomSelectedInitializationRDD(vectorizedDataset: RDD[V], k: Int): immutable.HashMap[Int, V] = {
+		immutable.HashMap(vectorizedDataset.takeSample(false, k).zipWithIndex.map(_.swap):_*)
+	}
 }
 /**
  *
@@ -70,7 +76,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 		
 		data.persist(persistanceLVL)
 
-		val unSortedCenters = if(customCenters.isEmpty) kmppInitializationRDD(data.map(_.v), k, metric) else customCenters
+		val unSortedCenters = if(customCenters.isEmpty) randomSelectedInitializationRDD(data.map(_.v), k) else customCenters
 		val centers = mutable.ArrayBuffer(unSortedCenters.toSeq:_*).sortBy(_._1)
 		/**
 		 * KCenters heart in tailrec style

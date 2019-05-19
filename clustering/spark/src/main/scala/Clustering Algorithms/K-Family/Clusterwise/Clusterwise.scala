@@ -166,7 +166,7 @@ final case class Clusterwise(
 			/********************************************************************************************************/
 			val trainedData = labeledRDD.map{ case (label, (idx, x, y)) => (idx, (x, y, label)) }
 			val metric = Euclidean(false)
-			val clusterwiseModel = new ClusterwiseModel(trainedData, modelByCluster, standardizationParameters, metric)
+			val clusterwiseModel = ClusterwiseModel(trainedData, modelByCluster, standardizationParameters, metric)
 			clusterwiseModels += clusterwiseModel
 
 			val testY = splits(idxCV)

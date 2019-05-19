@@ -40,10 +40,16 @@ trait IdentifiedVector[O, V] extends IdentifiedVectorizableObject[O] {
 	 * The working vector of the container
 	 */
 	val v: V
+}
+/**
+ *
+ */
+trait HashCodeExtensionForVeryLargeDataSets extends Serializable {
 	/**
 	 * Second hashCode just in case if IDs are more than 2^32
 	 */
-	final def hashCode2: Int = v.hashCode
+	def hashCodeExt: Int
+
 }
 /**
  * Restrict V to be a GVector descendant

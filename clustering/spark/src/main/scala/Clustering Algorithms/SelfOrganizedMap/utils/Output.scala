@@ -18,7 +18,7 @@ object Output extends Serializable
     val finalPath = savingPath + fileName
     val fw = new FileWriter(finalPath, true)
     fw.write(value + "\n")
-    fw.close    
+    fw.close()
   }
 
   def write(outputDir: String, datas: RDD[Array[Double]], model: AbstractModel, nbRowSOM:Int, nbColSOM: Int): String =

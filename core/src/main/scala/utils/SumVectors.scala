@@ -53,27 +53,19 @@ object VectorsAddOperationsImplicits extends Serializable {
 	/**
 	 *
 	 */
-	final implicit def addRawScalarVectors(v1: Array[Double], v2: Array[Double]): Array[Double] = {
-		addRawSimpleVector(v1, v2)
-	}
+	final implicit def addRawScalarVectors(v1: Array[Double], v2: Array[Double]): Array[Double] = addRawSimpleVector(v1, v2)
 	/**
 	 *
 	 */
-	final implicit def addRawBinaryVectors(v1: Array[Int], v2: Array[Int]): Array[Int] = {
-		addRawSimpleVector(v1, v2)
-	}
+	final implicit def addRawBinaryVectors(v1: Array[Int], v2: Array[Int]): Array[Int] = addRawSimpleVector(v1, v2)
 	/**
 	 *
 	 */
-	final implicit def addScalarVectors(v1: ScalarVector, v2: ScalarVector): ScalarVector = {
-		ScalarVector(addRawScalarVectors(v1.vector, v2.vector))
-	}
+	final implicit def addScalarVectors(v1: ScalarVector, v2: ScalarVector): ScalarVector = ScalarVector(addRawScalarVectors(v1.vector, v2.vector))
 	/**
 	 *
 	 */
-	final implicit def addBinaryVectors(v1: BinaryVector, v2: BinaryVector): BinaryVector = {
-		BinaryVector(addRawBinaryVectors(v1.vector, v2.vector))
-	}
+	final implicit def addBinaryVectors(v1: BinaryVector, v2: BinaryVector): BinaryVector = BinaryVector(addRawBinaryVectors(v1.vector, v2.vector))
 	/**
 	 *
 	 */
@@ -116,19 +108,15 @@ object SumVectors extends Serializable {
 	/**
 	 *
 	 */
-	final def dotProduct(dot1: Array[Double], dot2: Array[Double]): Double = {
+	final def dotProduct[N](dot1: Array[N], dot2: Array[N])(implicit num: SNumeric[N]): N = {
 		@annotation.tailrec
-		def go(i: Int, sum: Double): Double = {
-			val res = sum + dot1(i) * dot2(i)
+		def go(i: Int, sum: N): N = {
+			val res = num.plus(sum, num.times(dot1(i), dot2(i)))
 			if(i < dot1.size - 1) go(i + 1, res)
 			else res
 		}
-		go(0, 0D)
+		go(0, num.zero)
 	}
-	/**
-	 *
-	 */
-	final def dotProduct(dot1: ScalarVector, dot2: ScalarVector): Double = dotProduct(dot1.vector, dot2.vector)
 	/**
 	 *
 	 */

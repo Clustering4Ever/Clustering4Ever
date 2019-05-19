@@ -63,10 +63,12 @@ final case class RawEuclidean(final val squareRoot: Boolean = true, final val id
 	final def norm(dot: Array[Double]): Double = SumVectors.euclideanNorm(dot)
 }
 /**
- * @tparam Array[Double]
- * The Euclidean distance with or without squareRoot
+ * @param squareRoot apply or not square root to euclidean distance 
+ * @param useNorm fast computation of Euclidean distance with vectors norm precomputed
+ * @param id
+ * The Euclidean distance 
  */
-final case class Euclidean(final val squareRoot: Boolean = true, final val id: MetricID = 0) extends EuclideanSubAncestor with ContinuousDistance {
+final case class Euclidean(final val squareRoot: Boolean = true, final val useNorm: Boolean = true, final val id: MetricID = 0) extends EuclideanSubAncestor with ContinuousDistance {
 	/**
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between v1 and v2
@@ -76,7 +78,16 @@ final case class Euclidean(final val squareRoot: Boolean = true, final val id: M
 	  * The Euclidean distance with or without squareRoot
 	  * @return The Euclidean distance between v1 and v2
 	  */
-	final def d(v1: ScalarVector, v2: ScalarVector): Double = euclidean(v1.vector, v2.vector)
+	final def d(v1: ScalarVector, v2: ScalarVector): Double = {
+		if(useNorm) {
+			val euclideanNoSquareRoot = v1.norm2 + v2.norm2 - 2 * v1.dot(v2)
+			if(squareRoot) sqrt(euclideanNoSquareRoot)
+			else euclideanNoSquareRoot
+		}
+		else {
+			euclidean(v1.vector, v2.vector)
+		}
+	}
 	/**
 	 *
 	 */

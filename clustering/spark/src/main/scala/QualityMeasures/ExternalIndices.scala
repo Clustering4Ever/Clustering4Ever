@@ -82,7 +82,7 @@ trait BinaryAndMultiExternalIndicesDistributedAncestor extends ExternalIndicesDi
 
     @transient val sc = targetAndPred.sparkContext
 
-    val accNmi = new NmiAccumulator(mutable.ArrayBuffer.fill(maxX + 1)(mutable.ArrayBuffer.fill(maxY + 1)(0D)), maxX + 1, maxY + 1)
+    val accNmi = NmiAccumulator(mutable.ArrayBuffer.fill(maxX + 1)(mutable.ArrayBuffer.fill(maxY + 1)(0D)), maxX + 1, maxY + 1)
     sc.register(accNmi, "NmiAccumulator")
     targetAndPred.foreach{ case (x, y) => accNmi.addOne(x, y) }
 
