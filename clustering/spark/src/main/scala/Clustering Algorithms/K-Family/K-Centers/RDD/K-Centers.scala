@@ -15,7 +15,7 @@ import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.clustering.kcenters.scala.{KCommons, KCentersModelCommons}
-import org.clustering4ever.util.ClusterBasicOperations
+import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
 import org.clustering4ever.clustering.rdd.ClusteringAlgorithmDistributed
 import org.clustering4ever.vectors.GVector
 /**
@@ -69,6 +69,9 @@ trait KCommonsSpark[V <: GVector[V], D <: Distance[V]] extends KCommons[V, D] {
  *
  */
 trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAncestor[V, D]] extends KCommonsSpark[V, D] with ClusteringAlgorithmDistributed[V, CA] {
+
+	implicit val sumVector: (V, V) => V
+	implicit val getCenter: (V, Long) => V 
 	/**
 	 *
 	 */
@@ -78,15 +81,17 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 
 		val unSortedCenters = if(customCenters.isEmpty) randomSelectedInitializationRDD(data.map(_.v), k) else customCenters
 		val centers = mutable.ArrayBuffer(unSortedCenters.toSeq:_*).sortBy(_._1)
+
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
 		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
 			val preUpdatedCenters = mutable.ArrayBuffer(
-				data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), cz.v) )
-				.reduceByKeyLocally{ case (v1, v2) => ClusterBasicOperations.obtainCenter(Seq(v1, v2), metric) }
+				data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), (cz.v, 1)) )
+				.reduceByKeyLocally{ case ((v1, c1), (v2, c2)) => (SumVectors.sumVectors(v1, v2), (c1 + c2)) }
 				.toArray
+				.map{ case (clusterID, (centroid, size)) => (clusterID, getCenter(centroid, size)) }
 			:_*).sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
 			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
@@ -104,7 +109,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 /**
  *
  */
-final case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, V])(implicit final val ctV: ClassTag[V]) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
+final case class KCenters[V <: GVector[V], D[X <: GVector[X]] <: Distance[X]](final val k: Int, final val metric: D[V], final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, V])(implicit final val ctV: ClassTag[V], val sumVector: (V, V) => V, val getCenter: (V, Long) => V) extends KCentersAncestor[V, D[V], KCentersModel[V, D]] {
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KCenters
 

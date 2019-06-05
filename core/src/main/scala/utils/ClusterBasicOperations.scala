@@ -32,11 +32,11 @@ object ClusterBasicOperations extends Serializable {
 	/**
 	 *
 	 */
-	private final def transformPreMeanAndCastItRaw(preMean: Array[Double], clusterSize: Int) = preMean.map(_ / clusterSize)
+	private[clustering4ever] final def transformPreMeanAndCastItRaw(preMean: Array[Double], clusterSize: Long) = preMean.map(_ / clusterSize)
 	/**
 	 *
 	 */
-	private final def transformPreMeanAndCastIt(preMean: ScalarVector, clusterSize: Int) = ScalarVector(transformPreMeanAndCastItRaw(preMean.vector, clusterSize))
+	private[clustering4ever] final def transformPreMeanAndCastIt(preMean: ScalarVector, clusterSize: Long) = ScalarVector(transformPreMeanAndCastItRaw(preMean.vector, clusterSize))
 	/**
 	 * It has sense only with Euclidean distance
 	 * 
@@ -52,11 +52,11 @@ object ClusterBasicOperations extends Serializable {
 	/**
 	 *
 	 */
-	private final def transformPreModeAndCastIt(preMode: Array[Int], clusterSize: Int) = preMode.map( v => if( 2 * v >= clusterSize ) 1 else 0 )
+	private[clustering4ever] final def transformPreModeAndCastIt(preMode: Array[Int], clusterSize: Long) = preMode.map( v => if( 2 * v >= clusterSize ) 1 else 0 )
 	/**
 	 *
 	 */
-	private final def transformPreModeAndCastIt(preMode: BinaryVector, clusterSize: Int) = BinaryVector(preMode.vector.map( v => if( 2 * v >= clusterSize ) 1 else 0 ))
+	private[clustering4ever] final def transformPreModeAndCastIt(preMode: BinaryVector, clusterSize: Long) = BinaryVector(preMode.vector.map( v => if( 2 * v >= clusterSize ) 1 else 0 ))
 	/**
 	 * It has sense only with Hamming distance
 	 * 

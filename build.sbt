@@ -19,10 +19,13 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 lazy val coreDeps = libraryDependencies ++= Seq(
 		"org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
 		"org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
-		"org.typelevel" %% "spire" % "0.16.0",
 		"com.chuusai" %% "shapeless" % "2.3.3",
-	    "org.scala-graph" %% "graph-core" % "1.12.5",
+		"org.typelevel" %% "spire" % "0.16.0",
 		compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+)
+
+lazy val scalaDeps = libraryDependencies ++= Seq(
+	    "org.scala-graph" %% "graph-core" % "1.12.5",
 )
 
 lazy val commonCredentialsAndResolvers = Seq(
@@ -58,6 +61,7 @@ lazy val core = (project in file("core"))
 lazy val clusteringScala = (project in file("clustering/scala"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
+	.settings(scalaDeps)
 	.dependsOn(core)
 
 lazy val clusteringSpark = (project in file("clustering/spark"))

@@ -51,6 +51,7 @@ object EasySupervizable {
 /**
  *
  */
+@SerialVersionUID(1L)
 final case class EasySupervizable[O, V <: GVector[V]](
 	final val id: Long,
 	final val o: Vectorizable[O],

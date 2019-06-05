@@ -14,6 +14,7 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
+import org.clustering4ever.util.ClusterBasicOperations
 /**
  * The famous K-Means using a user-defined dissmilarity measure.
  * @param data : preferably and ArrayBuffer or ParArray of Clusterizable descendant, the EasyClusterizable is the basic reference
@@ -23,6 +24,10 @@ import org.clustering4ever.vectors.{GVector, ScalarVector}
  * @param metric : a defined dissimilarity measure
  */
 final case class KMeans[D <: ContinuousDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, ScalarVector] = immutable.HashMap.empty[Int, ScalarVector])(protected implicit final val ctV: ClassTag[ScalarVector]) extends KCentersAncestor[ScalarVector, D, KMeansModel[D]] {
+
+	implicit val sumVector: (ScalarVector, ScalarVector) => ScalarVector = org.clustering4ever.util.VectorsAddOperationsImplicits.addScalarVectors
+
+	implicit val getCenter: (ScalarVector, Long) => ScalarVector = (v, d) => ClusterBasicOperations.transformPreMeanAndCastIt(v, d)
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KMeans
 

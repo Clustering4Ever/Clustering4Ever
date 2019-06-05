@@ -13,10 +13,15 @@ import org.clustering4ever.math.distances.binary.Hamming
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.vectors.{GVector, BinaryVector}
+import org.clustering4ever.util.ClusterBasicOperations
 /**
  *
  */
 final case class KModes[D <: BinaryDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, BinaryVector] = immutable.HashMap.empty[Int, BinaryVector])(protected implicit final val ctV: ClassTag[BinaryVector]) extends KCentersAncestor[BinaryVector, D, KModesModel[D]] {
+
+	implicit val sumVector: (BinaryVector, BinaryVector) => BinaryVector = org.clustering4ever.util.VectorsAddOperationsImplicits.addBinaryVectors
+
+	implicit val getCenter: (BinaryVector, Long) => BinaryVector = (v, d) => ClusterBasicOperations.transformPreModeAndCastIt(v, d)
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KModes
 

@@ -15,6 +15,7 @@ import org.clustering4ever.math.distances.mixt.HammingAndEuclidean
 import org.clustering4ever.clusterizables.Clusterizable
 import org.clustering4ever.util.SparkImplicits._
 import org.clustering4ever.vectors.{GVector, MixedVector}
+import org.clustering4ever.util.ClusterBasicOperations
 /**
  * The famous K-Prototypes using a user-defined dissmilarity measure.
  * @param data :
@@ -24,6 +25,14 @@ import org.clustering4ever.vectors.{GVector, MixedVector}
  * @param metric : a defined dissimilarity measure
  */
 final case class KPrototypes[D <: MixedDistance](final val k: Int, final val metric: D, final val minShift: Double, final val maxIterations: Int, final val persistanceLVL: StorageLevel = StorageLevel.MEMORY_ONLY, final val customCenters: immutable.HashMap[Int, MixedVector] = immutable.HashMap.empty[Int, MixedVector])(protected implicit final val ctV: ClassTag[MixedVector]) extends KCentersAncestor[MixedVector, D, KPrototypesModels[D]] {
+
+	implicit val sumVector: (MixedVector, MixedVector) => MixedVector = org.clustering4ever.util.VectorsAddOperationsImplicits.addMixedVectors
+
+	implicit val getCenter: (MixedVector, Long) => MixedVector = (v, d) => {
+	 	val binaryPart = ClusterBasicOperations.transformPreModeAndCastIt(v.binary, d)
+	 	val realPart = ClusterBasicOperations.transformPreMeanAndCastItRaw(v.scalar, d)
+		MixedVector(binaryPart, realPart)
+	}
 
 	final val algorithmID = org.clustering4ever.extensibleAlgorithmNature.KPrototypes
 

@@ -21,6 +21,10 @@ trait GVector[Self <: GVector[Self]] extends Serializable {
 	 * @return the same Vector nature with selected features
 	 */
 	def pickFeatures(indices: Int*): Self
+	/**
+	 *
+	 */
+	// def map[B](f:)
 }
 /**
  * GVector sub family on which basic numerical operation can be apply
@@ -85,6 +89,7 @@ trait GMixedVector[Self <: GMixedVector[Self]] extends GVector[Self] with Numeri
  * Vector for binary data taking represented as a vector on {0, 1}<sup>d</sup>
  * @tparam Vb the type of this vector
  */
+@SerialVersionUID(1L)
 final case class BinaryVector(final val vector: Array[Int]) extends GBinaryVector[BinaryVector] {
 
 	final def pickFeatures(indices: Int*): BinaryVector = {
@@ -109,6 +114,7 @@ final case class BinaryVector(final val vector: Array[Int]) extends GBinaryVecto
  * Vector for continuous data represented as a vector on R<sup>d</sup>
  * @tparam Vs the type of this vector
  */
+@SerialVersionUID(1L)
 final case class ScalarVector(final val vector: Array[Double]) extends GScalarVector[ScalarVector] {
 
 	final def pickFeatures(indices: Int*): ScalarVector = {
@@ -139,6 +145,7 @@ final case class ScalarVector(final val vector: Array[Double]) extends GScalarVe
  * @tparam Vb binary part type of this mixt vector
  * @tparam Vs scalar part type of this mixt vector
  */
+@SerialVersionUID(1L)
 final case class MixedVector(final val binary: Array[Int], final val scalar: Array[Double]) extends GMixedVector[MixedVector] {
 	/**
 	 * Features are indexed as follow, first one are the binary features, rest are scalar features
@@ -169,6 +176,7 @@ final case class MixedVector(final val binary: Array[Int], final val scalar: Arr
 /**
  *
  */
+@SerialVersionUID(1L)
 final case class SupervizedVector[N](final val vector: Array[N]) extends GSimpleVector[N, SupervizedVector[N]] {
 
 	final def pickFeatures(indices: Int*): SupervizedVector[N] = {
@@ -183,6 +191,7 @@ final case class SupervizedVector[N](final val vector: Array[N]) extends GSimple
 /**
  *
  */
+@SerialVersionUID(1L)
 final case class GenericObjectVector[O](final val rawObject: O) extends GVector[GenericObjectVector[O]] {
 
 	final def pickFeatures(indices: Int*): GenericObjectVector[O] = this.copy()

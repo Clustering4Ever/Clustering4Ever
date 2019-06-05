@@ -82,6 +82,7 @@ object EasyClusterizable {
  * @param vectorized the HMap containing various vectorization of the raw object o
  * @param clusterIDs the clustering indices for this clusterizable 
  */
+@SerialVersionUID(1L)
 final case class EasyClusterizable[O, V <: GVector[V]](
 	final val id: Long,
 	final val o: Vectorizable[O],

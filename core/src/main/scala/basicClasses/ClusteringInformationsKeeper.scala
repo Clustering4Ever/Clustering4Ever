@@ -24,5 +24,4 @@ final case class ClusteringInformationsKeeperHMap(var infos: HMap[InformationsMa
 	 *
 	 */
 	final def getInformations[MI <: ModelsInformationsPerVectorizationAncestor](id: VectorizationID, mapping: InformationsMapping[Int, MI]): Option[MI] = infos.get(id)(mapping)
-
 }
