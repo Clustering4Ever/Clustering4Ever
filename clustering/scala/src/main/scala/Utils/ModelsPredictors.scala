@@ -38,32 +38,3 @@ trait KmeansModelsPredictorOneVector extends OneVectorPredictor[ScalarVector] wi
 trait KmeansModelsPredictorDataset[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]] extends DatasetPredictor[O, ScalarVector, Cz, GS] with Poly1 {
 	implicit def kMeans[D <: ContinuousDistance] = at[KMeansModel[D]](_.centerPredict(data))
 }
-/**
- *
- */
-// object KMeansExample {
-
-	// import org.clustering4ever.clustering.keeper.ModelsKeeper
-	// import scala.collection.{immutable, mutable}
-	// import org.clustering4ever.math.distances.scalar.Euclidean
-	// import org.clustering4ever.shapeless.HListRelated
-
-
-	// val collectionSize = 100
-	// val exploredPoints = (0 until collectionSize).map( i => new KmeansModelsPredictorOneVector[mutable.ArrayBuffer[Double]] { val v = ScalarVector(mutable.ArrayBuffer[Double](i)) } )
-
-	// val fakeCenters = immutable.HashMap(0 -> mutable.ArrayBuffer[Double](5), 1 -> mutable.ArrayBuffer[Double](9), 2 -> mutable.ArrayBuffer[Double](40)).map{ case (k, v ) => (k, ScalarVector(v)) }
-	// val oneModel = KMeansModel[mutable.ArrayBuffer[Double], Euclidean](8, Euclidean[mutable.ArrayBuffer[Double]](false), 0.0001, 100, fakeCenters)
-
-	// val modelsKeeper = ModelsKeeper(oneModel :: HNil)
-
-	// val models: HList = modelsKeeper.models
-
-	// object Objjj extends KmeansModelsPredictorOneVector[mutable.ArrayBuffer[Double]] { val v = ScalarVector(mutable.ArrayBuffer[Double](0)) }
-
-	// exploredPoints.map( p => modelsKeeper.mapOverModels(p) )
-	// modelsKeeper.mapOverModels(exploredPoints.head)
-	// HListRelated.mapOverHList(models, exploredPoints.head)
-	// HListRelated.mapOverHList(models, Objjj)
-
-// }

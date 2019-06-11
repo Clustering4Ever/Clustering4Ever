@@ -8,7 +8,7 @@
 
 Add following line in your build.sbt :
 
-  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.4"` to your `libraryDependencies`
+  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.6"` to your `libraryDependencies`
 
 Eventually add one of these resolvers :
 
@@ -44,6 +44,7 @@ Algorithm followed with a `*` can be executed by benchmarking classes.
 
 ### Preprocessing
 
+  * _UMAP_
   * **_Gradient Ascent_** (Mean-Shift related)
     * **_Scalar Gradient Ascent_**, _Binary Gradient Ascent_, _Mixed Gradient Ascent_, _Any Object Gradient Ascent_
   * **_Rough Set Features Selection_**
