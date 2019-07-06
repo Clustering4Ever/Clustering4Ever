@@ -75,6 +75,8 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
 
 ### Incoming soon
   
+  * **[DESOM:Deep Embedded Self-Organizing Map: Joint Representation Learning and Self-Organization](https://github.com/FlorentF9/DESOM)**
+  * **[SOM:Kohonen self-organizing map](https://github.com/FlorentF9/sparkml-som)**
   * **[UMAP](https://github.com/lmcinnes/umap)**
   * **_Gaussian Mixture Models_**
   * **_DBScan_**
@@ -100,4 +102,4 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 ### What data structures are recommended for best performances
 
-ArrayBuffer or ParArray as vector containers are recommended for local applications, if data is bigger don't hesitate to pass to RDD.
+ArrayBuffer or ParArray as vector containers are recommended for local applications, if data is bigger don't hesitate to pass to RDD. 
