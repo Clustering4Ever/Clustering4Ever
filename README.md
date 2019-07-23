@@ -102,4 +102,4 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 ### What data structures are recommended for best performances
 
-ArrayBuffer or ParArray as vector containers are recommended for local applications, if data is bigger don't hesitate to pass to RDD. 
+ArrayBuffer or ParArray as vector containers are recommended for local applications, if data is bigger don't hesitate to pass to RDD.
