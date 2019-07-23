@@ -90,7 +90,9 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 
 ## C4E-Notebook examples
 
-Basic usages of implemented algorithms are exposed with BeakerX [here](https://gke.mybinder.org/v2/gh/Clustering4Ever/Clustering4Ever/master) or with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
+Basic usages of implemented algorithms are exposed with: 
+  * **BeakerX and Jupyter notebook** [here](https://gke.mybinder.org/v2/gh/Clustering4Ever/Clustering4Ever/master) 
+  * **SparkNotebooks** in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
 
 ## Miscellaneous
 
