@@ -93,7 +93,7 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 Basic usages of implemented algorithms are exposed with **BeakerX and Jupyter notebook** through binder :arrow_right:
  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Clustering4Ever/Notebooks/master).
 
-They also can be download directly from our [Notebooks](https://github.com/Clustering4Ever/Notebooks) repository under different format as **Jupiter** or **SparkNotebook**.
+They also can be download directly from our [Notebooks](https://github.com/Clustering4Ever/Notebooks) repository under different format as **Jupyter** or **SparkNotebook**.
 
 ## Miscellaneous
 
