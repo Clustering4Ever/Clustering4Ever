@@ -1,4 +1,4 @@
-# Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Clustering4Ever/Clustering4Ever/master)
+# Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Clustering4Ever/Notebooks/master)
 
 
 **Welcome** to Clustering:four:Ever, a Big Data Clustering Library gathering clustering, unsupervized algorithms, and quality indices. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
@@ -88,9 +88,12 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
 If you publish material based on informations obtained from this repository, then, in your acknowledgements, please note the assistance you received by using this community work. This will help others to obtain the same informations and **replicate your experiments**, because having results is cool but being able to compare to others is better.
 Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Ever“, institution = “Paris 13 University, LIPN UMR CNRS 7030”}`
 
-## C4E-Notebook examples
+## C4E-Notebooks examples
 
-Basic usages of implemented algorithms are exposed with BeakerX [here](https://gke.mybinder.org/v2/gh/Clustering4Ever/Clustering4Ever/master) or with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
+Basic usages of implemented algorithms are exposed with **BeakerX and Jupyter notebook** through binder :arrow_right:
+ [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Clustering4Ever/Notebooks/master).
+
+They also can be download directly from our [Notebooks](https://github.com/Clustering4Ever/Notebooks) repository under different format as **Jupiter** or **SparkNotebook**.
 
 ## Miscellaneous
 
