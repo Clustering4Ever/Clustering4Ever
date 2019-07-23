@@ -1,4 +1,5 @@
-# Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22)
+# Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Clustering4Ever/Clustering4Ever/master)
+
 
 **Welcome** to Clustering:four:Ever, a Big Data Clustering Library gathering clustering, unsupervized algorithms, and quality indices. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
 
@@ -87,7 +88,7 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 
 ## C4E-Notebook examples
 
-Basic usages of implemented algorithms are exposed with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
+Basic usages of implemented algorithms are exposed with BeakerX [here](https://gke.mybinder.org/v2/gh/Clustering4Ever/Clustering4Ever/master) or with SparkNotebooks in [Spark-Clustering-Notebook](https://github.com/Spark-clustering-notebook/Clustering4Ever-Notebooks) organization.
 
 ## Miscellaneous
 
@@ -99,4 +100,4 @@ You can easily generate your collections with basic Clusterizable using helpers 
 
 ### What data structures are recommended for best performances
 
-  * ArrayBuffer or ParArray as vector containers are recommended for local applications
+ArrayBuffer or ParArray as vector containers are recommended for local applications, if data is bigger don't hesitate to pass to RDD.
