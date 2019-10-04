@@ -81,7 +81,7 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
   * **_Gaussian Mixture Models_**
   * **_DBScan_**
   * **Time Series K-Means**
-  * **[Bayesian Optimization for AutoML](https://github.com/YazidJanati/bayestuner-scala)
+  * **[Bayesian Optimization for AutoML](https://github.com/YazidJanati/bayestuner-scala)**
 
 
 ## Citation
