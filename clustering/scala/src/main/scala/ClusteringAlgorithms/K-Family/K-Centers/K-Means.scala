@@ -10,7 +10,6 @@ import org.clustering4ever.math.distances.scalar.Euclidean
 import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.util.ScalaCollectionImplicits._
 import org.clustering4ever.vectors.{GVector, ScalarVector}
-import org.clustering4ever.util.FromArrayToSeq
 import org.clustering4ever.clustering.ClusteringAlgorithmLocalScalar
 import org.clustering4ever.types.VectorizationIDTypes._
 import org.clustering4ever.types.ClusteringNumberType._

@@ -13,43 +13,60 @@ import scala.reflect.ClassTag
 /**
  *
  */
-object FromArrayToSeq extends Serializable {
-	/**
-	 *
-	 */
-	final def arrayToSimpleSeq[N: SNumeric, V <: Seq[N]](a: Array[N]) = {
-		val builder = a.genericBuilder[N].asInstanceOf[mutable.Builder[N, V]]
-		builder.sizeHint(a.size)
-		builder ++= a
-		builder.result
-	}
-	/**
-	 *
-	 */
-	final def arrayToScalarSeq[V <: Seq[Double]](a: Array[Double]) = arrayToSimpleSeq[Double, V](a)
-	/**
-	 *
-	 */
-	final def arrayToBinarySeq[V <: Seq[Int]](a: Array[Int]) = arrayToSimpleSeq[Int, V](a)
-
-}
-/**
- *
- */
 object VectorsAddOperationsImplicits extends Serializable {
 	/**
 	 * Check perf before use it
 	 */
-	final private def addRawSimpleVector[N: ClassTag](v1: Array[N], v2: Array[N])(implicit num: SNumeric[N]): Array[N] = {
-		val res = Array.ofDim[N](v1.size)
-		@annotation.tailrec
-		def go(i: Int): Unit = {
-			res(i) = num.plus(v1(i), v2(i))
-			if(i < v1.size - 1) go(i + 1)
-		}
-		go(0)
-		res
+	final private def addRawSimpleVectorOld[@specialized(Float, Double, Int, Long) N: ClassTag](v1: Array[N], v2: Array[N])(implicit num: SNumeric[N]): Array[N] = {
+		// val res = Array.ofDim[N](v1.size)
+		// @annotation.tailrec
+		// def go(i: Int): Unit = {
+		// 	res(i) = num.plus(v1(i), v2(i))
+		// 	if(i < v1.size - 1) go(i + 1)
+		// }
+		// go(0)
+		// res
+	    val output = Array.ofDim[N](v1.size)
+	    var i = 0
+	    while (i < v1.size) {
+	      output(i) = num.plus(v1(i), v2(i))
+	      i += 1
+	    }
+	    output
 	}
+	/**
+	 * new faster version
+	 */
+	final def addRawSimpleVector[N : ClassTag](v1: Array[N], v2: Array[N])(implicit num: SNumeric[N]): Array[N] = {
+	  val output = Array.ofDim[N](v1.size)
+	  (0 until v1.size).foreach( i => output(i) = num.plus(v1(i), v2(i)) )
+	  output
+	}
+	/**
+	 *
+	 */
+	final def addRawSimpleVector(v1: Array[Double], v2: Array[Double]): Array[Double] = {
+		val output = Array.ofDim[Double](v1.size)
+		var i = 0
+		while (i < v1.size) {
+			output(i) = v1(i) + v2(i)
+			i += 1
+		}
+		output
+	}
+	/**
+	 *
+	 */
+	final def addRawSimpleVector(v1: Array[Int], v2: Array[Int]): Array[Int] = {
+		val output = Array.ofDim[Int](v1.size)
+		var i = 0
+		while (i < v1.size) {
+			output(i) = v1(i) + v2(i)
+			i += 1
+		}
+		output
+	}
+
 	/**
 	 *
 	 */

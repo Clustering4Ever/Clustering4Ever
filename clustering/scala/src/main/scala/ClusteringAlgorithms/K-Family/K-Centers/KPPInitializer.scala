@@ -42,12 +42,14 @@ object KPPInitializer extends Serializable {
 
 		@annotation.tailrec
 		def go(i: Int): Unit = {
-			centers += Stats.obtainMedianFollowingWeightedDistribution[V]{
-				data.map{ cz =>
-					val toPow2 = metric.d(cz.v, obtainNearestCenter(cz.v))
-					(cz.v, toPow2 * toPow2)
-				}.seq
+			val preprocessed = data.map{ cz =>
+				val toPow2 = metric.d(cz.v, obtainNearestCenter(cz.v))
+				(cz.v, toPow2 * toPow2)
 			}
+			val phi = preprocessed.aggregate(0D)((agg, e) => agg + e._2, _ + _)
+			val probabilities = preprocessed.map{ case (v, toPow2) => (v, toPow2 / phi) }.seq
+			val shuffled = Random.shuffle(probabilities)
+			centers += Stats.obtainMedianFollowingWeightedDistribution[V](shuffled)
 			if(i < k - 2) go(i + 1)
 		}
 

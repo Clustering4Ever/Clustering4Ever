@@ -13,11 +13,12 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
-import org.clustering4ever.clusterizables.Clusterizable
+import org.clustering4ever.clusterizables.{Clusterizable, EasyClusterizable}
 import org.clustering4ever.clustering.kcenters.scala.{KCommons, KCentersModelCommons}
 import org.clustering4ever.util.{SumVectors, ClusterBasicOperations}
 import org.clustering4ever.clustering.rdd.ClusteringAlgorithmDistributed
 import org.clustering4ever.vectors.GVector
+import org.clustering4ever.clustering.kcenters.scala.KPPInitializer
 /**
  *
  */
@@ -46,7 +47,7 @@ trait KCommonsSpark[V <: GVector[V], D <: Distance[V]] extends KCommons[V, D] {
 		
 		val centersBuff = mutable.ArrayBuffer(vectorizedDataset.first)
 
-		(1 until k).foreach( i =>
+		(1 until k).foreach( _ =>
 			centersBuff += Stats.obtainMedianFollowingWeightedDistribution[V](
 				vectorizedDataset.map{ v =>
 					val toPow2 = metric.d(v, obtainNearestCenter(v, centersBuff))
@@ -57,6 +58,57 @@ trait KCommonsSpark[V <: GVector[V], D <: Distance[V]] extends KCommons[V, D] {
 
 		val centers = immutable.HashMap(centersBuff.zipWithIndex.map{ case (center, clusterID) => (clusterID, center) }:_*)
 		centers
+	}
+	/**
+	 *
+	 */
+	final def parallelKmPPInitialization(vectorizedDataset: RDD[V], k: Int, metric: D, l: Int = 10, numIter: Int = 5): immutable.HashMap[Int, V] = {
+			val centers = mutable.ArrayBuffer(vectorizedDataset.sample(false, 0.001, 8L).collect.head)
+			val firstCenter = centers.head
+			def obtainNearestCenter(v: V, centers: mutable.ArrayBuffer[V]): V = centers.minBy(metric.d(_, v))
+			def firstAcc(agg: Double, v: V): Double = {
+				val toPow2 = metric.d(v, firstCenter)
+				agg + toPow2 * toPow2				
+			}
+			val phi = vectorizedDataset.aggregate(0D)(firstAcc, _ + _)
+
+			// Each partition will generate a new prototypes
+			val vectorizedDatasetRepartitionned = vectorizedDataset.repartition(k * l)
+
+			val logPhiBound = math.log(phi).toInt
+			val iterMax = if (numIter <= 0) logPhiBound else numIter
+			@annotation.tailrec
+			def go(phi: Double, centers: mutable.ArrayBuffer[V], i: Int): mutable.ArrayBuffer[V] = {
+				if (i < iterMax) {
+					
+					val preprocessed = vectorizedDatasetRepartitionned.map{ v =>
+						val toPow2 = metric.d(v, obtainNearestCenter(v, centers))
+						(v, toPow2 * toPow2)
+					}
+					
+					val newPhi = preprocessed.aggregate(0D)((agg, e) => agg + e._2, _ + _)
+
+					val preCenters = preprocessed.mapPartitions{ it =>
+						val probabilities = it.map{ case (v, toPow2) =>
+							val toPow2 = metric.d(v, obtainNearestCenter(v, centers))
+							(v, (l * toPow2) / newPhi)
+						}
+						val preCenter = Stats.obtainMedianFollowingWeightedDistribution(probabilities.toVector)
+						Iterator(preCenter)
+					}.collect
+
+					centers ++= preCenters
+					
+					go(newPhi, centers, i + 1)
+				}
+				else centers
+			}
+
+			val preFinalCenters = go(phi, centers, 0)
+			val formatedPreFinalCenters = preFinalCenters.zipWithIndex.map{ case (v, id) => EasyClusterizable(id, v) }
+
+			val kInitCenters = KPPInitializer.kppInit(formatedPreFinalCenters, metric, k)
+			kInitCenters
 	}
 	/**
 	 * Select randomly k points which will becomes k centers itinialization.
@@ -79,7 +131,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 		
 		data.persist(persistanceLVL)
 
-		val unSortedCenters = if(customCenters.isEmpty) randomSelectedInitializationRDD(data.map(_.v), k) else customCenters
+		val unSortedCenters = if (customCenters.isEmpty) randomSelectedInitializationRDD(data.map(_.v), k) else customCenters
 		val centers = mutable.ArrayBuffer(unSortedCenters.toSeq:_*).sortBy(_._1)
 
 		/**
@@ -89,7 +141,7 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
 			val preUpdatedCenters = mutable.ArrayBuffer(
 				data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), (cz.v, 1)) )
-				.reduceByKeyLocally{ case ((v1, c1), (v2, c2)) => (SumVectors.sumVectors(v1, v2), (c1 + c2)) }
+				.reduceByKeyLocally{ case ((v1, c1), (v2, c2)) => (SumVectors.sumVectors(v1, v2) : @inline, (c1 + c2)) }
 				.toArray
 				.map{ case (clusterID, (centroid, size)) => (clusterID, getCenter(centroid, size)) }
 			:_*).sortBy(_._1)
