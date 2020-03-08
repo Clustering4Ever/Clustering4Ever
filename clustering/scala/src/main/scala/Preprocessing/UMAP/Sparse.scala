@@ -10,7 +10,7 @@ package org.clustering4ever.scala.umap
  */
 import breeze.linalg.{DenseMatrix, max}
 import breeze.numerics.pow
-import scala.collection.mutable
+import _root_.scala.collection.mutable
 /**
  *
  */
@@ -20,9 +20,9 @@ object Sparse extends Serializable {
       * @param m
       * @return Array with all non-zero values from m
       */
-    def nonZeroValues(m: DenseMatrix[Double]): mutable.ArrayBuffer[Double] = {
+    def nonZeroValues(m: DenseMatrix[Double]): Array[Double] = {
         @annotation.tailrec
-        def go(i: Int, j: Int, nzv: mutable.ArrayBuffer[Double]): mutable.ArrayBuffer[Double] = {
+        def go(i: Int, j: Int, nzv: mutable.ArrayBuffer[Double]): Array[Double] = {
             if (i < m.rows) {
                 if (j < m.cols) {
                     m(i, j) match {
@@ -30,9 +30,9 @@ object Sparse extends Serializable {
                         case x => go(i, j + 1, nzv += x)
                     }
                 } else go(i + 1, 0, nzv)
-            } else nzv
+            } else nzv.toArray
         }
-        go(0, 0, new mutable.ArrayBuffer[Double])
+        go(0, 0, new mutable.ArrayBuffer[Double](m.rows * m.cols))
     }
 
     /**
@@ -40,19 +40,20 @@ object Sparse extends Serializable {
     * @param m
       * @return Array with all non-zero values from m
         */
-    def nonZeroRows(m: DenseMatrix[Double]): mutable.ArrayBuffer[Int] = {
+    def nonZeroRows(m: DenseMatrix[Double]): Array[Int] = {
         @annotation.tailrec
-        def go(i: Int, j: Int, nzv: mutable.ArrayBuffer[Int]): mutable.ArrayBuffer[Int] = {
+        def go(i: Int, j: Int, nzv: mutable.ArrayBuffer[Int]): Array[Int] = {
             if (i < m.rows) {
                 if (j < m.cols) {
                     m(i, j) match {
-                        case 0d => go(i, j + 1, nzv)
+                        case 0D => go(i, j + 1, nzv)
                         case _ => go(i, j + 1, nzv += i)
                     }
-                } else go(i + 1, 0, nzv)
-            } else nzv
+                }
+                else go(i + 1, 0, nzv)
+            } else nzv.toArray
         }
-        go(0, 0, new mutable.ArrayBuffer[Int])
+        go(0, 0, new mutable.ArrayBuffer[Int](m.rows * m.cols))
     }
 
     /**
@@ -60,19 +61,19 @@ object Sparse extends Serializable {
     * @param m
         * @return Array with all non-zero values from m
         */
-    def nonZeroCols(m: DenseMatrix[Double]): mutable.ArrayBuffer[Int] = {
+    def nonZeroCols(m: DenseMatrix[Double]): Array[Int] = {
         @annotation.tailrec
-        def go(i: Int, j: Int, nzv: mutable.ArrayBuffer[Int]): mutable.ArrayBuffer[Int] = {
+        def go(i: Int, j: Int, nzv: mutable.ArrayBuffer[Int]): Array[Int] = {
             if (i < m.rows) {
                 if (j < m.cols) {
                     m(i, j) match {
-                        case 0d => go(i, j + 1, nzv)
+                        case 0D => go(i, j + 1, nzv)
                         case _ => go(i, j + 1, nzv += j)
                     }
                 } else go(i + 1, 0, nzv)
-            } else nzv
+            } else nzv.toArray
         }
-        go(0, 0, new mutable.ArrayBuffer[Int])
+        go(0, 0, new mutable.ArrayBuffer[Int](m.rows * m.cols))
     }
 
 
@@ -85,15 +86,15 @@ object Sparse extends Serializable {
         for (i <- 0 until res.rows) {
             for (j <- 0 until res.cols) {
                 val a: Double = res(i, j) match {
-                    case 0d => res(i, j)
+                    case 0D => res(i, j)
                     case _ =>
                         val leftVal = mat1(i, j) match {
-                            case 0d => leftMin
+                            case 0D => leftMin
                             case _ => mat1(i, j)
                         }
 
                         val rightVal = mat2(i, j) match {
-                            case 0d => rightMin
+                            case 0D => rightMin
                             case _ => mat2(i, j)
                         }
 

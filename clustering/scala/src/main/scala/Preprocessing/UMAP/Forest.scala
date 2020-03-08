@@ -9,7 +9,7 @@ package org.clustering4ever.scala.umap
  * @author Forest Florent
  */
 import breeze.linalg.{DenseMatrix, max}
-import scala.collection.mutable
+import _root_.scala.collection.mutable
 
 /**
   * A Forest is a group of FlatTrees. It is used to concatenate a certain amount of tree leaves.
@@ -20,30 +20,21 @@ import scala.collection.mutable
   * @param state        The initialization array for random.
   * @param angular      Whether the trees must be angular or not.
   */
-case class Forest(data: DenseMatrix[Double], nbNeighbors: Int, nbTrees: Int, state : Array[Long], angular: Boolean = false) {
-  val trees = new mutable.ArrayBuffer[FlatTree](0)
-
-  makeForest
+final case class Forest(data: DenseMatrix[Double], nbNeighbors: Int, nbTrees: Int, state : Array[Long], angular: Boolean = false) {
+  
+  val trees = new mutable.ArrayBuffer[FlatTree](nbTrees)
 
   /**
     * Creates a forest of FlatTrees by adding them recursively.
     */
-  private def makeForest : Unit = {
+  private def makeForest() : Unit = {
+
     val leafSize = max(10, nbNeighbors)
     val indices = mutable.ArrayBuffer(0 until data.rows: _*)
-
-    @annotation.tailrec
-    def addTree(nbTree: Int) : Unit = {
-      if (nbTree > 0) {
-        val tree = RPTree.makeTree(data, indices, leafSize, angular)
-        trees += new FlatTree(tree, leafSize)
-        addTree(nbTree - 1)
-      }
-    }
-
-    addTree(nbTrees)
+    (1 to nbTrees).reverse.par.map{ _ => RPTree.makeTree(data, indices, leafSize, angular) }.seq.foreach(trees += new FlatTree(_, leafSize))
+ 
   }
-
+  makeForest()
   /**
     * Creates a matrix of leaves by vertically concatenating the leaf matrix of every tree in the forest.
     *

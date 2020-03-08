@@ -9,7 +9,7 @@ package org.clustering4ever.scala.umap
  * @author Forest Florent
  */
 import breeze.linalg._
-import scala.collection.mutable.ArrayBuffer
+import _root_.scala.collection.mutable.ArrayBuffer
 
 /**
   * A FlatTree is a flat form for an RPTree. It is made to improve
@@ -22,6 +22,10 @@ case class FlatTree(rp: RPTree, leafSize: Int) {
 
     private val nodes = RPTree.nodes(rp)
     private val leaves = RPTree.leaves(rp)
+
+    // println("nodes : " + nodes)
+    // println("leaves : " + leaves)
+    // System.exit(0)
 
 
     val hyperplane: ArrayBuffer[DenseVector[Double]] = new ArrayBuffer[DenseVector[Double]](nodes)

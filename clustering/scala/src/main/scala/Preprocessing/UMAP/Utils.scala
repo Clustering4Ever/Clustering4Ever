@@ -9,13 +9,13 @@ package org.clustering4ever.scala.umap
  * @author Forest Florent
  */
 import breeze.linalg.{DenseMatrix, DenseVector}
-import scala.collection.mutable
+import _root_.scala.collection.mutable
 /**
  *
  */
 object Utils extends Serializable {
 
-    final def mod(a: Int, b: Int): Int = {
+    def mod(a: Int, b: Int): Int = {
         val res = a % b
         if (res < 0) res + b
         else res
@@ -26,7 +26,7 @@ object Utils extends Serializable {
       * @param state The Longernal state of the rng
       * @return A (pseudo)-random Int value
       */
-    final def tauRandInt(state: Array[Long]) : Int = {
+    def tauRandInt(state: Array[Long]) : Int = {
         state(0) = (((state(0) & 0xfffffffeL) << 12) & 0xffffffffL) ^ (
             (((state(0) << 13) & 0xffffffffL) ^ state(0)) >> 19
             )
@@ -46,7 +46,7 @@ object Utils extends Serializable {
       * @return A (pseudo)-random float in the Longerval [0, 1]
       */
 
-    final def tauRand(state : Array[Long]) : Float = {
+    def tauRand(state : Array[Long]) : Float = {
         val longeger : Int = tauRandInt(state)
         longeger.toFloat / Int.MaxValue
     }
@@ -61,7 +61,7 @@ object Utils extends Serializable {
       * @param rngState Longernal state of the random number generator
       * @return The ``nSamples`` randomly selected elements from the pool.
       */
-    final def rejectionSample(nSamples: Int, poolSize: Int, rngState: Array[Long]): Array[Long] = {
+    def rejectionSample(nSamples: Int, poolSize: Int, rngState: Array[Long]): Array[Long] = {
 
         @annotation.tailrec
         def goRejectSample(i: Int, res: mutable.ArrayBuffer[Long]): mutable.ArrayBuffer[Long] = {
@@ -89,7 +89,7 @@ object Utils extends Serializable {
       * @param arr2 : DenseVector[Int] Heap holding the corresponding elements
       */
 
-    final def siftdown(arr1: DenseVector[Double], arr2: DenseVector[Int], elt: Int): Unit = {
+    def siftdown(arr1: DenseVector[Double], arr2: DenseVector[Int], elt: Int): Unit = {
         /*var eltIsEqualSwap = false*/
 
         @annotation.tailrec
@@ -128,31 +128,25 @@ object Utils extends Serializable {
       * @param nNeighbors Number of neighbors.
       * @return The corresponding submatrix.
       */
-    final def submatrix(dmat: Array[Array[Double]], indicesCol: Array[Array[Int]], nNeighbors: Int): Array[Array[Double]] = {
+    def submatrix(dmat: Array[Array[Double]], indicesCol: Array[Array[Int]], nNeighbors: Int): Array[Array[Double]] = {
         val nSamplesTransform = dmat.length
         val submat: Array[Array[Double]] = Array.fill(nSamplesTransform, nNeighbors)(0)
-        @annotation.tailrec
-        def go(i: Int): Unit ={
-            if(i < nSamplesTransform) {
-                @annotation.tailrec
-                def go2(j: Int): Unit = {
-                    if (j < nNeighbors) {
-                        submat(i)(j) = dmat(i)(indicesCol(i)(j))
-                        go2(j + 1)
-                    }
-                }
-                go2(0)
-                go(i + 1)
-            }
+        
+        val range2 = (0 until nNeighbors)//.par
+        
+        (0 until nSamplesTransform)/*.par*/.foreach{ i =>
+          range2.foreach{ j =>
+            submat(i)(j) = dmat(i)(indicesCol(i)(j))
+          }
         }
-        go(0)
+
         submat
+
     }
 
     def makeMatrix(rows: DenseVector[Int], cols: DenseVector[Int], vals: DenseVector[Double], rowDim: Int, colDim: Int) = {
-        val result =DenseMatrix.zeros[Double](rowDim, colDim)
-        (0 until rows.length).foreach(i => result(rows(i), cols(i)) = result(rows(i), cols(i)) + vals(i))
-
+        val result = DenseMatrix.zeros[Double](rowDim, colDim)
+        (0 until rows.length).foreach( i => result(rows(i), cols(i)) = result(rows(i), cols(i)) + vals(i) )
         result
     }
 }

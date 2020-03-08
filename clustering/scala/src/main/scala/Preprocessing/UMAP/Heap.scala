@@ -13,13 +13,9 @@ import breeze.numerics.Inf
 
 
 final case class Heap(final val nPoints: Int, final val size: Int) {
-    var indices: DenseMatrix[Int] = new DenseMatrix[Int](nPoints, size)
-    var weights: DenseMatrix[Double] = new DenseMatrix[Double](nPoints, size)
-    var flags: DenseMatrix[Int] = new DenseMatrix[Int](nPoints, size)
-
-    indices = indices.map(_ => -1)
-    weights = weights.map(_ => Inf)
-    flags = flags.map(_ => 0)
+    val indices: DenseMatrix[Int] = DenseMatrix.fill(nPoints, size)(-1)
+    val weights: DenseMatrix[Double] = DenseMatrix.fill(nPoints, size)(Inf)
+    val flags: DenseMatrix[Int] = DenseMatrix.fill(nPoints, size)(0)
 
     override def toString: String = {
         indices.toString + "\n" + weights.toString + "\n" + flags.toString

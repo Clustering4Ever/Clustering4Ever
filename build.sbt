@@ -48,12 +48,14 @@ lazy val commonSettingsC4E = Seq(
 		bintrayRepository := "C4E",
 	 	version := "0.9.6",
 		scalaVersion := "2.11.12",
-		conflictManager := ConflictManager.all,
+		// conflictManager := ConflictManager.all,
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
 		bintrayOrganization := Some("clustering4ever"),
 		credentials += Credentials(Path.userHome / ".bintray" / ".credentials"),
-		scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
+		scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature"),
+		projectDependencies := projectDependencies.value.map(_.withDottyCompat(scalaVersion.value)),
+		scalacOptions ++= { if (isDotty.value) Seq("-language:Scala2") else Nil }
 )
 
 lazy val core = (project in file("core"))
