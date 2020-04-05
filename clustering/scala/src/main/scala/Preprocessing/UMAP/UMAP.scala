@@ -447,17 +447,9 @@ object UMAP {
     val epochs = if (nEpochs <= 0) if (graph.rows <= 10000) 500 else 200 else nEpochs
     val maxGraphOverNEpochs = max(graph) / epochs.toDouble
 
-    @annotation.tailrec
-    def majGraph(i: Int): Unit = {
-      if (i < graph.rows) {
-        val ind = graph(i, ::).t.findAll(_ < maxGraphOverNEpochs)
-        ind.foreach(j => g(i, j) = 0)
-        majGraph(i + 1)
-      }
-      else Unit
+    (0 until graph.rows).par.foreach{ i =>
+      graph(i, ::).t.findAll(_ < maxGraphOverNEpochs).foreach(g(i, _) = 0)
     }
-
-    majGraph(0)
 
     def randomMatrix(random: Random): DenseMatrix[Double] = {
       def rdm = random.nextDouble * 20D - 10D
@@ -507,8 +499,10 @@ object UMAP {
     val head = new DenseVector[Int](gtz.length)
     val tail = new DenseVector[Int](gtz.length)
 
-    gtz.indices.foreach(i => head(i) = gtz(i)._2)
-    gtz.indices.foreach(i => tail(i) = gtz(i)._1)
+    gtz.indices.par.foreach{ i =>
+      head(i) = gtz(i)._2
+      tail(i) = gtz(i)._1
+    }
 
     def rdmFill = random.nextLong
     val rngState = Array.fill[Long](3)(rdmFill)
@@ -652,6 +646,7 @@ object UMAP {
       val result = Utils.makeMatrix(rows, cols, vals, xData.rows, xData.rows)
 
       val transpose = result.t
+
       val prodMatrix = result *:* transpose
       setOpMixRatio * (result + transpose - prodMatrix) + (1D - setOpMixRatio) * prodMatrix
   }
