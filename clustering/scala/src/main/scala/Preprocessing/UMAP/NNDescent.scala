@@ -23,8 +23,6 @@ object NNDescent {
         val rangeIn1 = (0 until indices.length)
 
 
-
-
         (0 until nVertices).foreach{ i =>
             rangeIn1.foreach{ j =>
                 val y = data(indices(j).toInt, ::).t
@@ -80,65 +78,72 @@ object NNDescent {
                 else Unit
             }
 
+            val t0 = System.currentTimeMillis
             go1n(0)
+            val t1 = System.currentTimeMillis
+            println("B0 : " + (t1 - t0) / 1000D)
 
         }
 
+        val candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, rngState)
+        
+        var cpt = 0
+
         @annotation.tailrec
-        def go21(n: Int): Unit = {
-            
-            if (n < nIters) {
-                val candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, rngState)
-                
-                @annotation.tailrec
-                def go2i(i: Int, sumCi: Int): Int = {
-                    
-                    if (i < nVertices) {
-                        
-                        @annotation.tailrec
-                        def go2j(j: Int, sumCj: Int): Int = {
-                          
-                            if (j < maxCandidates) {
-                                val p = candidateNeighbors.indices(i, j)
-                                
-                                if (p < 0 || Utils.tauRand(rngState) < rho) {
-                                    go2j(j + 1, sumCj)
-                                }
-                                else {
-                                 
-                                    @annotation.tailrec
-                                    def go2k(k: Int, sumCk: Int): Int = {
-                                        if (k < maxCandidates) {
-                                            val q = candidateNeighbors.indices(i, k)
-                                            if (q < 0 || (candidateNeighbors.flags(i, j) == 0) && (candidateNeighbors.flags(i, k) == 0)) {
-                                                go2k(k + 1, sumCk)
-                                            }
-                                            else {
-                                                val d: Double = dist(data(p, ::).t, data(q, ::).t)
-                                                val sum = sumCk + currentGraph.push(p, d, q, 1) + currentGraph.push(q, d, p, 1)
-                                                go2k(k + 1, sum)
-                                            }
-                                        }
-                                        else sumCk
-                                    }
-                                    val sumCk = go2k(0, sumCj)
-                                    go2j(j + 1, sumCk)
-                                }
-                            }
-                            else sumCj
-                        }
-                        val sumCj = go2j(0, sumCi)
-                        go2i(i + 1, sumCj)
-                    }
-                    else sumCi
+        def go2c(i: Int, j: Int, p: Int, k: Int, sumCk: Int): Int = {
+            cpt += 1
+            if (k < maxCandidates) {
+                val q = candidateNeighbors.indices(i, k)
+                if (q < 0 || (candidateNeighbors.flags(i, j) == 0) && (candidateNeighbors.flags(i, k) == 0)) go2c(i, j, p, k + 1, sumCk)
+                else {
+                    val d: Double = dist(data(p, ::).t, data(q, ::).t)
+                    val sum = sumCk + currentGraph.push(p, d, q, 1) + currentGraph.push(q, d, p, 1)
+                    go2c(i, j, p, k + 1, sum)
                 }
-                val c = go2i(0, 0)
-                if (c > delta * nNeighbors * nVertices) go21(n + 1) else Unit
+            }
+            else sumCk
+        }
+
+        @annotation.tailrec
+        def go2b(i: Int, j: Int, sumCj: Int): Int = {
+          
+            if (j < maxCandidates) {
+
+                val p: Int = candidateNeighbors.indices(i, j)
+
+                if (p < 0 || Utils.tauRand(rngState) < rho) go2b(i, j + 1, sumCj)
+                else {
+                    val sumCk = go2c(i, j, p, 0, sumCj)
+                    go2b(i, j + 1, sumCk)
+                }
+            }
+            else sumCj
+        }
+
+        @annotation.tailrec
+        def go2a(i: Int, sumCi: Int): Int = {
+            if (i < nVertices) {
+                val sumCj = go2b(i, 0, sumCi)
+                go2a(i + 1, sumCj)
+            }
+            else sumCi
+        }
+
+        @annotation.tailrec
+        def go2(n: Int): Unit = {
+            if (n < nIters) {
+                val c = go2a(0, 0)
+                if (c > delta * nNeighbors * nVertices) go2(n + 1) else Unit
             }
             else Unit
         }
 
-        go21(0)
+        val t0 = System.currentTimeMillis
+        go2(0)
+        val t1 = System.currentTimeMillis
+        println("B : " + (t1 - t0) / 1000D)
+        println("cpt : " + cpt)
+        println("per s : " + cpt / ((t1 - t0) / 1000D))
 
         currentGraph.deheapSort
     }

@@ -250,15 +250,13 @@ object UMAP {
     */
 
   private[clustering4ever] def makeEpochsPerSample(weights: Array[Double], nEpochs: Int): DenseVector[Double] = {
-    val result = -1D * DenseVector.ones[Double](weights.length)
-    val nSamples = new DenseVector[Double](weights.length)
-
-    weights.indices.foreach(i => nSamples(i) = nEpochs * weights(i) / max(weights))
-    val samplesGreaterThan0 = nSamples.findAll(_ > 0)
-
-    samplesGreaterThan0.foreach(i => result(i) = nEpochs.toDouble / nSamples(i))
-
-    result
+    val maxW = max(weights)
+    DenseVector(
+      weights.map{ w => 
+        val nSample: Double = nEpochs * w / maxW
+        if (nSample > 0) nEpochs / nSample else -1D
+      }
+    )
   }
 
 
@@ -315,22 +313,23 @@ object UMAP {
     negativeSampleRate: Int = 5
   ): DenseMatrix[Double] = {
 
+    // println(head.toArray.size == head.toArray.toSet.size)
+    // println(tail.toArray.size == tail.toArray.toSet.size)
+
     val dim = headEmbedding.cols
     val moveOther = headEmbedding.rows == tailEmbedding.rows
-    var alpha = initialAlpha
 
     val epochPerNegativeSample = epochsPerSample.map(_ / negativeSampleRate)
 
-
     val epochOfNextSample = epochsPerSample.copy
-    val epochOfNextNegativeSample = epochPerNegativeSample.copy
-
+    val epochOfNextNegativeSample: DenseVector[Double] = epochPerNegativeSample.copy
 
     def clip(value: Double, clamp: Double): Double = {
         if (value > clamp) clamp
         else if (value < -clamp) -clamp
         else value
     }
+
     def mod(a: Int, b: Int) = {
       val res = a % b
       if (res < 0) res + b else res
@@ -339,6 +338,11 @@ object UMAP {
     val cst1 = -2D * a * b
     val cst2 = 2D * gamma * b
 
+    var sum = 0D
+
+    def semaphoreGen = new java.util.concurrent.Semaphore(1)
+    val semaphores = Array.fill(epochsPerSample.length)(semaphoreGen)
+
     def fillEpochSamples(n: Int, i: Int, alpha: Double): Unit = {
 
       if (epochOfNextSample(i) <= n && i != 14) {
@@ -346,26 +350,34 @@ object UMAP {
         val k = tail(i)
         val current: DenseVector[Double] = headEmbedding(j, ::).t
         val other: DenseVector[Double] = tailEmbedding(k, ::).t
-        val distSquared0 = reduceEuclidean(current, other)
+        // val current: DenseVector[Double] = currentO.copy
+        // val other: DenseVector[Double] = otherO.copy
+        val distSquared = reduceEuclidean(current, other)
 
-        val gradCoeff0 = if (distSquared0 > 0D) (cst1 * pow(distSquared0, b - 1D)) / (a * pow(distSquared0, b) + 1D) else 0D
+        val gradCoeff = if (distSquared > 0D) (cst1 * pow(distSquared, b - 1D)) / (a * pow(distSquared, b) + 1D) else 0D
 
         @annotation.tailrec
-        def goGradD(d: Int, gradD1: Double): Double = {
+        def goGradD(d: Int): Unit = {
           if (d < dim) {
-            val gradDOut = clip(gradCoeff0 * (current(d) - other(d)), 4D)
+            val gradDOut = clip(gradCoeff * (current(d) - other(d)), 4D)
             current(d) += gradDOut * alpha
             if (moveOther) {
               other(d) = other(d) - gradDOut * alpha
             }
-            goGradD(d + 1, gradDOut)
+            goGradD(d + 1)
           }
-          else gradD1
+          else Unit
         }
 
-        val gradD = goGradD(0, 0D)
+        val t0 = System.currentTimeMillis
+        goGradD(0)
+        val t1 = System.currentTimeMillis
+        sum += (t1 - t0) / 1000D
 
+        // semaphores(i).acquire
+        // other.activeKeysIterator.foreach( j => otherO(j) = other(j) )
         epochOfNextSample(i) += epochsPerSample(i)
+        // semaphores(i).release
 
         val nNegSamples = ((n - epochOfNextNegativeSample(i)) / epochPerNegativeSample(i)).toInt
 
@@ -379,33 +391,68 @@ object UMAP {
           else Unit
         }
 
+
         def fillK = mod(Utils.tauRandInt(rngState), nVertices)
         val kIndices = Array.fill(nNegSamples)(fillK)
-        val otherOuts = kIndices.map(tailEmbedding(_, ::).t)
+        val otherOuts: Array[DenseVector[Double]] = kIndices.map(tailEmbedding(_, ::).t)
         val distSquareds = otherOuts.map(reduceEuclidean(current, _))
         val gradCoeffs = distSquareds.map{ distSquar =>
           if (distSquar > 0D) cst2 / ((0.001 + distSquar) * (a * pow(distSquar, b) + 1)) else 0D
         }
 
-        gradCoeffs.zip(otherOuts).foreach{ case (gradCoeff, otherOut) => setCurrent(0, gradCoeff, otherOut)}
+        @annotation.tailrec
+        def go(i: Int): Unit = {
+          if (i < gradCoeffs.size) {
+            setCurrent(0, gradCoeffs(i), otherOuts(i))
+            go(i + 1)
+          }
+          else Unit
+        }
+
+        go(0)
+
+        // semaphores(i).acquire
+        // current.activeKeysIterator.foreach( j => currentO(j) = current(j) )
         epochOfNextNegativeSample(i) += nNegSamples * epochPerNegativeSample(i)
-        gradCoeffs.last
+        // semaphores(i).release
+
       }
 
     }
 
+    val parRange = (0 until epochsPerSample.length).par
+
     @annotation.tailrec
     def goOverEpochsTR(n: Int): Unit = {
       if (n < nEpochs) {
-        val alphaIn = initialAlpha * (1D - n.toDouble / nEpochs.toDouble)
-        (0 until epochsPerSample.length).par.foreach( i => fillEpochSamples(n, i, alphaIn) )
+        val alphaIn = initialAlpha * (1D - n.toDouble / nEpochs)
+        parRange.foreach( i => fillEpochSamples(n, i, alphaIn) )
         goOverEpochsTR(n + 1)
       }
       else Unit
     }
 
+    val range2 = (0 until epochsPerSample.length)
+    def goOverEpochsPar: Unit = {
+      (0 until nEpochs).par.foreach{ n =>
+        val alphaIn = initialAlpha * (1D - n.toDouble / nEpochs)
+        parRange.foreach( i => fillEpochSamples(n, i, alphaIn) )
+      }
+    }
+
+
+
+
+
+    val t0 = System.currentTimeMillis
     goOverEpochsTR(0)
+    // goOverEpochsPar
+    val t1 = System.currentTimeMillis
+    println("G2 - 5 - F : " + sum)
+    println("G2 - 5 - G : " + (t1 - t0) / 1000D)
     
+
+
     headEmbedding
   }
 
@@ -447,9 +494,14 @@ object UMAP {
     val epochs = if (nEpochs <= 0) if (graph.rows <= 10000) 500 else 200 else nEpochs
     val maxGraphOverNEpochs = max(graph) / epochs.toDouble
 
+
+    val t20 = System.currentTimeMillis
     (0 until graph.rows).par.foreach{ i =>
       graph(i, ::).t.findAll(_ < maxGraphOverNEpochs).foreach(g(i, _) = 0)
     }
+    val t21 = System.currentTimeMillis
+    println("G2 - 1 : " + (t21 - t20) / 1000D)
+
 
     def randomMatrix(random: Random): DenseMatrix[Double] = {
       def rdm = random.nextDouble * 20D - 10D
@@ -492,8 +544,11 @@ object UMAP {
         }
     }
 
+    val t00 = System.currentTimeMillis
     val graphArray = graph.toDenseVector(graph.toDenseVector.findAll(_ != 0)).toArray
     val epochsPerSample = makeEpochsPerSample(graphArray, epochs)
+    val t0 = System.currentTimeMillis
+    println("G2 - 3 : " + (t0 - t00) / 1000D)
     val gtz = g.findAll(_ > 0)
 
     val head = new DenseVector[Int](gtz.length)
@@ -503,11 +558,19 @@ object UMAP {
       head(i) = gtz(i)._2
       tail(i) = gtz(i)._1
     }
+    val t80 = System.currentTimeMillis
+    println("G2 - 4 : " + (t80 - t0) / 1000D)
+    // println("F : " + (t80 - t0) / 1000D)
 
     def rdmFill = random.nextLong
     val rngState = Array.fill[Long](3)(rdmFill)
 
+
+
     val newEmbedding = optimizeLayout(embedding, embedding, head, tail, epochs, nVertices, epochsPerSample, a, b, rngState, gamma, initialAlpha, negativeSampleRate)
+    val t1 = System.currentTimeMillis
+    println("G2 - 5 : " + (t1 - t80) / 1000D)
+
 
     newEmbedding
   }
@@ -645,7 +708,11 @@ object UMAP {
       val (rows, cols, vals) = membershipStrengths(knni, knnd, sigmas, rhos)
       val result = Utils.makeMatrix(rows, cols, vals, xData.rows, xData.rows)
 
+      // val t0 = System.currentTimeMillis
       val transpose = result.t
+      // val t1 = System.currentTimeMillis
+      // println("transpose : " + (t1 - t0) / 1000D)
+      // println(transpose.cols, transpose.rows)
 
       val prodMatrix = result *:* transpose
       setOpMixRatio * (result + transpose - prodMatrix) + (1D - setOpMixRatio) * prodMatrix
@@ -948,14 +1015,24 @@ case class UMAP(val nNeighborsIn: Int = 15,
 
 
 
+            val t009 = System.currentTimeMillis
             val (knni, knnd, rpf) = UMAP.nearestNeighbors(xData, nNeighbors, metric, angularRPForest)
+            val t00 = System.currentTimeMillis
+            println("Q : " + (t00 - t009) / 1000D)
 
             val g: DenseMatrix[Double] = UMAP.fuzzySimplicialSet(xData, nNeighbors, metric, Some(knni), Some(knnd), angularRPForest, setOPMixRatio, localConnectivity)
+            val t01 = System.currentTimeMillis
+            println("M : " + (t01 - t00) / 1000D)
 
+
+
+
+
+            val range2 = 0 until knni.cols
             /* Search Graph */
             val sgAux = new DenseMatrix[Int](xData.rows, xData.rows)
-            for (i <- 0 until knni.rows) {
-              for (j <- 0 until knni.cols) {
+            (0 until knni.rows).par.foreach{ i =>
+              range2.foreach{ j =>
                 sgAux(i, knni(i, j)) = knnd(i, j) match {
                     case 0D => 0
                     case _ => 1
@@ -963,10 +1040,13 @@ case class UMAP(val nNeighborsIn: Int = 15,
               }
             }
 
+            val t002 = System.currentTimeMillis
             val lessThanTranspose: DenseMatrix[Boolean] = sgAux <:< sgAux.t
             val sg = sgAux
-            val valuesToMAJ = lessThanTranspose.findAll(a => a)
-            valuesToMAJ.foreach(key => sg(key) = sgAux(key))
+            lessThanTranspose.activeKeysIterator.foreach(key => sg(key) = sgAux(key))
+            val t001 = System.currentTimeMillis
+            println("P : " + (t001 - t002) / 1000D)
+
 
             val graph: Option[DenseMatrix[Double]] = if (y.isDefined) {
                 // TODO: Exception a lever si jamais la taille des deux matrices n'est pas la meme
@@ -977,7 +1057,6 @@ case class UMAP(val nNeighborsIn: Int = 15,
                           case x if x < 1D => 2.5 * (1D / (1D - targetWeight))
                           case _ => 1e12D
                       }
-                      // graph = Some(UMAP.categoricalSimplicialSetIntersection(g, y.get.toArray, farDist = fd))
                       Some(UMAP.categoricalSimplicialSetIntersection(g, y.get.toArray, farDist = fd))
                     }
                     case _ => {  
@@ -987,10 +1066,6 @@ case class UMAP(val nNeighborsIn: Int = 15,
                       }
                       val targetGraph = UMAP.fuzzySimplicialSet(y.get.toDenseMatrix, tnn, targetMetric.getOrElse(new Euclidean), None, None, false, 1D, 1D, false)
 
-                      // graph = Some(UMAP.generalSimplicialSetIntersection(g, targetGraph, targetWeight))
-                      // graph = Some(UMAP.resetLocalConnectivity(g))
-                      // Why
-                      // UMAP.generalSimplicialSetIntersection(g, targetGraph, targetWeight)
                       Some(UMAP.resetLocalConnectivity(g))
                     }
                 }
@@ -999,7 +1074,11 @@ case class UMAP(val nNeighborsIn: Int = 15,
 
             val nbEp = nEpochs.getOrElse(0)
 
+        
+            val t0 = System.currentTimeMillis
             val embeddingOut = UMAP.simplicialSetEmbedding(g, nComponents, learningRate, ares, bres, repulsionStrength, negativeSampleRate, nbEp, init)
+            val t1 = System.currentTimeMillis
+            println("G : " + (t1 - t0) / 1000D)
 
             Some(
               UMAPModel(

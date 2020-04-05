@@ -13,7 +13,8 @@ lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 
 lazy val sparkDeps = libraryDependencies ++= Seq(
 	   	"org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided"
+		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided",
+    	"gov.nist.math" % "jama" % "1.0.3"
 )
 
 lazy val coreDeps = libraryDependencies ++= Seq(
@@ -25,6 +26,7 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 	  "org.typelevel" %% "spire" % "0.14.1",
 	  "com.chuusai" %% "shapeless" % "2.3.3",
 	  compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
 )
 
 lazy val scalaDeps = libraryDependencies ++= Seq(
