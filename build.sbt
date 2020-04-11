@@ -12,8 +12,8 @@ lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 }
 
 lazy val sparkDeps = libraryDependencies ++= Seq(
-	   	"org.apache.spark" %% "spark-core" % sparkVersion % "provided",
-		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided",
+	   	"org.apache.spark" %% "spark-core" % sparkVersion, //% "provided",
+		"org.apache.spark"  %% "spark-mllib"  % sparkVersion, //% "provided",
     	"gov.nist.math" % "jama" % "1.0.3"
 )
 
@@ -48,7 +48,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.9.6",
+	 	version := "0.9.8-SNAPSHOT",
 		scalaVersion := "2.11.12",
 		// conflictManager := ConflictManager.all,
 		autoAPIMappings := true,

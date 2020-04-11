@@ -19,7 +19,7 @@ import org.clustering4ever.vectors.{ScalarVector, GScalarVector}
  *
  */
 final case class Clusterwise(
-	@(transient @param) sc: SparkContext,
+	sc: SparkContext,
 	dataXY: GenSeq[(Int, (Array[Double], Array[Double]))],
 	g: Int,
 	h: Int,
@@ -100,20 +100,20 @@ final case class Clusterwise(
 
 		val splits = scala.util.Random.shuffle(centerReductRDD.seq).grouped((centerReductRDD.size / nbCV) + 1).map(_.par).toArray
 		val rangeCV = (0 until nbCV).par
-		val trainDS = rangeCV.map( j => rangeCV.collect{ case u if( u != j ) => splits(u) }.flatten.seq.sortBy{ case (id, _) => id }.par )
+		val trainDS = rangeCV.map( j => rangeCV.collect{ case u if (u != j) => splits(u) }.flatten.seq.sortBy{ case (id, _) => id }.par )
 		val broadcastedTrainData = sc.broadcast(trainDS)
 		val broadcastedMicroClusterByIdAndNumbers = sc.broadcast(microClusterByIdAndNumbers)
 		// Launch Meta Reg on each partition
-		val resRegOut = sc.parallelize( 1 to 8888, init * nbCV).mapPartitionsWithIndex{ (idx, it) =>
+		val resRegOut = sc.parallelize(1 to 8888, init * nbCV).mapPartitionsWithIndex{ (idx, it) =>
 			val idxCV = idx % nbCV
-			val predFittedBuff = mutable.ArrayBuffer.empty[Array[immutable.IndexedSeq[(Int, Array[Double])]]]
+			val predFittedBuff = mutable.ArrayBuffer.empty[Array[Array[(Int, Array[Double])]]]
 			val critRegBuff = mutable.ArrayBuffer.empty[Array[Double]]
 			val mapsRegCritBuff = mutable.ArrayBuffer.empty[mutable.HashMap[Int, Double]]
 			val classedRegBuff = mutable.ArrayBuffer.empty[Array[(Int, Int)]]
 			val coInterceptBuff = mutable.ArrayBuffer.empty[Array[Array[Double]]]
 			val coXYcoefBuff = mutable.ArrayBuffer.empty[Array[Array[Double]]]
 		  	// Clusterwise
-		  	if( sizeBloc == 1 ) {
+		  	if (sizeBloc == 1) {
 		  		val (_, predFitted, coIntercept, coXYcoef, critReg, mapsRegCrit, classedReg) = ClusterwiseCore.plsPerDot(broadcastedTrainData.value(idxCV), h, g, nbMaxAttemps, logOn)
 		  		predFittedBuff += predFitted
 		  		coInterceptBuff += coIntercept
@@ -148,7 +148,13 @@ final case class Clusterwise(
 		val idxBestRegScoreOut = regScores0.map{ case (idxCV, regScores) => (idxCV, regScores.indexOf(regScores.min)) }.toMap
 		val bestModelPerCV = aggregateByCVIdx.map{ case (idxCV, aggregate) => (idxCV, aggregate(idxBestRegScoreOut(idxCV))) }
 
-		def computeRmseTrainAndTest(idxCV: Int, bestClassifiedDataOut: Array[(Int, Int)], bestCoInterceptOut: Array[Array[Double]], bestCoXYcoefOut: Array[Array[Double]], bestFittedOut: Array[immutable.IndexedSeq[(Int, Array[Double])]]) = {
+		def computeRmseTrainAndTest(
+			idxCV: Int,
+			bestClassifiedDataOut: Array[(Int, Int)],
+			bestCoInterceptOut: Array[Array[Double]],
+			bestCoXYcoefOut: Array[Array[Double]],
+			bestFittedOut: Array[Array[(Int, Array[Double])]]
+		) = {
 			val mapBestClassifiedDataOut = immutable.HashMap(bestClassifiedDataOut:_*)
 		
 			val labeledRDD = broadcastedTrainData.value(idxCV).map{ case (id, (x, y)) => (mapBestClassifiedDataOut(id), (id, x, y)) }
@@ -183,29 +189,55 @@ final case class Clusterwise(
 
 		 	val meanTrain = trainY.reduce(SumVectors.sumVectors(_, _)).map(_ / trainY.size)
 
-		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) => pow(y - meanTrain(meanIdx), 2) }).reduce(SumVectors.sumVectors(_, _)).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
+		 	// foldLeft
+		 	val sdYtrain = trainY.map(_.zipWithIndex.map{ case (y, meanIdx) =>
+		 		pow(y - meanTrain(meanIdx), 2)
+		 	})
+		 		.reduce(SumVectors.sumVectors(_, _)).map( x => sqrt(x / (broadcastedTrainData.value(idxCV).size - 1)) )
 		 	
+		 	// foldLeft
 		 	val meanTest = testY.map(_._2._2).reduce(SumVectors.sumVectors(_, _)).map(_ / testSize)
 		 	
+		 	// foldLeft
 		 	val sdYtest = testY.map{ case (_, (_, y)) => y }.map(_.zipWithIndex.map{ case(y, meanIdx) => pow(y - meanTest(meanIdx), 2) }).reduce(SumVectors.sumVectors(_, _)).map( x => sqrt(x / (testSize - 1)))
 
 		 	// Standardized RMSE of train data
-			val sqRmseTrainIn = if(q == 1) trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => pow(trueY.head - yPred.head, 2)}.sum / trainY.size / sdYtrain.head
-				else trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) => trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) ) }
+			val sqRmseTrainIn = if (q == 1) {
+		 		// foldLeft
+				trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) =>
+					pow(trueY.head - yPred.head, 2)
+				}.sum / trainY.size / sdYtrain.head
+			}
+			else {
+				trainY.zip(yPredTrainSort).map{ case ((trueY, (_, yPred))) =>
+					trueY.zip(yPred).map( x => pow(x._1 - x._2, 2) )
+				}
 			    	.reduce(SumVectors.sumVectors(_, _))
 			    	.map(_ / trainY.size)
 			    	.zip(sdYtrain)
+		 			// foldLeft
 			    	.map{ case (rmseTrain, sdy) => rmseTrain / sdy }
 			    	.sum / q
+			}
 
 			val testAndPredData = testY.zip(labelAndPrediction)
 		 	// Standardized RMSE of test data
-			val sqRmseTestIn = if(q == 1) testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => pow(y.head - yPred(0), 2) }.sum / testSize / sdYtest.head
-				else testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) => y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) } }
+			val sqRmseTestIn = if (q == 1) {
+		 		// foldLeft
+				testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) =>
+					pow(y.head - yPred(0), 2)
+				}.sum / testSize / sdYtest.head
+			}
+			else {
+				testAndPredData.map{ case ((idx, (x, y)), (idx2, (label, yPred))) =>
+					y.zip(yPred.toArray).map{ case (yTest, yPred) => pow(yTest - yPred, 2) }
+				}
 					.reduce(SumVectors.sumVectors(_, _))
 					.zip(sdYtest)
+		 			// foldLeft
 					.map{ case (rmseTest, sdTest) => rmseTest / sdTest }
 					.sum / q
+			}
 
 			(sqRmseTrainIn, sqRmseTestIn)
 		}
@@ -216,14 +248,13 @@ final case class Clusterwise(
 	}
 }
 
-object Clusterwise extends Serializable
-{
+object Clusterwise extends Serializable {
 	/**
 	 *
 	 *
 	 */
 	def run(
-		@(transient @param) sc: SparkContext,
+		sc: SparkContext,
 		dataXY: GenSeq[(Int, (Array[Double], Array[Double]))],
 		g: Int,
 		h: Int,

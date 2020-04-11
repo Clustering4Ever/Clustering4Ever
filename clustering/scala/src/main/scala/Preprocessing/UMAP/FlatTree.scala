@@ -23,11 +23,6 @@ case class FlatTree(rp: RPTree, leafSize: Int) {
     private val nodes = RPTree.nodes(rp)
     private val leaves = RPTree.leaves(rp)
 
-    // println("nodes : " + nodes)
-    // println("leaves : " + leaves)
-    // System.exit(0)
-
-
     val hyperplane: ArrayBuffer[DenseVector[Double]] = new ArrayBuffer[DenseVector[Double]](nodes)
     val offsets: ArrayBuffer[Double] = new ArrayBuffer[Double](nodes)
     val children: ArrayBuffer[(Int, Int)] = new ArrayBuffer[(Int, Int)](nodes)

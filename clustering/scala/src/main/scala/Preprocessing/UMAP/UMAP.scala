@@ -440,18 +440,7 @@ object UMAP {
       }
     }
 
-
-
-
-
-    val t0 = System.currentTimeMillis
     goOverEpochsTR(0)
-    // goOverEpochsPar
-    val t1 = System.currentTimeMillis
-    println("G2 - 5 - F : " + sum)
-    println("G2 - 5 - G : " + (t1 - t0) / 1000D)
-    
-
 
     headEmbedding
   }
@@ -495,13 +484,9 @@ object UMAP {
     val maxGraphOverNEpochs = max(graph) / epochs.toDouble
 
 
-    val t20 = System.currentTimeMillis
     (0 until graph.rows).par.foreach{ i =>
       graph(i, ::).t.findAll(_ < maxGraphOverNEpochs).foreach(g(i, _) = 0)
     }
-    val t21 = System.currentTimeMillis
-    println("G2 - 1 : " + (t21 - t20) / 1000D)
-
 
     def randomMatrix(random: Random): DenseMatrix[Double] = {
       def rdm = random.nextDouble * 20D - 10D
@@ -558,9 +543,6 @@ object UMAP {
       head(i) = gtz(i)._2
       tail(i) = gtz(i)._1
     }
-    val t80 = System.currentTimeMillis
-    println("G2 - 4 : " + (t80 - t0) / 1000D)
-    // println("F : " + (t80 - t0) / 1000D)
 
     def rdmFill = random.nextLong
     val rngState = Array.fill[Long](3)(rdmFill)
@@ -568,9 +550,6 @@ object UMAP {
 
 
     val newEmbedding = optimizeLayout(embedding, embedding, head, tail, epochs, nVertices, epochsPerSample, a, b, rngState, gamma, initialAlpha, negativeSampleRate)
-    val t1 = System.currentTimeMillis
-    println("G2 - 5 : " + (t1 - t80) / 1000D)
-
 
     newEmbedding
   }
@@ -710,10 +689,6 @@ object UMAP {
 
       // val t0 = System.currentTimeMillis
       val transpose = result.t
-      // val t1 = System.currentTimeMillis
-      // println("transpose : " + (t1 - t0) / 1000D)
-      // println(transpose.cols, transpose.rows)
-
       val prodMatrix = result *:* transpose
       setOpMixRatio * (result + transpose - prodMatrix) + (1D - setOpMixRatio) * prodMatrix
   }
@@ -1012,25 +987,14 @@ case class UMAP(val nNeighborsIn: Int = 15,
 
         if (!oneRow) {
 
-
-
-
-            val t009 = System.currentTimeMillis
             val (knni, knnd, rpf) = UMAP.nearestNeighbors(xData, nNeighbors, metric, angularRPForest)
-            val t00 = System.currentTimeMillis
-            println("Q : " + (t00 - t009) / 1000D)
 
             val g: DenseMatrix[Double] = UMAP.fuzzySimplicialSet(xData, nNeighbors, metric, Some(knni), Some(knnd), angularRPForest, setOPMixRatio, localConnectivity)
-            val t01 = System.currentTimeMillis
-            println("M : " + (t01 - t00) / 1000D)
-
-
-
-
 
             val range2 = 0 until knni.cols
             /* Search Graph */
             val sgAux = new DenseMatrix[Int](xData.rows, xData.rows)
+
             (0 until knni.rows).par.foreach{ i =>
               range2.foreach{ j =>
                 sgAux(i, knni(i, j)) = knnd(i, j) match {
@@ -1040,12 +1004,9 @@ case class UMAP(val nNeighborsIn: Int = 15,
               }
             }
 
-            val t002 = System.currentTimeMillis
             val lessThanTranspose: DenseMatrix[Boolean] = sgAux <:< sgAux.t
             val sg = sgAux
             lessThanTranspose.activeKeysIterator.foreach(key => sg(key) = sgAux(key))
-            val t001 = System.currentTimeMillis
-            println("P : " + (t001 - t002) / 1000D)
 
 
             val graph: Option[DenseMatrix[Double]] = if (y.isDefined) {

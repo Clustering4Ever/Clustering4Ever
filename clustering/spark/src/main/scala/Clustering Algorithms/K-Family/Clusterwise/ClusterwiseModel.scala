@@ -14,9 +14,9 @@ import org.clustering4ever.math.distances.scalar.Euclidean
  */
 final case class ClusterwiseModel(
 	val xyTrain: GenSeq[(Int, (Array[Double], Array[Double], Int))],
-	interceptXYcoefPredByClass: immutable.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], immutable.IndexedSeq[(Int, Array[Double])])],
-	standardizationParameters: Option[(mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double])] = None,
-	metric: ContinuousDistance = new Euclidean
+	val interceptXYcoefPredByClass: immutable.Map[Int, (Array[Double], breeze.linalg.DenseMatrix[Double], Array[(Int, Array[Double])])],
+	val standardizationParameters: Option[(mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double], mutable.ArrayBuffer[Double])] = None,
+	val metric: ContinuousDistance = new Euclidean
 ) {
 	/**
 	 *
@@ -35,10 +35,17 @@ final case class ClusterwiseModel(
 	 */
 	final type IDXYtest = ParSeq[(Int, (Xvector, Yvector))]
 
-	private[this] def knn(v: Array[Double], neighbors: Seq[(Array[Double], Int)], k:Int) = neighbors.sortBy{ case (altVectors, clusterID) => metric.dRaw(v, altVectors) }.take(k)
+	private[this] def knn(v: Array[Double], neighbors: Seq[(Array[Double], Int)], k:Int) = {
+		neighbors.sortBy{ case (altVectors, clusterID) => metric.dRaw(v, altVectors) }.take(k)
+	}
 
 	private[this] def obtainNearestClass(x: Array[Double], k: Int, g: Int, withY: Boolean) = {
-		val neighbours = if( withY ) xyTrain.map{ case (_, (x2, y2, label2)) => ((x2 ++ y2), label2) } else xyTrain.map{ case (_, (x2, _, label2)) => (x2, label2) }
+		val neighbours = if (withY) {
+			xyTrain.map{ case (_, (x2, y2, label2)) => ((x2 ++ y2), label2) } 
+		}
+		else {
+			xyTrain.map{ case (_, (x2, _, label2)) => (x2, label2) }
+		}
 		val majVote = knn(x, neighbours.seq, k)
 		val cptVote = Array.fill(g)(0)
 		majVote.foreach{ case (_, clusterID) => cptVote(clusterID % g) += 1 }
@@ -46,17 +53,25 @@ final case class ClusterwiseModel(
 		classElem
 	}
 
-	private[this] def knnMajorityVote(xyTest: Iterator[(Long, Xvector)], k: Int, g: Int): Iterator[(Long, Int, Array[Double])] = xyTest.map{ case (id, x) => (id, obtainNearestClass(x, k, g, false), x) }
+	private[this] def knnMajorityVote(xyTest: Iterator[(Long, Xvector)], k: Int, g: Int): Iterator[(Long, Int, Array[Double])] = {
+		xyTest.map{ case (id, x) => (id, obtainNearestClass(x, k, g, false), x) }
+	}
 	
-	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): ParSeq[(Int, Int, Array[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass((x ++ y), k, g, true), x) }
+	private[this] def knnMajorityVoteWithY(xyTest: IDXYtest, k: Int, g: Int): ParSeq[(Int, Int, Array[Double])] = {
+		xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass((x ++ y), k, g, true), x) }
+	}
 
-	private[this] def knnMajorityVote2(xyTest: ParSeq[(Int, (Xvector, Yvector))], k: Int, g: Int): ParSeq[(Int, Int, Array[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x, k, g, false), x) }
+	private[this] def knnMajorityVote2(xyTest: ParSeq[(Int, (Xvector, Yvector))], k: Int, g: Int): ParSeq[(Int, Int, Array[Double])] = {
+		xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass(x, k, g, false), x) }
+	}
 
-	private[this] def knnMajorityVoteWithY2(xyTest: Iterator[(Int, (Xvector, Yvector))], k: Int, g: Int): Iterator[(Int, Int, Array[Double])] = xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass((x ++ y), k, g, true), x) }
+	private[this] def knnMajorityVoteWithY2(xyTest: Iterator[(Int, (Xvector, Yvector))], k: Int, g: Int): Iterator[(Int, Int, Array[Double])] = {
+		xyTest.map{ case (id, (x, y)) => (id, obtainNearestClass((x ++ y), k, g, true), x) }
+	}
 
 	def predictClusterViaKNNLocal(xyTest: ParSeq[(Int, (Xvector, Yvector))], k: Int, g: Int, withY: Boolean = true) = {
-		val labelisedData = if(withY) knnMajorityVoteWithY(xyTest, k, g) else knnMajorityVote2(xyTest, k, g)
-		val yPred = labelisedData.map{ case(id, clusterID, x) =>
+		val labelisedData = if (withY) knnMajorityVoteWithY(xyTest, k, g) else knnMajorityVote2(xyTest, k, g)
+		val yPred = labelisedData.map{ case (id, clusterID, x) =>
 			val (intercept, xyCoef, _) = interceptXYcoefPredByClass(clusterID)
 			val prediction = (DenseVector(intercept).t + DenseVector(x.toArray).t * xyCoef).t
 			(id, (clusterID, prediction))
@@ -81,13 +96,15 @@ final case class ClusterwiseModel(
 		val yPred = labelisedData.map{ case (id, clusterID, x) =>
 			val (intercept, xyCoef, _) = interceptXYcoefPredByClass(clusterID)
 			val standardizedOrNotPrediction = ((DenseVector(intercept).t + DenseVector(x.toArray).t * xyCoef).t).toArray
-			(
-				id,
-				(
-					clusterID,
-					if(standardizationParameters.isDefined) standardizedOrNotPrediction.zipWithIndex.map{ case (y, idx) => y * sdY(idx) + meanY(idx) } else standardizedOrNotPrediction
-				)
-			)
+			
+			val prediction = if (standardizationParameters.isDefined) {
+				standardizedOrNotPrediction.zipWithIndex.map{ case (y, idx) => y * sdY(idx) + meanY(idx) }
+			}
+			else {
+				standardizedOrNotPrediction
+			}
+
+			(id, (clusterID, prediction))
 		}
 		yPred
 	}

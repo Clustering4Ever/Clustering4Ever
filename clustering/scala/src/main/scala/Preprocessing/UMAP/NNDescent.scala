@@ -22,7 +22,6 @@ object NNDescent {
         val indices: Array[Long] = Utils.rejectionSample(nNeighbors, nVertices, rngState)
         val rangeIn1 = (0 until indices.length)
 
-
         (0 until nVertices).foreach{ i =>
             rangeIn1.foreach{ j =>
                 val y = data(indices(j).toInt, ::).t
@@ -138,13 +137,7 @@ object NNDescent {
             else Unit
         }
 
-        val t0 = System.currentTimeMillis
         go2(0)
-        val t1 = System.currentTimeMillis
-        println("B : " + (t1 - t0) / 1000D)
-        println("cpt : " + cpt)
-        println("per s : " + cpt / ((t1 - t0) / 1000D))
-
         currentGraph.deheapSort
     }
 
