@@ -18,14 +18,17 @@ lazy val sparkDeps = libraryDependencies ++= Seq(
 )
 
 lazy val coreDeps = libraryDependencies ++= Seq(
-	  "org.apache.commons" % "commons-math3" % "3.4.1",
-	  "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
-	  "com.thesamet" %% "kdtree" % "1.0.4",
-      "org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
-	  "org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
-	  "org.typelevel" %% "spire" % "0.14.1",
-	  "com.chuusai" %% "shapeless" % "2.3.3",
-	  compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+	"org.apache.commons" % "commons-math3" % "3.4.1",
+	"org.scalatest" % "scalatest_2.10" % "2.0" % "test",
+	"com.thesamet" %% "kdtree" % "1.0.4",
+	"org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
+	"org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
+	"org.typelevel" %% "spire" % "0.14.1",
+	"com.chuusai" %% "shapeless" % "2.3.3",
+	compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+	// "com.github.haifengl" %% "smile-scala" % "2.3.0"
+	"com.github.haifengl" %% "smile-scala" % "1.5.0"
+
 
 )
 
@@ -48,7 +51,7 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.9.8-SNAPSHOT",
+	 	version := "0.9.7-SNAPSHOT",
 		scalaVersion := "2.11.12",
 		// conflictManager := ConflictManager.all,
 		autoAPIMappings := true,

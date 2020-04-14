@@ -6,7 +6,7 @@ import scala.language.higherKinds
 import scala.collection.{immutable, mutable, GenSeq}
 import scala.util.Random
 import scala.reflect.ClassTag
-import shapeless._
+// import shapeless._
 import org.clustering4ever.math.distances.Distance
 import org.clustering4ever.stats.Stats
 import org.clustering4ever.clusterizables.Clusterizable
@@ -43,15 +43,51 @@ trait KCommons[V <: GVector[V], D <: Distance[V]] extends KCommonsArgs[V, D] wit
 	/**
 	 *
 	 */
-	private[kcenters] final def obtainNearestCenterID(v: V, centers: mutable.ArrayBuffer[(Int, V)], metric: D): ClusterID = {
-		centers.minBy{ case (clusterID, center) => metric.d(center, v) }._1
+	private[kcenters] final def obtainNearestCenterID(v: V, centers: List[(Int, V)], metric: D): ClusterID = {
+
+			@annotation.tailrec
+			def go(centers: List[(Int, V)], min: (Double, Int)): Int = {
+				centers match {
+					case (clusterID, center) :: xs => {
+						val d = metric.d(center, v)
+						if (d <= min._1) go(xs, (d, clusterID))
+						else go(xs, min)
+					}
+					case Nil => min._2
+				}
+			}
+
+			go(centers, (Double.MaxValue, Int.MaxValue))
+
+
 	}
 	/**
 	 * Check if centers move enough
 	 * @return true if every centers move less than minShift
 	 */
-	private[kcenters] final def areCentersNotMovingEnough(updatedCenters: mutable.ArrayBuffer[(Int, V)], previousCenters: mutable.ArrayBuffer[(Int, V)], minShift: Double, metric: D) = {
-		updatedCenters.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, previousCenters(clusterID)._2) <= minShift }
+	private[kcenters] final def areCentersNotMovingEnough(updatedCenters: List[(Int, V)], previousCenters: List[(Int, V)], minShift: Double, metric: D) = {
+		// updatedCenters.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, previousCenters(clusterID)._2) <= minShift }
+
+		@annotation.tailrec
+		def go(updatedCenters: List[(Int, V)], previousCenters: List[(Int, V)], bool: Boolean): Boolean = {
+			
+			if (bool) {
+				updatedCenters match {
+					case (_, center1) :: xs1 => {
+						val (_, center2) :: xs2 = previousCenters
+						val newBool = metric.d(center1, center2) <= minShift
+						go(xs1, xs2, newBool)
+					} 
+					case Nil => bool
+				}
+			}
+			else {
+				bool
+			}
+		}
+
+		go(updatedCenters, previousCenters, true)
+
 	}
 }
 /**
@@ -67,22 +103,25 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CM <: KCentersModelAnc
 	 * Run the K-Centers
 	 */
 	private[kcenters] final def obtainCenters[O, Cz[B, C <: GVector[C]] <: Clusterizable[B, C, Cz], GS[X] <: GenSeq[X]](data: GS[Cz[O, V]]): immutable.HashMap[Int, V] = {
-		/**
-		 *
-		 */
-		val unSortedCenters: mutable.ArrayBuffer[(Int, V)] = if(customCenters.isEmpty) mutable.ArrayBuffer(KPPInitializer.kppInit(data, metric, k).toSeq:_*) else mutable.ArrayBuffer(customCenters.toSeq:_*)
+
+		val unSortedCenters: List[(Int, V)] = if (customCenters.isEmpty) {
+			KPPInitializer.kppInit(data, metric, k).toList
+		}
+		else {
+			customCenters.toList
+		}
+
 		val centers = unSortedCenters.sortBy(_._1)
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
-			val preUpdatedCenters = mutable.ArrayBuffer(
-				data.groupBy( cz => obtainNearestCenterID(cz.v, centers, metric) )
-					.map{ case (clusterID, aggregate) =>
-						(clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric))
-					}.seq.toSeq
-			:_*).sortBy(_._1)
+		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: List[(Int, V)]): List[(Int, V)] = {
+			val preUpdatedCenters = data.groupBy( cz => obtainNearestCenterID(cz.v, centers, metric) )
+				.map{ case (clusterID, aggregate) =>
+					(clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric))
+				}.toList
+				.sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
 			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
 			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, minShift, metric)

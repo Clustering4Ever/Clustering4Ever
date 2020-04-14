@@ -132,19 +132,18 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 		data.persist(persistanceLVL)
 
 		val unSortedCenters = if (customCenters.isEmpty) randomSelectedInitializationRDD(data.map(_.v), k) else customCenters
-		val centers = mutable.ArrayBuffer(unSortedCenters.toSeq:_*).sortBy(_._1)
+		val centers = unSortedCenters.toList.sortBy(_._1)
 
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
-			val preUpdatedCenters = mutable.ArrayBuffer(
-				data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), (cz.v, 1)) )
+		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: List[(Int, V)]): List[(Int, V)] = {
+			val preUpdatedCenters = data.map( cz => (obtainNearestCenterID(cz.v, centers, metric), (cz.v, 1)) )
 				.reduceByKeyLocally{ case ((v1, c1), (v2, c2)) => (SumVectors.sumVectors(v1, v2) : @inline, (c1 + c2)) }
-				.toArray
+				.toList
 				.map{ case (clusterID, (centroid, size)) => (clusterID, getCenter(centroid, size)) }
-			:_*).sortBy(_._1)
+				.sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
 			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
 			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, minShift, metric)

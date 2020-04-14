@@ -22,6 +22,7 @@ trait EuclideanAncestor extends Serializable {
 	 * Euclidean distance in recursion style, faster than while
 	 */
 	protected final def euclidean(v1: Array[Double], v2: Array[Double]): Double = {
+		
 		@annotation.tailrec
 		def go(d: Double, i: Int): Double = {
 			if(i < v1.size) {
@@ -30,8 +31,12 @@ trait EuclideanAncestor extends Serializable {
 			}
 			else d
 		}
+		
 		val d = go(0D, 0)
-		if(squareRoot) sqrt(d) else d
+		
+		if (squareRoot) sqrt(d)
+		else d
+
 	}
 }
 /**

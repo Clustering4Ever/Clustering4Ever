@@ -50,18 +50,24 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CA <: KCentersModelAnc
 				else (key, ClusterBasicOperations.obtainCenter(agg.par.map(_.v), metric))
 		}
 
-		val unSortedCenters = if(customCenters.isEmpty) kmppInitializationRDD(data.rdd.map(_.v), k, metric) else customCenters
-		val centers = mutable.ArrayBuffer(unSortedCenters.toSeq:_*).sortBy(_._1)
+		val unSortedCenters = if (customCenters.isEmpty) {
+			kmppInitializationRDD(data.rdd.map(_.v), k, metric)
+		}
+		else {
+			customCenters
+		}
+
+		val centers = unSortedCenters.toList.sortBy(_._1)
 		/**
 		 * KCenters heart in tailrec style
 		 */
 		@annotation.tailrec
-		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: mutable.ArrayBuffer[(Int, V)]): mutable.ArrayBuffer[(Int, V)] = {
-			val preUpdatedCenters = mutable.ArrayBuffer(
-				data.groupByKey( cz => obtainNearestCenterID(cz.v, centers, metric) )(encoderInt)
-					.mapGroups(computeCenters)(encoder)
-					.collect
-				:_*).sortBy(_._1)
+		def go(cpt: Int, haveAllCentersConverged: Boolean, centers: List[(Int, V)]): List[(Int, V)] = {
+			val preUpdatedCenters = data.groupByKey( cz => obtainNearestCenterID(cz.v, centers, metric) )(encoderInt)
+				.mapGroups(computeCenters)(encoder)
+				.collect
+				.sortBy(_._1)
+				.toList
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
 			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
 			val shiftingEnough = areCentersNotMovingEnough(updatedCenters, alignedOldCenters, minShift, metric)
