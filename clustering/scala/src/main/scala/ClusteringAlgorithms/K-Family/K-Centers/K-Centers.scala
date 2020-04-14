@@ -66,7 +66,6 @@ trait KCommons[V <: GVector[V], D <: Distance[V]] extends KCommonsArgs[V, D] wit
 	 * @return true if every centers move less than minShift
 	 */
 	private[kcenters] final def areCentersNotMovingEnough(updatedCenters: List[(Int, V)], previousCenters: List[(Int, V)], minShift: Double, metric: D) = {
-		// updatedCenters.forall{ case (clusterID, previousCenter) => metric.d(previousCenter, previousCenters(clusterID)._2) <= minShift }
 
 		@annotation.tailrec
 		def go(updatedCenters: List[(Int, V)], previousCenters: List[(Int, V)], bool: Boolean): Boolean = {
@@ -84,6 +83,7 @@ trait KCommons[V <: GVector[V], D <: Distance[V]] extends KCommonsArgs[V, D] wit
 			else {
 				bool
 			}
+
 		}
 
 		go(updatedCenters, previousCenters, true)
@@ -120,7 +120,8 @@ trait KCentersAncestor[V <: GVector[V], D <: Distance[V], CM <: KCentersModelAnc
 			val preUpdatedCenters = data.groupBy( cz => obtainNearestCenterID(cz.v, centers, metric) )
 				.map{ case (clusterID, aggregate) =>
 					(clusterID, ClusterBasicOperations.obtainCenter(aggregate.map(_.v), metric))
-				}.toList
+				}
+				.toList
 				.sortBy(_._1)
 			val alignedOldCenters = preUpdatedCenters.map{ case (oldClusterID, _) => centers(oldClusterID) }
 			val updatedCenters = preUpdatedCenters.zipWithIndex.map{ case ((oldClusterID, center), newClusterID) => (newClusterID, center) }
