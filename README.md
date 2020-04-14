@@ -9,7 +9,7 @@
 
 Add following line in your build.sbt :
 
-  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.6"` to your `libraryDependencies`
+  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.7"` to your `libraryDependencies`
 
 Eventually add one of these resolvers :
 
@@ -83,6 +83,8 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
   * **_DBScan_**
   * **Time Series K-Means**
   * **[Bayesian Optimization for AutoML](https://github.com/YazidJanati/bayestuner-scala)**
+  
+  And many sweat suprises are under developpement.
 
 
 ## Citation
