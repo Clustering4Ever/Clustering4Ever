@@ -11,8 +11,8 @@ package org.clustering4ever.scala.umap
 import breeze.linalg._
 import breeze.numerics.Inf
 
-
 final case class Heap(final val nPoints: Int, final val size: Int) {
+
     val indices: DenseMatrix[Int] = DenseMatrix.fill(nPoints, size)(-1)
     val weights: DenseMatrix[Double] = DenseMatrix.fill(nPoints, size)(Inf)
     val flags: DenseMatrix[Int] = DenseMatrix.fill(nPoints, size)(0)
@@ -93,74 +93,74 @@ final case class Heap(final val nPoints: Int, final val size: Int) {
         }
     }
 
-     final def uncheckedPush(row: Int, weight: Double, index: Int, flag: Int): Int = {
-         val ind = indices(row, ::).t
-         val wei = weights(row, ::).t
-         val isN = flags(row, ::).t
+    final def uncheckedPush(row: Int, weight: Double, index: Int, flag: Int): Int = {
+        val ind = indices(row, ::).t
+        val wei = weights(row, ::).t
+        val isN = flags(row, ::).t
 
 
-         def contains(v: DenseVector[Int], nb: Int) = {
-             @annotation.tailrec
-             def containsRec(dv: DenseVector[Int], cont: Boolean, i: Int): Boolean = {
-                 if (i < dv.length) {
-                     if (dv(i) == nb) true
-                     else containsRec(dv, false, i + 1)
+        def contains(v: DenseVector[Int], nb: Int) = {
+            @annotation.tailrec
+            def containsRec(dv: DenseVector[Int], cont: Boolean, i: Int): Boolean = {
+                if (i < dv.length) {
+                    if (dv(i) == nb) true
+                    else containsRec(dv, false, i + 1)
                  }
-                 else cont
-             }
-             containsRec(v, false, 0)
-         }
+                else cont
+            }
+            containsRec(v, false, 0)
+        }
 
-         if (weight >= wei(0)) 0
-         else {
-             wei(0) = weight
-             ind(0) = index
-             isN(0) = flag
+        if (weight >= wei(0)) 0
+        else {
+            wei(0) = weight
+            ind(0) = index
+            isN(0) = flag
 
-             @annotation.tailrec
-             def pushRec(i: Int): Int = {
-                 val ic1 = 2 * i + 1
-                 val ic2 = ic1 + 1
+            @annotation.tailrec
+            def pushRec(i: Int): Int = {
+                val ic1 = 2 * i + 1
+                val ic2 = ic1 + 1
 
-                 if (ic1 < size) {
-                     if (ic2 >= size) {
-                         if (wei(ic1) > weight) {
-                             wei(i) = wei(ic1)
-                             ind(i) = ind(ic1)
-                             isN(i) = isN(ic1)
-                             pushRec(ic1)
-                         }
-                         else i
-                     }
-                     else if (wei(ic1) >= wei(ic2)) {
-                         if (wei(ic1) > weight) {
-                             wei(i) = wei(ic1)
-                             ind(i) = ind(ic1)
-                             isN(i) = isN(ic1)
-                             pushRec(ic1)
-                         }
-                         else i
-                     }
-                     else {
-                         if (weight < wei(ic2)) {
-                             wei(i) = wei(ic2)
-                             ind(i) = ind(ic2)
-                             isN(i) = isN(ic2)
-                             pushRec(ic2)
-                         }
-                         else i
-                     }
-                 }
-                 else i
-             }
+                if (ic1 < size) {
+                    if (ic2 >= size) {
+                        if (wei(ic1) > weight) {
+                            wei(i) = wei(ic1)
+                            ind(i) = ind(ic1)
+                            isN(i) = isN(ic1)
+                            pushRec(ic1)
+                        }
+                        else i
+                    }
+                    else if (wei(ic1) >= wei(ic2)) {
+                        if (wei(ic1) > weight) {
+                            wei(i) = wei(ic1)
+                            ind(i) = ind(ic1)
+                            isN(i) = isN(ic1)
+                            pushRec(ic1)
+                        }
+                        else i
+                    }
+                    else {
+                        if (weight < wei(ic2)) {
+                            wei(i) = wei(ic2)
+                            ind(i) = ind(ic2)
+                            isN(i) = isN(ic2)
+                            pushRec(ic2)
+                        }
+                        else i
+                    }
+                }
+                else i
+            }
 
-             val i = pushRec(0)
+            val i = pushRec(0)
 
-             indices(row, i) = index
-             weights(row, i) = weight
-             flags(row, i) = flag
+            indices(row, i) = index
+            weights(row, i) = weight
+            flags(row, i) = flag
 
-             1
+            1
          }
      }
 
@@ -193,6 +193,7 @@ final case class Heap(final val nPoints: Int, final val size: Int) {
             }
             else (md, ri)
         }
+
         val (minDist, resultIndex) = go(0, Inf, -1)
 
         if (resultIndex >= 0) {

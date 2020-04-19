@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering
+package org.clustering4ever.spark.clustering.s2gstream
 /**
  * @author Attaoui Walid
  * @author Beck Gaël
@@ -11,6 +11,7 @@ import org.apache.spark.rdd.RDD
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.math.exp
+import org.clustering4ever.spark.streamclustering.{Prototype, PointObj}
 
 class S2gstreamModel(
   var nodes: mutable.ArrayBuffer[Prototype],
@@ -64,7 +65,7 @@ class S2gstreamModel(
     val dataPart = e.take(e.size - labId) //labId=-2 because the 2 last columns represent labels & id
     val part1 = Vector(dataPart.take(dim))
     val etiq = e.drop(dim).map(_.toInt)
-    new PointObj(part1, etiq(0), etiq(1))
+    PointObj(part1, etiq(0), etiq(1))
   }
 
   // pointToProto

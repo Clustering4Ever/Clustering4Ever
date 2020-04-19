@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering
+package org.clustering4ever.spark.clustering.s2gstream
 /**
  * @author Attaoui Walid
  * @author Beck Gaël
@@ -11,7 +11,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
+import org.clustering4ever.spark.streamclustering.{Prototype, PointObj}
 /** 
  *
  */
@@ -20,7 +20,7 @@ class S2gstream(
   var decayFactor: Double,
   var lambdaAge : Double,
   var nbNodesToAdd: Int,
-  var minWeight: Double   ,
+  var minWeight: Double,
   var maxAge: Int,
   var alphaErr: Double,
   var d: Double

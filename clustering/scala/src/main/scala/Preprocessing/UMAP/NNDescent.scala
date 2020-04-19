@@ -11,10 +11,27 @@ package org.clustering4ever.scala.umap
 import breeze.linalg._
 import _root_.scala.collection.mutable
 
-
+/**
+ *
+ */
 object NNDescent {
 
-    def makeNNDescent(dist: Distance)(data: DenseMatrix[Double], nNeighbors: Int, rngState: Array[Long], maxCandidates: Int = 50, nIters: Int = 10, delta: Double = 0.001, rho: Double = 0.5, rpTreeInit: Boolean = true, leafArray: Option[DenseMatrix[Int]] = None, verbose: Boolean = false): (DenseMatrix[Int], DenseMatrix[Double]) = {
+    def makeNNDescent(
+        dist: Distance)(
+        data: DenseMatrix[Double],
+        nNeighbors: Int,
+        rngState: Array[Long],
+        maxCandidates: Int = 50,
+        nIters: Int = 10,
+        delta: Double = 0.001,
+        rho: Double = 0.5,
+        rpTreeInit: Boolean = true,
+        leafArray: Option[DenseMatrix[Int]] = None,
+        verbose: Boolean = false
+    ): (DenseMatrix[Int], DenseMatrix[Double]) = {
+
+
+        val t00 = System.currentTimeMillis
 
         val nVertices = data.rows
         val currentGraph = Heap(nVertices, nNeighbors)
@@ -77,20 +94,14 @@ object NNDescent {
                 else Unit
             }
 
-            val t0 = System.currentTimeMillis
             go1n(0)
-            val t1 = System.currentTimeMillis
-            println("B0 : " + (t1 - t0) / 1000D)
 
         }
 
         val candidateNeighbors = currentGraph.buildCandidates(nVertices, nNeighbors, maxCandidates, rngState)
         
-        var cpt = 0
-
         @annotation.tailrec
         def go2c(i: Int, j: Int, p: Int, k: Int, sumCk: Int): Int = {
-            cpt += 1
             if (k < maxCandidates) {
                 val q = candidateNeighbors.indices(i, k)
                 if (q < 0 || (candidateNeighbors.flags(i, j) == 0) && (candidateNeighbors.flags(i, k) == 0)) go2c(i, j, p, k + 1, sumCk)
@@ -110,11 +121,14 @@ object NNDescent {
 
                 val p: Int = candidateNeighbors.indices(i, j)
 
-                if (p < 0 || Utils.tauRand(rngState) < rho) go2b(i, j + 1, sumCj)
+                if (p < 0 || Utils.tauRand(rngState) < rho) {
+                    go2b(i, j + 1, sumCj)
+                }
                 else {
                     val sumCk = go2c(i, j, p, 0, sumCj)
                     go2b(i, j + 1, sumCk)
                 }
+
             }
             else sumCj
         }
@@ -132,13 +146,15 @@ object NNDescent {
         def go2(n: Int): Unit = {
             if (n < nIters) {
                 val c = go2a(0, 0)
-                if (c > delta * nNeighbors * nVertices) go2(n + 1) else Unit
+                if (c > delta * nNeighbors * nVertices) go2(n + 1)
+                else Unit
             }
             else Unit
         }
 
         go2(0)
         currentGraph.deheapSort
+
     }
 
     type InitFromRandom = (Int, DenseMatrix[Double], DenseMatrix[Double], Heap, Array[Long]) => Unit
@@ -205,7 +221,6 @@ object NNDescent {
         (initFromRandom, initFromTree)
     }
 
-
     /**
       *
       * @param forest : Forest
@@ -217,7 +232,6 @@ object NNDescent {
       *
       * @return results : Heap
       */
-
     def initialiseSearch(forest: Forest, data: DenseMatrix[Double], queryPoints: DenseMatrix[Double], nNeighbors: Int, rngState: Array[Long], dist: Distance): Heap = {
         val (initFromRandom, initFromTree) = makeInitialisation(dist)
         val results = Heap(queryPoints.rows, nNeighbors)
@@ -246,7 +260,7 @@ object NNDescent {
             if (i < queryPoints.rows) {
                 @annotation.tailrec
                 def go(tried: mutable.ArrayBuffer[Int]): Unit = {
-                    val vertex = init.smallestFlagged(i)
+                    val vertex: Int = init.smallestFlagged(i)
                     vertex match {
                         case -1 => Unit
                         case _ => {

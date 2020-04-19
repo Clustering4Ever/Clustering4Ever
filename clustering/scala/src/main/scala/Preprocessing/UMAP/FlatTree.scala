@@ -33,22 +33,21 @@ case class FlatTree(rp: RPTree, leafSize: Int) {
 
     private def init = {
         val zun = 0 until nodes
-        zun.foreach(_ => {
+        zun.foreach{_ =>
             hyperplane += DenseVector.zeros[Double](rp.nbHyperplane)
             offsets += 0
-            children += Tuple2(-1, -1)
-        })
+            children += ((-1, -1))
+        }
         indices = -1 * DenseMatrix.ones[Int](leaves, leafSize)
     }
 
-
     /**
-      * Recursively fills the fields of the FlatTree while browsing through the RPTree.
-      *
-      * @param tree    A list containing the RPTrees to transform and the number assigned to their roots.
-      * @param nodeNum The number that will be assigned to the next node.
-      * @param leafNum The number that will be assigned to the next leaf.
-      */
+     * Recursively fills the fields of the FlatTree while browsing through the RPTree.
+     *
+     * @param tree    A list containing the RPTrees to transform and the number assigned to their roots.
+     * @param nodeNum The number that will be assigned to the next node.
+     * @param leafNum The number that will be assigned to the next leaf.
+     */
     private def flatten(rp: RPTree) : Unit = {
         @annotation.tailrec
         def recursiveFlatten(tree: List[RPTree Tuple2 Int], nodeNum: Int, leafNum: Int) : (Int, Int) = {

@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.BatchStream
+package org.clustering4ever.spark.clustering.batchstream
 	 /**
 	  * Copyright: please refer to the README.md file
 	  * User: ghesmoune
@@ -9,6 +9,7 @@ package org.clustering4ever.spark.clustering.BatchStream
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.rdd.RDD
+import org.clustering4ever.spark.streamclustering.{Prototype, PointObj}
 
 class BatchStream(
     var voisinage: Int, 

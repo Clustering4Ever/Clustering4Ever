@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering.BatchStream
+package org.clustering4ever.spark.clustering.batchstream
 	 /**
 	  * Copyright: please refer to the README.md file
 	  * User: ghesmoune
@@ -10,7 +10,8 @@ import breeze.linalg.{Vector, squaredDistance}
 import org.apache.spark.rdd.RDD
 import scala.math.{abs, exp}
 import scala.reflect.ClassTag
-  
+import org.clustering4ever.spark.streamclustering.{Prototype, PointObj}
+
 class BatchStreamModel(
     var nodes: mutable.ArrayBuffer[Prototype], 
     var outdatedNodes: mutable.ArrayBuffer[Prototype], 

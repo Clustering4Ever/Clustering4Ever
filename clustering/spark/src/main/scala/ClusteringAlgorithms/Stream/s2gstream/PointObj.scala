@@ -1,4 +1,4 @@
-package org.clustering4ever.spark.clustering
+package org.clustering4ever.spark.streamclustering
 /**
  * @author Ghesmoune
  * @author ATTAOUI
