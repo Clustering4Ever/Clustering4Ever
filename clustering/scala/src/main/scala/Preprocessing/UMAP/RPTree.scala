@@ -90,7 +90,7 @@ object RPTree {
     * @param leafSize The maximum size of any leaf node in the tree. Any node in the three with more than leafSize will be split further to create child nodes.
     * @return A random projection tree node which links to its child nodes. This provides the full tree below the returned node.
     */
-  final def makeEuclideanTree(data: DenseMatrix[Double], indices: mutable.ArrayBuffer[Int], leafSize: Int): RPTree = {
+  final def makeEuclideanTree(data: Array[Array[Double]], indices: mutable.ArrayBuffer[Int], leafSize: Int): RPTree = {
     if (indices.length > leafSize) {
         val erp = EuclideanRPSplit(data, indices)
 
@@ -113,7 +113,7 @@ object RPTree {
     * @param leafSize The maximum size of any leaf node in the tree. Any node in the three with more than leafSize will be split further to create child nodes.
     * @return A random projection tree node which links to its child nodes. This provides the full tree below the returned node.
     */
-  final def makeAngularTree(data: DenseMatrix[Double], indices: mutable.ArrayBuffer[Int], leafSize: Int): RPTree = {
+  final def makeAngularTree(data: Array[Array[Double]], indices: mutable.ArrayBuffer[Int], leafSize: Int): RPTree = {
     if (indices.length > leafSize) {
         val erp = EuclideanRPSplit(data, indices)
 
@@ -138,7 +138,7 @@ object RPTree {
     * @angular Whether to use cosine/angular distance to create splits in the tree
     * @return A random projection tree node which links to its child nodes. This provides the full tree below the returned node.
     */
-  final def makeTree(data: DenseMatrix[Double], indices: mutable.ArrayBuffer[Int], leafSize: Int, angular: Boolean = false): RPTree = {
+  final def makeTree(data: Array[Array[Double]], indices: mutable.ArrayBuffer[Int], leafSize: Int, angular: Boolean = false): RPTree = {
     if (angular) {
         makeAngularTree(data, indices, leafSize)
     }

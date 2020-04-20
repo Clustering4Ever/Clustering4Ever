@@ -20,7 +20,7 @@ import _root_.scala.collection.mutable
   * @param state        The initialization array for random.
   * @param angular      Whether the trees must be angular or not.
   */
-final case class Forest(data: DenseMatrix[Double], nbNeighbors: Int, nbTrees: Int, state : Array[Long], angular: Boolean = false) {
+final case class Forest(data: Array[Array[Double]], nbNeighbors: Int, nbTrees: Int, state : Array[Long], angular: Boolean = false) {
   
   val trees = new mutable.ArrayBuffer[FlatTree](nbTrees)
 
@@ -30,7 +30,7 @@ final case class Forest(data: DenseMatrix[Double], nbNeighbors: Int, nbTrees: In
   private def makeForest() : Unit = {
 
     val leafSize = max(10, nbNeighbors)
-    val indices = mutable.ArrayBuffer(0 until data.rows: _*)
+    val indices = mutable.ArrayBuffer(0 until data.size: _*)
     (1 to nbTrees).reverse.par.map{ _ => RPTree.makeTree(data, indices, leafSize, angular) }.seq.foreach(trees += new FlatTree(_, leafSize))
  
   }
@@ -43,15 +43,18 @@ final case class Forest(data: DenseMatrix[Double], nbNeighbors: Int, nbTrees: In
   def leafArray : DenseMatrix[Int] = {
     trees.size match {
       case 0 => - DenseMatrix.eye[Int](1)
-      case _ =>
+      case _ => {
         @annotation.tailrec
         def concat(array: DenseMatrix[Int], i: Int): DenseMatrix[Int] = {
-          if (i >= trees.size)
+          if (i >= trees.size) {
             array
-          else
+          }
+          else {
             concat(DenseMatrix.vertcat(array, trees(i).indices), i + 1)
+          }
         }
         concat(trees(0).indices, 1)
+      }
     }
   }
 }

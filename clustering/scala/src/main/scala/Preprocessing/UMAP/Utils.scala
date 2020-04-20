@@ -132,9 +132,9 @@ object Utils extends Serializable {
         val nSamplesTransform = dmat.length
         val submat: Array[Array[Double]] = Array.fill(nSamplesTransform, nNeighbors)(0)
         
-        val range2 = (0 until nNeighbors)//.par
-        
-        (0 until nSamplesTransform)/*.par*/.foreach{ i =>
+        val range2 = (0 until nNeighbors)
+ 
+        (0 until nSamplesTransform).foreach{ i =>
           range2.foreach{ j =>
             submat(i)(j) = dmat(i)(indicesCol(i)(j))
           }

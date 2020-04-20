@@ -18,7 +18,7 @@ import _root_.scala.collection.mutable.ArrayBuffer
   * @param rp       The RPTree to transform.
   * @param leafSize The size of the flat tree's leaves.
   */
-case class FlatTree(rp: RPTree, leafSize: Int) {
+final case class FlatTree(rp: RPTree, leafSize: Int) {
 
     private val nodes = RPTree.nodes(rp)
     private val leaves = RPTree.leaves(rp)
@@ -77,7 +77,7 @@ case class FlatTree(rp: RPTree, leafSize: Int) {
       * @return A vector containing the indices of the father leaf.
       */
     @annotation.tailrec
-    final def searchFlatTree(point: DenseVector[Double], state : Array[Long], node : Int = 0) : DenseVector[Int] = {
+    final def searchFlatTree(point: Array[Double], state: Array[Long], node: Int = 0) : DenseVector[Int] = {
         if (children(node)._2 == -1)
             indices(children(node)._1, ::).t
         else if (selectSide(node, point, state))
@@ -95,8 +95,8 @@ case class FlatTree(rp: RPTree, leafSize: Int) {
       * @param state    The initialization array for random.
       * @return A boolean representing the side (true for left, false for right).
       */
-    def selectSide(node: Int, point: DenseVector[Double], state : Array[Long]) : Boolean = {
-        val margin = offsets(node) + sum(hyperplane(node) *:* point)
+    def selectSide(node: Int, point: Array[Double], state : Array[Long]) : Boolean = {
+        val margin = offsets(node) + sum(hyperplane(node) *:* new DenseVector(point))
         // true if margin < 0, false if margin > 0 and random if margin = 0
         margin < 0 || ((margin == 0) && (Utils.tauRandInt(state)%2 != 0))
     }

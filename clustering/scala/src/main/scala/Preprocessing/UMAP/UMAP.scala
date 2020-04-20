@@ -17,7 +17,7 @@ import org.apache.commons.math3.fitting._
 import java.util.concurrent.Semaphore
 
 import _root_.scala.collection.JavaConverters._
-import _root_.scala.collection.mutable
+import _root_.scala.collection.{mutable, immutable}
 import _root_.scala.collection.parallel.mutable.ParArray
 import _root_.scala.util.Random
 
@@ -52,8 +52,8 @@ object UMAP {
     distances: DenseMatrix[Double],
     k: Int,
     nIter: Int = 64,
-    localConnectivity: Double = 1.0,
-    bandwith: Double = 1.0
+    localConnectivity: Double = 1D,
+    bandwith: Double = 1D
   ): (DenseVector[Double], DenseVector[Double]) = {
 
     val target = log2(k) * bandwith
@@ -61,34 +61,34 @@ object UMAP {
     val result: DenseVector[Double] = DenseVector.zeros(distances.rows)
 
     @annotation.tailrec
-    def go(i: Int): Unit = {
-
+    def go(n: Int, i: Int, lo: Double, hi: Double, mid: Double): Double = {
+      
       @annotation.tailrec
-      def go2(n: Int, lo: Double, hi: Double, mid: Double): Double = {
-        
-        @annotation.tailrec
-        def goPSum(j: Int, pSum: Double): Double = {
-          if (j < distances.cols) {
-            val d = distances(i, j) - rho(i)
-            if (d > 0) goPSum(j + 1, pSum + exp(-(d / mid)))
-            else goPSum(j + 1, pSum + 1D)
-          }
-          else pSum
+      def goPSum(j: Int, pSum: Double): Double = {
+        if (j < distances.cols) {
+          val d = distances(i, j) - rho(i)
+          if (d > 0) goPSum(j + 1, pSum + exp(-(d / mid)))
+          else goPSum(j + 1, pSum + 1D)
         }
+        else pSum
+      }
 
-        if (n < nIter) {
-          val pSum = goPSum(1, 0D)
-          if (abs(pSum - target) >= smoothKtolerance) {
-            if (pSum > target) go2(n + 1, lo, mid, (lo + mid) / 2D)
-            else {
-              if (hi == inf) go2(n + 1, mid, hi, mid * 2)
-              else go2(n + 1, mid, hi, (lo + hi) / 2D)
-            }
+      if (n < nIter) {
+        val pSum = goPSum(1, 0D)
+        if (abs(pSum - target) >= smoothKtolerance) {
+          if (pSum > target) go(n + 1, i, lo, mid, (lo + mid) / 2D)
+          else {
+            if (hi == inf) go(n + 1, i, mid, hi, mid * 2)
+            else go(n + 1, i, mid, hi, (lo + hi) / 2D)
           }
-          else mid
         }
         else mid
       }
+      else mid
+    
+    }
+
+    ParArray.tabulate(distances.rows)(identity).foreach{ i =>
 
       def meanv(vect: DenseVector[Double]): Double = {
           sum(vect) / vect.length
@@ -125,26 +125,23 @@ object UMAP {
           }
           else Unit
 
-          result(i) = go2(0, 0D, inf, 1D)
+          result(i) = go(0, i, 0D, inf, 1D)
 
           if (rho(i) > 0D) {
-              if (result(i) < minKdistScale * meanv(ithDistances)) {
-                result(i) = minKdistScale * meanv(ithDistances)
-              }
+            if (result(i) < minKdistScale * meanv(ithDistances)) {
+              result(i) = minKdistScale * meanv(ithDistances)
+            }
           }
           else {
-              if (result(i) < minKdistScale * meanm(distances)) {
-                result(i) = minKdistScale * meanm(distances)
-              }
+            if (result(i) < minKdistScale * meanm(distances)) {
+              result(i) = minKdistScale * meanm(distances)
+            }
           }
-
-          go(i + 1)
       }
-      else Unit
     }
 
-    go(0)
     (result, rho)
+
   }
 
 
@@ -161,16 +158,17 @@ object UMAP {
     *         The distances to the ``n_neighbors`` closest points in the dataset.
     */
   private[clustering4ever] def nearestNeighbors(
-    data: DenseMatrix[Double],
+    data: Array[Array[Double]],
     nNeighbors: Int,
     dist: Distance,
     angular: Boolean = false
   ): (DenseMatrix[Int], DenseMatrix[Double], Forest)  = {
-    val nbTrees = 5 + round(pow(data.rows, 0.5) / 20.0).toInt
-    val nbIters = max(5, round(log2(data.rows)).toInt)
+
+    val nbTrees = 5 + round(pow(data.size, 0.5) / 20D).toInt
+    val nbIters = max(5, round(log2(data.size)).toInt)
     val rngState: Array[Long] = Array(2, 1, 1)
 
-    val metricNNDescent: (DenseMatrix[Double], Int, Array[Long], Int, Int, Boolean, Option[DenseMatrix[Int]]) => (DenseMatrix[Int], DenseMatrix[Double]) = (data, nn, rs, mc, ni, rti, leaf) => {
+    val metricNNDescent: (Array[Array[Double]], Int, Array[Long], Int, Int, Boolean, Option[DenseMatrix[Int]]) => (DenseMatrix[Int], DenseMatrix[Double]) = (data, nn, rs, mc, ni, rti, leaf) => {
       NNDescent.makeNNDescent(dist)(data, nn, rs, maxCandidates = mc, nIters = ni, rpTreeInit = rti, leafArray = leaf)
     }
 
@@ -227,19 +225,19 @@ object UMAP {
                       goJ(j + 1)
                     }
                     else if (knnIndices(i, j) == i) {
-                        value = 0D
-                        majData(i, j, value)
-                        goJ(j + 1)
+                      value = 0D
+                      majData(i, j, value)
+                      goJ(j + 1)
                     }
                     else if (knnDists(i, j) - rhos(i) <= 0D) {
-                        value = 1D
-                        majData(i, j, value)
-                        goJ(j + 1)
+                      value = 1D
+                      majData(i, j, value)
+                      goJ(j + 1)
                     }
                     else {
-                        value = exp(-((knnDists(i, j) - rhos(i)) / sigmas(i)))
-                        majData(i, j, value)
-                        goJ(j + 1)
+                      value = exp(-((knnDists(i, j) - rhos(i)) / sigmas(i)))
+                      majData(i, j, value)
+                      goJ(j + 1)
                     }
                 }
                 else Unit
@@ -272,8 +270,10 @@ object UMAP {
     )
   }
 
-
-  private[clustering4ever] def reduceEuclidean(x: DenseVector[Double], y: DenseVector[Double]): Double = {
+  /**
+   *
+   */
+  private[clustering4ever] def reduceEuclidean(x: Array[Double], y: Array[Double]): Double = {
     var i = 0
     var sum = 0D
     while (i < x.length) {
@@ -311,10 +311,10 @@ object UMAP {
     * @return The optimized embedding.
     */
   private[clustering4ever] def optimizeLayout(
-    headEmbedding: DenseMatrix[Double],
-    tailEmbedding: DenseMatrix[Double],
-    head: DenseVector[Int],
-    tail: DenseVector[Int],
+    headEmbedding: Array[Array[Double]],
+    tailEmbedding: Array[Array[Double]],
+    head: Array[Int],
+    tail: Array[Int],
     nEpochs: Int,
     nVertices: Int,
     epochsPerSample: DenseVector[Double],
@@ -324,10 +324,10 @@ object UMAP {
     gamma: Double = 1D,
     initialAlpha: Double = 1D,
     negativeSampleRate: Int = 5
-  ): DenseMatrix[Double] = {
+  ): Array[Array[Double]] = {
 
-    val dim = headEmbedding.cols
-    val moveOther: Boolean = headEmbedding.rows == tailEmbedding.rows
+    val dim = headEmbedding.head.size
+    val moveOther: Boolean = headEmbedding.size == tailEmbedding.size
 
     val epochPerNegativeSample: DenseVector[Double] = epochsPerSample.map(_ / negativeSampleRate)
     val epochOfNextSample: DenseVector[Double] = epochsPerSample.copy
@@ -352,8 +352,8 @@ object UMAP {
 
       if (epochOfNextSample(i) <= n && i != 14) {
 
-        val current: DenseVector[Double] = headEmbedding(j, ::).t
-        val other: DenseVector[Double] = tailEmbedding(k, ::).t
+        val current: Array[Double] = headEmbedding(j)
+        val other: Array[Double] = tailEmbedding(k)
         val distSquared = reduceEuclidean(current, other)
 
         val gradCoeff = if (distSquared > 0D) (cst1 * pow(distSquared, b - 1D)) / (a * pow(distSquared, b) + 1D)
@@ -380,7 +380,7 @@ object UMAP {
 
         def fillK = mod(Utils.tauRandInt(rngState), nVertices)
         val kIndices = Array.fill(nNegSamples)(fillK)
-        val otherOuts: Array[DenseVector[Double]] = kIndices.map(tailEmbedding(_, ::).t)
+        val otherOuts: Array[Array[Double]] = kIndices.map(tailEmbedding(_))
         val distSquareds = otherOuts.map(reduceEuclidean(current, _))
         val gradCoeffs: Array[Double] = distSquareds.map{ distSquar =>
           if (distSquar > 0D) cst2 / ((0.001 + distSquar) * (a * pow(distSquar, b) + 1)) else 0D
@@ -390,10 +390,14 @@ object UMAP {
         def setCurrentOverGradCoeffs(i: Int): Unit = {
           if (i < gradCoeffs.size) {
             rangeDim.foreach{ d =>
-              val gradD2 = if (gradCoeffs(i) > 0D) clip(gradCoeffs(i) * (current(d) - otherOuts(i)(d)), 4D) else 4D
+              val gradD2 = if (gradCoeffs(i) > 0D) {
+                clip(gradCoeffs(i) * (current(d) - otherOuts(i)(d)), 4D)
+              }
+              else {
+                4D
+              }
               current(d) += gradD2 * alpha
             }
-
             setCurrentOverGradCoeffs(i + 1)
           }
           else Unit
@@ -412,35 +416,35 @@ object UMAP {
 
     }
 
-    val securedParMap: scala.collection.parallel.immutable.ParMap[(Int, Int), Seq[Int]] = (0 until epochsPerSample.length).par.map{ i =>
+    val securedParMap: scala.collection.parallel.immutable.ParMap[(Int, Int), Seq[Int]] = ParArray.tabulate(epochsPerSample.length){ i =>
       val j = head(i)
       val k = tail(i)
       ((j, k), i)
     }.groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).seq) }
 
     @annotation.tailrec
-    def goOverEpochsTR(n: Int): Unit = {
+    def goOverEpochs(n: Int): Unit = {
 
       if (n < nEpochs) {
-
         val alphaIn = initialAlpha * (1D - n.toDouble / nEpochs)
 
         securedParMap.foreach{ case ((j, k), is) =>
           is.foreach(fillEpochSamples(n, _, alphaIn, j, k))
         }
 
-        goOverEpochsTR(n + 1)
-
+        goOverEpochs(n + 1)
       }
-      else Unit
+      else {
+        Unit
+      }
 
     }
 
-    goOverEpochsTR(0)
+    goOverEpochs(0)
+
     headEmbedding
 
   }
-
   /** Perform a fuzzy simplicial set embedding, using a specified
     * initialisation method and then minimizing the fuzzy set cross entropy
     * between the 1-skeletons of the high and low dimensional fuzzy simplicial
@@ -479,10 +483,7 @@ object UMAP {
     negativeSampleRate: Int = 5,
     nEpochs: Int = 0,
     init: UMAPInitialization = RandomInit
-  ): DenseMatrix[Double] = {
-
-    val t000 = System.currentTimeMillis
-
+  ): Array[Array[Double]] = {
 
     val g = graph
     val nVertices = graph.cols
@@ -529,7 +530,7 @@ object UMAP {
           val distArray = Array.fill[Double](matrix.rows)(0D)
           (0 until matrix.rows - 1).foreach { i =>
               val p = kd.findNearest(matrix(i,::).t.toArray.toSeq, 2)
-              val dist2 = distance(matrix(i,::).t, new DenseVector[Double](p.last.toArray))
+              val dist2 = distance(matrix(i, ::).t.toArray, p.last.toArray)
               distArray(i) = dist2
           }
           val mean = distArray.foldLeft(0D){ (sum, elem) => sum + (elem / distArray.length) }
@@ -539,10 +540,10 @@ object UMAP {
 
     val graphArray = graph.toDenseVector(graph.toDenseVector.findAll(_ != 0)).toArray
     val epochsPerSample = makeEpochsPerSample(graphArray, epochs)
-    val gtz = g.findAll(_ > 0)
+    val gtz: immutable.IndexedSeq[(Int, Int)] = g.findAll(_ > 0)
 
-    val head = new DenseVector[Int](gtz.length)
-    val tail = new DenseVector[Int](gtz.length)
+    val head = new Array[Int](gtz.length)
+    val tail = new Array[Int](gtz.length)
 
     gtz.indices.par.foreach{ i =>
       head(i) = gtz(i)._2
@@ -552,7 +553,9 @@ object UMAP {
     def rdmFill = random.nextLong
     val rngState = Array.fill[Long](3)(rdmFill)
 
-    val newEmbedding = optimizeLayout(embedding, embedding, head, tail, epochs, nVertices, epochsPerSample, a, b, rngState, gamma, initialAlpha, negativeSampleRate)
+    val embedding2 = embedding.toArray.grouped(embedding.rows).toArray.transpose
+
+    val newEmbedding = optimizeLayout(embedding2, embedding2, head, tail, epochs, nVertices, epochsPerSample, a, b, rngState, gamma, initialAlpha, negativeSampleRate)
 
     newEmbedding
   }
@@ -675,26 +678,37 @@ object UMAP {
     *         j) entry of the matrix represents the membership strength of the
     *         1-simplex between the ith and jth sample points.
     */
-  private[clustering4ever] def fuzzySimplicialSet(xData: DenseMatrix[Double], nNeighbors: Int, metric: Distance, kNNIndices: Option[DenseMatrix[Int]] = None, kNNDists: Option[DenseMatrix[Double]] = None, angular: Boolean = false, setOpMixRatio: Double = 1D, lc: Double = 1D, verbose: Boolean = false): DenseMatrix[Double] = {
+  private[clustering4ever] def fuzzySimplicialSet(
+    data: Array[Array[Double]],
+    nNeighbors: Int,
+    metric: Distance,
+    kNNIndices: Option[DenseMatrix[Int]] = None,
+    kNNDists: Option[DenseMatrix[Double]] = None,
+    angular: Boolean = false,
+    setOpMixRatio: Double = 1D,
+    lc: Double = 1D,
+    verbose: Boolean = false
+  ): DenseMatrix[Double] = {
 
       val (knni, knnd) = (kNNIndices, kNNDists) match {
         case (None, _) | (_, None) =>
-            val nN = nearestNeighbors(xData, nNeighbors, metric, angular)
-            (nN._1, nN._2)
+            val (nN1, nN2, _) = nearestNeighbors(data, nNeighbors, metric, angular)
+            (nN1, nN2)
         case _ => (kNNIndices.get, kNNDists.get)
       }
 
-      val sKNND = smoothKNNDist(knnd, nNeighbors, localConnectivity = lc)
-
-      val sigmas: DenseVector[Double] = sKNND._1
-      val rhos: DenseVector[Double] = sKNND._2
+      val (sigmas, rhos): (DenseVector[Double], DenseVector[Double]) = smoothKNNDist(knnd, nNeighbors, localConnectivity = lc)
 
       val (rows, cols, vals) = membershipStrengths(knni, knnd, sigmas, rhos)
-      val result = Utils.makeMatrix(rows, cols, vals, xData.rows, xData.rows)
+
+      val result = Utils.makeMatrix(rows, cols, vals, data.size, data.size)
 
       val transpose = result.t
+
       val prodMatrix = result *:* transpose
+
       setOpMixRatio * (result + transpose - prodMatrix) + (1D - setOpMixRatio) * prodMatrix
+
   }
   /**
     * Fit a, b params for the differentiable curve used in lower
@@ -833,13 +847,14 @@ object UMAP {
   /**
    *
    */
-  private[clustering4ever] def initTransform(indices: DenseMatrix[Int], weights: DenseMatrix[Double], embedding: DenseMatrix[Double]): DenseMatrix[Double] = {
+  private[clustering4ever] def initTransform(indices: DenseMatrix[Int], weights: DenseMatrix[Double], embedding: Array[Array[Double]]): DenseMatrix[Double] = {
 
-      val result = DenseMatrix.zeros[Double](indices.rows, embedding.cols)
+      val embedingDim = embedding.head.size
+      val result = DenseMatrix.zeros[Double](indices.rows, embedingDim)
       for (i <- 0 until indices.rows) {
         for(j <- 0 until indices.cols) {
-          for (d <- 0 until embedding.cols) {
-            result(i, d) += weights(i, j) * embedding(indices(i, j), d)
+          for (d <- 0 until embedingDim) {
+            result(i, d) += weights(i, j) * embedding(indices(i, j))(d)
           }
         }
       }
@@ -954,7 +969,8 @@ object UMAP {
   * @param verbose         bool (optional, default False)
   *                        Controls verbosity of logging.
   */
-case class UMAP(val nNeighborsIn: Int = 15,
+final case class UMAP(
+  val nNeighborsIn: Int = 15,
   val nComponents: Int = 2,
   val metric: Distance = new Euclidean,
   val nEpochs: Option[Int] = None,
@@ -979,101 +995,101 @@ case class UMAP(val nNeighborsIn: Int = 15,
 
     private var graph: Option[DenseMatrix[Double]] = None
 
-    def fit(xData: DenseMatrix[Double], y: Option[DenseVector[Double]] = None): Option[UMAPModel] = {
+    def fit(xData: Array[Array[Double]], y: Option[Array[Double]] = None): Option[UMAPModel] = {
 
-        val (ares, bres) = UMAP.findABParams(spread, minDist)
+      val (ares, bres) = UMAP.findABParams(spread, minDist)
 
-        val (oneRow, nNeighbors) = if (xData.rows <= nNeighborsIn) {
-            val oneRowIn = if (xData.rows == 1) true else false
-            (oneRowIn, xData.rows - 1)
+      val (oneRow, nNeighbors) = if (xData.size <= nNeighborsIn) {
+          val oneRowIn = if (xData.size == 1) true else false
+          (oneRowIn, xData.size - 1)
+      }
+      else (false, nNeighborsIn)
+
+      if (!oneRow) {
+
+        val (knni, knnd, rpf) = UMAP.nearestNeighbors(xData, nNeighbors, metric, angularRPForest)
+
+        val g: DenseMatrix[Double] = UMAP.fuzzySimplicialSet(xData, nNeighbors, metric, Some(knni), Some(knnd), angularRPForest, setOPMixRatio, localConnectivity)
+
+        val range2 = 0 until knni.cols
+        /* Search Graph */
+        val sgAux = new DenseMatrix[Int](xData.size, xData.size)
+
+        (0 until knni.rows).par.foreach{ i =>
+          range2.foreach{ j =>
+            val value = knnd(i, j) match {
+                case 0D => 0
+                case _ => 1
+            }
+            sgAux(i, knni(i, j)) = value
+          }
         }
-        else (false, nNeighborsIn)
 
-        if (!oneRow) {
+        val lessThanTranspose: DenseMatrix[Boolean] = sgAux <:< sgAux.t
+        val sg = sgAux
+        lessThanTranspose.activeKeysIterator.foreach(key => sg(key) = sgAux(key))
 
-            val (knni, knnd, rpf) = UMAP.nearestNeighbors(xData, nNeighbors, metric, angularRPForest)
 
-            val g: DenseMatrix[Double] = UMAP.fuzzySimplicialSet(xData, nNeighbors, metric, Some(knni), Some(knnd), angularRPForest, setOPMixRatio, localConnectivity)
-
-            val range2 = 0 until knni.cols
-            /* Search Graph */
-            val sgAux = new DenseMatrix[Int](xData.rows, xData.rows)
-
-            (0 until knni.rows).par.foreach{ i =>
-              range2.foreach{ j =>
-                val value = knnd(i, j) match {
-                    case 0D => 0
-                    case _ => 1
+        val graph: Option[DenseMatrix[Double]] = if (y.isDefined) {
+            // TODO: Exception a lever si jamais la taille des deux matrices n'est pas la meme
+            val tm = targetMetric.getOrElse("categorical")
+            tm match {
+                case "categorical" => {  
+                  val fd = targetWeight match {
+                      case x if (x < 1D) => 2.5 * (1D / (1D - targetWeight))
+                      case _ => 1e12D
+                  }
+                  Some(UMAP.categoricalSimplicialSetIntersection(g, y.get.toArray, farDist = fd))
                 }
-                sgAux(i, knni(i, j)) = value
-              }
-            }
+                case _ => {  
+                  val tnn = targetNNeighbors match {
+                      case -1 => nNeighbors
+                      case _ => targetNNeighbors
+                  }
+                  val targetGraph = UMAP.fuzzySimplicialSet(y.get.map(Array(_)), tnn, targetMetric.getOrElse(new Euclidean), None, None, false, 1D, 1D, false)
 
-            val lessThanTranspose: DenseMatrix[Boolean] = sgAux <:< sgAux.t
-            val sg = sgAux
-            lessThanTranspose.activeKeysIterator.foreach(key => sg(key) = sgAux(key))
-
-
-            val graph: Option[DenseMatrix[Double]] = if (y.isDefined) {
-                // TODO: Exception a lever si jamais la taille des deux matrices n'est pas la meme
-                val tm = targetMetric.getOrElse("categorical")
-                tm match {
-                    case "categorical" => {  
-                      val fd = targetWeight match {
-                          case x if x < 1D => 2.5 * (1D / (1D - targetWeight))
-                          case _ => 1e12D
-                      }
-                      Some(UMAP.categoricalSimplicialSetIntersection(g, y.get.toArray, farDist = fd))
-                    }
-                    case _ => {  
-                      val tnn = targetNNeighbors match {
-                          case -1 => nNeighbors
-                          case _ => targetNNeighbors
-                      }
-                      val targetGraph = UMAP.fuzzySimplicialSet(y.get.toDenseMatrix, tnn, targetMetric.getOrElse(new Euclidean), None, None, false, 1D, 1D, false)
-
-                      Some(UMAP.resetLocalConnectivity(g))
-                    }
+                  Some(UMAP.resetLocalConnectivity(g))
                 }
             }
-            else None
-
-            val nbEp = nEpochs.getOrElse(0)
-
-            val embeddingOut = UMAP.simplicialSetEmbedding(g, nComponents, learningRate, ares, bres, repulsionStrength, negativeSampleRate, nbEp, init)
-
-            Some(
-              UMAPModel(
-                learnedData = xData,
-                embedding = embeddingOut,
-                nNeighbors,
-                knnIndices = knni,
-                knnDists = knnd,
-                rpForest = rpf,
-                graphX = if (graph.isEmpty) g else graph.get,
-                searchGraph = sg,
-                a = ares,
-                b = bres,
-                nEpochs,
-                repulsionStrength,
-                negativeSampleRate,
-                metric,
-                localConnectivity,
-                transformQueueSize,
-                transformSeed,
-                initialAlpha = learningRate
-              )
-            )
-
         }
         else None
+
+        val nbEp = nEpochs.getOrElse(0)
+
+        val embeddingOut = UMAP.simplicialSetEmbedding(g, nComponents, learningRate, ares, bres, repulsionStrength, negativeSampleRate, nbEp, init)
+
+        Some(
+          UMAPModel(
+            learnedData = xData,
+            embedding = embeddingOut,
+            nNeighbors,
+            knnIndices = knni,
+            knnDists = knnd,
+            rpForest = rpf,
+            graphX = if (graph.isEmpty) g else graph.get,
+            searchGraph = sg,
+            a = ares,
+            b = bres,
+            nEpochs,
+            repulsionStrength,
+            negativeSampleRate,
+            metric,
+            localConnectivity,
+            transformQueueSize,
+            transformSeed,
+            initialAlpha = learningRate
+          )
+        )
+
+      }
+      else None
     }
 
 }
 
 case class UMAPModel(
-  val learnedData: DenseMatrix[Double],
-  val embedding: DenseMatrix[Double],
+  val learnedData: Array[Array[Double]],
+  val embedding: Array[Array[Double]],
   val nNeighbors: Int,
   val knnIndices: DenseMatrix[Int],
   val knnDists: DenseMatrix[Double],
@@ -1092,45 +1108,58 @@ case class UMAPModel(
   val initialAlpha: Double
 ) {
 
-    def transform(xData: DenseMatrix[Double]): DenseMatrix[Double] = {
-        if (embedding.rows <= 1) throw new IllegalArgumentException("Transform unavailable with only a single data sample")
+    def transform(xData: Array[Array[Double]]): Array[Array[Double]] = {
+        if (embedding.size <= 1) throw new IllegalArgumentException("Transform unavailable with only a single data sample")
 
         val rand = new Random(transformSeed)
         val rangeState: Array[Long] = Array.fill(3) {rand.nextLong()}
 
         val init = NNDescent.initialiseSearch(rpForest, learnedData, xData, (transformQueueSize  * nNeighbors).toInt, rangeState, metric)
+
         val search = NNDescent.makeInitialisedNNDSearch(metric) _
+
         val res = search(learnedData, init, xData)
 
         val (allindices, alldists) = res.deheapSort
-        val indices = allindices(::, 0 until nNeighbors)
-        val dists = alldists(::, 0 until nNeighbors)
+        
+        val indices: DenseMatrix[Int] = allindices(::, 0 until nNeighbors)
+
+        val dists: DenseMatrix[Double] = alldists(::, 0 until nNeighbors)
+        
         val adjustedLocalConnectivity = max(0D, localConnectivity - 1D)
-        val smooth = UMAP.smoothKNNDist(dists, nNeighbors, localConnectivity = adjustedLocalConnectivity)
 
-        val (rows, cols, vals) = UMAP.membershipStrengths(indices, dists, smooth._1, smooth._2)
-        val graph = Utils.makeMatrix(rows, cols, vals, xData.rows, learnedData.rows)
+        val (smooth1, smooth2) = UMAP.smoothKNNDist(dists, nNeighbors, localConnectivity = adjustedLocalConnectivity)
 
+        val (rows, cols, vals) = UMAP.membershipStrengths(indices, dists, smooth1, smooth2)
+        val graph = Utils.makeMatrix(rows, cols, vals, xData.size, learnedData.size)
 
         val normalizedGraph = normalize(graph, Axis._1, 1)
-        val wei = DenseVector((for (i <- 0 until rows.length) yield normalizedGraph(rows(i), cols(i))): _*)
-        val inds = cols.toDenseMatrix.reshape(nNeighbors, xData.rows).t
-        val weights = wei.toDenseMatrix.reshape(nNeighbors, xData.rows).t
+       
+        val preWei = (0 until rows.length).map( i => normalizedGraph(rows(i), cols(i)) )
+        val wei = DenseVector(preWei: _*)
+       
+        val inds = cols.toDenseMatrix.reshape(nNeighbors, xData.size).t
+        val weights = wei.toDenseMatrix.reshape(nNeighbors, xData.size).t
 
         val emb = UMAP.initTransform(indices, weights, embedding)
+        val emb2 = emb.toArray.grouped(emb.rows).toArray.transpose
+
         val nbEp = nEpochs.map(_ / 3).getOrElse(if (graph.rows <= 10000) 100 else 30)
         val limit = max(graph) / nbEp.toDouble
-        val lessThanLimit = graph.findAll(n => n < limit && n != 0)
-        lessThanLimit.foreach(key => graph(key) = 0D)
+       
+        val lessThanLimit = graph.findAll( n => n < limit && n != 0 )
+        lessThanLimit.foreach( key => graph(key) = 0D )
+       
         val nzv = Sparse.nonZeroValues(graph)
         val nzr = Sparse.nonZeroRows(graph)
         val nzc = Sparse.nonZeroCols(graph)
+       
         val epochsPerSample = UMAP.makeEpochsPerSample(nzv, nbEp)
 
-        val head = DenseVector(nzr)
-        val tail = DenseVector(nzc)
+        val head = nzr
+        val tail = nzc
 
-        UMAP.optimizeLayout(emb, embedding, head, tail, nbEp, graph.cols, epochsPerSample, a, b, Array(2, 1, 1), repulsionStrength, initialAlpha, negativeSampleRate
+        UMAP.optimizeLayout(emb2, embedding, head, tail, nbEp, graph.cols, epochsPerSample, a, b, Array(2, 1, 1), repulsionStrength, initialAlpha, negativeSampleRate
         )
     }
 

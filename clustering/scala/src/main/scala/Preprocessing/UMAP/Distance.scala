@@ -12,11 +12,11 @@ import breeze.linalg._
 import breeze.numerics._
 
 trait Distance {
-    def apply(x: DenseVector[Double], y: DenseVector[Double]): Double
+    def apply(x: Array[Double], y: Array[Double]): Double
 }
 
 final case class Euclidean() extends Distance {
-  def apply(x: DenseVector[Double], y: DenseVector[Double]): Double = {
+  def apply(x: Array[Double], y: Array[Double]): Double = {
 
     @annotation.tailrec
     def go(i: Int, result: Double): Double = {
@@ -32,7 +32,7 @@ final case class Euclidean() extends Distance {
 }
 
 final case class Hamming() extends Distance {
-  def apply(x: DenseVector[Double], y: DenseVector[Double]): Double = {
+  def apply(x: Array[Double], y: Array[Double]): Double = {
 
     @annotation.tailrec
     def go(i: Int, result: Double): Double = {
@@ -49,7 +49,7 @@ final case class Hamming() extends Distance {
 
 final case class Minkowski(p: Int) extends Distance {
 
-  def apply(x: DenseVector[Double], y: DenseVector[Double]): Double = {
+  def apply(x: Array[Double], y: Array[Double]): Double = {
 
     @annotation.tailrec
     def go(i: Int, result: Double): Double = {

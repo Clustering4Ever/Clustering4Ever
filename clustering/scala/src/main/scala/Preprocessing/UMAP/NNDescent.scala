@@ -18,7 +18,7 @@ object NNDescent {
 
     def makeNNDescent(
         dist: Distance)(
-        data: DenseMatrix[Double],
+        data: Array[Array[Double]],
         nNeighbors: Int,
         rngState: Array[Long],
         maxCandidates: Int = 50,
@@ -30,37 +30,39 @@ object NNDescent {
         verbose: Boolean = false
     ): (DenseMatrix[Int], DenseMatrix[Double]) = {
 
-
-        val t00 = System.currentTimeMillis
-
-        val nVertices = data.rows
+        val nVertices = data.size
         val currentGraph = Heap(nVertices, nNeighbors)
         val leafArrayD = leafArray.getOrElse(DenseMatrix.zeros[Int](1, 1))
         val indices: Array[Long] = Utils.rejectionSample(nNeighbors, nVertices, rngState)
         val rangeIn1 = (0 until indices.length)
+        val pRange = (0 until nVertices).par
 
-        (0 until nVertices).foreach{ i =>
-            rangeIn1.foreach{ j =>
-                val y = data(indices(j).toInt, ::).t
-                val x = data(i, ::).t
+        pRange.flatMap{ i =>
+            rangeIn1.map{ j =>
+                val y = data(indices(j).toInt)
+                val x = data(i)
                 val d: Double = dist(x, y)
-                currentGraph.push(i, d, indices(j).toInt, 1)
-                currentGraph.push(indices(j).toInt, d, i, 1)
+                (i, j, d)
             }
+        }.seq.foreach{ case (i, j, d) =>
+            currentGraph.push(i, d, indices(j).toInt, 1)
+            currentGraph.push(indices(j).toInt, d, i, 1)
         }
 
         val currentGraph2 = Heap(nVertices, nNeighbors)
         val indices2: Array[Long] = Utils.rejectionSample(nNeighbors, nVertices, rngState)
         val rangeIn2 = indices2.indices
-        (0 until nVertices).foreach{ i =>
-            rangeIn2.foreach{ j =>
-                val y = data(indices2(j).toInt, ::).t
-                val x = data(i, ::).t
-                val d: Double = dist(x, y)
-                currentGraph2.push(i, d, indices2(j).toInt, 1)
-                currentGraph2.push(indices2(j).toInt, d, i, 1)
-            }
 
+        pRange.flatMap{ i =>
+            rangeIn1.map{ j =>
+                val y = data(indices2(j).toInt)
+                val x = data(i)
+                val d: Double = dist(x, y)
+                (i, j, d)
+            }
+        }.seq.foreach{ case (i, j, d) =>
+            currentGraph2.push(i, d, indices2(j).toInt, 1)
+            currentGraph2.push(indices2(j).toInt, d, i, 1)
         }
 
         if (rpTreeInit) {
@@ -74,8 +76,8 @@ object NNDescent {
                             @annotation.tailrec
                             def go1j(j: Int): Unit = {
                                 if (j < leafArrayD.cols && leafArrayD(n, j) > 0) {
-                                    val x = data(leafArrayD(n, i), ::).t
-                                    val y = data(leafArrayD(n, j), ::).t
+                                    val x = data(leafArrayD(n, i))
+                                    val y = data(leafArrayD(n, j))
                                     val d: Double = dist(x, y)
                                     currentGraph.push(leafArrayD(n, i), d, leafArrayD(n, j), 1)
                                     currentGraph.push(leafArrayD(n, j), d, leafArrayD(n, i), 1)
@@ -106,7 +108,7 @@ object NNDescent {
                 val q = candidateNeighbors.indices(i, k)
                 if (q < 0 || (candidateNeighbors.flags(i, j) == 0) && (candidateNeighbors.flags(i, k) == 0)) go2c(i, j, p, k + 1, sumCk)
                 else {
-                    val d: Double = dist(data(p, ::).t, data(q, ::).t)
+                    val d: Double = dist(data(p), data(q))
                     val sum = sumCk + currentGraph.push(p, d, q, 1) + currentGraph.push(q, d, p, 1)
                     go2c(i, j, p, k + 1, sum)
                 }
@@ -157,8 +159,8 @@ object NNDescent {
 
     }
 
-    type InitFromRandom = (Int, DenseMatrix[Double], DenseMatrix[Double], Heap, Array[Long]) => Unit
-    type InitFromTree = (FlatTree, DenseMatrix[Double], DenseMatrix[Double], Heap, Array[Long]) => Unit
+    type InitFromRandom = (Int, Array[Array[Double]], Array[Array[Double]], Heap, Array[Long]) => Unit
+    type InitFromTree = (FlatTree, Array[Array[Double]], Array[Array[Double]], Heap, Array[Long]) => Unit
 
     def makeInitialisation(dist: Distance): (InitFromRandom, InitFromTree) = {
 
@@ -166,17 +168,17 @@ object NNDescent {
             @annotation.tailrec
             def go(i: Int): Unit = {
 
-                if (i < qp.rows) {
+                if (i < qp.size) {
 
-                    val indices: Array[Long] = Utils.rejectionSample(nn, data.rows, rngState)
+                    val indices: Array[Long] = Utils.rejectionSample(nn, data.size, rngState)
 
                     @annotation.tailrec
                     def go2(j: Int): Unit = {
                         if (j < indices.length) {
                             if (indices(j) < 0) go2(j + 1)
                             else {
-                                val x = data(indices(j).toInt, ::).t
-                                val y = qp(i, ::).t
+                                val x = data(indices(j).toInt)
+                                val y = qp(i)
                                 val d: Double = dist(x, y)
                                 h.push(i, d, indices(j).toInt, 1)
                                 go2(j + 1)
@@ -196,15 +198,15 @@ object NNDescent {
         val initFromTree: InitFromTree = (tree, data, qp, h, rngState) => {
             @annotation.tailrec
             def goi(i: Int): Unit = {
-                if (i < qp.rows) {
-                    val indices: DenseVector[Int] = tree.searchFlatTree(qp(i, ::).t, rngState)
+                if (i < qp.size) {
+                    val indices: DenseVector[Int] = tree.searchFlatTree(qp(i), rngState)
                     @annotation.tailrec
                     def goj(j: Int): Unit = {
                         if (j < indices.length) {
                             if (indices(j) < 0) goj(j + 1)
                             else {
-                                val x = data(indices(j), ::).t
-                                val y = qp(i, ::).t
+                                val x = data(indices(j))
+                                val y = qp(i)
                                 val d: Double = dist(x, y)
                                 h.push(i, d, indices(j), 1)
                                 goj(j + 1)
@@ -232,9 +234,9 @@ object NNDescent {
       *
       * @return results : Heap
       */
-    def initialiseSearch(forest: Forest, data: DenseMatrix[Double], queryPoints: DenseMatrix[Double], nNeighbors: Int, rngState: Array[Long], dist: Distance): Heap = {
+    def initialiseSearch(forest: Forest, data: Array[Array[Double]], queryPoints: Array[Array[Double]], nNeighbors: Int, rngState: Array[Long], dist: Distance): Heap = {
         val (initFromRandom, initFromTree) = makeInitialisation(dist)
-        val results = Heap(queryPoints.rows, nNeighbors)
+        val results = Heap(queryPoints.size, nNeighbors)
         initFromRandom(nNeighbors, data, queryPoints, results, rngState)
 
         if (forest.trees.nonEmpty) {
@@ -254,20 +256,20 @@ object NNDescent {
       *
       * @return initilization : Heap
       */
-    def makeInitialisedNNDSearch(dist: Distance)(data: DenseMatrix[Double], initialization: Heap, queryPoints: DenseMatrix[Double]): Heap = {
+    def makeInitialisedNNDSearch(dist: Distance)(data: Array[Array[Double]], initialization: Heap, queryPoints: Array[Array[Double]]): Heap = {
         @annotation.tailrec
         def initNNDSearchRec(i: Int, init: Heap): Heap = {
-            if (i < queryPoints.rows) {
+            if (i < queryPoints.size) {
                 @annotation.tailrec
                 def go(tried: mutable.ArrayBuffer[Int]): Unit = {
                     val vertex: Int = init.smallestFlagged(i)
                     vertex match {
                         case -1 => Unit
                         case _ => {
-                            val candidates = data(vertex, ::).t.findAll(_ == 0)
-                            candidates.foreach { c =>
+                            val candidates = new DenseVector(data(vertex)).findAll(_ == 0)
+                            candidates.foreach{ c =>
                                 if (c != vertex && c != -1 && ! tried.contains(c)) {
-                                    val d = dist(data(c, ::).t, queryPoints(i, ::).t)
+                                    val d = dist(data(c), queryPoints(i))
                                     init.uncheckedPush(i, d, c, 1)
                                     tried += c
                                 }
