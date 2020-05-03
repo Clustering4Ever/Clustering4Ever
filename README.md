@@ -9,7 +9,7 @@
 
 Add following line in your build.sbt :
 
-  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.7"` to your `libraryDependencies`
+  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.8"` to your `libraryDependencies`
 
 Eventually add one of these resolvers :
 
@@ -40,7 +40,7 @@ You can also take specifics parts (Core, ScalaClustering, ...) from [Bintray](ht
     * _Folding-Spectral_, _Unfolding-Spectral_, _Thresholding Sum Of Squared Trajectory Length_, _Thresholding Individuals Trajectory Length_, _Recursive Biclustering_, _Multiple Biclustering_
   * _Ant-Tree_
     * _Continuous Ant-Tree_, _Binary Ant-Tree_, _Mixed Ant-Tree_
-  * **DC-DPM** ([Original project](https://github.com/khadidjaM/DC-DPM))
+  * **DC-DPM** ([Original project](https://github.com/khadidjaM/DC-DPM)) - Distributed Clustering based on Dirichlet Process Mixture
   * **SG2Stream**
  
 Algorithm followed with a `*` can be executed by benchmarking classes.

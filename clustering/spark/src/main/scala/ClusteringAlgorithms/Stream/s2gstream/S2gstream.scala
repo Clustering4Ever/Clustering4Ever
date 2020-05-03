@@ -102,7 +102,7 @@ class S2gstream(
     streamData : Array[RDD[PointObj]],
     trueLabels : Array[Int],
     arrayData : Array[Array[Double]]
-  ) {
+  ): S2gstreamModel = {
 
     val k = 60
     val b = 3

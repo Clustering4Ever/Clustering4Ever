@@ -148,10 +148,10 @@ final case class EuclideanRPSplit(val data: Array[Array[Double]], val indices: m
             if (res < 0) res + b
             else res
         }
-        val alea1 = Utils.tauRandInt(rngState)
-        val alea2 = Utils.tauRandInt(rngState)
-        val indexL = mod(alea1, nbPoints)
-        var indexR = mod(alea2, nbPoints)
+
+        val indexL = rand.nextInt(nbPoints)
+        var indexR = rand.nextInt(nbPoints)
+
         if (indexR == indexL) indexR = indexR + 1
         indexR = indexR % nbPoints
 
