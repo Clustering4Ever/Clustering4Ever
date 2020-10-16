@@ -87,3 +87,19 @@ trait PreprocessingAlgorithmNature extends Serializable
  *
  */
 final case object GradientAscent extends PreprocessingAlgorithmNature
+/**
+  *
+  */
+final case object Optics extends ClusteringAlgorithmNature
+/**
+  *
+  */
+final case object OpticsScalar extends ClusteringAlgorithmNature
+/**
+  *
+  */
+final case object OpticsBinary extends ClusteringAlgorithmNature
+/**
+  *
+  */
+final case object OpticsMixed extends ClusteringAlgorithmNature

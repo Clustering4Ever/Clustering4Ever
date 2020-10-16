@@ -30,7 +30,8 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 )
 
 lazy val scalaDeps = libraryDependencies ++= Seq(
-	    "org.scala-graph" %% "graph-core" % "1.12.5"
+    "org.scala-graph" %% "graph-core" % "1.12.5", 
+	"org.scalaz" %% "scalaz-core" % "7.3.2"
 )
 
 lazy val commonCredentialsAndResolvers = Seq(
