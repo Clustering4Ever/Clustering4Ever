@@ -22,8 +22,8 @@ lazy val coreDeps = libraryDependencies ++= Seq(
 	"org.apache.commons" % "commons-math3" % "3.4.1",
 	"org.scalatest" % "scalatest_2.10" % "2.0" % "test",
 	"com.thesamet" %% "kdtree" % "1.0.4",
-	"org.scalanlp" %% "breeze-natives" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
-	"org.scalanlp" %% "breeze" % "0.13.2",//exclude("com.github.fommil.netlib", "core") exclude("org.apache.commons", "commons-math3"),
+	"org.scalanlp" %% "breeze-natives" % "0.13.2",
+	"org.scalanlp" %% "breeze" % "0.13.2",
 	"org.typelevel" %% "spire" % "0.14.1",
 	"com.chuusai" %% "shapeless" % "2.3.3",
 	compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -49,9 +49,8 @@ lazy val commonCredentialsAndResolvers = Seq(
 lazy val commonSettingsC4E = Seq(
 		organization := "org.clustering4ever",
 		bintrayRepository := "C4E",
-	 	version := "0.9.8",
+	 	version := "0.11.0",
 		scalaVersion := "2.11.12",
-		// conflictManager := ConflictManager.all,
 		autoAPIMappings := true,
 		licenses += ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html")),
 		bintrayOrganization := Some("clustering4ever"),
@@ -84,9 +83,6 @@ lazy val clustering4ever = (project in file("clustering4ever"))
 	.enablePlugins(ScalaUnidocPlugin)
 	.dependsOn(clusteringSpark)
 	.aggregate(core, clusteringScala, clusteringSpark)
-
-// Sonatype deployment
-// useGpg := true
 
 publishTo := sonatypePublishTo.value
 
