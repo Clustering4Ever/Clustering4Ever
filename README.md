@@ -9,7 +9,7 @@
 
 Add following line in your build.sbt :
 
-  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.9.8"` to your `libraryDependencies`
+  * `"org.clustering4ever" % "clustering4ever_2.11" % "0.11.0"` to your `libraryDependencies`
 
 Eventually add one of these resolvers :
 
@@ -31,10 +31,12 @@ You can also take specifics parts (Core, ScalaClustering, ...) from [Bintray](ht
     * **_Scalar Epsilon Proximity_**`*`, _Binary Epsilon Proximity_`*`, _Mixed Epsilon Proximity_`*`, _Any Object Epsilon Proximity_`*`
   * **_K-Centers_**`*`
     * **_K-Means_**`*`, **_K-Modes_**`*`, **_K-Prototypes_**`*`, **_Any Object K-Centers_**`*`
+  * _Gaussian Mixtures_ 
   * **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
   * **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
   * **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
-  * _Random Local Area_ *
+  * _Random Local Area_ `*`
+  * _OPTICS_
   * **Clusterwize** 
   * _Tensor Biclustering algorithms_ ([Original project](https://github.com/SoheilFeizi/Tensor-Biclustering))
     * _Folding-Spectral_, _Unfolding-Spectral_, _Thresholding Sum Of Squared Trajectory Length_, _Thresholding Individuals Trajectory Length_, _Recursive Biclustering_, _Multiple Biclustering_
@@ -84,12 +86,9 @@ Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to
   * **[FunCLBM: Functional Conditional Latent Block Model](https://github.com/EtienneGof/FunCLBM) **
   * **[Spark Time Series Set data analysis](https://github.com/spark-tss/spark-tss) **
   * **[UMAP](https://github.com/lmcinnes/umap)**
-  * **_Gaussian Mixture Models_**
-  * **_DBScan_**
-  * **Time Series K-Means**
+  * **Gaussian Mixture Models**
+  * _DBScan_
   * **[Bayesian Optimization for AutoML](https://github.com/YazidJanati/bayestuner-scala)**
-  
-  And many sweat suprises are under developpement.
 
 
 ## Citation

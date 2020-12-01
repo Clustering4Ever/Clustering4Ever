@@ -2,6 +2,9 @@
 *.log
 *.iml
 .idea/
+.bloop/
+.metals/
+.bsp/
 clustering/target/
 clustering4Ever/target
 core/target/
