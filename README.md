@@ -77,10 +77,15 @@ Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ 
 
 Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to describe obtained clustering in term of distributions, proportions of categorical features...
 
-### Incoming soon
+### Incoming soon (developped by our team)
   
   * **[DESOM:Deep Embedded Self-Organizing Map: Joint Representation Learning and Self-Organization](https://github.com/FlorentF9/DESOM)**
   * **[SOM:Kohonen self-organizing map](https://github.com/FlorentF9/sparkml-som)**
+  * **[SOMperf: SOM performance metrics and quality indices](https://github.com/FlorentF9/SOMperf/**
+  * **[skstab is a module for clustering stability analysis in Python with a scikit-learn compatible API](https://github.com/FlorentF9/skstab **
+  * **[FunCLBM: Functional Conditional Latent Block Model](https://github.com/EtienneGof/FunCLBM) **
+  * **[Spark Time Series Set data analysis](https://github.com/spark-tss/spark-tss) **
+  * **[UMAP](https://github.com/lmcinnes/umap)**
   * **Gaussian Mixture Models**
   * _DBScan_
   * **[Bayesian Optimization for AutoML](https://github.com/YazidJanati/bayestuner-scala)**
