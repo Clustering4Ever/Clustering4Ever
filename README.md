@@ -1,7 +1,7 @@
 # Clustering :four: Ever  [ ![Download](https://api.bintray.com/packages/clustering4ever/C4E/clustering4ever/images/download.svg) ](https://bintray.com/clustering4ever/C4E/clustering4ever/_latestVersion) [![Maven Central](https://img.shields.io/maven-central/v/org.clustering4ever/clustering4ever_2.11.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.clustering4ever%22%20AND%20a:%22clustering4ever_2.11%22) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Clustering4Ever/Notebooks/master)
 
 
-**Welcome** to Clustering:four:Ever, a Big Data Clustering Library gathering clustering, unsupervized algorithms, and quality indices. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
+**Welcome** to Clustering:four:Ever, a Big Data Clustering Library gathering clustering, unsupervised algorithms, and quality indices. Don't hesitate to check our **[Wiki](https://github.com/Clustering4Ever/Clustering4Ever/wiki)**, ask questions or make recommendations in our **[Gitter](https://gitter.im/Clustering4Ever/Lobby)**.
 
 ## [API documentation](http://www.clustering4ever.org/API%20Documentation/)
 
@@ -31,16 +31,16 @@ You can also take specifics parts (Core, ScalaClustering, ...) from [Bintray](ht
     * **_Scalar Epsilon Proximity_**`*`, _Binary Epsilon Proximity_`*`, _Mixed Epsilon Proximity_`*`, _Any Object Epsilon Proximity_`*`
   * **_K-Centers_**`*`
     * **_K-Means_**`*`, **_K-Modes_**`*`, **_K-Prototypes_**`*`, **_Any Object K-Centers_**`*`
-  * _Gaussian Mixtures_ 
+  * _Gaussian Mixture_ 
   * **Self Organizing Maps** ([Original project](https://github.com/TugdualSarazin/spark-clustering))
   * **G-Stream** ([Original project](https://github.com/Spark-clustering-notebook/G-stream))
   * **PatchWork** ([Original project](https://github.com/crim-ca/patchwork))
   * _Random Local Area_ `*`
-  * _OPTICS_
+  * _OPTICS_ `*`
   * **Clusterwize** 
   * _Tensor Biclustering algorithms_ ([Original project](https://github.com/SoheilFeizi/Tensor-Biclustering))
     * _Folding-Spectral_, _Unfolding-Spectral_, _Thresholding Sum Of Squared Trajectory Length_, _Thresholding Individuals Trajectory Length_, _Recursive Biclustering_, _Multiple Biclustering_
-  * _Ant-Tree_
+  * _Ant-Tree_ `*`
     * _Continuous Ant-Tree_, _Binary Ant-Tree_, _Mixed Ant-Tree_
   * **DC-DPM** ([Original project](https://github.com/khadidjaM/DC-DPM)) - Distributed Clustering based on Dirichlet Process Mixture
   * **SG2Stream**
@@ -71,29 +71,29 @@ You can realize manually your quality measures with dedicated class for local or
 
 ### Clustering benchmarking and analysis
 
-Using classes _ClusteringChainingLocal_, _BigDataClusteringChaining_, _DistributedClusteringChaining_, and _ChainingOneAlgorithm_ descendants you have the possibility to run multiple clustering algorithms respectively **locally and parallely**, **in a sequentially distributed way**, and **parallely on a distributed system**, **locally and parallely**, generate many different vectorizations of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
+Using classes _ClusteringChainingLocal_, _BigDataClusteringChaining_, _DistributedClusteringChaining_, and _ChainingOneAlgorithm_ descendants you have the possibility to run multiple clustering algorithms respectively **locally and parallel**, **in a sequentially distributed way**, and **parallel on a distributed system**, **locally and parallel**, generate much vectorization of the data whilst keeping active information on each clustering including **used vectorization, clustering model, clustering number and clustering arguments**.
 
 Classes _ClustersIndicesAnalysisLocal_ and _ClustersIndicesAnalysisDistributed_ are devoted for clustering indices analysis.
 
-Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be use to describe obtained clustering in term of distributions, proportions of categorical features...
+Classes _ClustersAnalysisLocal_ and _ClustersAnalysisDistributed_ will be used to describe obtained clustering in terms of distributions, proportions of categorical features...
 
 ### Incoming soon (developped by our team)
   
   * **[DESOM:Deep Embedded Self-Organizing Map: Joint Representation Learning and Self-Organization](https://github.com/FlorentF9/DESOM)**
   * **[SOM:Kohonen self-organizing map](https://github.com/FlorentF9/sparkml-som)**
-  * **[SOMperf: SOM performance metrics and quality indices](https://github.com/FlorentF9/SOMperf/**
-  * **[skstab is a module for clustering stability analysis in Python with a scikit-learn compatible API](https://github.com/FlorentF9/skstab **
-  * **[FunCLBM: Functional Conditional Latent Block Model](https://github.com/EtienneGof/FunCLBM) **
-  * **[Spark Time Series Set data analysis](https://github.com/spark-tss/spark-tss) **
+  * **[SOMperf: SOM performance metrics and quality indices](https://github.com/FlorentF9/SOMperf/)**
+  * **[skstab is a module for clustering stability analysis in Python with a scikit-learn compatible API](https://github.com/FlorentF9/skstab)**
+  * **[FunCLBM: Functional Conditional Latent Block Model](https://github.com/EtienneGof/FunCLBM)**
+  * **[Spark Time Series Set data analysis](https://github.com/spark-tss/spark-tss)**
   * **[UMAP](https://github.com/lmcinnes/umap)**
-  * **Gaussian Mixture Models**
+  * **Gaussian Mixture**
   * _DBScan_
   * **[Bayesian Optimization for AutoML](https://github.com/YazidJanati/bayestuner-scala)**
 
 
 ## Citation
 
-If you publish material based on informations obtained from this repository, then, in your acknowledgements, please note the assistance you received by using this community work. This will help others to obtain the same informations and **replicate your experiments**, because having results is cool but being able to compare to others is better.
+If you publish material based on information obtained from this repository, then, in your acknowledgements, please note the assistance you received by using this community work. This will help others to obtain the same information and **replicate your experiments**, because having results is cool but being able to compare to others is better.
 Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Ever“, institution = “Paris 13 University, LIPN UMR CNRS 7030”}`
 
 ## C4E-Notebooks examples
@@ -101,13 +101,13 @@ Citation: `@misc{C4E, url = “https://github.com/Clustering4Ever/Clustering4Eve
 Basic usages of implemented algorithms are exposed with **BeakerX and Jupyter notebook** through binder :arrow_right:
  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Clustering4Ever/Notebooks/master).
 
-They also can be download directly from our [Notebooks](https://github.com/Clustering4Ever/Notebooks) repository under different format as **Jupyter** or **SparkNotebook**.
+They also can be downloaded directly from our [Notebooks](https://github.com/Clustering4Ever/Notebooks) repository under different format as **Jupyter** or **SparkNotebook**.
 
 ## Miscellaneous
 
 ### Helper functions to generate Clusterizable collections 
 
-You can easily generate your collections with basic Clusterizable using helpers in `org.clustering4ever.util.{ArrayAndSeqTowardGVectorImplicit, ScalaCollectionImplicits, SparkImplicits}` or explore Clusterizable and EasyClusterizable for more advanced usages.
+You can easily generate your collections with basic `Clusterizable` using helpers in `org.clustering4ever.util.{ArrayAndSeqTowardGVectorImplicit, ScalaCollectionImplicits, SparkImplicits}` or explore `Clusterizable` and `EasyClusterizable` for more advanced usages.
 
 ### [References](https://github.com/Clustering4Ever/Clustering4Ever/wiki/5.-References)
 

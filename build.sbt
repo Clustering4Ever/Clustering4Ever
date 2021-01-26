@@ -12,10 +12,10 @@ lazy val mergeStrategyC4E = assemblyMergeStrategy in assembly := {
 }
 
 lazy val sparkDeps = libraryDependencies ++= Seq(
-	   	"org.apache.spark" %% "spark-core" % sparkVersion % "provided",
+	  "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
 		"org.apache.spark"  %% "spark-mllib"  % sparkVersion % "provided",
-		// Replace by breeze matrix
-    	"gov.nist.math" % "jama" % "1.0.3"
+//	Replace by breeze matrix
+    "gov.nist.math" % "jama" % "1.0.3"
 )
 
 lazy val coreDeps = libraryDependencies ++= Seq(
@@ -65,24 +65,24 @@ lazy val core = (project in file("core"))
 	.settings(mergeStrategyC4E)
 	.settings(coreDeps)
 
-lazy val clusteringScala = (project in file("clustering/scala"))
+lazy val unsupLocal = (project in file("local"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
 	.settings(scalaDeps)
 	.dependsOn(core)
 
-lazy val clusteringSpark = (project in file("clustering/spark"))
+lazy val unsupDist = (project in file("distributed"))
 	.settings(commonSettingsC4E:_*)
 	.settings(mergeStrategyC4E)
 	.settings(sparkDeps)
-	.dependsOn(clusteringScala)
+	.dependsOn(unsupLocal)
 
 lazy val clustering4ever = (project in file("clustering4ever"))
 	.settings(commonSettingsC4E: _*)
   	.settings(name := "Clustering4Ever")
 	.enablePlugins(ScalaUnidocPlugin)
-	.dependsOn(clusteringSpark)
-	.aggregate(core, clusteringScala, clusteringSpark)
+	.dependsOn(unsupDist)
+	.aggregate(core, unsupLocal, unsupDist)
 
 publishTo := sonatypePublishTo.value
 
